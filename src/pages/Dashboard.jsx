@@ -32,6 +32,12 @@ export default function Dashboard() {
 
   return (
     <div>
+      {/* Header */}
+      <div className="px-4 pt-4 pb-2">
+        <h1 className="text-xl font-bold text-foreground tracking-wide">Aerodyne Fleet LLC</h1>
+        <p className="text-xs text-muted-foreground">Out of Service Tracker</p>
+      </div>
+
       {/* Search */}
       <div className="px-4 pt-3">
         <div className="relative">
