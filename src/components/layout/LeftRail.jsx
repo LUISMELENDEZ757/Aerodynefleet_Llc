@@ -1,10 +1,10 @@
 import React from 'react';
 import { Link, useLocation } from 'react-router-dom';
-import { Plane, LayoutDashboard, Plus, ClipboardList, Settings } from 'lucide-react';
+import { Plane, Home, Plus, Settings } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 const NAV_ITEMS = [
-  { icon: LayoutDashboard, label: 'Dashboard', path: '/Dashboard' },
+  { icon: Home, label: 'Home', path: '/Dashboard' },
   { icon: Plus, label: 'New OOS', path: '/NewOOS' },
 ];
 
