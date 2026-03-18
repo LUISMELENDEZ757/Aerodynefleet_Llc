@@ -1,14 +1,16 @@
 import React from 'react';
 import { Outlet } from 'react-router-dom';
-import AppHeader from './AppHeader';
+import LeftRail from './LeftRail';
 
 export default function AppLayout() {
   return (
-    <div className="min-h-screen bg-background">
-      <AppHeader />
-      <main className="pb-20">
-        <Outlet />
-      </main>
+    <div className="min-h-screen bg-background flex">
+      <LeftRail />
+      <div className="flex-1 ml-16 min-h-screen">
+        <main className="pb-20">
+          <Outlet />
+        </main>
+      </div>
     </div>
   );
 }
