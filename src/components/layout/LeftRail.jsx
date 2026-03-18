@@ -4,7 +4,7 @@ import { Plane, Home, Plus, Settings } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 const NAV_ITEMS = [
-  { icon: Home, label: 'Home', path: '/Dashboard' },
+  { icon: Home, label: 'Home', path: '/Home' },
   { icon: Plus, label: 'New OOS', path: '/NewOOS' },
 ];
 

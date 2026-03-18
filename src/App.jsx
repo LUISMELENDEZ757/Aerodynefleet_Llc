@@ -7,6 +7,7 @@ import { AuthProvider, useAuth } from '@/lib/AuthContext';
 import UserNotRegisteredError from '@/components/UserNotRegisteredError';
 import { Navigate } from 'react-router-dom';
 import AppLayout from '@/components/layout/AppLayout';
+import Home from '@/pages/Home';
 import Dashboard from '@/pages/Dashboard';
 import OOSDetail from '@/pages/OOSDetail';
 import NewOOS from '@/pages/NewOOS';
@@ -38,7 +39,8 @@ const AuthenticatedApp = () => {
   return (
     <Routes>
       <Route element={<AppLayout />}>
-        <Route path="/" element={<Navigate to="/Dashboard" replace />} />
+        <Route path="/" element={<Navigate to="/Home" replace />} />
+        <Route path="/Home" element={<Home />} />
         <Route path="/Dashboard" element={<Dashboard />} />
         <Route path="/OOSDetail" element={<OOSDetail />} />
         <Route path="/NewOOS" element={<NewOOS />} />
