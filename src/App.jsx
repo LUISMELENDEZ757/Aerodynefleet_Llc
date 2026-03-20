@@ -12,6 +12,7 @@ import Dashboard from '@/pages/Dashboard';
 import OOSDetail from '@/pages/OOSDetail';
 import NewOOS from '@/pages/NewOOS';
 import FlightAttendantDashboard from '@/pages/FlightAttendantDashboard';
+import FlightCrewDashboard from '@/pages/FlightCrewDashboard';
 
 const AuthenticatedApp = () => {
   const { isLoadingAuth, isLoadingPublicSettings, authError, navigateToLogin } = useAuth();
@@ -46,6 +47,7 @@ const AuthenticatedApp = () => {
         <Route path="/OOSDetail" element={<OOSDetail />} />
         <Route path="/NewOOS" element={<NewOOS />} />
         <Route path="/FlightAttendant" element={<FlightAttendantDashboard />} />
+        <Route path="/FlightCrew" element={<FlightCrewDashboard />} />
       </Route>
       <Route path="*" element={<PageNotFound />} />
     </Routes>
