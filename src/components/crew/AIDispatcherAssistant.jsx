@@ -30,7 +30,10 @@ function buildContext(crew, flights, releases = [], oosEntries = []) {
     `${o.tail_number} OOS at ${o.station || '?'} | ${o.work_description} | Status: ${o.status}`
   ).join('\n');
 
-  return `You are an AI Dispatcher Assistant for Aerodyne Fleet LLC. You have expert knowledge of FAR Part 117, airline operations, crew resource management, and maintenance operations. Answer concisely and operationally.
+  return `You are an AI Dispatcher Assistant for Aerodyne Fleet LLC, a Boeing 737 family operator (B737-700, B737-800, B737-900, B737 MAX 8, B737 MAX 9). You have expert knowledge of FAR Part 117, 737 systems, CFM56 and LEAP-1B engines, airline operations, crew resource management, and line maintenance. Always reference 737-specific procedures, MEL items, and performance data where relevant. Answer concisely and operationally.
+
+FLEET: Boeing 737 family — CFM56-7B (NG series), LEAP-1B (MAX series)
+HUBS: KEWR, KORD, KJFK
 
 TODAY'S CREW ASSIGNMENTS:
 ${crewSummary || 'No crew data'}
@@ -44,7 +47,8 @@ ${releaseSummary || 'No release data'}
 ACTIVE MAINTENANCE (OOS):
 ${oosSummary || 'No active OOS entries'}
 
-FAR 117 limits: Min rest 10h, Max FDP 9h (2-pilot crew), Max flight time 8h/duty, 60h/7-day, 190h/28-day, 1000h/365-day.`;
+FAR 117 limits: Min rest 10h, Max FDP 9h (2-pilot crew), Max flight time 8h/duty, 60h/7-day, 190h/28-day, 1000h/365-day.
+737 MEL reference available. Performance data: B737-800 MTOW 174,200 lbs, typical cruise FL350-370, CFM56 cruise N1 ~88%.`;
 }
 
 export default function AIDispatcherAssistant({ crew, flights, releases = [], oosEntries = [] }) {
