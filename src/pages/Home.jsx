@@ -99,7 +99,7 @@ export default function Home() {
           </p>
 
           <div className="flex flex-wrap gap-2 mb-6">
-            {['No silos.', 'No delays.', 'No conflicting data.'].map(t => (
+            {['No Silos.', 'No Delays.', 'No Conflicting Data.'].map(t => (
               <span key={t} className="text-xs font-bold text-primary bg-primary/10 border border-primary/20 px-3 py-1 rounded-full">{t}</span>
             ))}
           </div>
