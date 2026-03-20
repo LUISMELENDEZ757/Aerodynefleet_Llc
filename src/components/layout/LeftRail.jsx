@@ -82,16 +82,7 @@ export default function LeftRail() {
             <span className="text-sm font-medium whitespace-nowrap">Settings</span>
           )}
         </Link>
-        {/* Collapse toggle */}
-        <button
-          onClick={() => setExpanded(e => !e)}
-          className="flex items-center gap-3 px-2.5 h-11 rounded-xl text-muted-foreground hover:bg-secondary hover:text-foreground transition-all w-full"
-        >
-          {expanded
-            ? <ChevronLeft className="w-5 h-5 flex-shrink-0" />
-            : <ChevronRight className="w-5 h-5 flex-shrink-0" />}
-          {expanded && <span className="text-sm font-medium whitespace-nowrap">Collapse</span>}
-        </button>
+
       </div>
     </aside>
   );
