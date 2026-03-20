@@ -14,6 +14,7 @@ import NewOOS from '@/pages/NewOOS';
 import FlightAttendantDashboard from '@/pages/FlightAttendantDashboard';
 import FlightCrewDashboard from '@/pages/FlightCrewDashboard';
 import EFB from '@/pages/EFB';
+import CrewCalendar from '@/pages/CrewCalendar';
 
 const AuthenticatedApp = () => {
   const { isLoadingAuth, isLoadingPublicSettings, authError, navigateToLogin } = useAuth();
@@ -50,6 +51,7 @@ const AuthenticatedApp = () => {
         <Route path="/FlightAttendant" element={<FlightAttendantDashboard />} />
         <Route path="/FlightCrew" element={<FlightCrewDashboard />} />
         <Route path="/EFB" element={<EFB />} />
+        <Route path="/CrewCalendar" element={<CrewCalendar />} />
       </Route>
       <Route path="*" element={<PageNotFound />} />
     </Routes>
