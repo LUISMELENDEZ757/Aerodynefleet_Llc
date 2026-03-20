@@ -6,6 +6,7 @@ import OpsStatBar from '@/components/flightops/OpsStatBar';
 import FlightStatusBoard from '@/components/flightops/FlightStatusBoard';
 import CrewBoard from '@/components/flightops/CrewBoard';
 import DispatchBoard from '@/components/flightops/DispatchBoard';
+import WeatherPanel from '@/components/flightops/WeatherPanel';
 
 const TODAY = new Date().toISOString().split('T')[0];
 
@@ -13,6 +14,7 @@ const TABS = [
   { key: 'flights',  label: 'Flight Board' },
   { key: 'crew',     label: 'Crew Legality' },
   { key: 'dispatch', label: 'Dispatch' },
+  { key: 'weather',  label: 'WX / METAR' },
 ];
 
 export default function Dashboard() {
@@ -108,6 +110,9 @@ export default function Dashboard() {
         )}
         {activeTab === 'dispatch' && (
           <DispatchBoard releases={releases} isLoading={loadingReleases} />
+        )}
+        {activeTab === 'weather' && (
+          <WeatherPanel flights={flights} />
         )}
       </div>
     </div>
