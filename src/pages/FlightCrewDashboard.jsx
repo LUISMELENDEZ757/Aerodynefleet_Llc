@@ -5,6 +5,7 @@ import {
   Plane, Users, RefreshCw, ChevronDown, ChevronRight,
   Clock, AlertTriangle, CheckCircle, ShieldCheck, FileText, Wind
 } from 'lucide-react';
+import ELogbook from '@/components/crew/ELogbook';
 import { cn } from '@/lib/utils';
 
 const TODAY = new Date().toISOString().split('T')[0];
