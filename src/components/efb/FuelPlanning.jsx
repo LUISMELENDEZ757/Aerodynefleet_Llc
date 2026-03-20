@@ -29,7 +29,15 @@ export default function FuelPlanning({ flightData = [] }) {
   });
 
   const set = (k, v) => setForm(prev => ({ ...prev, [k]: Number(v) || 0 }));
-  const rates = BURN_RATES[acType] || BURN_RATES['B737-800'];
+  
+  const rates = useMemo(() => {
+    if (!profile) return { climb: 5200, cruise: 4600, descent: 2500 };
+    return {
+      climb: profile.climb_ff || 5200,
+      cruise: profile.cruise_ff || 4600,
+      descent: profile.descent_ff || 2500,
+    };
+  }, [profile]);
 
   const calc = useMemo(() => {
     const contingency = Math.round(form.trip_fuel * (form.contingency_pct / 100));
