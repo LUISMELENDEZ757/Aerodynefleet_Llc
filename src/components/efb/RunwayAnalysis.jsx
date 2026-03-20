@@ -32,14 +32,14 @@ function hwcCalc(windDir, windSpd, rwyHdg) {
   return { hwc, xwc };
 }
 
-export default function RunwayAnalysis() {
+export default function RunwayAnalysis({ flightData = [] }) {
+  const [selectedTail, setSelectedTail] = useState('');
   const [airport, setAirport] = useState('KEWR');
-  const [customAirport, setCustomAirport] = useState('');
   const [wind, setWind] = useState({ dir: 270, spd: 12, gust: 0 });
   const [conditions, setConditions] = useState({ oat: 15, pa: 0, surface: 'dry', braking: 'good' });
   const [tow, setTow] = useState(155000);
-  const [acType, setAcType] = useState('B737-800');
-  const AC_TYPES = ['B737-700', 'B737-800', 'B737-900', 'B737 MAX 8', 'B737 MAX 9'];
+  
+  const { profile, acType } = useAircraftPerformance(selectedTail);
   const AC_MTOW  = { 'B737-700': 154500, 'B737-800': 174200, 'B737-900': 187700, 'B737 MAX 8': 181900, 'B737 MAX 9': 194000 };
 
   const activeAirport = customAirport || airport;
