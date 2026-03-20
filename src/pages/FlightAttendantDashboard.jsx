@@ -36,6 +36,8 @@ const ARRIVAL_CHECKS = [
   'Galley equipment secured for landing',
   'Lavatories vacated and locked',
   'Cabin aisle clear of obstructions',
+  'All doors checked — disarm mode confirmed',
+  'Door mode selector — DISARMED confirmed',
   'Cabin crew jump seats occupied',
   'Cabin secure — all checks confirmed',
 ];
