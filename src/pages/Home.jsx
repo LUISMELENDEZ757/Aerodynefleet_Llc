@@ -98,7 +98,7 @@ export default function Home() {
           <Link
             key={title}
             to={path}
-            className={`block rounded-2xl border ${borderColor} bg-[#161b27] p-6 text-center hover:brightness-110 transition-all duration-200 active:scale-[0.98]`}
+            className={`block rounded-2xl border ${borderColor} bg-[#161b27] p-6 text-center hover:bg-[#1e2436] hover:border-opacity-80 hover:scale-[1.02] hover:shadow-lg hover:shadow-black/40 transition-all duration-200 active:scale-[0.98]`}
           >
             {/* Icon */}
             <div className="flex justify-center mb-4">
