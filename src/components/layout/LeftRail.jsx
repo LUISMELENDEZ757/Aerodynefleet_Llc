@@ -70,7 +70,7 @@ export default function LeftRail() {
       <div className="flex flex-col w-full px-2">
         <div className="h-px bg-border mb-3 mx-1.5" />
         <Link
-          to="/Dashboard"
+          to="/Home"
           className="flex items-center gap-3 px-2.5 h-11 rounded-xl text-muted-foreground hover:bg-secondary hover:text-foreground transition-all"
         >
           <Settings className="w-5 h-5 flex-shrink-0" />
