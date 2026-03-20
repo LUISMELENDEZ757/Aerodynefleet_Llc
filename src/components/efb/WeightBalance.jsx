@@ -3,36 +3,76 @@ import { cn } from '@/lib/utils';
 import { AlertTriangle, CheckCircle, Scale } from 'lucide-react';
 
 const AIRCRAFT_CONFIGS = {
-  'CRJ-550': {
-    oew: 47600, mtow: 75000, mlw: 67000, mzfw: 63500,
-    fwd_limit: 14.5, aft_limit: 38.2,
+  'B737-700': {
+    oew: 83000, mtow: 154500, mlw: 134000, mzfw: 128000,
+    fwd_limit: 15.0, aft_limit: 32.5,
     stations: [
-      { id: 'fwd_cargo', label: 'Fwd Cargo', arm: 9.2, max: 2500 },
-      { id: 'zone_a',    label: 'Zone A (rows 1–6)', arm: 18.4, seats: 10, pax_wt: 190 },
-      { id: 'zone_b',    label: 'Zone B (rows 7–12)', arm: 24.1, seats: 10, pax_wt: 190 },
-      { id: 'zone_c',    label: 'Zone C (rows 13–16)', arm: 29.8, seats: 10, pax_wt: 190 },
-      { id: 'aft_cargo', label: 'Aft Cargo', arm: 37.1, max: 2500 },
+      { id: 'fwd_cargo',  label: 'Fwd Cargo (hold 1/2)', arm: 10.2, max: 9200 },
+      { id: 'zone_a',     label: 'Zone A (rows 1–9)',    arm: 20.1, seats: 18, pax_wt: 190 },
+      { id: 'zone_b',     label: 'Zone B (rows 10–19)',  arm: 25.4, seats: 20, pax_wt: 190 },
+      { id: 'zone_c',     label: 'Zone C (rows 20–28)',  arm: 31.2, seats: 18, pax_wt: 190 },
+      { id: 'aft_cargo',  label: 'Aft Cargo (hold 4/5)', arm: 39.8, max: 7500 },
     ],
-    oew_arm: 22.3,
+    oew_arm: 24.6,
   },
-  'CRJ-700': {
-    oew: 49600, mtow: 75000, mlw: 67000, mzfw: 65000,
-    fwd_limit: 14.0, aft_limit: 39.0,
+  'B737-800': {
+    oew: 91300, mtow: 174200, mlw: 146300, mzfw: 138300,
+    fwd_limit: 14.5, aft_limit: 33.0,
     stations: [
-      { id: 'fwd_cargo', label: 'Fwd Cargo', arm: 9.0, max: 3000 },
-      { id: 'zone_a',    label: 'Zone A (rows 1–7)', arm: 18.0, seats: 14, pax_wt: 190 },
-      { id: 'zone_b',    label: 'Zone B (rows 8–14)', arm: 24.5, seats: 14, pax_wt: 190 },
-      { id: 'zone_c',    label: 'Zone C (rows 15–19)', arm: 31.0, seats: 14, pax_wt: 190 },
-      { id: 'aft_cargo', label: 'Aft Cargo', arm: 38.5, max: 3000 },
+      { id: 'fwd_cargo',  label: 'Fwd Cargo (hold 1/2)', arm: 10.0, max: 11600 },
+      { id: 'zone_a',     label: 'Zone A (rows 1–10)',   arm: 19.8, seats: 20, pax_wt: 190 },
+      { id: 'zone_b',     label: 'Zone B (rows 11–22)',  arm: 25.2, seats: 24, pax_wt: 190 },
+      { id: 'zone_c',     label: 'Zone C (rows 23–33)',  arm: 30.9, seats: 22, pax_wt: 190 },
+      { id: 'zone_d',     label: 'Zone D (rows 34–40)',  arm: 36.5, seats: 14, pax_wt: 190 },
+      { id: 'aft_cargo',  label: 'Aft Cargo (hold 4/5)', arm: 40.1, max: 10400 },
     ],
-    oew_arm: 22.8,
+    oew_arm: 25.1,
+  },
+  'B737-900': {
+    oew: 98500, mtow: 187700, mlw: 157300, mzfw: 148800,
+    fwd_limit: 14.0, aft_limit: 33.5,
+    stations: [
+      { id: 'fwd_cargo',  label: 'Fwd Cargo (hold 1/2)', arm: 9.8,  max: 13000 },
+      { id: 'zone_a',     label: 'Zone A (rows 1–11)',   arm: 19.5, seats: 22, pax_wt: 190 },
+      { id: 'zone_b',     label: 'Zone B (rows 12–24)',  arm: 25.0, seats: 26, pax_wt: 190 },
+      { id: 'zone_c',     label: 'Zone C (rows 25–37)',  arm: 30.8, seats: 26, pax_wt: 190 },
+      { id: 'zone_d',     label: 'Zone D (rows 38–44)',  arm: 37.2, seats: 14, pax_wt: 190 },
+      { id: 'aft_cargo',  label: 'Aft Cargo (hold 4/5)', arm: 41.0, max: 12000 },
+    ],
+    oew_arm: 25.8,
+  },
+  'B737 MAX 8': {
+    oew: 91970, mtow: 181900, mlw: 154500, mzfw: 145505,
+    fwd_limit: 14.2, aft_limit: 33.2,
+    stations: [
+      { id: 'fwd_cargo',  label: 'Fwd Cargo (hold 1/2)', arm: 10.1, max: 12000 },
+      { id: 'zone_a',     label: 'Zone A (rows 1–10)',   arm: 19.9, seats: 20, pax_wt: 190 },
+      { id: 'zone_b',     label: 'Zone B (rows 11–22)',  arm: 25.3, seats: 24, pax_wt: 190 },
+      { id: 'zone_c',     label: 'Zone C (rows 23–33)',  arm: 31.1, seats: 22, pax_wt: 190 },
+      { id: 'zone_d',     label: 'Zone D (rows 34–40)',  arm: 36.8, seats: 14, pax_wt: 190 },
+      { id: 'aft_cargo',  label: 'Aft Cargo (hold 4/5)', arm: 40.5, max: 11000 },
+    ],
+    oew_arm: 25.3,
+  },
+  'B737 MAX 9': {
+    oew: 99650, mtow: 194000, mlw: 162000, mzfw: 153000,
+    fwd_limit: 13.8, aft_limit: 33.8,
+    stations: [
+      { id: 'fwd_cargo',  label: 'Fwd Cargo (hold 1/2)', arm: 9.7,  max: 14000 },
+      { id: 'zone_a',     label: 'Zone A (rows 1–11)',   arm: 19.4, seats: 22, pax_wt: 190 },
+      { id: 'zone_b',     label: 'Zone B (rows 12–25)',  arm: 25.0, seats: 28, pax_wt: 190 },
+      { id: 'zone_c',     label: 'Zone C (rows 26–38)',  arm: 30.9, seats: 26, pax_wt: 190 },
+      { id: 'zone_d',     label: 'Zone D (rows 39–45)',  arm: 37.5, seats: 14, pax_wt: 190 },
+      { id: 'aft_cargo',  label: 'Aft Cargo (hold 4/5)', arm: 41.5, max: 13000 },
+    ],
+    oew_arm: 26.1,
   },
 };
 
 export default function WeightBalance() {
-  const [acType, setAcType] = useState('CRJ-550');
-  const [fuel, setFuel] = useState(8000);
-  const [fuelArm] = useState(23.1);
+  const [acType, setAcType] = useState('B737-800');
+  const [fuel, setFuel] = useState(26000);
+  const [fuelArm] = useState(27.2);
   const [loads, setLoads] = useState({});
 
   const cfg = AIRCRAFT_CONFIGS[acType];

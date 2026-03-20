@@ -35,8 +35,8 @@ export default function RunwayAnalysis() {
   const [customAirport, setCustomAirport] = useState('');
   const [wind, setWind] = useState({ dir: 270, spd: 12, gust: 0 });
   const [conditions, setConditions] = useState({ oat: 15, pa: 0, surface: 'dry', braking: 'good' });
-  const [tow, setTow] = useState(68000);
-  const [acType, setAcType] = useState('CRJ-550');
+  const [tow, setTow] = useState(155000);
+  const [acType, setAcType] = useState('B737-800');
 
   const activeAirport = customAirport || airport;
   const runways = RUNWAYS[activeAirport] || RUNWAYS['KEWR'];

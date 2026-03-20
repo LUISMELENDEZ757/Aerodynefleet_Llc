@@ -3,29 +3,31 @@ import { cn } from '@/lib/utils';
 import { Fuel, AlertTriangle, CheckCircle, TrendingDown } from 'lucide-react';
 
 const BURN_RATES = {
-  'CRJ-550': { climb: 2800, cruise: 2100, descent: 1200, ff_unit: 'lbs/hr' },
-  'CRJ-700': { climb: 3200, cruise: 2400, descent: 1400, ff_unit: 'lbs/hr' },
-  'ERJ-175': { climb: 3000, cruise: 2200, descent: 1300, ff_unit: 'lbs/hr' },
+  'B737-700':  { climb: 5800,  cruise: 4600,  descent: 2200, ff_unit: 'lbs/hr' },
+  'B737-800':  { climb: 6400,  cruise: 5200,  descent: 2500, ff_unit: 'lbs/hr' },
+  'B737-900':  { climb: 6900,  cruise: 5600,  descent: 2700, ff_unit: 'lbs/hr' },
+  'B737 MAX 8':{ climb: 5900,  cruise: 4750,  descent: 2300, ff_unit: 'lbs/hr' },
+  'B737 MAX 9':{ climb: 6200,  cruise: 5050,  descent: 2450, ff_unit: 'lbs/hr' },
 };
 
 export default function FuelPlanning() {
-  const [acType, setAcType] = useState('CRJ-550');
+  const [acType, setAcType] = useState('B737-800');
   const [form, setForm] = useState({
-    block_fuel: 12000,
-    taxi_out: 300,
-    taxi_in: 200,
-    trip_fuel: 7500,
+    block_fuel: 35000,
+    taxi_out: 800,
+    taxi_in: 400,
+    trip_fuel: 22000,
     contingency_pct: 5,
-    alternate_fuel: 1800,
-    final_reserve: 1500,
+    alternate_fuel: 4500,
+    final_reserve: 3200,
     extra: 0,
-    flight_time: 120,   // minutes
-    alternate_time: 35,
+    flight_time: 240,
+    alternate_time: 45,
     cruise_alt: 37000,
   });
 
   const set = (k, v) => setForm(prev => ({ ...prev, [k]: Number(v) || 0 }));
-  const rates = BURN_RATES[acType] || BURN_RATES['CRJ-550'];
+  const rates = BURN_RATES[acType] || BURN_RATES['B737-800'];
 
   const calc = useMemo(() => {
     const contingency = Math.round(form.trip_fuel * (form.contingency_pct / 100));
