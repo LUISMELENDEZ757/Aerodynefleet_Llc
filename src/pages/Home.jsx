@@ -76,7 +76,7 @@ export default function Home() {
               to="/Dashboard"
               className="inline-flex items-center gap-2 bg-primary text-primary-foreground font-bold text-sm px-5 py-2.5 rounded-lg hover:bg-primary/90 transition-colors"
             >
-              Open OOS Tracker
+              Flight Operations
               <ChevronRight className="w-4 h-4" />
             </Link>
             <a
