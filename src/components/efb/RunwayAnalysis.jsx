@@ -42,8 +42,9 @@ export default function RunwayAnalysis({ flightData = [] }) {
   const { profile, acType } = useAircraftPerformance(selectedTail);
   const AC_MTOW  = { 'B737-700': 154500, 'B737-800': 174200, 'B737-900': 187700, 'B737 MAX 8': 181900, 'B737 MAX 9': 194000 };
 
-  const activeAirport = customAirport || airport;
+  const activeAirport = airport;
   const runways = RUNWAYS[activeAirport] || RUNWAYS['KEWR'];
+  const currentMTOW = profile?.mtow || AC_MTOW[acType || 'B737-800'] || 174200;
 
   const setWd = (k, v) => setWind(prev => ({ ...prev, [k]: Number(v) || 0 }));
   const setCond = (k, v) => setConditions(prev => ({ ...prev, [k]: v }));
