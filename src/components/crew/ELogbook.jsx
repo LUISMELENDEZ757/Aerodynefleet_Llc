@@ -146,11 +146,11 @@ function DiscrepancyForm({ flights }) {
         <div className="mx-4 mt-3 flex items-start gap-2 bg-green-500/10 border border-green-500/20 rounded-lg px-3 py-3">
           <CheckCircle className="w-4 h-4 text-green-400 flex-shrink-0 mt-0.5" />
           <div>
-            <p className="text-sm font-bold text-green-400">Discrepancy logged — Maintenance notified</p>
+            <p className="text-sm font-bold text-green-400">Entry sent to {submitted.notify}</p>
             <p className="text-xs text-muted-foreground mt-0.5">
-              {submitted.flight_number} · {submitted.discrepancy_type} · {submitted.time}Z · {submitted.notify}
+              {submitted.flight_number} · {submitted.discrepancy_type} · {submitted.time}Z
             </p>
-            <p className="text-xs text-muted-foreground">Entry ID: OOS-{submitted.entryId?.slice(-6)?.toUpperCase()}</p>
+            <p className="text-xs text-muted-foreground">Ref: ELB-{submitted.ref} — Maintenance will determine disposition</p>
           </div>
         </div>
       )}
