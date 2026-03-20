@@ -13,6 +13,7 @@ import OOSDetail from '@/pages/OOSDetail';
 import NewOOS from '@/pages/NewOOS';
 import FlightAttendantDashboard from '@/pages/FlightAttendantDashboard';
 import FlightCrewDashboard from '@/pages/FlightCrewDashboard';
+import EFB from '@/pages/EFB';
 
 const AuthenticatedApp = () => {
   const { isLoadingAuth, isLoadingPublicSettings, authError, navigateToLogin } = useAuth();
@@ -48,6 +49,7 @@ const AuthenticatedApp = () => {
         <Route path="/NewOOS" element={<NewOOS />} />
         <Route path="/FlightAttendant" element={<FlightAttendantDashboard />} />
         <Route path="/FlightCrew" element={<FlightCrewDashboard />} />
+        <Route path="/EFB" element={<EFB />} />
       </Route>
       <Route path="*" element={<PageNotFound />} />
     </Routes>
