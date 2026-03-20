@@ -95,7 +95,7 @@ export default function Home() {
             Aerodyne Fleet brings Dispatch and Flight Ops together in a single, unified workspace designed for real-time airline decision-making.
           </p>
           <p className="text-sm text-muted-foreground leading-relaxed mb-6 max-w-xl">
-            Dispatchers and pilots finally operate from the <span className="text-foreground font-semibold">same source of truth</span> — shared flight plans, weather, NOTAMs, MEL/CDL impact, crew legality, fuel decisions, and day-of-ops changes all flow through one connected system.
+            Dispatchers and pilots finally operate from the <span className="text-foreground font-semibold">same source of truth.</span> Shared flight plans, weather, NOTAMs, MEL/CDL impact, crew legality, fuel decisions, and day-of-ops changes all flow through one connected system.
           </p>
 
           <div className="flex flex-wrap gap-2 mb-6">
