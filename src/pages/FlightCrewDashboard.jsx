@@ -385,6 +385,16 @@ export default function FlightCrewDashboard() {
         {/* Preflight checklist */}
         <PreflightChecklist />
 
+        {/* Cabin zones — aircraft-specific configuration */}
+        {flights.length > 0 && flights[0].aircraft_type && (
+          <div>
+            <p className="text-xs font-mono font-semibold text-muted-foreground uppercase tracking-wider mb-2">
+              Cabin Configuration — {flights[0].aircraft_type}
+            </p>
+            <CabinZonesPanel aircraftType={flights[0].aircraft_type} />
+          </div>
+        )}
+
         {/* E-Logbook — MEL review & post-arrival discrepancy */}
         <div>
           <p className="text-xs font-mono font-semibold text-muted-foreground uppercase tracking-wider mb-2 flex items-center gap-1.5">
