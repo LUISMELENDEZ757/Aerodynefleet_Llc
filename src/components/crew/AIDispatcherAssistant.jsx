@@ -13,27 +13,41 @@ const QUICK_PROMPTS = [
   'Predict delay impact if any flight is delayed by 2 hours.',
 ];
 
-function buildContext(crew, flights) {
+function buildContext(crew, flights, releases = [], oosEntries = []) {
   const crewSummary = crew.map(c =>
     `${c.crew_name} (${c.role}) | Flight: ${c.flight_number || 'N/A'} | Status: ${c.legal_status || 'legal'} | Duty: ${c.duty_start || '?'}-${c.duty_end || '?'}Z | Rest prior: ${c.rest_hours_prior ?? '?'}h | Flt time today: ${c.total_flight_time_today ?? '?'}h`
   ).join('\n');
 
   const flightSummary = flights.map(f =>
-    `${f.flight_number} | ${f.origin}→${f.destination} | Status: ${f.status} | STD: ${f.scheduled_departure}Z | STA: ${f.scheduled_arrival}Z | Delay: ${f.delay_minutes || 0}min`
+    `${f.flight_number} | ${f.origin}→${f.destination} | ${f.aircraft_tail || '?'} | Status: ${f.status} | STD: ${f.scheduled_departure}Z | STA: ${f.scheduled_arrival}Z | Delay: ${f.delay_minutes || 0}min`
   ).join('\n');
 
-  return `You are an AI Dispatcher Assistant for Aerodyne Fleet LLC. You have expert knowledge of FAR Part 117, airline operations, and crew resource management. Answer concisely and operationally.
+  const releaseSummary = releases.map(r =>
+    `${r.flight_number} | Release: ${r.release_status} | Fuel: ${r.fuel_on_board || '?'}lbs | Dispatcher: ${r.dispatcher_name || '?'}`
+  ).join('\n');
+
+  const oosSummary = oosEntries.filter(o => ['in_work','waiting_on_parts'].includes(o.status)).map(o =>
+    `${o.tail_number} OOS at ${o.station || '?'} | ${o.work_description} | Status: ${o.status}`
+  ).join('\n');
+
+  return `You are an AI Dispatcher Assistant for Aerodyne Fleet LLC. You have expert knowledge of FAR Part 117, airline operations, crew resource management, and maintenance operations. Answer concisely and operationally.
 
 TODAY'S CREW ASSIGNMENTS:
-${crewSummary || 'No crew data available'}
+${crewSummary || 'No crew data'}
 
 TODAY'S FLIGHTS:
-${flightSummary || 'No flight data available'}
+${flightSummary || 'No flight data'}
+
+DISPATCH RELEASES:
+${releaseSummary || 'No release data'}
+
+ACTIVE MAINTENANCE (OOS):
+${oosSummary || 'No active OOS entries'}
 
 FAR 117 limits: Min rest 10h, Max FDP 9h (2-pilot crew), Max flight time 8h/duty, 60h/7-day, 190h/28-day, 1000h/365-day.`;
 }
 
-export default function AIDispatcherAssistant({ crew, flights }) {
+export default function AIDispatcherAssistant({ crew, flights, releases = [], oosEntries = [] }) {
   const [messages, setMessages] = useState([
     { role: 'assistant', content: "I'm your AI Dispatcher Assistant. I have full visibility of today's crew assignments and flight schedule. Ask me anything — crew legality, recovery plans, delay impact, or swap recommendations." }
   ]);
@@ -50,7 +64,7 @@ export default function AIDispatcherAssistant({ crew, flights }) {
     setMessages(prev => [...prev, { role: 'user', content: userMsg }]);
     setLoading(true);
 
-    const context = buildContext(crew, flights);
+    const context = buildContext(crew, flights, releases, oosEntries);
     const history = messages.map(m => `${m.role === 'user' ? 'Dispatcher' : 'AI'}: ${m.content}`).join('\n');
 
     const reply = await base44.integrations.Core.InvokeLLM({
