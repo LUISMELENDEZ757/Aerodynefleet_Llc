@@ -5,12 +5,13 @@ import { Zap, Send, Loader2, User, Bot, RefreshCw } from 'lucide-react';
 import ReactMarkdown from 'react-markdown';
 
 const QUICK_PROMPTS = [
-  'What is the best recovery plan for any delayed flight today?',
-  'Are there any crew members at risk of timing out before their flight arrives?',
-  'Which flights have no legal crew assigned?',
-  'Recommend crew swaps for any violations detected today.',
-  'What is the fastest way to fix any current operational issue?',
-  'Predict delay impact if any flight is delayed by 2 hours.',
+  'Best recovery plan for any delayed 737 flight today?',
+  'Any 737 crew at risk of timing out before arrival?',
+  'Which 737 flights have no legal crew assigned?',
+  'Recommend crew swaps for any FAR 117 violations today.',
+  'Any 737 OOS aircraft impacting today\'s schedule?',
+  'Predict delay domino effect if a 737-800 delays 2 hours at KEWR.',
+  'What MEL items would ground a 737 MAX 8 today?',
 ];
 
 function buildContext(crew, flights, releases = [], oosEntries = []) {
