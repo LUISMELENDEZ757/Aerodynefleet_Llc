@@ -16,7 +16,7 @@ const STATUS_CONFIG = {
   delayed:   { label: 'Delayed',   color: 'text-orange-400',       bg: 'bg-orange-500/15' },
 };
 
-const CABIN_CHECKS = [
+const DEPARTURE_CHECKS = [
   'Emergency exit row briefing completed',
   'Seatbelt demo / safety video ready',
   'Galley equipment secured',
@@ -25,6 +25,17 @@ const CABIN_CHECKS = [
   'Fire extinguisher location confirmed',
   'Lavatory smoke detectors functional',
   'Passenger count & manifest reconciled',
+];
+
+const ARRIVAL_CHECKS = [
+  'Passengers seated with seatbelts fastened',
+  'Tray tables and seat backs stowed',
+  'Carry-on baggage secured in overhead bins',
+  'Galley equipment secured for landing',
+  'Lavatories vacated and locked',
+  'Cabin aisle clear of obstructions',
+  'Cabin crew jump seats occupied',
+  'Cabin secure — all checks confirmed',
 ];
 
 const ROLE_LABEL = { captain: 'Captain', first_officer: 'First Officer' };
