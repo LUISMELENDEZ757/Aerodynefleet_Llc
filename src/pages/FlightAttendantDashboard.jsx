@@ -195,6 +195,9 @@ function FlightCard({ flight }) {
             )}
           </div>
 
+          {/* Pilot crew briefing */}
+          <PilotBriefingCard flightNumber={flight.flight_number} />
+
           {/* FA crew */}
           <div>
             <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-2 flex items-center gap-1.5">
