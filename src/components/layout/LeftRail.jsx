@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
-import { Plane, Home, Users, Settings, Radio, BookOpen, CalendarDays } from 'lucide-react';
+import { Plane, Home, Users, Settings, Radio, BookOpen, CalendarDays, ChevronLeft, ChevronRight } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 const NAV_ITEMS = [
