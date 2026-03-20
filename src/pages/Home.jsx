@@ -36,17 +36,7 @@ const MODULES = [
     borderColor: 'border-blue-500/40',
     path: '/Dashboard',
   },
-  {
-    icon: Wrench,
-    iconBg: 'bg-orange-500',
-    iconColor: 'text-white',
-    title: 'MAINTENANCE',
-    subtitle: 'OOS & MX Tracking',
-    items: ['OOS Entries', 'Parts Tracking', 'Timeline Events'],
-    itemColor: 'text-orange-400',
-    borderColor: 'border-orange-500/40',
-    path: '/Dashboard',
-  },
+
   {
     icon: Users,
     iconBg: 'bg-purple-500',
