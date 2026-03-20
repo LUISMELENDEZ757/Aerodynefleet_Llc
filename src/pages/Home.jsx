@@ -21,7 +21,7 @@ const UNIFIED_FEATURES = [
   {
     icon: Shield,
     title: 'MEL / CDL & Maintenance Impact',
-    desc: 'Open MEL items and OOS entries surface directly inside the dispatch workflow — no phone calls, no surprises at the gate.',
+    desc: 'Open MEL items and OOS entries surface directly inside the dispatch workflow. No phone calls, no surprises at the gate.',
   },
   {
     icon: Radio,
