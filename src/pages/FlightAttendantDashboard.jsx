@@ -419,7 +419,20 @@ export default function FlightAttendantDashboard() {
         </div>
 
         {/* Pre-departure checklist */}
-        <CabinChecklist />
+        <CabinChecklist
+          title="Pre-Departure Cabin Check"
+          items={DEPARTURE_CHECKS}
+          completedMsg="All cabin checks complete — ready for boarding"
+          accentColor="green"
+        />
+
+        {/* Arrival checklist */}
+        <CabinChecklist
+          title="Arrival Cabin Check"
+          items={ARRIVAL_CHECKS}
+          completedMsg="Cabin secure — cleared for landing"
+          accentColor="blue"
+        />
       </div>
     </div>
   );
