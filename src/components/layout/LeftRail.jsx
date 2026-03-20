@@ -23,9 +23,12 @@ export default function LeftRail() {
         expanded ? 'w-44' : 'w-16'
       )}
     >
-      {/* Logo */}
-      <Link to="/Dashboard" className="mb-6 flex items-center gap-3 px-3.5">
-        <div className="w-9 h-9 rounded-lg bg-primary/20 flex items-center justify-center flex-shrink-0">
+      {/* Logo / Collapse toggle */}
+      <button
+        onClick={() => setExpanded(e => !e)}
+        className="mb-6 flex items-center gap-3 px-3.5 w-full"
+      >
+        <div className="w-9 h-9 rounded-lg bg-primary/20 flex items-center justify-center flex-shrink-0 hover:bg-primary/30 transition-colors">
           <Plane className="w-5 h-5 text-primary" />
         </div>
         {expanded && (
@@ -33,7 +36,7 @@ export default function LeftRail() {
             FLIGHT OPS
           </span>
         )}
-      </Link>
+      </button>
 
       {/* Divider */}
       <div className="w-full px-3.5 mb-4">
