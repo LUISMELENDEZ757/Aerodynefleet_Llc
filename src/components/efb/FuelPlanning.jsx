@@ -64,17 +64,10 @@ export default function FuelPlanning({ flightData = [] }) {
 
   return (
     <div className="space-y-4">
-      {/* Aircraft */}
+      {/* Aircraft selector */}
       <div className="rounded-xl bg-card border border-border p-4">
-        <label className="text-xs text-muted-foreground block mb-2">Aircraft Type</label>
-        <div className="flex gap-2 flex-wrap">
-          {Object.keys(BURN_RATES).map(t => (
-            <button key={t} onClick={() => setAcType(t)}
-              className={cn('px-3 py-1.5 rounded-lg text-xs font-bold transition-all border',
-                acType === t ? 'bg-primary text-primary-foreground border-primary' : 'border-border text-muted-foreground hover:text-foreground'
-              )}>{t}</button>
-          ))}
-        </div>
+        <AircraftSelector selectedTail={selectedTail} onSelect={setSelectedTail} flights={flightData} />
+        {isLoading && <p className="text-xs text-muted-foreground mt-2">Loading performance data…</p>}
       </div>
 
       {/* Fuel inputs */}
