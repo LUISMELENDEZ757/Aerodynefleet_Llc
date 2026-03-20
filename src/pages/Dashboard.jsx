@@ -110,7 +110,10 @@ export default function Dashboard() {
           <CrewBoard crew={crew} isLoading={loadingCrew} />
         )}
         {activeTab === 'dispatch' && (
-          <DispatchBoard releases={releases} isLoading={loadingReleases} />
+          <div className="space-y-4">
+            <DispatchPanel flights={flights} />
+            <DispatchBoard releases={releases} isLoading={loadingReleases} />
+          </div>
         )}
         {activeTab === 'weather' && (
           <WeatherPanel flights={flights} />
