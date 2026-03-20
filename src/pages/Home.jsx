@@ -6,7 +6,7 @@ const UNIFIED_FEATURES = [
   {
     icon: FileText,
     title: 'Shared Release & Flight Plan',
-    desc: 'Dispatchers and pilots operate from the same release — fuel decisions, alternates, and amendments flow to the cockpit instantly.',
+    desc: 'Dispatchers and pilots operate from the same release. Fuel decisions, alternates, and amendments flow to the cockpit instantly.',
   },
   {
     icon: Cloud,
