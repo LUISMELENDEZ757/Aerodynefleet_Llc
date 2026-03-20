@@ -1,10 +1,12 @@
 import React, { useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
-import { Plane, Home, Plus, Settings } from 'lucide-react';
+import { Plane, Home, Users, Settings } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 const NAV_ITEMS = [
-  { icon: Home, label: 'Home', path: '/Home' },
+  { icon: Home,  label: 'Home',        path: '/Home' },
+  { icon: Plane, label: 'Flight Ops',  path: '/Dashboard' },
+  { icon: Users, label: 'Cabin Crew',  path: '/FlightAttendant' },
 ];
 
 export default function LeftRail() {
@@ -52,7 +54,6 @@ export default function LeftRail() {
                   : 'text-muted-foreground hover:bg-secondary hover:text-foreground'
               )}
             >
-              {/* Active indicator */}
               {isActive && (
                 <span className="absolute left-0 top-1/2 -translate-y-1/2 w-1 h-6 bg-primary rounded-r-full" />
               )}
