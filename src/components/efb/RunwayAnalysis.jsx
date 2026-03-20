@@ -37,6 +37,8 @@ export default function RunwayAnalysis() {
   const [conditions, setConditions] = useState({ oat: 15, pa: 0, surface: 'dry', braking: 'good' });
   const [tow, setTow] = useState(155000);
   const [acType, setAcType] = useState('B737-800');
+  const AC_TYPES = ['B737-700', 'B737-800', 'B737-900', 'B737 MAX 8', 'B737 MAX 9'];
+  const AC_MTOW  = { 'B737-700': 154500, 'B737-800': 174200, 'B737-900': 187700, 'B737 MAX 8': 181900, 'B737 MAX 9': 194000 };
 
   const activeAirport = customAirport || airport;
   const runways = RUNWAYS[activeAirport] || RUNWAYS['KEWR'];
@@ -53,11 +55,11 @@ export default function RunwayAnalysis() {
     const brakeFactor = conditions.braking === 'good' ? 1.0 : conditions.braking === 'medium' ? 1.1 : 1.25;
     const altFactor = 1 + conditions.pa / 1000 * 0.03;
     const oatFactor = 1 + Math.max(0, conditions.oat - 15) * 0.01;
-    const wtFactor = 1 + (tow - 55000) / 55000 * 0.5;
+    const wtFactor = 1 + (tow - 140000) / 140000 * 0.6;
     const hwcFactor = 1 - hwc * 0.003;
 
-    const baseTOFL = 4500;
-    const baseLFL  = 4000;
+    const baseTOFL = 6200;  // 737-800 reference at MTOW, sea level, ISA
+    const baseLFL  = 5000;  // 737-800 reference landing field length
     const tofl = Math.round(baseTOFL * wtFactor * altFactor * oatFactor * surfFactor * hwcFactor);
     const lfl  = Math.round(baseLFL  * wtFactor * altFactor * oatFactor * surfFactor * brakeFactor * hwcFactor);
 
@@ -127,8 +129,16 @@ export default function RunwayAnalysis() {
               </select>
             </div>
           </div>
+          <div className="flex gap-2 flex-wrap">
+            {AC_TYPES.map(t => (
+              <button key={t} onClick={() => { setAcType(t); setTow(AC_MTOW[t]); }}
+                className={cn('px-3 py-1.5 rounded-lg text-xs font-bold transition-all border',
+                  acType === t ? 'bg-primary text-primary-foreground border-primary' : 'border-border text-muted-foreground hover:text-foreground'
+                )}>{t}</button>
+            ))}
+          </div>
           <div>
-            <label className="text-xs text-muted-foreground block mb-1">Takeoff Weight (lbs)</label>
+            <label className="text-xs text-muted-foreground block mb-1">Takeoff Weight (lbs) — MTOW: {AC_MTOW[acType]?.toLocaleString()} lbs</label>
             <input type="number" value={tow} onChange={e => setTow(Number(e.target.value))}
               className="w-full h-9 bg-secondary border border-border rounded-lg px-3 text-sm font-mono text-foreground focus:outline-none focus:ring-1 focus:ring-primary" />
           </div>
