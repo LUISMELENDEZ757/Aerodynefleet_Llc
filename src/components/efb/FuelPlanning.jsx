@@ -1,17 +1,19 @@
 import React, { useState, useMemo } from 'react';
+import { useQuery } from '@tanstack/react-query';
+import { base44 } from '@/api/base44Client';
 import { cn } from '@/lib/utils';
 import { Fuel, AlertTriangle, CheckCircle, TrendingDown } from 'lucide-react';
+import AircraftSelector from './AircraftSelector';
+import useAircraftPerformance from '@/hooks/useAircraftPerformance';
 
-const BURN_RATES = {
-  'B737-700':  { climb: 5800,  cruise: 4600,  descent: 2200, ff_unit: 'lbs/hr' },
-  'B737-800':  { climb: 6400,  cruise: 5200,  descent: 2500, ff_unit: 'lbs/hr' },
-  'B737-900':  { climb: 6900,  cruise: 5600,  descent: 2700, ff_unit: 'lbs/hr' },
-  'B737 MAX 8':{ climb: 5100,  cruise: 4100,  descent: 1900, ff_unit: 'lbs/hr' },  // LEAP-1B ~16% more efficient vs NG
-  'B737 MAX 9':{ climb: 5400,  cruise: 4350,  descent: 2050, ff_unit: 'lbs/hr' },  // LEAP-1B ~16% more efficient vs NG
-};
+export default function FuelPlanning({ flightData = [] }) {
+  const [selectedTail, setSelectedTail] = useState('');
+  const { profile, acType, isLoading } = useAircraftPerformance(selectedTail, null);
 
-export default function FuelPlanning() {
-  const [acType, setAcType] = useState('B737-800');
+  const { data: aircraft = [] } = useQuery({
+    queryKey: ['aircraft-list'],
+    queryFn: () => base44.entities.Aircraft.list(),
+  });
   const [form, setForm] = useState({
     block_fuel: 35000,
     taxi_out: 800,
