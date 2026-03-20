@@ -125,22 +125,7 @@ export default function Home() {
 
       <div className="px-6 py-8 space-y-8">
 
-        {/* OCC model reference */}
-        <div>
-          <p className="text-xs font-mono font-semibold text-primary tracking-widest uppercase mb-3">The Model That Powers the World's Largest Airlines</p>
-          <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-            {OCC_MODELS.map(({ code, label }) => (
-              <div key={code} className="rounded-xl bg-card border border-border px-4 py-3 text-center">
-                <p className="text-base font-extrabold font-mono text-primary">{code}</p>
-                <p className="text-xs text-muted-foreground mt-0.5">{label}</p>
-              </div>
-            ))}
-          </div>
-          <p className="text-xs text-muted-foreground mt-3 leading-relaxed">
-            Where dispatchers and pilots share the same release, the same weather package, the same NOTAMs, the same MEL/CDL impact, and the same fuel decisions.
-            <span className="text-foreground font-semibold"> This is exactly how a real airline runs.</span>
-          </p>
-        </div>
+
 
         {/* Unified feature cards */}
         <div>
