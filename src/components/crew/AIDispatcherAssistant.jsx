@@ -49,7 +49,7 @@ FAR 117 limits: Min rest 10h, Max FDP 9h (2-pilot crew), Max flight time 8h/duty
 
 export default function AIDispatcherAssistant({ crew, flights, releases = [], oosEntries = [] }) {
   const [messages, setMessages] = useState([
-    { role: 'assistant', content: "I'm your AI Dispatcher Assistant. I have full visibility of today's crew assignments and flight schedule. Ask me anything — crew legality, recovery plans, delay impact, or swap recommendations." }
+    { role: 'assistant', content: "I'm your AI Dispatcher Assistant for **Aerodyne Fleet LLC** — 737 family operations. I have full visibility of today's 737 crew assignments, flights, dispatch releases, and maintenance OOS entries. Ask me anything — crew legality, recovery plans, delay impact, or swap recommendations." }
   ]);
   const [input, setInput] = useState('');
   const [loading, setLoading] = useState(false);
