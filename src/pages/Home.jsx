@@ -1,6 +1,6 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
-import { Users, Plane, Radio, BookOpen, CalendarDays } from 'lucide-react';
+import { Users, Plane, Radio, BookOpen, CalendarDays, Zap } from 'lucide-react';
 
 const MODULES = [
   {
@@ -47,6 +47,17 @@ const MODULES = [
     itemColor: 'text-purple-400',
     borderColor: 'border-purple-500/40',
     path: '/FlightAttendant',
+  },
+  {
+    icon: Zap,
+    iconBg: 'bg-red-500',
+    iconColor: 'text-white',
+    title: 'CREW CONTROL',
+    subtitle: 'Real-Time · FAR 117 · AI Dispatcher',
+    items: ['Live Duty Timers', 'Fatigue Predictor', 'AI Recovery Assist'],
+    itemColor: 'text-red-400',
+    borderColor: 'border-red-500/40',
+    path: '/CrewControl',
   },
   {
     icon: CalendarDays,
