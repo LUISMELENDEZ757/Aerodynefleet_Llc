@@ -25,6 +25,8 @@ const DEPARTURE_CHECKS = [
   'Fire extinguisher location confirmed',
   'Lavatory smoke detectors functional',
   'Passenger count & manifest reconciled',
+  'All doors armed and cross-checked',
+  'Door mode selector — ARMED confirmed',
 ];
 
 const ARRIVAL_CHECKS = [
