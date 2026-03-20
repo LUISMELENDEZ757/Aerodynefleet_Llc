@@ -55,8 +55,8 @@ function PerformanceCalc() {
       'B737-700':  { baseV1: 130, baseTOR: 5200, baseN1: 91, vmca: 108 },
       'B737-800':  { baseV1: 138, baseTOR: 6100, baseN1: 92, vmca: 112 },
       'B737-900':  { baseV1: 142, baseTOR: 6600, baseN1: 93, vmca: 114 },
-      'B737 MAX 8':{ baseV1: 136, baseTOR: 5800, baseN1: 90, vmca: 110 },
-      'B737 MAX 9':{ baseV1: 140, baseTOR: 6200, baseN1: 91, vmca: 112 },
+      'B737 MAX 8':{ baseV1: 136, baseTOR: 5300, baseN1: 88, vmca: 110 },  // LEAP-1B higher thrust efficiency, shorter field
+      'B737 MAX 9':{ baseV1: 140, baseTOR: 5700, baseN1: 89, vmca: 112 },  // LEAP-1B higher thrust efficiency, shorter field
     };
     const perf = AC_PERF[acType] || AC_PERF['B737-800'];
     const wtDelta = (weight - 140000) / 1000;

@@ -6,8 +6,8 @@ const BURN_RATES = {
   'B737-700':  { climb: 5800,  cruise: 4600,  descent: 2200, ff_unit: 'lbs/hr' },
   'B737-800':  { climb: 6400,  cruise: 5200,  descent: 2500, ff_unit: 'lbs/hr' },
   'B737-900':  { climb: 6900,  cruise: 5600,  descent: 2700, ff_unit: 'lbs/hr' },
-  'B737 MAX 8':{ climb: 5900,  cruise: 4750,  descent: 2300, ff_unit: 'lbs/hr' },
-  'B737 MAX 9':{ climb: 6200,  cruise: 5050,  descent: 2450, ff_unit: 'lbs/hr' },
+  'B737 MAX 8':{ climb: 5100,  cruise: 4100,  descent: 1900, ff_unit: 'lbs/hr' },  // LEAP-1B ~16% more efficient vs NG
+  'B737 MAX 9':{ climb: 5400,  cruise: 4350,  descent: 2050, ff_unit: 'lbs/hr' },  // LEAP-1B ~16% more efficient vs NG
 };
 
 export default function FuelPlanning() {
