@@ -132,16 +132,11 @@ export default function RunwayAnalysis({ flightData = [] }) {
               </select>
             </div>
           </div>
-          <div className="flex gap-2 flex-wrap">
-            {AC_TYPES.map(t => (
-              <button key={t} onClick={() => { setAcType(t); setTow(AC_MTOW[t]); }}
-                className={cn('px-3 py-1.5 rounded-lg text-xs font-bold transition-all border',
-                  acType === t ? 'bg-primary text-primary-foreground border-primary' : 'border-border text-muted-foreground hover:text-foreground'
-                )}>{t}</button>
-            ))}
+          <div>
+            <AircraftSelector selectedTail={selectedTail} onSelect={setSelectedTail} flights={flightData} />
           </div>
           <div>
-            <label className="text-xs text-muted-foreground block mb-1">Takeoff Weight (lbs) — MTOW: {AC_MTOW[acType]?.toLocaleString()} lbs</label>
+            <label className="text-xs text-muted-foreground block mb-1">Takeoff Weight (lbs) — MTOW: {currentMTOW?.toLocaleString()} lbs</label>
             <input type="number" value={tow} onChange={e => setTow(Number(e.target.value))}
               className="w-full h-9 bg-secondary border border-border rounded-lg px-3 text-sm font-mono text-foreground focus:outline-none focus:ring-1 focus:ring-primary" />
           </div>
