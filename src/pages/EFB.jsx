@@ -7,6 +7,7 @@ import {
   Users, Send, Plane, PenLine, Navigation2, MapPin, Zap
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import useAircraftPerformance from '@/hooks/useAircraftPerformance';
 
 // EFB module components
 import WeightBalance         from '@/components/efb/WeightBalance';
