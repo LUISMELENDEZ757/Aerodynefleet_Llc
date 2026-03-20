@@ -383,6 +383,14 @@ export default function FlightCrewDashboard() {
 
         {/* Preflight checklist */}
         <PreflightChecklist />
+
+        {/* E-Logbook — MEL review & post-arrival discrepancy */}
+        <div>
+          <p className="text-xs font-mono font-semibold text-muted-foreground uppercase tracking-wider mb-2 flex items-center gap-1.5">
+            <FileText className="w-3.5 h-3.5" /> E-Logbook
+          </p>
+          <ELogbook flights={flights} />
+        </div>
       </div>
     </div>
   );
