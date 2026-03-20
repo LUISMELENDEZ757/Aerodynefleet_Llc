@@ -49,6 +49,17 @@ const MODULES = [
     path: '/FlightAttendant',
   },
   {
+    icon: CalendarDays,
+    iconBg: 'bg-sky-500',
+    iconColor: 'text-white',
+    title: 'CREW CALENDAR',
+    subtitle: 'Assignments · Duty Times · FAR 117',
+    items: ['Flight Assignments', 'Duty Start / End', 'FAR 117 Compliance'],
+    itemColor: 'text-sky-400',
+    borderColor: 'border-sky-500/40',
+    path: '/CrewCalendar',
+  },
+  {
     icon: BookOpen,
     iconBg: 'bg-green-500',
     iconColor: 'text-white',
