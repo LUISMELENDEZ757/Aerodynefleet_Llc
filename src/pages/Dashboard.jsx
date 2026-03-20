@@ -1,85 +1,115 @@
 import React, { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { base44 } from '@/api/base44Client';
-import { Search, Filter, Loader2 } from 'lucide-react';
-import { Input } from '@/components/ui/input';
-import StatusFilterBar from '@/components/oos/StatusFilterBar';
-import OOSCard from '@/components/oos/OOSCard';
+import { Plane, RefreshCw } from 'lucide-react';
+import OpsStatBar from '@/components/flightops/OpsStatBar';
+import FlightStatusBoard from '@/components/flightops/FlightStatusBoard';
+import CrewBoard from '@/components/flightops/CrewBoard';
+import DispatchBoard from '@/components/flightops/DispatchBoard';
+
+const TODAY = new Date().toISOString().split('T')[0];
+
+const TABS = [
+  { key: 'flights',  label: 'Flight Board' },
+  { key: 'crew',     label: 'Crew Legality' },
+  { key: 'dispatch', label: 'Dispatch' },
+];
 
 export default function Dashboard() {
-  const [activeFilter, setActiveFilter] = useState('all');
-  const [searchQuery, setSearchQuery] = useState('');
+  const [activeTab, setActiveTab] = useState('flights');
 
-  const { data: entries = [], isLoading } = useQuery({
-    queryKey: ['oos-entries'],
-    queryFn: () => base44.entities.OOSEntry.list('-created_date'),
+  const { data: flights = [], isLoading: loadingFlights, refetch: refetchFlights } = useQuery({
+    queryKey: ['flights', TODAY],
+    queryFn: () => base44.entities.Flight.filter({ flight_date: TODAY }),
+    refetchInterval: 60000,
   });
 
-  const filteredEntries = entries.filter(entry => {
-    const matchesFilter = activeFilter === 'all'
-      ? entry.status !== 'released'
-      : activeFilter === 'released'
-        ? entry.status === 'released'
-        : entry.status === activeFilter;
-
-    const matchesSearch = !searchQuery ||
-      entry.tail_number?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      entry.work_description?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      entry.station?.toLowerCase().includes(searchQuery.toLowerCase());
-
-    return matchesFilter && matchesSearch;
+  const { data: crew = [], isLoading: loadingCrew, refetch: refetchCrew } = useQuery({
+    queryKey: ['crew', TODAY],
+    queryFn: () => base44.entities.CrewAssignment.filter({ flight_date: TODAY }),
+    refetchInterval: 60000,
   });
+
+  const { data: releases = [], isLoading: loadingReleases, refetch: refetchReleases } = useQuery({
+    queryKey: ['releases', TODAY],
+    queryFn: () => base44.entities.DispatchRelease.filter({ flight_date: TODAY }),
+    refetchInterval: 60000,
+  });
+
+  const handleRefresh = () => {
+    refetchFlights();
+    refetchCrew();
+    refetchReleases();
+  };
+
+  const now = new Date();
+  const timeStr = now.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: false });
+  const dateStr = now.toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric', year: 'numeric' });
 
   return (
-    <div>
+    <div className="min-h-screen bg-background">
       {/* Header */}
-      <div className="px-4 pt-4 pb-2">
-        <h1 className="text-xl font-bold text-foreground tracking-wide">Aerodyne Fleet LLC</h1>
-        <p className="text-xs text-muted-foreground">Out of Service Tracker</p>
+      <div className="border-b border-border bg-card px-5 pt-5 pb-4">
+        <div className="flex items-start justify-between gap-4">
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 rounded-xl bg-primary/20 flex items-center justify-center flex-shrink-0">
+              <Plane className="w-5 h-5 text-primary" />
+            </div>
+            <div>
+              <h1 className="text-lg font-extrabold text-foreground tracking-wide leading-tight">
+                AERODYNE FLEET LLC
+              </h1>
+              <p className="text-xs font-mono text-primary tracking-widest uppercase">Flight Operations</p>
+            </div>
+          </div>
+          <div className="flex items-end gap-3 flex-col text-right">
+            <p className="text-2xl font-mono font-bold text-foreground">{timeStr}</p>
+            <p className="text-xs text-muted-foreground">{dateStr}</p>
+          </div>
+        </div>
+
+        {/* Refresh */}
+        <button
+          onClick={handleRefresh}
+          className="mt-3 flex items-center gap-1.5 text-xs text-muted-foreground hover:text-foreground transition-colors"
+        >
+          <RefreshCw className="w-3 h-3" />
+          Refresh data
+        </button>
       </div>
 
-      {/* Search */}
-      <div className="px-4 pt-3">
-        <div className="relative">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-          <Input
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            placeholder="Search tail #, station, description..."
-            className="pl-9 bg-secondary border-border text-sm h-9"
-          />
-        </div>
-      </div>
+      <div className="p-4 space-y-4">
+        {/* Stat bar */}
+        <OpsStatBar flights={flights} crew={crew} releases={releases} />
 
-      {/* Filters */}
-      <StatusFilterBar activeFilter={activeFilter} onFilterChange={setActiveFilter} />
-
-      {/* Stats bar */}
-      <div className="flex items-center justify-between px-4 pb-3">
-        <span className="text-xs text-muted-foreground">
-          {filteredEntries.length} {activeFilter === 'all' ? 'open' : ''} entries
-        </span>
-        <span className="text-xs text-muted-foreground">
-          Today · {new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
-        </span>
-      </div>
-
-      {/* List */}
-      {isLoading ? (
-        <div className="flex justify-center py-20">
-          <Loader2 className="w-6 h-6 animate-spin text-primary" />
-        </div>
-      ) : filteredEntries.length === 0 ? (
-        <div className="text-center py-20">
-          <p className="text-muted-foreground text-sm">No entries found</p>
-        </div>
-      ) : (
-        <div>
-          {filteredEntries.map(entry => (
-            <OOSCard key={entry.id} entry={entry} />
+        {/* Tabs */}
+        <div className="flex gap-1 bg-secondary rounded-xl p-1">
+          {TABS.map(tab => (
+            <button
+              key={tab.key}
+              onClick={() => setActiveTab(tab.key)}
+              className={`flex-1 text-xs font-semibold py-2 rounded-lg transition-all ${
+                activeTab === tab.key
+                  ? 'bg-primary text-primary-foreground shadow'
+                  : 'text-muted-foreground hover:text-foreground'
+              }`}
+            >
+              {tab.label}
+            </button>
           ))}
         </div>
-      )}
+
+        {/* Tab content */}
+        {activeTab === 'flights' && (
+          <FlightStatusBoard flights={flights} isLoading={loadingFlights} />
+        )}
+        {activeTab === 'crew' && (
+          <CrewBoard crew={crew} isLoading={loadingCrew} />
+        )}
+        {activeTab === 'dispatch' && (
+          <DispatchBoard releases={releases} isLoading={loadingReleases} />
+        )}
+      </div>
     </div>
   );
 }
