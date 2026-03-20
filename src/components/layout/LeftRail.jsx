@@ -5,7 +5,6 @@ import { cn } from '@/lib/utils';
 
 const NAV_ITEMS = [
   { icon: Home, label: 'Home', path: '/Home' },
-  { icon: Plus, label: 'New OOS', path: '/NewOOS' },
 ];
 
 export default function LeftRail() {
