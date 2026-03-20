@@ -1,6 +1,8 @@
 import React, { useState, useMemo } from 'react';
 import { cn } from '@/lib/utils';
 import { AlertTriangle, CheckCircle, Scale } from 'lucide-react';
+import AircraftSelector from './AircraftSelector';
+import useAircraftPerformance from '@/hooks/useAircraftPerformance';
 
 const AIRCRAFT_CONFIGS = {
   'B737-700': {
