@@ -116,15 +116,7 @@ export default function WeightBalance({ flightData = [] }) {
     <div className="space-y-4">
       {/* Aircraft selector */}
       <div className="rounded-xl bg-card border border-border p-4">
-        <label className="text-xs text-muted-foreground block mb-2">Aircraft Type</label>
-        <div className="flex gap-2">
-          {Object.keys(AIRCRAFT_CONFIGS).map(t => (
-            <button key={t} onClick={() => { setAcType(t); setLoads({}); }}
-              className={cn('px-3 py-1.5 rounded-lg text-xs font-bold transition-all border',
-                acType === t ? 'bg-primary text-primary-foreground border-primary' : 'border-border text-muted-foreground hover:text-foreground'
-              )}>{t}</button>
-          ))}
-        </div>
+        <AircraftSelector selectedTail={selectedTail} onSelect={(tail) => { setSelectedTail(tail); setLoads({}); }} flights={flightData} />
       </div>
 
       {/* Load entry */}
