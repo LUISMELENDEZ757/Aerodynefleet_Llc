@@ -4,24 +4,32 @@ import { base44 } from '@/api/base44Client';
 import {
   BookOpen, Cloud, Calculator, ClipboardList, FileText,
   RefreshCw, Scale, Fuel, Map, Radio, AlertTriangle,
-  Users, Send, Plane
+  Users, Send, Plane, PenLine, Navigation2, MapPin, Zap
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 // EFB module components
-import WeightBalance    from '@/components/efb/WeightBalance';
-import FuelPlanning     from '@/components/efb/FuelPlanning';
-import RunwayAnalysis   from '@/components/efb/RunwayAnalysis';
-import CrewLegality     from '@/components/efb/CrewLegality';
-import NotamViewer      from '@/components/efb/NotamViewer';
-import AcarsMessaging   from '@/components/efb/AcarsMessaging';
-import PostflightReport from '@/components/efb/PostflightReport';
-import WeatherPanel     from '@/components/flightops/WeatherPanel';
+import WeightBalance         from '@/components/efb/WeightBalance';
+import FuelPlanning          from '@/components/efb/FuelPlanning';
+import RunwayAnalysis        from '@/components/efb/RunwayAnalysis';
+import CrewLegality          from '@/components/efb/CrewLegality';
+import NotamViewer           from '@/components/efb/NotamViewer';
+import AcarsMessaging        from '@/components/efb/AcarsMessaging';
+import PostflightReport      from '@/components/efb/PostflightReport';
+import WeatherPanel          from '@/components/flightops/WeatherPanel';
+import FlightReleaseSignOff  from '@/components/efb/FlightReleaseSignOff';
+import LiveMap               from '@/components/efb/LiveMap';
+import AirportBriefing       from '@/components/efb/AirportBriefing';
+import ETOPSDriftDown        from '@/components/efb/ETOPSDriftDown';
 
 const TODAY = new Date().toISOString().split('T')[0];
 
 const TABS = [
   { key: 'brief',       label: 'Flight Brief',    icon: BookOpen },
+  { key: 'release',     label: 'Release Sign-Off', icon: PenLine },
+  { key: 'map',         label: 'Live Map',        icon: Navigation2 },
+  { key: 'airport',     label: 'Airport Brief',   icon: MapPin },
+  { key: 'etops',       label: 'ETOPS / Escape',  icon: Zap },
   { key: 'wb',          label: 'W&B',             icon: Scale },
   { key: 'perf',        label: 'Performance',     icon: Calculator },
   { key: 'fuel',        label: 'Fuel',            icon: Fuel },
@@ -337,6 +345,10 @@ export default function EFB() {
 
       <div className="p-4 space-y-3">
         {activeTab === 'brief'      && <FlightBrief flights={flights} releases={releases} crew={crew} />}
+        {activeTab === 'release'    && <FlightReleaseSignOff />}
+        {activeTab === 'map'        && <LiveMap flights={flights} />}
+        {activeTab === 'airport'    && <AirportBriefing flights={flights} />}
+        {activeTab === 'etops'      && <ETOPSDriftDown />}
         {activeTab === 'wb'         && <WeightBalance />}
         {activeTab === 'perf'       && <PerformanceCalc />}
         {activeTab === 'fuel'       && <FuelPlanning />}
