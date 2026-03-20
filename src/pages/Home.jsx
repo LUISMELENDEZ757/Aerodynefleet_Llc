@@ -83,7 +83,7 @@ export default function Home() {
 
           <div className="inline-flex items-center gap-2 bg-primary/10 border border-primary/20 rounded-full px-3 py-1 mb-4">
             <span className="w-1.5 h-1.5 rounded-full bg-primary animate-pulse" />
-            <span className="text-xs font-semibold text-primary tracking-wide uppercase">Dispatch + Flight Ops — Unified Module</span>
+            <span className="text-xs font-semibold text-primary tracking-wide uppercase">Dispatch + Flight Ops · Unified Module</span>
           </div>
 
           <h1 className="text-3xl font-extrabold text-foreground leading-tight mb-3">
