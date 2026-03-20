@@ -6,6 +6,7 @@ import {
   Clock, AlertTriangle, CheckCircle, ShieldCheck, FileText, Wind
 } from 'lucide-react';
 import ELogbook from '@/components/crew/ELogbook';
+import CabinZonesPanel from '@/components/cabin/CabinZonesPanel';
 import { cn } from '@/lib/utils';
 
 const TODAY = new Date().toISOString().split('T')[0];
