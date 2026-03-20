@@ -349,10 +349,10 @@ export default function EFB() {
         {activeTab === 'map'        && <LiveMap flights={flights} />}
         {activeTab === 'airport'    && <AirportBriefing flights={flights} />}
         {activeTab === 'etops'      && <ETOPSDriftDown />}
-        {activeTab === 'wb'         && <WeightBalance />}
-        {activeTab === 'perf'       && <PerformanceCalc />}
-        {activeTab === 'fuel'       && <FuelPlanning />}
-        {activeTab === 'runway'     && <RunwayAnalysis />}
+        {activeTab === 'wb'         && <WeightBalance flightData={flights} />}
+        {activeTab === 'perf'       && <PerformanceCalc flightData={flights} />}
+        {activeTab === 'fuel'       && <FuelPlanning flightData={flights} />}
+        {activeTab === 'runway'     && <RunwayAnalysis flightData={flights} />}
         {activeTab === 'wx'         && <WeatherPanel flights={flights} />}
         {activeTab === 'notams'     && <NotamViewer />}
         {activeTab === 'crew'       && <CrewLegality />}
