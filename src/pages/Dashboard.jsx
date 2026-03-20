@@ -7,6 +7,7 @@ import FlightStatusBoard from '@/components/flightops/FlightStatusBoard';
 import CrewBoard from '@/components/flightops/CrewBoard';
 import DispatchBoard from '@/components/flightops/DispatchBoard';
 import WeatherPanel from '@/components/flightops/WeatherPanel';
+import DispatchPanel from '@/components/dispatch/DispatchPanel';
 
 const TODAY = new Date().toISOString().split('T')[0];
 
