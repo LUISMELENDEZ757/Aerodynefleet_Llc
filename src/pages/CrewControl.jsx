@@ -1,34 +1,50 @@
 import React, { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { base44 } from '@/api/base44Client';
-import { Users, AlertTriangle, Shield, Brain, RefreshCw, Zap } from 'lucide-react';
+import { Users, AlertTriangle, Brain, RefreshCw, Zap, GitMerge, Wrench } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import CrewStatusBoard from '@/components/crew/CrewStatusBoard';
 import FatiguePredictor from '@/components/crew/FatiguePredictor';
 import AIDispatcherAssistant from '@/components/crew/AIDispatcherAssistant';
+import OpsPipeline from '@/components/crew/OpsPipeline';
 
 const TODAY = new Date().toISOString().split('T')[0];
 
 const TABS = [
-  { key: 'board',    label: 'Crew Control Board', icon: Users },
-  { key: 'fatigue',  label: 'Fatigue Predictor',  icon: Brain },
-  { key: 'ai',       label: 'AI Dispatcher',       icon: Zap },
+  { key: 'pipeline', label: 'Ops Pipeline',       icon: GitMerge },
+  { key: 'board',    label: 'Crew Board',          icon: Users },
+  { key: 'fatigue',  label: 'Fatigue Predictor',   icon: Brain },
+  { key: 'ai',       label: 'AI Dispatcher',        icon: Zap },
 ];
 
 export default function CrewControl() {
-  const [activeTab, setActiveTab] = useState('board');
+  const [activeTab, setActiveTab] = useState('pipeline');
 
-  const { data: crew = [], isLoading, refetch } = useQuery({
+  const { data: crew = [], isLoading, refetch: refetchCrew } = useQuery({
     queryKey: ['crew-control', TODAY],
     queryFn: () => base44.entities.CrewAssignment.filter({ flight_date: TODAY }),
     refetchInterval: 30000,
   });
 
-  const { data: flights = [] } = useQuery({
+  const { data: flights = [], refetch: refetchFlights } = useQuery({
     queryKey: ['cc-flights', TODAY],
     queryFn: () => base44.entities.Flight.filter({ flight_date: TODAY }),
     refetchInterval: 30000,
   });
+
+  const { data: releases = [], refetch: refetchReleases } = useQuery({
+    queryKey: ['cc-releases', TODAY],
+    queryFn: () => base44.entities.DispatchRelease.filter({ flight_date: TODAY }),
+    refetchInterval: 30000,
+  });
+
+  const { data: oosEntries = [], refetch: refetchOOS } = useQuery({
+    queryKey: ['cc-oos'],
+    queryFn: () => base44.entities.OOSEntry.list(),
+    refetchInterval: 60000,
+  });
+
+  const refetch = () => { refetchCrew(); refetchFlights(); refetchReleases(); refetchOOS(); };
 
   const illegal  = crew.filter(c => c.legal_status === 'illegal').length;
   const near     = crew.filter(c => c.legal_status === 'near_limit').length;
