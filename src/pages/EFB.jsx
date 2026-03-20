@@ -35,8 +35,10 @@ const TABS = [
 
 // ─── PERFORMANCE CALCULATOR ──────────────────────────────────────────────────
 function PerformanceCalc() {
+  const [acType, setAcType] = useState('B737-800');
+  const AC_TYPES_PERF = ['B737-700', 'B737-800', 'B737-900', 'B737 MAX 8', 'B737 MAX 9'];
   const [form, setForm] = useState({
-    oat: 15, pressure_alt: 0, weight: 60000,
+    oat: 15, pressure_alt: 0, weight: 155000,
     wind_dir: 270, wind_spd: 10, rwy_hdg: 280,
   });
   const [result, setResult] = useState(null);
@@ -48,13 +50,23 @@ function PerformanceCalc() {
     const angle = ((wind_dir - rwy_hdg) * Math.PI) / 180;
     const hwc = Math.round(wind_spd * Math.cos(angle));
 
-    const baseTOR = 4500 + (weight - 55000) * 0.05 + pressure_alt * 0.3 + (oat - 15) * 15 - hwc * 30;
-    const v1 = Math.round(Math.max(100, 115 + (weight - 55000) / 1000 * 2 + pressure_alt / 1000 - hwc * 0.3));
+    // 737-family performance reference values
+    const AC_PERF = {
+      'B737-700':  { baseV1: 130, baseTOR: 5200, baseN1: 91, vmca: 108 },
+      'B737-800':  { baseV1: 138, baseTOR: 6100, baseN1: 92, vmca: 112 },
+      'B737-900':  { baseV1: 142, baseTOR: 6600, baseN1: 93, vmca: 114 },
+      'B737 MAX 8':{ baseV1: 136, baseTOR: 5800, baseN1: 90, vmca: 110 },
+      'B737 MAX 9':{ baseV1: 140, baseTOR: 6200, baseN1: 91, vmca: 112 },
+    };
+    const perf = AC_PERF[acType] || AC_PERF['B737-800'];
+    const wtDelta = (weight - 140000) / 1000;
+    const baseTOR = perf.baseTOR + wtDelta * 40 + pressure_alt * 0.35 + (oat - 15) * 18 - hwc * 35;
+    const v1 = Math.round(Math.max(110, perf.baseV1 + wtDelta * 0.8 + pressure_alt / 1000 * 1.5 - hwc * 0.3));
     const vr = v1 + 4;
-    const v2 = vr + 6;
-    const n1 = Math.min(100, Math.round(93 + (oat - 15) * 0.1 + pressure_alt / 1000 * 0.5));
-    const vmca = 90;
-    const vapp = v2 + 10;
+    const v2 = vr + 7;
+    const n1 = Math.min(100, Math.round(perf.baseN1 + (oat - 15) * 0.08 + pressure_alt / 1000 * 0.4));
+    const vmca = perf.vmca;
+    const vapp = Math.round(132 + wtDelta * 0.6);
 
     setResult({ tor: Math.round(baseTOR), v1, vr, v2, n1, hwc, vmca, vapp });
   };
@@ -63,9 +75,17 @@ function PerformanceCalc() {
     <div className="space-y-4">
       <div className="rounded-xl bg-card border border-border overflow-hidden">
         <div className="px-4 py-3 border-b border-border bg-secondary/60">
-          <p className="text-xs font-mono font-semibold text-muted-foreground uppercase tracking-wider">Takeoff Performance — CRJ Series</p>
+          <p className="text-xs font-mono font-semibold text-muted-foreground uppercase tracking-wider">Takeoff Performance — 737 Family</p>
         </div>
         <div className="p-4 space-y-3">
+          <div className="flex gap-2 flex-wrap">
+            {AC_TYPES_PERF.map(t => (
+              <button key={t} onClick={() => setAcType(t)}
+                className={cn('px-3 py-1.5 rounded-lg text-xs font-bold transition-all border',
+                  acType === t ? 'bg-primary text-primary-foreground border-primary' : 'border-border text-muted-foreground hover:text-foreground'
+                )}>{t}</button>
+            ))}
+          </div>
           <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
             {[
               { label: 'OAT (°C)', key: 'oat' },
@@ -86,6 +106,7 @@ function PerformanceCalc() {
             className="w-full h-10 bg-primary text-primary-foreground font-bold text-sm rounded-lg hover:bg-primary/90 transition-colors">
             Compute Takeoff Performance
           </button>
+          <p className="text-xs text-muted-foreground">Aircraft: <span className="text-foreground font-semibold">{acType}</span></p>
         </div>
       </div>
 
