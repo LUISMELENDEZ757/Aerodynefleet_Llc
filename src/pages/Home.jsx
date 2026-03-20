@@ -31,7 +31,7 @@ const UNIFIED_FEATURES = [
   {
     icon: BarChart2,
     title: 'One Operational Picture',
-    desc: 'Fuel, performance, runway analysis, W&B, and post-flight reporting — all connected, all current, all in one system.',
+    desc: 'Fuel, performance, runway analysis, W&B, and post-flight reporting. All connected, all current, all in one system.',
   },
 ];
 
