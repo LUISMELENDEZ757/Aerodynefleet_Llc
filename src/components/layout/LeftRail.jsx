@@ -28,7 +28,7 @@ export default function LeftRail() {
         </div>
         {expanded && (
           <span className="text-sm font-bold tracking-wide text-primary whitespace-nowrap">
-            OOS TRACKER
+            FLIGHT OPS
           </span>
         )}
       </Link>
