@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
-import { Plane, Home, Users, Settings, Radio, BookOpen, CalendarDays, ChevronLeft, ChevronRight } from 'lucide-react';
+import { Plane, Home, Users, Settings, Radio, BookOpen, CalendarDays, ChevronLeft, ChevronRight, Zap } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 const NAV_ITEMS = [
@@ -10,6 +10,7 @@ const NAV_ITEMS = [
   { icon: Radio,    label: 'Flight Crew', path: '/FlightCrew' },
   { icon: BookOpen,     label: 'EFB',          path: '/EFB' },
   { icon: CalendarDays, label: 'Crew Calendar', path: '/CrewCalendar' },
+  { icon: Zap,          label: 'Crew Control',  path: '/CrewControl' },
 ];
 
 export default function LeftRail() {
