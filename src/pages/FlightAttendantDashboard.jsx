@@ -424,21 +424,35 @@ export default function FlightAttendantDashboard() {
           )}
         </div>
 
-        {/* Pre-departure checklist */}
-        <CabinChecklist
-          title="Pre-Departure Cabin Check"
-          items={DEPARTURE_CHECKS}
-          completedMsg="All cabin checks complete — ready for boarding"
-          accentColor="green"
-        />
+        {/* Adaptive cabin checklist */}
+        {flights.length > 0 && flights[0].aircraft_type && (
+          <>
+            <CabinChecklistWidget
+              aircraftType={flights[0].aircraft_type}
+              checklistType="preflight_cabin"
+              title="Pre-Departure Cabin Check"
+            />
+            <CabinZonesPanel aircraftType={flights[0].aircraft_type} />
+          </>
+        )}
 
-        {/* Arrival checklist */}
-        <CabinChecklist
-          title="Arrival Cabin Check"
-          items={ARRIVAL_CHECKS}
-          completedMsg="Cabin secure — cleared for landing"
-          accentColor="blue"
-        />
+        {/* Fallback to static checklists if no flight data */}
+        {flights.length === 0 && (
+          <>
+            <CabinChecklist
+              title="Pre-Departure Cabin Check"
+              items={DEPARTURE_CHECKS}
+              completedMsg="All cabin checks complete — ready for boarding"
+              accentColor="green"
+            />
+            <CabinChecklist
+              title="Arrival Cabin Check"
+              items={ARRIVAL_CHECKS}
+              completedMsg="Cabin secure — cleared for landing"
+              accentColor="blue"
+            />
+          </>
+        )}
       </div>
     </div>
   );
