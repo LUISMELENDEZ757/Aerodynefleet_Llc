@@ -177,7 +177,7 @@ export default function Home() {
         <div className="rounded-xl border border-primary/20 bg-primary/5 px-5 py-5">
           <p className="text-sm font-bold text-primary uppercase tracking-wider mb-2">Plan smarter. Fly safer. Decide faster.</p>
           <p className="text-sm text-foreground italic leading-relaxed mb-4">
-            "The connected workflow airlines have been missing. Aerodyne Fleet unifies dispatchers and flight crews into a single operational environment — flight planning, release generation, crew legality, weather, NOTAMs, ETOPS, and maintenance impact all live in one place, updated in real time."
+            "The connected workflow airlines have been missing. Aerodyne Fleet unifies dispatchers and flight crews into a single operational environment. Flight planning, release generation, crew legality, weather, NOTAMs, ETOPS, and maintenance impact all live in one place, updated in real time."
           </p>
           <div className="flex items-center gap-2">
             <div className="w-6 h-6 rounded-full bg-primary/20 flex items-center justify-center">
