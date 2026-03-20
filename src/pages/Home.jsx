@@ -11,7 +11,7 @@ const UNIFIED_FEATURES = [
   {
     icon: Cloud,
     title: 'Live Weather & NOTAMs',
-    desc: 'One weather package. One NOTAM brief. Updated in real time and visible to every role that needs it — dispatch, crew, and OCC.',
+    desc: 'One weather package. One NOTAM brief. Updated in real time and visible to every role that needs it: dispatch, crew, and OCC.',
   },
   {
     icon: Users,
