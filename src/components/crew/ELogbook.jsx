@@ -247,17 +247,17 @@ function DiscrepancyForm({ flights }) {
         <div className="flex items-center gap-2 bg-blue-500/10 border border-blue-500/20 rounded-lg px-3 py-2">
           <Radio className="w-3.5 h-3.5 text-blue-400 flex-shrink-0" />
           <p className="text-xs text-blue-400 font-semibold">
-            Entry will be transmitted to <span className="font-bold">{form.notify}</span> and logged as an open OOS/maintenance item.
+            Entry will be sent to <span className="font-bold">{form.notify}</span>. Maintenance will determine disposition — no OOS entry is created automatically.
           </p>
         </div>
 
         <button
-          onClick={() => mutation.mutate(form)}
-          disabled={!canSubmit || mutation.isPending}
+          onClick={handleSubmit}
+          disabled={!canSubmit || submitting}
           className="w-full h-10 bg-primary text-primary-foreground font-bold text-sm rounded-lg hover:bg-primary/90 transition-colors disabled:opacity-50 flex items-center justify-center gap-2"
         >
           <Send className="w-4 h-4" />
-          {mutation.isPending ? 'Submitting…' : 'Submit to Maintenance'}
+          {submitting ? 'Submitting…' : 'Send to Maintenance'}
         </button>
       </div>
     </div>
