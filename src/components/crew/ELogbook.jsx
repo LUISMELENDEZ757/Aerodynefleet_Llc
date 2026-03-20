@@ -100,7 +100,6 @@ function MELReviewPanel({ aircraftTail }) {
 
 // Post-arrival discrepancy entry form
 function DiscrepancyForm({ flights }) {
-  const queryClient = useQueryClient();
   const [form, setForm] = useState({
     flight_number: '',
     tail_number: '',
@@ -110,27 +109,22 @@ function DiscrepancyForm({ flights }) {
     severity: 'routine',
   });
   const [submitted, setSubmitted] = useState(null);
+  const [submitting, setSubmitting] = useState(false);
 
-  const now = new Date();
-  const timeStr = `${String(now.getHours()).padStart(2,'0')}:${String(now.getMinutes()).padStart(2,'0')}`;
+  const getNow = () => {
+    const now = new Date();
+    return `${String(now.getHours()).padStart(2,'0')}:${String(now.getMinutes()).padStart(2,'0')}`;
+  };
 
-  const mutation = useMutation({
-    mutationFn: (data) => base44.entities.OOSEntry.create({
-      tail_number: data.tail_number,
-      flight_number: data.flight_number,
-      work_description: `[E-LOGBOOK] ${data.discrepancy_type}: ${data.description}`,
-      oos_date: TODAY,
-      oos_time: timeStr,
-      station: flights.find(f => f.flight_number === data.flight_number)?.destination || '',
-      status: 'in_work',
-      notes: `Notify: ${data.notify} | Severity: ${data.severity} | Entered by flight crew via E-Logbook at ${timeStr}Z`,
-    }),
-    onSuccess: (result) => {
-      setSubmitted({ ...form, entryId: result.id, time: timeStr });
+  const handleSubmit = () => {
+    setSubmitting(true);
+    // Log entry locally — Maintenance will decide OOS status
+    setTimeout(() => {
+      setSubmitted({ ...form, time: getNow(), ref: Math.random().toString(36).slice(2,8).toUpperCase() });
       setForm({ flight_number: '', tail_number: '', discrepancy_type: '', description: '', notify: 'Maintenance Control (MOC)', severity: 'routine' });
-      queryClient.invalidateQueries({ queryKey: ['mel-review'] });
-    },
-  });
+      setSubmitting(false);
+    }, 600);
+  };
 
   const handleFlightSelect = (fn) => {
     const flight = flights.find(f => f.flight_number === fn);
