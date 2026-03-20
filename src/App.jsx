@@ -11,6 +11,7 @@ import Home from '@/pages/Home';
 import Dashboard from '@/pages/Dashboard';
 import OOSDetail from '@/pages/OOSDetail';
 import NewOOS from '@/pages/NewOOS';
+import FlightAttendantDashboard from '@/pages/FlightAttendantDashboard';
 
 const AuthenticatedApp = () => {
   const { isLoadingAuth, isLoadingPublicSettings, authError, navigateToLogin } = useAuth();
@@ -44,6 +45,7 @@ const AuthenticatedApp = () => {
         <Route path="/Dashboard" element={<Dashboard />} />
         <Route path="/OOSDetail" element={<OOSDetail />} />
         <Route path="/NewOOS" element={<NewOOS />} />
+        <Route path="/FlightAttendant" element={<FlightAttendantDashboard />} />
       </Route>
       <Route path="*" element={<PageNotFound />} />
     </Routes>
