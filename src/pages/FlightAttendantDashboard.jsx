@@ -256,63 +256,74 @@ function FlightCard({ flight }) {
   );
 }
 
-function CabinChecklist() {
+function CabinChecklist({ title, items, completedMsg, accentColor = 'green' }) {
   const [checked, setChecked] = useState({});
 
-  const toggle = (item) => setChecked(prev => ({ ...prev, [item]: !prev[item] }));
-  const total = CABIN_CHECKS.length;
+  const toggle = (item) => {
+    const ts = new Date().toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: false });
+    setChecked(prev => prev[item] ? { ...prev, [item]: null } : { ...prev, [item]: ts });
+  };
+
+  const total = items.length;
   const done = Object.values(checked).filter(Boolean).length;
   const allDone = done === total;
+
+  const borderColor = accentColor === 'green' ? 'border-green-500/20' : 'border-blue-500/20';
+  const bgColor    = accentColor === 'green' ? 'bg-green-500/10'  : 'bg-blue-500/10';
+  const textColor  = accentColor === 'green' ? 'text-green-400'   : 'text-blue-400';
+  const barColor   = accentColor === 'green' ? 'bg-green-400'     : 'bg-blue-400';
+  const checkBg    = accentColor === 'green' ? 'border-green-500 bg-green-500' : 'border-blue-500 bg-blue-500';
+  const itemBg     = accentColor === 'green' ? 'bg-green-500/10'  : 'bg-blue-500/10';
 
   return (
     <div className="rounded-xl bg-card border border-border overflow-hidden">
       <div className="px-4 py-3 border-b border-border bg-secondary/60 flex items-center justify-between">
         <div className="flex items-center gap-2">
-          <ClipboardList className="w-4 h-4 text-primary" />
-          <p className="text-xs font-mono font-semibold text-muted-foreground uppercase tracking-wider">Pre-Departure Cabin Check</p>
+          <ClipboardList className={cn('w-4 h-4', textColor)} />
+          <p className="text-xs font-mono font-semibold text-muted-foreground uppercase tracking-wider">{title}</p>
         </div>
         <div className="flex items-center gap-2">
           <div className="w-24 h-1.5 bg-secondary rounded-full overflow-hidden">
-            <div
-              className="h-full bg-primary rounded-full transition-all"
-              style={{ width: `${(done / total) * 100}%` }}
-            />
+            <div className={cn('h-full rounded-full transition-all', barColor)} style={{ width: `${(done / total) * 100}%` }} />
           </div>
-          <span className={cn('text-xs font-bold', allDone ? 'text-green-400' : 'text-muted-foreground')}>
+          <span className={cn('text-xs font-bold', allDone ? textColor : 'text-muted-foreground')}>
             {done}/{total}
           </span>
         </div>
       </div>
       <div className="p-3 space-y-1">
-        {CABIN_CHECKS.map((item) => (
-          <button
-            key={item}
-            onClick={() => toggle(item)}
-            className={cn(
-              'w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-left transition-all',
-              checked[item] ? 'bg-green-500/10' : 'hover:bg-secondary/50'
-            )}
-          >
-            <div className={cn(
-              'w-5 h-5 rounded-full border-2 flex items-center justify-center flex-shrink-0 transition-all',
-              checked[item] ? 'border-green-500 bg-green-500' : 'border-border'
-            )}>
-              {checked[item] && <CheckCircle className="w-3 h-3 text-white" />}
-            </div>
-            <span className={cn(
-              'text-sm transition-colors',
-              checked[item] ? 'text-muted-foreground line-through' : 'text-foreground'
-            )}>
-              {item}
-            </span>
-          </button>
-        ))}
+        {items.map((item) => {
+          const ts = checked[item];
+          return (
+            <button
+              key={item}
+              onClick={() => toggle(item)}
+              className={cn(
+                'w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-left transition-all',
+                ts ? itemBg : 'hover:bg-secondary/50'
+              )}
+            >
+              <div className={cn(
+                'w-5 h-5 rounded-full border-2 flex items-center justify-center flex-shrink-0 transition-all',
+                ts ? checkBg : 'border-border'
+              )}>
+                {ts && <CheckCircle className="w-3 h-3 text-white" />}
+              </div>
+              <span className={cn('text-sm transition-colors flex-1', ts ? 'text-muted-foreground line-through' : 'text-foreground')}>
+                {item}
+              </span>
+              {ts && (
+                <span className="text-xs font-mono text-muted-foreground flex-shrink-0">{ts}Z</span>
+              )}
+            </button>
+          );
+        })}
       </div>
       {allDone && (
         <div className="px-4 pb-4">
-          <div className="flex items-center gap-2 bg-green-500/10 border border-green-500/20 rounded-lg px-4 py-3">
-            <ShieldCheck className="w-5 h-5 text-green-400 flex-shrink-0" />
-            <p className="text-sm font-semibold text-green-400">All cabin checks complete — ready for boarding</p>
+          <div className={cn('flex items-center gap-2 rounded-lg px-4 py-3 border', bgColor, borderColor)}>
+            <ShieldCheck className={cn('w-5 h-5 flex-shrink-0', textColor)} />
+            <p className={cn('text-sm font-semibold', textColor)}>{completedMsg}</p>
           </div>
         </div>
       )}
