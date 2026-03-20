@@ -55,6 +55,7 @@ const AuthenticatedApp = () => {
         <Route path="/EFB" element={<EFB />} />
         <Route path="/CrewCalendar" element={<CrewCalendar />} />
         <Route path="/CrewControl" element={<CrewControl />} />
+        <Route path="/WorldClock" element={<WorldClock />} />
       </Route>
       <Route path="*" element={<PageNotFound />} />
     </Routes>
