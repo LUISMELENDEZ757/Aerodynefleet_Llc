@@ -69,13 +69,14 @@ const AIRCRAFT_CONFIGS = {
   },
 };
 
-export default function WeightBalance() {
-  const [acType, setAcType] = useState('B737-800');
+export default function WeightBalance({ flightData = [] }) {
+  const [selectedTail, setSelectedTail] = useState('');
   const [fuel, setFuel] = useState(26000);
   const [fuelArm] = useState(27.2);
   const [loads, setLoads] = useState({});
 
-  const cfg = AIRCRAFT_CONFIGS[acType];
+  const { acType } = useAircraftPerformance(selectedTail);
+  const cfg = AIRCRAFT_CONFIGS[acType || 'B737-800'];
 
   const setLoad = (id, val) => setLoads(prev => ({ ...prev, [id]: Number(val) || 0 }));
 
