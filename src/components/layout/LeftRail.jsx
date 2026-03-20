@@ -11,6 +11,7 @@ const NAV_ITEMS = [
   { icon: BookOpen,     label: 'EFB',          path: '/EFB' },
   { icon: CalendarDays, label: 'Crew Calendar', path: '/CrewCalendar' },
   { icon: Zap,          label: 'Crew Control',  path: '/CrewControl' },
+  { icon: Globe,        label: 'World Clock',   path: '/WorldClock' },
 ];
 
 export default function LeftRail() {
