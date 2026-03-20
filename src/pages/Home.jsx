@@ -50,13 +50,6 @@ const CAPABILITIES = [
   'Post-Flight Discrepancy & Delay Codes',
 ];
 
-const OCC_MODELS = [
-  { code: 'UAL', label: 'United NOC' },
-  { code: 'DAL', label: 'Delta OCC' },
-  { code: 'AAL', label: 'American IOC' },
-  { code: 'DLH', label: 'Lufthansa OCC' },
-];
-
 export default function Home() {
   return (
     <div className="min-h-screen bg-background">
