@@ -26,7 +26,7 @@ const UNIFIED_FEATURES = [
   {
     icon: Radio,
     title: 'ACARS Datalink',
-    desc: 'OOOI reporting, dispatch messaging, and ATC relay in one thread — shared between cockpit and operations control.',
+    desc: 'OOOI reporting, dispatch messaging, and ATC relay in one thread. Shared between cockpit and operations control.',
   },
   {
     icon: BarChart2,
