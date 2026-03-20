@@ -27,6 +27,98 @@ const CABIN_CHECKS = [
   'Passenger count & manifest reconciled',
 ];
 
+const ROLE_LABEL = { captain: 'Captain', first_officer: 'First Officer' };
+
+function PilotBriefingCard({ flightNumber }) {
+  const { data: pilotCrew = [], isLoading } = useQuery({
+    queryKey: ['crew-pilots', flightNumber],
+    queryFn: () => base44.entities.CrewAssignment.filter({ flight_number: flightNumber, flight_date: TODAY }),
+    select: (data) => data.filter(c => c.role === 'captain' || c.role === 'first_officer'),
+  });
+
+  const { data: release } = useQuery({
+    queryKey: ['release-fa', flightNumber],
+    queryFn: async () => {
+      const res = await base44.entities.DispatchRelease.filter({ flight_number: flightNumber, flight_date: TODAY });
+      return res[0] || null;
+    },
+  });
+
+  return (
+    <div className="rounded-xl border border-blue-500/20 bg-blue-500/5 overflow-hidden">
+      <div className="px-3 py-2 border-b border-blue-500/20 flex items-center gap-2">
+        <Radio className="w-3.5 h-3.5 text-blue-400" />
+        <p className="text-xs font-bold text-blue-400 uppercase tracking-wider">Pilot Crew Briefing</p>
+      </div>
+      <div className="p-3 space-y-3">
+        {isLoading ? (
+          <p className="text-xs text-muted-foreground">Loading crew…</p>
+        ) : pilotCrew.length === 0 ? (
+          <p className="text-xs text-muted-foreground">No flight crew assigned</p>
+        ) : (
+          <div className="space-y-2">
+            {pilotCrew.map(c => (
+              <div key={c.id} className="flex items-center justify-between bg-background/40 rounded-lg px-3 py-2">
+                <div className="flex items-center gap-2">
+                  <div className="w-7 h-7 rounded-full bg-blue-500/20 flex items-center justify-center flex-shrink-0">
+                    <Users className="w-3 h-3 text-blue-400" />
+                  </div>
+                  <div>
+                    <p className="text-xs font-bold text-foreground">{c.crew_name}</p>
+                    <p className="text-xs text-muted-foreground">
+                      {ROLE_LABEL[c.role] || c.role}
+                      {c.duty_start ? ` · Duty ${c.duty_start}–${c.duty_end}Z` : ''}
+                      {c.rest_hours_prior != null ? ` · ${c.rest_hours_prior}h rest` : ''}
+                    </p>
+                  </div>
+                </div>
+                <span className={cn(
+                  'text-xs font-bold px-2 py-0.5 rounded-full flex-shrink-0',
+                  c.legal_status === 'legal' ? 'text-green-400 bg-green-500/15' :
+                  c.legal_status === 'near_limit' ? 'text-orange-400 bg-orange-500/15' :
+                  'text-destructive bg-destructive/15'
+                )}>
+                  {c.legal_status === 'illegal' ? 'VIOLATION' : c.legal_status === 'near_limit' ? 'Near Limit' : 'Legal'}
+                </span>
+              </div>
+            ))}
+          </div>
+        )}
+
+        {/* Dispatch release summary for FA briefing */}
+        {release && (
+          <div className="grid grid-cols-2 gap-2 pt-1 border-t border-blue-500/10">
+            <div className="bg-background/40 rounded-lg px-3 py-2">
+              <p className="text-xs text-muted-foreground">Dispatch Release</p>
+              <p className={cn('text-xs font-bold', release.release_status === 'released' ? 'text-green-400' : 'text-orange-400')}>
+                {release.release_status?.toUpperCase()}
+              </p>
+            </div>
+            {release.alternate && (
+              <div className="bg-background/40 rounded-lg px-3 py-2">
+                <p className="text-xs text-muted-foreground">Alternate</p>
+                <p className="text-xs font-mono font-bold text-foreground">{release.alternate}</p>
+              </div>
+            )}
+            {release.origin_wx && (
+              <div className="bg-background/40 rounded-lg px-3 py-2 col-span-2">
+                <p className="text-xs text-muted-foreground mb-0.5">Departure WX</p>
+                <p className="text-xs font-mono text-foreground">{release.origin_wx}</p>
+              </div>
+            )}
+            {release.remarks && (
+              <div className="bg-orange-500/10 rounded-lg px-3 py-2 col-span-2">
+                <p className="text-xs text-muted-foreground mb-0.5">Dispatcher Remarks</p>
+                <p className="text-xs text-orange-300">{release.remarks}</p>
+              </div>
+            )}
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
+
 function FlightCard({ flight }) {
   const [expanded, setExpanded] = useState(false);
   const cfg = STATUS_CONFIG[flight.status] || STATUS_CONFIG.scheduled;
