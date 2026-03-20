@@ -1,12 +1,13 @@
 import React, { useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
-import { Plane, Home, Users, Settings } from 'lucide-react';
+import { Plane, Home, Users, Settings, Radio } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 const NAV_ITEMS = [
   { icon: Home,  label: 'Home',        path: '/Home' },
   { icon: Plane, label: 'Flight Ops',  path: '/Dashboard' },
   { icon: Users, label: 'Cabin Crew',  path: '/FlightAttendant' },
+  { icon: Radio, label: 'Flight Crew', path: '/FlightCrew' },
 ];
 
 export default function LeftRail() {
