@@ -118,9 +118,10 @@ export default function CrewControl() {
       </div>
 
       <div className="p-4">
-        {activeTab === 'board'   && <CrewStatusBoard crew={crew} flights={flights} isLoading={isLoading} />}
-        {activeTab === 'fatigue' && <FatiguePredictor crew={crew} flights={flights} />}
-        {activeTab === 'ai'      && <AIDispatcherAssistant crew={crew} flights={flights} />}
+        {activeTab === 'pipeline' && <OpsPipeline crew={crew} flights={flights} releases={releases} oosEntries={oosEntries} />}
+        {activeTab === 'board'    && <CrewStatusBoard crew={crew} flights={flights} isLoading={isLoading} />}
+        {activeTab === 'fatigue'  && <FatiguePredictor crew={crew} flights={flights} />}
+        {activeTab === 'ai'       && <AIDispatcherAssistant crew={crew} flights={flights} releases={releases} oosEntries={oosEntries} />}
       </div>
     </div>
   );
