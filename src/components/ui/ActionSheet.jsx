@@ -29,18 +29,54 @@ export default function ActionSheet({
   disabled = false,
 }) {
   const [open, setOpen] = useState(false);
+  const [focusedIndex, setFocusedIndex] = useState(-1);
   const isMobile = () => window.innerWidth < 1024;
   const triggerRef = useRef(null);
   const sheetRef = useRef(null);
+  const optionsRef = useRef([]);
 
   const selected = options.find(o => o.value === value);
 
   const handleSelect = (opt) => {
     onChange(opt.value);
     setOpen(false);
+    triggerRef.current?.focus();
   };
 
-  // Close on outside click (desktop popover)
+  const handleKeyDown = (e) => {
+    if (!open) {
+      if (e.key === 'Enter' || e.key === ' ') {
+        e.preventDefault();
+        setOpen(true);
+        setFocusedIndex(0);
+      }
+      return;
+    }
+
+    switch (e.key) {
+      case 'ArrowDown':
+        e.preventDefault();
+        setFocusedIndex(prev => (prev + 1) % options.length);
+        break;
+      case 'ArrowUp':
+        e.preventDefault();
+        setFocusedIndex(prev => (prev - 1 + options.length) % options.length);
+        break;
+      case 'Enter':
+        e.preventDefault();
+        if (focusedIndex >= 0) handleSelect(options[focusedIndex]);
+        break;
+      case 'Escape':
+        e.preventDefault();
+        setOpen(false);
+        triggerRef.current?.focus();
+        break;
+      default:
+        break;
+    }
+  };
+
+  // Close on outside click (desktop popover) + focus option
   useEffect(() => {
     if (!open) return;
     const handler = (e) => {
@@ -54,6 +90,13 @@ export default function ActionSheet({
     document.addEventListener('mousedown', handler);
     return () => document.removeEventListener('mousedown', handler);
   }, [open]);
+
+  // Focus focused option on mobile
+  useEffect(() => {
+    if (open && focusedIndex >= 0 && optionsRef.current[focusedIndex]) {
+      optionsRef.current[focusedIndex]?.focus();
+    }
+  }, [focusedIndex, open]);
 
   // Lock body scroll on mobile sheet open
   useEffect(() => {
@@ -77,6 +120,7 @@ export default function ActionSheet({
         type="button"
         disabled={disabled}
         onClick={() => setOpen(v => !v)}
+        onKeyDown={handleKeyDown}
         className={cn(
           'flex items-center justify-between gap-2 h-9 min-w-[120px] bg-secondary border border-border rounded-lg px-3 text-xs font-semibold text-foreground transition-all',
           'hover:border-primary/50 focus:outline-none focus:ring-1 focus:ring-primary',
@@ -84,6 +128,8 @@ export default function ActionSheet({
           open && 'border-primary/60 ring-1 ring-primary/30',
           triggerClassName
         )}
+        aria-haspopup="listbox"
+        aria-expanded={open}
       >
         <span className={cn('truncate', !selected && 'text-muted-foreground font-normal')}>
           {selected ? selected.label : placeholder}
@@ -131,18 +177,23 @@ export default function ActionSheet({
                 </div>
 
                 {/* Options */}
-                <div className="overflow-y-auto max-h-[55vh] py-2">
-                  {options.map((opt) => {
+                <div className="overflow-y-auto max-h-[55vh] py-2" role="listbox">
+                  {options.map((opt, idx) => {
                     const isSelected = opt.value === value;
                     return (
                       <button
                         key={opt.value}
+                        ref={(el) => { optionsRef.current[idx] = el; }}
                         onClick={() => handleSelect(opt)}
+                        onKeyDown={handleKeyDown}
+                        role="option"
+                        aria-selected={isSelected}
                         className={cn(
                           'w-full flex items-center justify-between px-5 py-3.5 text-sm transition-colors min-h-[52px]',
                           isSelected
                             ? 'bg-primary/15 text-primary font-semibold'
-                            : 'text-foreground hover:bg-secondary/60'
+                            : 'text-foreground hover:bg-secondary/60',
+                          focusedIndex === idx && 'outline-none ring-1 ring-inset ring-primary bg-secondary/40'
                         )}
                       >
                         <span>{opt.label}</span>
@@ -162,18 +213,24 @@ export default function ActionSheet({
               animate={{ opacity: 1, y: 0, scale: 1 }}
               exit={{ opacity: 0, y: -6, scale: 0.97 }}
               transition={{ duration: 0.12 }}
+              role="listbox"
             >
-              {options.map((opt) => {
+              {options.map((opt, idx) => {
                 const isSelected = opt.value === value;
                 return (
                   <button
                     key={opt.value}
+                    ref={(el) => { optionsRef.current[idx] = el; }}
                     onClick={() => handleSelect(opt)}
+                    onKeyDown={handleKeyDown}
+                    role="option"
+                    aria-selected={isSelected}
                     className={cn(
-                      'w-full flex items-center justify-between px-4 py-2.5 text-xs font-medium transition-colors',
+                      'w-full flex items-center justify-between px-4 py-2.5 text-xs font-medium transition-colors focus:outline-none focus:ring-1 focus:ring-inset focus:ring-primary',
                       isSelected
                         ? 'bg-primary/15 text-primary'
-                        : 'text-foreground hover:bg-secondary'
+                        : 'text-foreground hover:bg-secondary',
+                      focusedIndex === idx && 'bg-secondary/60'
                     )}
                   >
                     <span>{opt.label}</span>
