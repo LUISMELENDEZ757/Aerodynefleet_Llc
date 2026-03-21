@@ -1,51 +1,42 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
-import { Users, Plane, Radio, BookOpen, CalendarDays, Zap } from 'lucide-react';
+import { Users, Plane, Radio, BookOpen, CalendarDays, Zap, Globe, Shield } from 'lucide-react';
 
 const MODULES = [
   {
-    icon: Users,
-    iconBg: 'bg-blue-500',
-    iconColor: 'text-white',
+    icon: Plane,
+    iconBg: 'bg-primary',
+    iconColor: 'text-primary-foreground',
     title: 'FLIGHT OPS',
-    subtitle: 'Pilots & Crew',
-    items: ['Pilot Roster', 'Crew Scheduling', 'Training Records'],
-    itemColor: 'text-blue-400',
-    borderColor: 'border-blue-500/40',
+    subtitle: 'Operations Center',
+    borderColor: 'border-primary/30',
     path: '/Dashboard',
   },
   {
-    icon: Plane,
-    iconBg: 'bg-yellow-400',
-    iconColor: 'text-gray-900',
-    title: 'PILOT FLIGHT KIT',
-    subtitle: 'Electronic Flight Bag (EFB Lite) — Aerodyne Operation',
-    items: ['Flight Releases', 'Weather & NOTAMs', 'Postflight Reporting'],
-    itemColor: 'text-yellow-400',
-    borderColor: 'border-yellow-400/40',
+    icon: BookOpen,
+    iconBg: 'bg-yellow-500',
+    iconColor: 'text-white',
+    title: 'EFB',
+    subtitle: 'Electronic Flight Bag',
+    borderColor: 'border-yellow-500/30',
     path: '/EFB',
   },
   {
     icon: Radio,
     iconBg: 'bg-blue-500',
     iconColor: 'text-white',
-    title: 'DISPATCH',
-    subtitle: 'Flight Dispatch & Release Control',
-    items: ['Dispatch Releases', 'Fuel Planning', 'Flight Following'],
-    itemColor: 'text-blue-400',
-    borderColor: 'border-blue-500/40',
-    path: '/Dashboard',
+    title: 'FLIGHT CREW',
+    subtitle: 'Cockpit Operations',
+    borderColor: 'border-blue-500/30',
+    path: '/FlightCrew',
   },
-
   {
     icon: Users,
     iconBg: 'bg-purple-500',
     iconColor: 'text-white',
     title: 'CABIN CREW',
-    subtitle: 'Flight Attendant Operations',
-    items: ['Cabin Checklist', 'Flight Status', 'Crew Assignments'],
-    itemColor: 'text-purple-400',
-    borderColor: 'border-purple-500/40',
+    subtitle: 'FA Dashboard',
+    borderColor: 'border-purple-500/30',
     path: '/FlightAttendant',
   },
   {
@@ -53,77 +44,82 @@ const MODULES = [
     iconBg: 'bg-red-500',
     iconColor: 'text-white',
     title: 'CREW CONTROL',
-    subtitle: 'Real-Time · FAR 117 · AI Dispatcher',
-    items: ['Live Duty Timers', 'Fatigue Predictor', 'AI Recovery Assist'],
-    itemColor: 'text-red-400',
-    borderColor: 'border-red-500/40',
+    subtitle: 'FAR 117 · AI Assist',
+    borderColor: 'border-red-500/30',
     path: '/CrewControl',
   },
   {
     icon: CalendarDays,
     iconBg: 'bg-sky-500',
     iconColor: 'text-white',
+    title: 'SCHEDULING',
+    subtitle: 'Pairings · Bidlines',
+    borderColor: 'border-sky-500/30',
+    path: '/Scheduling',
+  },
+  {
+    icon: CalendarDays,
+    iconBg: 'bg-indigo-500',
+    iconColor: 'text-white',
     title: 'CREW CALENDAR',
-    subtitle: 'Assignments · Duty Times · FAR 117',
-    items: ['Flight Assignments', 'Duty Start / End', 'FAR 117 Compliance'],
-    itemColor: 'text-sky-400',
-    borderColor: 'border-sky-500/40',
+    subtitle: 'Assignments · Duty',
+    borderColor: 'border-indigo-500/30',
     path: '/CrewCalendar',
   },
   {
-    icon: BookOpen,
-    iconBg: 'bg-green-500',
+    icon: Globe,
+    iconBg: 'bg-teal-500',
     iconColor: 'text-white',
-    title: 'FLIGHT CREW',
-    subtitle: 'Cockpit Operations',
-    items: ['Preflight Checklist', 'Dispatch Release', 'Crew Legality'],
-    itemColor: 'text-green-400',
-    borderColor: 'border-green-500/40',
-    path: '/FlightCrew',
+    title: 'WORLD CLOCK',
+    subtitle: 'Aviation Hubs · UTC',
+    borderColor: 'border-teal-500/30',
+    path: '/WorldClock',
+  },
+  {
+    icon: Shield,
+    iconBg: 'bg-orange-500',
+    iconColor: 'text-white',
+    title: 'SAFETY & QA',
+    subtitle: 'ASAP · Incidents',
+    borderColor: 'border-orange-500/30',
+    path: '/SafetyQA',
   },
 ];
 
 export default function Home() {
   return (
-    <div className="min-h-screen bg-[#0f1117] px-4 py-6 flex flex-col items-center">
+    <div className="min-h-screen bg-[#0d1117] px-4 pt-6 pb-24 flex flex-col items-center">
       {/* Header */}
-      <div className="mb-6 text-center">
-        <p className="text-xs font-mono font-bold text-primary tracking-widest uppercase mb-1">Aerodyne Fleet LLC</p>
-        <h1 className="text-2xl font-extrabold text-white tracking-wide">Operations Hub</h1>
+      <div className="mb-6 text-center w-full max-w-lg">
+        <div className="flex items-center justify-center gap-2 mb-2">
+          <div className="w-8 h-8 rounded-lg bg-primary/20 flex items-center justify-center">
+            <Plane className="w-4 h-4 text-primary" />
+          </div>
+          <p className="text-xs font-mono font-bold text-primary tracking-widest uppercase">Aerodyne Fleet LLC</p>
+        </div>
+        <h1 className="text-3xl font-extrabold text-white tracking-wide">Operations Hub</h1>
+        <p className="text-sm text-gray-500 mt-1">Airline-grade flight operations platform</p>
       </div>
 
-      {/* Module cards */}
-      <div className="w-full max-w-sm space-y-3">
-        {MODULES.map(({ icon: Icon, iconBg, iconColor, title, subtitle, items, itemColor, borderColor, path }) => (
+      {/* Module grid — 2 cols on mobile, up to 3 on larger screens */}
+      <div className="w-full max-w-lg grid grid-cols-2 sm:grid-cols-3 gap-3">
+        {MODULES.map(({ icon: Icon, iconBg, iconColor, title, subtitle, borderColor, path }) => (
           <Link
             key={title}
             to={path}
-            className={`block rounded-2xl border ${borderColor} bg-[#161b27] p-6 text-center hover:bg-[#1e2436] hover:border-opacity-80 hover:scale-[1.02] hover:shadow-lg hover:shadow-black/40 transition-all duration-200 active:scale-[0.98]`}
+            className={`relative rounded-2xl border ${borderColor} bg-[#161b27] p-4 flex flex-col items-center text-center active:scale-[0.96] transition-all duration-150 hover:bg-[#1e2436] hover:shadow-lg hover:shadow-black/40`}
           >
-            {/* Icon */}
-            <div className="flex justify-center mb-4">
-              <div className={`w-16 h-16 rounded-2xl ${iconBg} flex items-center justify-center shadow-lg`}>
-                <Icon className={`w-8 h-8 ${iconColor}`} />
-              </div>
+            <div className={`w-12 h-12 rounded-xl ${iconBg} flex items-center justify-center shadow-md mb-3 flex-shrink-0`}>
+              <Icon className={`w-6 h-6 ${iconColor}`} />
             </div>
-
-            {/* Title */}
-            <h2 className="text-lg font-extrabold text-white tracking-widest mb-1">{title}</h2>
-
-            {/* Subtitle */}
-            <p className="text-sm text-gray-400 mb-3">{subtitle}</p>
-
-            {/* Items */}
-            <ul className="space-y-1">
-              {items.map((item) => (
-                <li key={item} className={`text-sm ${itemColor}`}>
-                  • {item}
-                </li>
-              ))}
-            </ul>
+            <p className="text-xs font-extrabold text-white tracking-widest leading-tight mb-1">{title}</p>
+            <p className="text-[11px] text-gray-400 leading-snug">{subtitle}</p>
           </Link>
         ))}
       </div>
+
+      {/* Footer */}
+      <p className="mt-8 text-xs text-gray-600 font-mono">AERODYNE FLEET LLC · OPS v2.0</p>
     </div>
   );
 }
