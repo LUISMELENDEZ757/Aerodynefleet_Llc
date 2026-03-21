@@ -33,7 +33,10 @@ export default function LeftRail() {
   const location = useLocation();
   const navigate = useNavigate();
   const [expanded, setExpanded] = useState(() => {
-    try { return localStorage.getItem('rail_expanded') === 'true'; } catch { return false; }
+    try {
+      const stored = localStorage.getItem('rail_expanded');
+      return stored === null ? true : stored === 'true';
+    } catch { return true; }
   });
 
   const toggleExpanded = () => {
