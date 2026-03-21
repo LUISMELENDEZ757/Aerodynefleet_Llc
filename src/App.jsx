@@ -18,6 +18,7 @@ import CrewCalendar from '@/pages/CrewCalendar';
 import CrewControl from '@/pages/CrewControl';
 import WorldClock from '@/pages/WorldClock';
 import SafetyQA from '@/pages/SafetyQA';
+import Scheduling from '@/pages/Scheduling';
 
 const AuthenticatedApp = () => {
   const { isLoadingAuth, isLoadingPublicSettings, authError, navigateToLogin } = useAuth();

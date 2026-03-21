@@ -13,6 +13,7 @@ const NAV_ITEMS = [
   { icon: Zap,          label: 'Crew Control',  path: '/CrewControl' },
   { icon: Globe,        label: 'World Clock',   path: '/WorldClock' },
   { icon: Shield,       label: 'Safety & QA',   path: '/SafetyQA' },
+  { icon: CalendarDays, label: 'Scheduling',     path: '/Scheduling' },
 ];
 
 export default function LeftRail() {
