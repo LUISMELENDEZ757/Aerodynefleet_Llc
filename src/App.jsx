@@ -5,23 +5,33 @@ import { BrowserRouter as Router, Route, Routes } from 'react-router-dom';
 import PageNotFound from './lib/PageNotFound';
 import { AuthProvider, useAuth } from '@/lib/AuthContext';
 import UserNotRegisteredError from '@/components/UserNotRegisteredError';
-import { Navigate } from 'react-router-dom';
+import { Navigate, Suspense } from 'react-router-dom';
+import { lazy } from 'react';
 import AppLayout from '@/components/layout/AppLayout';
-import Home from '@/pages/Home';
-import Dashboard from '@/pages/Dashboard';
-import OOSDetail from '@/pages/OOSDetail';
-import NewOOS from '@/pages/NewOOS';
-import FlightAttendantDashboard from '@/pages/FlightAttendantDashboard';
-import FlightCrewDashboard from '@/pages/FlightCrewDashboard';
-import EFB from '@/pages/EFB';
-import CrewCalendar from '@/pages/CrewCalendar';
-import CrewControl from '@/pages/CrewControl';
-import WorldClock from '@/pages/WorldClock';
-import SafetyQA from '@/pages/SafetyQA';
-import Scheduling from '@/pages/Scheduling';
-import WeatherDashboard from '@/pages/WeatherDashboard';
-import TrainingCenter from '@/pages/TrainingCenter';
-import SettingsPage from '@/pages/Settings';
+
+const Home                  = lazy(() => import('@/pages/Home'));
+const Dashboard             = lazy(() => import('@/pages/Dashboard'));
+const OOSDetail             = lazy(() => import('@/pages/OOSDetail'));
+const NewOOS                = lazy(() => import('@/pages/NewOOS'));
+const FlightAttendantDashboard = lazy(() => import('@/pages/FlightAttendantDashboard'));
+const FlightCrewDashboard   = lazy(() => import('@/pages/FlightCrewDashboard'));
+const EFB                   = lazy(() => import('@/pages/EFB'));
+const CrewCalendar          = lazy(() => import('@/pages/CrewCalendar'));
+const CrewControl           = lazy(() => import('@/pages/CrewControl'));
+const WorldClock            = lazy(() => import('@/pages/WorldClock'));
+const SafetyQA              = lazy(() => import('@/pages/SafetyQA'));
+const Scheduling            = lazy(() => import('@/pages/Scheduling'));
+const WeatherDashboard      = lazy(() => import('@/pages/WeatherDashboard'));
+const TrainingCenter        = lazy(() => import('@/pages/TrainingCenter'));
+const SettingsPage          = lazy(() => import('@/pages/Settings'));
+
+function PageFallback() {
+  return (
+    <div className="fixed inset-0 flex items-center justify-center">
+      <div className="w-8 h-8 border-4 border-slate-200 border-t-primary rounded-full animate-spin" />
+    </div>
+  );
+}
 
 const AuthenticatedApp = () => {
   const { isLoadingAuth, isLoadingPublicSettings, authError, navigateToLogin } = useAuth();
