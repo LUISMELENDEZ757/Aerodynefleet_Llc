@@ -4,8 +4,8 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Switch } from '@/components/ui/switch';
+import ActionSheet from '@/components/ui/ActionSheet';
 
 const EVENT_TYPES = [
   { value: 'troubleshooting', label: 'Troubleshooting' },
@@ -86,16 +86,12 @@ export default function AddEventDialog({ open, onOpenChange, onSave }) {
 
           <div>
             <Label className="text-xs text-muted-foreground">Event Type</Label>
-            <Select value={form.event_type} onValueChange={(v) => setForm({ ...form, event_type: v })}>
-              <SelectTrigger className="bg-secondary border-border">
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                {EVENT_TYPES.map(t => (
-                  <SelectItem key={t.value} value={t.value}>{t.label}</SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+            <ActionSheet
+              value={form.event_type}
+              onChange={(v) => setForm({ ...form, event_type: v })}
+              placeholder="Select event type"
+              options={EVENT_TYPES}
+            />
           </div>
 
           <div>
@@ -147,8 +143,8 @@ export default function AddEventDialog({ open, onOpenChange, onSave }) {
         </div>
 
         <DialogFooter>
-          <Button variant="outline" onClick={() => onOpenChange(false)}>Cancel</Button>
-          <Button onClick={handleSave} className="bg-primary text-primary-foreground">Add Event</Button>
+          <Button variant="outline" onClick={() => onOpenChange(false)} className="h-11">Cancel</Button>
+          <Button onClick={handleSave} className="bg-primary text-primary-foreground h-11">Add Event</Button>
         </DialogFooter>
       </DialogContent>
     </Dialog>

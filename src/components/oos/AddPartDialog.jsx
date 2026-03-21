@@ -3,7 +3,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import ActionSheet from '@/components/ui/ActionSheet';
 
 const PART_STATUSES = [
   { value: 'ordered', label: 'Ordered' },
@@ -70,16 +70,12 @@ export default function AddPartDialog({ open, onOpenChange, onSave }) {
           </div>
           <div>
             <Label className="text-xs text-muted-foreground">Status</Label>
-            <Select value={form.status} onValueChange={(v) => setForm({ ...form, status: v })}>
-              <SelectTrigger className="bg-secondary border-border">
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                {PART_STATUSES.map(s => (
-                  <SelectItem key={s.value} value={s.value}>{s.label}</SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+            <ActionSheet
+              value={form.status}
+              onChange={(v) => setForm({ ...form, status: v })}
+              placeholder="Select status"
+              options={PART_STATUSES}
+            />
           </div>
           <div className="grid grid-cols-2 gap-3">
             <div>
@@ -104,8 +100,8 @@ export default function AddPartDialog({ open, onOpenChange, onSave }) {
         </div>
 
         <DialogFooter>
-          <Button variant="outline" onClick={() => onOpenChange(false)}>Cancel</Button>
-          <Button onClick={handleSave} className="bg-primary text-primary-foreground">Add Part</Button>
+          <Button variant="outline" onClick={() => onOpenChange(false)} className="h-11">Cancel</Button>
+          <Button onClick={handleSave} className="bg-primary text-primary-foreground h-11">Add Part</Button>
         </DialogFooter>
       </DialogContent>
     </Dialog>
