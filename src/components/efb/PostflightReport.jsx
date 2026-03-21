@@ -1,8 +1,9 @@
 import React, { useState } from 'react';
-import { useMutation } from '@tanstack/react-query';
+import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { base44 } from '@/api/base44Client';
 import { cn } from '@/lib/utils';
 import { FileText, CheckCircle, AlertTriangle, Send, Loader2 } from 'lucide-react';
+import ActionSheet from '@/components/ui/ActionSheet';
 
 const DELAY_CODES = [
   '00 - No delay', '01 - Aircraft damage', '02 - Maintenance', '06 - Late crew',
@@ -13,6 +14,7 @@ const DELAY_CODES = [
 const DISCREPANCY_CATEGORIES = ['Avionics', 'Engines', 'Flight Controls', 'Landing Gear', 'Hydraulics', 'Cabin', 'Fuel System', 'Other'];
 
 export default function PostflightReport() {
+  const queryClient = useQueryClient();
   const [tab, setTab] = useState('discrepancy');
   const [submitted, setSubmitted] = useState(false);
 
@@ -34,7 +36,17 @@ export default function PostflightReport() {
     reason: '', over_under: 'over',
   });
 
-  const handleSubmit = () => setSubmitted(true);
+  const submitMutation = useMutation({
+    mutationFn: async (data) => {
+      // Simulate submission
+      return new Promise(resolve => setTimeout(() => resolve(data), 300));
+    },
+    onMutate: () => setSubmitted(true),
+    onError: () => setSubmitted(false),
+    onSettled: () => queryClient.invalidateQueries({ queryKey: ['postflight-reports'] }),
+  });
+
+  const handleSubmit = () => submitMutation.mutate({ tab, discrepancy, delay, safety, fuel });
 
   if (submitted) {
     return (
@@ -92,11 +104,13 @@ export default function PostflightReport() {
               ))}
             </div>
             <div>
-              <label className="text-xs text-muted-foreground block mb-1">Category</label>
-              <select value={discrepancy.category} onChange={e => setDiscrepancy(prev => ({ ...prev, category: e.target.value }))}
-                className="w-full h-9 bg-secondary border border-border rounded-lg px-3 text-sm text-foreground focus:outline-none focus:ring-1 focus:ring-primary">
-                {DISCREPANCY_CATEGORIES.map(c => <option key={c}>{c}</option>)}
-              </select>
+              <ActionSheet
+                label="Category"
+                value={discrepancy.category}
+                onChange={(v) => setDiscrepancy(prev => ({ ...prev, category: v }))}
+                options={DISCREPANCY_CATEGORIES.map(c => ({ value: c, label: c }))}
+                triggerClassName="w-full"
+              />
             </div>
             <div>
               <label className="text-xs text-muted-foreground block mb-1">Discrepancy Write-Up *</label>
@@ -135,11 +149,13 @@ export default function PostflightReport() {
               </div>
             </div>
             <div>
-              <label className="text-xs text-muted-foreground block mb-1">Delay Code</label>
-              <select value={delay.delay_code} onChange={e => setDelay(prev => ({ ...prev, delay_code: e.target.value }))}
-                className="w-full h-9 bg-secondary border border-border rounded-lg px-3 text-sm text-foreground focus:outline-none focus:ring-1 focus:ring-primary">
-                {DELAY_CODES.map(c => <option key={c}>{c}</option>)}
-              </select>
+              <ActionSheet
+                label="Delay Code"
+                value={delay.delay_code}
+                onChange={(v) => setDelay(prev => ({ ...prev, delay_code: v }))}
+                options={DELAY_CODES.map(c => ({ value: c, label: c }))}
+                triggerClassName="w-full"
+              />
             </div>
             <div>
               <label className="text-xs text-muted-foreground block mb-1">Narrative</label>
@@ -166,17 +182,21 @@ export default function PostflightReport() {
                   className="w-full h-9 bg-secondary border border-border rounded-lg px-3 text-sm font-mono text-foreground focus:outline-none focus:ring-1 focus:ring-primary" />
               </div>
               <div>
-                <label className="text-xs text-muted-foreground block mb-1">Event Type</label>
-                <select value={safety.event_type} onChange={e => setSafety(prev => ({ ...prev, event_type: e.target.value }))}
-                  className="w-full h-9 bg-secondary border border-border rounded-lg px-3 text-sm text-foreground focus:outline-none focus:ring-1 focus:ring-primary">
-                  <option value="near_miss">Near Miss / NMAC</option>
-                  <option value="unstable_apch">Unstable Approach</option>
-                  <option value="tcas_ra">TCAS RA</option>
-                  <option value="go_around">Go-Around</option>
-                  <option value="turbulence">Turbulence Injury</option>
-                  <option value="ground_event">Ground Event</option>
-                  <option value="other">Other</option>
-                </select>
+                <ActionSheet
+                  label="Event Type"
+                  value={safety.event_type}
+                  onChange={(v) => setSafety(prev => ({ ...prev, event_type: v }))}
+                  options={[
+                    { value: 'near_miss', label: 'Near Miss / NMAC' },
+                    { value: 'unstable_apch', label: 'Unstable Approach' },
+                    { value: 'tcas_ra', label: 'TCAS RA' },
+                    { value: 'go_around', label: 'Go-Around' },
+                    { value: 'turbulence', label: 'Turbulence Injury' },
+                    { value: 'ground_event', label: 'Ground Event' },
+                    { value: 'other', label: 'Other' },
+                  ]}
+                  triggerClassName="w-full"
+                />
               </div>
             </div>
             <div>
