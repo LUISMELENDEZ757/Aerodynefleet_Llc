@@ -116,6 +116,7 @@ function StationSummary({ icao, onClick, selected, pollingInterval }) {
 // ── Detail Panel ─────────────────────────────────────────────────────────────
 function StationDetail({ icao, pollingInterval }) {
   const [showOpenWeather, setShowOpenWeather] = useState(false);
+  const [lastUpdate, setLastUpdate] = useState(null);
   const coords = AIRPORT_COORDS[icao];
   const tafPollingInterval = Math.max(pollingInterval * 3, 15 * 60 * 1000); // TAF less frequent
 
@@ -135,11 +136,28 @@ function StationDetail({ icao, pollingInterval }) {
 
   const { data: owWeather, isLoading: owLoading, error: owError } = useWeatherByCity(coords?.name || icao, showOpenWeather && !!coords);
 
+  // Track when METAR updates for live region announcements
+  useEffect(() => {
+    if (metar && !mLoad) {
+      setLastUpdate(`METAR for ${icao} updated: ${metar.flightCategory || 'unknown'} conditions`);
+    }
+  }, [metar, mLoad, icao]);
+
   const cat = metar?.flightCategory;
   const cfg = catCfg(cat);
 
   return (
     <div className="rounded-xl bg-card border border-border overflow-hidden">
+      {/* Live region for dynamic METAR updates */}
+      <div 
+        className="sr-only" 
+        role="status" 
+        aria-live="polite" 
+        aria-atomic="true"
+      >
+        {lastUpdate}
+      </div>
+
       {/* Header */}
       <div className={cn('px-4 py-3 border-b border-border flex items-center justify-between', cfg.bg)}>
         <div className="flex items-center gap-3">
@@ -155,7 +173,7 @@ function StationDetail({ icao, pollingInterval }) {
         <button 
           onClick={rMetar} 
           aria-label={`Refresh METAR for ${icao}`}
-          className="text-muted-foreground hover:text-foreground transition-colors focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-1 rounded-lg p-1"
+          className="text-muted-foreground hover:text-foreground transition-colors focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 rounded-lg p-1"
         >
            <RefreshCw className="w-4 h-4" aria-hidden="true" />
          </button>
@@ -233,19 +251,19 @@ function StationDetail({ icao, pollingInterval }) {
         </div>
 
         {/* OpenWeather Section */}
-        {coords && (
-          <div>
-            <button
-              onClick={() => setShowOpenWeather(!showOpenWeather)}
-              aria-expanded={showOpenWeather}
-              aria-label={`${showOpenWeather ? 'Hide' : 'Show'} OpenWeather details for ${icao}`}
-              className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-2 hover:text-foreground transition-colors flex items-center gap-1 focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-1 rounded px-2 py-1"
-            >
-             <span aria-hidden="true">{showOpenWeather ? '▼' : '▶'}</span> OpenWeather
-            </button>
-            {showOpenWeather && <OpenWeatherCard weather={owWeather} station={icao} isLoading={owLoading} error={owError} />}
-            </div>
-            )}
+         {coords && (
+           <div>
+             <button
+               onClick={() => setShowOpenWeather(!showOpenWeather)}
+               aria-expanded={showOpenWeather}
+               aria-label={`${showOpenWeather ? 'Hide' : 'Show'} OpenWeather details for ${icao}`}
+               className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-2 hover:text-foreground transition-colors flex items-center gap-1 focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 rounded px-2 py-1"
+             >
+              <span aria-hidden="true">{showOpenWeather ? '▼' : '▶'}</span> OpenWeather
+             </button>
+             {showOpenWeather && <OpenWeatherCard weather={owWeather} station={icao} isLoading={owLoading} error={owError} />}
+             </div>
+             )}
             </div>
             </div>
             );
