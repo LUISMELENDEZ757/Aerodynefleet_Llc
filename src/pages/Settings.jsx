@@ -113,6 +113,20 @@ function DeleteAccountModalLegacy({ onClose }) {
                 </p>
               </div>
 
+              <div className="bg-amber-500/10 border border-amber-500/30 rounded-xl p-4 space-y-2">
+                <p className="text-sm font-bold text-amber-400">Data Retention Requirements</p>
+                <p className="text-xs text-foreground leading-relaxed">
+                  The following operational and regulatory records <span className="font-bold">will be retained</span> by your airline regardless of account deletion:
+                </p>
+                <ul className="text-xs text-foreground space-y-1 ml-3">
+                  <li>• Flight logs, crew assignments, and duty records (FAA Part 61/121)</li>
+                  <li>• Safety incident reports and investigations (ASAP, ASRS)</li>
+                  <li>• Maintenance records and aircraft logs</li>
+                  <li>• Dispatch releases and release authorizations</li>
+                  <li>• Any records required by company SOP or legal holds</li>
+                </ul>
+              </div>
+
               <div className="space-y-2">
                 {[
                   'You will immediately lose access to all modules and features',

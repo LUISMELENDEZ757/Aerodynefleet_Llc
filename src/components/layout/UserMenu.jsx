@@ -241,21 +241,28 @@ function DeleteAccountModal({ onClose }) {
               </div>
             </div>
             <div className="p-5 space-y-4">
-              <button
-                onClick={() => setAgreed(v => !v)}
-                className="w-full flex items-center gap-3 bg-secondary/50 rounded-xl px-4 py-3 text-left hover:bg-secondary/70"
-              >
-                <div className={cn(
-                  'w-5 h-5 rounded border-2 flex items-center justify-center flex-shrink-0 transition-all',
-                  agreed ? 'bg-destructive border-destructive' : 'border-border'
-                )}>
-                  {agreed && '✓'}
-                </div>
-                <p className="text-xs text-foreground font-medium">
-                  I understand the consequences and still want to delete
-                </p>
-              </button>
-            </div>
+               <div className="bg-amber-500/10 border border-amber-500/30 rounded-xl p-3 space-y-2">
+                 <p className="text-xs font-bold text-amber-400">Required Data Retention Notice</p>
+                 <p className="text-xs text-foreground leading-snug">
+                   Your airline is legally required to retain operational records (flight logs, crew duty records, safety reports) under FAA and DOT regulations. Deletion of your account does <span className="font-bold">not</span> remove these records from the system.
+                 </p>
+               </div>
+
+               <button
+                 onClick={() => setAgreed(v => !v)}
+                 className="w-full flex items-center gap-3 bg-secondary/50 rounded-xl px-4 py-3 text-left hover:bg-secondary/70"
+               >
+                 <div className={cn(
+                   'w-5 h-5 rounded border-2 flex items-center justify-center flex-shrink-0 transition-all',
+                   agreed ? 'bg-destructive border-destructive' : 'border-border'
+                 )}>
+                   {agreed && '✓'}
+                 </div>
+                 <p className="text-xs text-foreground font-medium">
+                   I understand the consequences and data retention requirements
+                 </p>
+               </button>
+             </div>
             <div className="px-5 pb-5 flex gap-3">
               <button onClick={() => setStep(1)} className="flex-1 h-11 rounded-xl border border-border text-sm font-semibold text-muted-foreground hover:text-foreground">
                 Back
