@@ -130,19 +130,19 @@ export default function OOSDetail() {
           <div className="hidden lg:block" />
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
-              <Button variant="ghost" size="icon" className="h-8 w-8" aria-label="More options">
-                <MoreHorizontal className="w-4 h-4" />
+              <Button variant="ghost" size="icon" className="h-8 w-8" aria-label="OOS status options: change maintenance status or release aircraft">
+                <MoreHorizontal className="w-4 h-4" aria-hidden="true" />
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end">
-              <DropdownMenuItem onClick={() => updateStatusMutation.mutate('in_work')}>
+              <DropdownMenuItem onClick={() => updateStatusMutation.mutate('in_work')} disabled={updateStatusMutation.isPending}>
                 Mark In Work
               </DropdownMenuItem>
-              <DropdownMenuItem onClick={() => updateStatusMutation.mutate('waiting_on_parts')}>
+              <DropdownMenuItem onClick={() => updateStatusMutation.mutate('waiting_on_parts')} disabled={updateStatusMutation.isPending}>
                 Mark Waiting on Parts
               </DropdownMenuItem>
-              <DropdownMenuItem onClick={() => updateStatusMutation.mutate('released')}>
-                <CheckCircle className="w-3.5 h-3.5 mr-2 text-green-400" />
+              <DropdownMenuItem onClick={() => updateStatusMutation.mutate('released')} disabled={updateStatusMutation.isPending}>
+                <CheckCircle className="w-3.5 h-3.5 mr-2 text-green-400" aria-hidden="true" />
                 Release Aircraft
               </DropdownMenuItem>
             </DropdownMenuContent>
@@ -210,6 +210,7 @@ export default function OOSDetail() {
             )}
             <Button
               onClick={() => setShowAddEvent(true)}
+              aria-label="Add new timeline event"
               className="w-full mt-4 bg-primary text-primary-foreground hover:bg-primary/90"
             >
               <Plus className="w-4 h-4 mr-1.5" />
@@ -231,6 +232,7 @@ export default function OOSDetail() {
             )}
             <Button
               onClick={() => setShowAddPart(true)}
+              aria-label="Add new maintenance part"
               className="w-full mt-4 bg-primary text-primary-foreground hover:bg-primary/90"
             >
               <Plus className="w-4 h-4 mr-1.5" />
@@ -253,12 +255,14 @@ export default function OOSDetail() {
                   When all work is complete and signed off, release the aircraft.
                 </p>
                 <Button
-                  onClick={() => updateStatusMutation.mutate('released')}
-                  className="bg-green-600 hover:bg-green-700 text-white"
-                >
-                  <CheckCircle className="w-4 h-4 mr-1.5" />
-                  Release Aircraft
-                </Button>
+                   onClick={() => updateStatusMutation.mutate('released')}
+                   aria-label="Release this aircraft to service"
+                   className="bg-green-600 hover:bg-green-700 text-white"
+                   disabled={updateStatusMutation.isPending}
+                 >
+                   <CheckCircle className="w-4 h-4 mr-1.5" />
+                   Release Aircraft
+                 </Button>
               </div>
             )}
           </div>
