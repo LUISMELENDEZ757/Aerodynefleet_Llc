@@ -197,42 +197,46 @@ export default function OOSDetail() {
           </TabsTrigger>
         </TabsList>
 
-        <TabsContent value="timeline" className="p-4 mt-0">
-          {events.length === 0 ? (
-            <p className="text-sm text-muted-foreground text-center py-8">No events yet</p>
-          ) : (
-            <div>
-              {events.map(event => (
-                <EventCard key={event.id} event={event} />
-              ))}
-            </div>
-          )}
-          <Button
-            onClick={() => setShowAddEvent(true)}
-            className="w-full mt-4 bg-primary text-primary-foreground hover:bg-primary/90"
-          >
-            <Plus className="w-4 h-4 mr-1.5" />
-            Add Event
-          </Button>
+        <TabsContent value="timeline" className="mt-0">
+          <PullToRefresh onRefresh={() => queryClient.invalidateQueries({ queryKey: ['timeline-events', id] })} className="p-4">
+            {events.length === 0 ? (
+              <p className="text-sm text-muted-foreground text-center py-8">No events yet</p>
+            ) : (
+              <div>
+                {events.map(event => (
+                  <EventCard key={event.id} event={event} />
+                ))}
+              </div>
+            )}
+            <Button
+              onClick={() => setShowAddEvent(true)}
+              className="w-full mt-4 bg-primary text-primary-foreground hover:bg-primary/90"
+            >
+              <Plus className="w-4 h-4 mr-1.5" />
+              Add Event
+            </Button>
+          </PullToRefresh>
         </TabsContent>
 
-        <TabsContent value="parts" className="p-4 mt-0">
-          {parts.length === 0 ? (
-            <p className="text-sm text-muted-foreground text-center py-8">No parts tracked</p>
-          ) : (
-            <div className="space-y-3">
-              {parts.map(part => (
-                <PartCard key={part.id} part={part} />
-              ))}
-            </div>
-          )}
-          <Button
-            onClick={() => setShowAddPart(true)}
-            className="w-full mt-4 bg-primary text-primary-foreground hover:bg-primary/90"
-          >
-            <Plus className="w-4 h-4 mr-1.5" />
-            Add Part
-          </Button>
+        <TabsContent value="parts" className="mt-0">
+          <PullToRefresh onRefresh={() => queryClient.invalidateQueries({ queryKey: ['parts', id] })} className="p-4">
+            {parts.length === 0 ? (
+              <p className="text-sm text-muted-foreground text-center py-8">No parts tracked</p>
+            ) : (
+              <div className="space-y-3">
+                {parts.map(part => (
+                  <PartCard key={part.id} part={part} />
+                ))}
+              </div>
+            )}
+            <Button
+              onClick={() => setShowAddPart(true)}
+              className="w-full mt-4 bg-primary text-primary-foreground hover:bg-primary/90"
+            >
+              <Plus className="w-4 h-4 mr-1.5" />
+              Add Part
+            </Button>
+          </PullToRefresh>
         </TabsContent>
 
         <TabsContent value="release" className="p-4 mt-0">
