@@ -74,6 +74,7 @@ export default function CrewCalendar() {
 
   return (
     <div className="min-h-screen bg-background">
+      <BackHeader title="Crew Calendar" subtitle={format(new Date(), 'MMMM yyyy')} />
       {/* Header */}
       <div className="border-b border-border bg-card px-5 pt-5 pb-4 flex items-center justify-between gap-4">
         <div className="flex items-center gap-3">

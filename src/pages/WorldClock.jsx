@@ -232,6 +232,7 @@ export default function WorldClock() {
 
   return (
     <div className="min-h-screen bg-background">
+      <BackHeader title="World Clock" subtitle="Global Aviation Hubs" />
       {/* Header */}
       <div className="border-b border-border bg-card px-5 pt-5 pb-4">
         <div className="flex items-start justify-between gap-4">

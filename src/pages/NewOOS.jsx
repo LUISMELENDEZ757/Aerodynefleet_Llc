@@ -9,6 +9,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import ActionSheet from '@/components/ui/ActionSheet';
+import BackHeader from '@/components/layout/BackHeader';
 
 export default function NewOOS() {
   const navigate = useNavigate();
@@ -60,7 +61,7 @@ export default function NewOOS() {
   };
 
   return (
-    <div>
+    <div className="min-h-screen bg-background flex flex-col">
       <BackHeader title="New OOS Entry" subtitle="Create maintenance entry" />
 
       <form onSubmit={handleSubmit} className="p-4 space-y-4">

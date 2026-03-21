@@ -12,6 +12,7 @@ import AddEventDialog from '@/components/oos/AddEventDialog';
 import AddPartDialog from '@/components/oos/AddPartDialog';
 import BackHeader from '@/components/layout/BackHeader';
 import PullToRefresh from '@/components/ui/PullToRefresh';
+import PullToRefresh from '@/components/ui/PullToRefresh';
 
 function getElapsed(oosDate, oosTime) {
   if (!oosDate || !oosTime) return '--:--';
