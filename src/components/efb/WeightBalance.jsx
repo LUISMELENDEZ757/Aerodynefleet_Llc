@@ -1,6 +1,8 @@
 import React, { useState, useMemo } from 'react';
+import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { cn } from '@/lib/utils';
-import { AlertTriangle, CheckCircle, Scale } from 'lucide-react';
+import { AlertTriangle, CheckCircle, Scale, Save } from 'lucide-react';
+import { Button } from '@/components/ui/button';
 import AircraftSelector from './AircraftSelector';
 import useAircraftPerformance from '@/hooks/useAircraftPerformance';
 
@@ -72,6 +74,7 @@ const AIRCRAFT_CONFIGS = {
 };
 
 export default function WeightBalance({ flightData = [] }) {
+  const queryClient = useQueryClient();
   const [selectedTail, setSelectedTail] = useState('');
   const [fuel, setFuel] = useState(26000);
   const [fuelArm] = useState(27.2);
@@ -111,6 +114,22 @@ export default function WeightBalance({ flightData = [] }) {
 
   const statusColors = { ok: 'text-green-400', near: 'text-orange-400', over: 'text-destructive' };
   const statusLabels = { ok: 'WITHIN LIMITS', near: 'NEAR LIMIT', over: 'OUT OF LIMITS' };
+
+  const saveMutation = useMutation({
+    mutationFn: async (data) => {
+      return new Promise(resolve => setTimeout(() => resolve(data), 300));
+    },
+    onMutate: async (data) => {
+      await queryClient.cancelQueries({ queryKey: ['weight-balance'] });
+      const previous = queryClient.getQueryData(['weight-balance']);
+      queryClient.setQueryData(['weight-balance'], data);
+      return { previous };
+    },
+    onError: (_err, _data, ctx) => {
+      if (ctx?.previous) queryClient.setQueryData(['weight-balance'], ctx.previous);
+    },
+    onSettled: () => queryClient.invalidateQueries({ queryKey: ['weight-balance'] }),
+  });
 
   return (
     <div className="space-y-4">
@@ -206,6 +225,16 @@ export default function WeightBalance({ flightData = [] }) {
           </div>
         </div>
       </div>
+
+      {/* Save button */}
+      <Button 
+        onClick={() => saveMutation.mutate({ selectedTail, fuel, loads })}
+        disabled={saveMutation.isPending}
+        className="w-full bg-primary text-primary-foreground hover:bg-primary/90"
+      >
+        <Save className="w-4 h-4 mr-2" />
+        {saveMutation.isPending ? 'Saving...' : 'Save W&B'}
+      </Button>
     </div>
   );
 }

@@ -1,6 +1,8 @@
 import React, { useState, useMemo } from 'react';
+import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { cn } from '@/lib/utils';
-import { AlertTriangle, CheckCircle } from 'lucide-react';
+import { AlertTriangle, CheckCircle, Save } from 'lucide-react';
+import { Button } from '@/components/ui/button';
 import AircraftSelector from './AircraftSelector';
 import useAircraftPerformance from '@/hooks/useAircraftPerformance';
 import ActionSheet from '@/components/ui/ActionSheet';
@@ -34,6 +36,7 @@ function hwcCalc(windDir, windSpd, rwyHdg) {
 }
 
 export default function RunwayAnalysis({ flightData = [] }) {
+  const queryClient = useQueryClient();
   const [selectedTail, setSelectedTail] = useState('');
   const [airport, setAirport] = useState('KEWR');
   const [wind, setWind] = useState({ dir: 270, spd: 12, gust: 0 });
@@ -49,6 +52,22 @@ export default function RunwayAnalysis({ flightData = [] }) {
 
   const setWd = (k, v) => setWind(prev => ({ ...prev, [k]: Number(v) || 0 }));
   const setCond = (k, v) => setConditions(prev => ({ ...prev, [k]: v }));
+
+  const saveMutation = useMutation({
+    mutationFn: async (data) => {
+      return new Promise(resolve => setTimeout(() => resolve(data), 300));
+    },
+    onMutate: async (data) => {
+      await queryClient.cancelQueries({ queryKey: ['runway-analysis'] });
+      const previous = queryClient.getQueryData(['runway-analysis']);
+      queryClient.setQueryData(['runway-analysis'], data);
+      return { previous };
+    },
+    onError: (_err, _data, ctx) => {
+      if (ctx?.previous) queryClient.setQueryData(['runway-analysis'], ctx.previous);
+    },
+    onSettled: () => queryClient.invalidateQueries({ queryKey: ['runway-analysis'] }),
+  });
 
   const analysis = useMemo(() => runways.map(rwy => {
     const { hwc, xwc } = hwcCalc(wind.dir, wind.spd, rwy.hdg);
