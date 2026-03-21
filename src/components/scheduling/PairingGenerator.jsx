@@ -146,14 +146,14 @@ export default function PairingGenerator({ flights }) {
                       ))}
                     </div>
                     {!p.legal && (
-                      <div className="flex items-center gap-2 bg-destructive/10 border border-destructive/20 rounded-lg px-3 py-2">
-                        <AlertTriangle className="w-3.5 h-3.5 text-destructive" />
-                        <p className="text-xs text-destructive font-semibold">Crew rest violation — reassignment required</p>
-                      </div>
-                      )}
-                      </button>
-                )}
-              </div>
+                       <div className="flex items-center gap-2 bg-destructive/10 border border-destructive/20 rounded-lg px-3 py-2">
+                         <AlertTriangle className="w-3.5 h-3.5 text-destructive" aria-hidden="true" />
+                         <p className="text-xs text-destructive font-semibold">Crew rest violation — reassignment required</p>
+                       </div>
+                    )}
+                    </div>
+                    )}
+                    </button>
             ))}
           </div>
         </>
