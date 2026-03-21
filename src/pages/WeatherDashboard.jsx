@@ -10,6 +10,7 @@ import {
 } from 'lucide-react';
 import { useWeatherByCity, AIRPORT_COORDS } from '@/hooks/useOpenWeather';
 import OpenWeatherCard from '@/components/weather/OpenWeatherCard';
+import RovingTabindexGrid from '@/components/accessibility/RovingTabindexGrid';
 
 const DEFAULT_STATIONS = ['KEWR', 'KJFK', 'KORD', 'KLAX', 'KATL', 'KDFW', 'KSEA', 'KMIA'];
 
@@ -381,17 +382,30 @@ export default function WeatherDashboard() {
         </div>
 
         {/* Station grid */}
-        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-2" role="region" aria-label="Aviation weather stations">
-          {stations.map(icao => (
-            <StationSummary
-              key={icao}
-              icao={icao}
-              selected={selected === icao}
-              onClick={setSelected}
-              pollingInterval={pollingInterval}
-            />
-          ))}
-        </div>
+         <RovingTabindexGrid
+           items={stations}
+           columns={4}
+           ariaLabel="Aviation weather stations grid with keyboard navigation"
+           className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-2 scrollbar-hide"
+           renderItem={(icao, index, { focusedIndex, handleKeyDown, getTabIndex, registerRef }) => (
+             <button
+               key={icao}
+               ref={(el) => registerRef(index, el)}
+               tabIndex={getTabIndex(index)}
+               onClick={() => setSelected(icao)}
+               onKeyDown={handleKeyDown}
+               aria-pressed={selected === icao}
+               aria-label={`${icao} weather station`}
+               className={cn(
+                 'rounded-xl border p-3 text-left transition-all hover:shadow-lg focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2',
+                 selected === icao ? 'bg-primary/20 border-primary border-2' : 'bg-card border-border hover:border-primary/40',
+                 focusedIndex === index && 'ring-2 ring-primary ring-offset-2'
+               )}
+             >
+               <StationSummary icao={icao} selected={selected === icao} onClick={() => {}} pollingInterval={pollingInterval} />
+             </button>
+           )}
+         />
 
         {/* Detail panel */}
         {selected && <StationDetail icao={selected} pollingInterval={pollingInterval} />}
