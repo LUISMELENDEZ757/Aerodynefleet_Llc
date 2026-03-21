@@ -44,9 +44,8 @@ const TABS = [
 
 // ─── PERFORMANCE CALCULATOR ──────────────────────────────────────────────────
 function PerformanceCalc({ flightData = [] }) {
-  const [selectedTail, setSelectedTail] = useState('');
-  const { profile, acType } = useAircraftPerformance(selectedTail);
   const AC_TYPES_PERF = ['B737-700', 'B737-800', 'B737-900', 'B737 MAX 8', 'B737 MAX 9'];
+  const [acType, setAcType] = useState('B737-800');
   const [form, setForm] = useState({
     oat: 15, pressure_alt: 0, weight: 155000,
     wind_dir: 270, wind_spd: 10, rwy_hdg: 280,
