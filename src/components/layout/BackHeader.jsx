@@ -8,7 +8,12 @@ import { cn } from '@/lib/utils';
  * Renders nothing on desktop (lg+).
  */
 
-const PRIMARY_PATHS = ['/Home', '/Dashboard', '/EFB', '/CrewControl'];
+const PRIMARY_PATHS = [
+  '/Home', '/Dashboard', '/EFB', '/CrewControl',
+  '/FlightAttendant', '/FlightCrew', '/CrewCalendar',
+  '/WorldClock', '/SafetyQA', '/Scheduling', '/Weather',
+  '/Training', '/Settings',
+];
 
 export default function BackHeader({ title, subtitle, rightSlot }) {
   const navigate = useNavigate();
