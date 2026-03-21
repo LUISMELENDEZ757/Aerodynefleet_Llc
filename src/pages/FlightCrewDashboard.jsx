@@ -46,18 +46,18 @@ const PREFLIGHT_CHECKS = [
 ];
 
 function StatCard({ icon: Icon, label, value, color }) {
-  return (
-    <div className="rounded-xl bg-card border border-border px-4 py-3 flex items-center gap-3">
-      <div className="w-9 h-9 rounded-lg bg-secondary flex items-center justify-center flex-shrink-0">
-        <Icon className={cn('w-4 h-4', color)} />
-      </div>
-      <div>
-        <p className={cn('text-2xl font-extrabold font-mono', color)}>{value}</p>
-        <p className="text-xs text-muted-foreground">{label}</p>
-      </div>
-    </div>
-  );
-}
+   return (
+     <div className="rounded-xl bg-card border border-border px-4 py-3 flex items-center gap-3" role="region" aria-label={`${label}: ${value}`}>
+       <div className="w-9 h-9 rounded-lg bg-secondary flex items-center justify-center flex-shrink-0" aria-hidden="true">
+         <Icon className={cn('w-4 h-4', color)} />
+       </div>
+       <div>
+         <p className={cn('text-2xl font-extrabold font-mono', color)} aria-label={`${label}: ${value}`}>{value}</p>
+         <p className="text-xs text-muted-foreground">{label}</p>
+       </div>
+     </div>
+   );
+ }
 
 function FlightCrewCard({ flight }) {
   const [expanded, setExpanded] = useState(false);
@@ -83,9 +83,11 @@ function FlightCrewCard({ flight }) {
   return (
     <div className="rounded-xl bg-card border border-border overflow-hidden">
       <button
-        onClick={() => setExpanded(!expanded)}
-        className="w-full flex items-center justify-between px-4 py-3 hover:bg-secondary/40 transition-colors"
-      >
+         onClick={() => setExpanded(!expanded)}
+         aria-expanded={expanded}
+         aria-label={`${expanded ? 'Collapse' : 'Expand'} flight ${flight.flight_number}: ${flight.origin} to ${flight.destination}`}
+         className="w-full flex items-center justify-between px-4 py-3 hover:bg-secondary/40 transition-colors focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-1"
+       >
         <div className="flex items-center gap-3">
           <div className="w-9 h-9 rounded-lg bg-secondary flex items-center justify-center flex-shrink-0">
             <Plane className="w-4 h-4 text-primary" />
@@ -109,7 +111,7 @@ function FlightCrewCard({ flight }) {
           <span className={cn('text-xs font-semibold px-2.5 py-1 rounded-full', cfg.bg, cfg.color)}>
             {cfg.label}
           </span>
-          {expanded ? <ChevronDown className="w-4 h-4 text-muted-foreground" /> : <ChevronRight className="w-4 h-4 text-muted-foreground" />}
+          {expanded ? <ChevronDown className="w-4 h-4 text-muted-foreground" aria-hidden="true" /> : <ChevronRight className="w-4 h-4 text-muted-foreground" aria-hidden="true" />}
         </div>
       </button>
 
@@ -276,17 +278,19 @@ function PreflightChecklist() {
           <button
             key={item}
             onClick={() => toggle(item)}
+            aria-pressed={checked[item]}
+            aria-label={`${checked[item] ? 'Completed' : 'Incomplete'}: ${item}`}
             className={cn(
-              'w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-left transition-all',
+              'w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-left transition-all focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-1',
               checked[item] ? 'bg-green-500/10' : 'hover:bg-secondary/50'
             )}
           >
             <div className={cn(
-              'w-5 h-5 rounded-full border-2 flex items-center justify-center flex-shrink-0 transition-all',
-              checked[item] ? 'border-green-500 bg-green-500' : 'border-border'
-            )}>
-              {checked[item] && <CheckCircle className="w-3 h-3 text-white" />}
-            </div>
+               'w-5 h-5 rounded-full border-2 flex items-center justify-center flex-shrink-0 transition-all',
+               checked[item] ? 'border-green-500 bg-green-500' : 'border-border'
+             )} aria-hidden="true">
+               {checked[item] && <CheckCircle className="w-3 h-3 text-white" aria-hidden="true" />}
+             </div>
             <span className={cn(
               'text-sm transition-colors',
               checked[item] ? 'text-muted-foreground line-through' : 'text-foreground'
@@ -347,9 +351,10 @@ export default function FlightCrewDashboard() {
         </div>
         <button
           onClick={refetch}
+          aria-label="Refresh flight crew dashboard data"
           className="mt-3 flex items-center gap-1.5 text-xs text-muted-foreground hover:text-foreground transition-colors"
         >
-          <RefreshCw className="w-3 h-3" />
+          <RefreshCw className="w-3 h-3" aria-hidden="true" />
           Refresh data
         </button>
       </div>
