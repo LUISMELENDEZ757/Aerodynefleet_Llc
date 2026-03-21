@@ -122,12 +122,11 @@ export default function OOSDetail() {
 
   return (
     <div>
+      <BackHeader title={entry.tail_number} subtitle={entry.work_description} />
       {/* Header */}
       <div className="bg-card border-b border-border p-4">
         <div className="flex items-center justify-between mb-3">
-          <Link to="/Dashboard" className="p-1 -ml-1">
-            <ArrowLeft className="w-5 h-5 text-muted-foreground" />
-          </Link>
+          <div className="hidden lg:block" />
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <Button variant="ghost" size="icon" className="h-8 w-8">
