@@ -1,6 +1,6 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
-import { Users, Plane, Radio, BookOpen, CalendarDays, Zap, Globe, Shield, Cloud, GraduationCap } from 'lucide-react';
+import { Users, Plane, Radio, BookOpen, CalendarDays, Zap, Globe, Shield, Cloud } from 'lucide-react';
 
 const MODULES = [
   {
@@ -93,15 +93,7 @@ const MODULES = [
     borderColor: 'border-cyan-500/30',
     path: '/Weather',
   },
-  {
-    icon: GraduationCap,
-    iconBg: 'bg-emerald-500',
-    iconColor: 'text-white',
-    title: 'TRAINING',
-    subtitle: 'Interactive Walkthroughs',
-    borderColor: 'border-emerald-500/30',
-    path: '/Training',
-  },
+
 ];
 
 export default function Home() {

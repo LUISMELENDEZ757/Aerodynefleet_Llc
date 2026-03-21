@@ -2,7 +2,7 @@ import React from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import {
   Plane, Home, Users, Settings, Radio, BookOpen,
-  CalendarDays, Zap, Globe, Shield, Cloud, GraduationCap
+  CalendarDays, Zap, Globe, Shield, Cloud
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useRail } from '@/lib/RailContext';
@@ -19,7 +19,6 @@ const NAV_ITEMS = [
   { icon: Shield,        label: 'Safety & QA',   path: '/SafetyQA' },
   { icon: CalendarDays,  label: 'Scheduling',    path: '/Scheduling' },
   { icon: Cloud,         label: 'Weather',       path: '/Weather' },
-  { icon: GraduationCap, label: 'Training',      path: '/Training' },
 ];
 
 export default function LeftRail() {

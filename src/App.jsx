@@ -22,7 +22,7 @@ const WorldClock            = lazy(() => import('@/pages/WorldClock'));
 const SafetyQA              = lazy(() => import('@/pages/SafetyQA'));
 const Scheduling            = lazy(() => import('@/pages/Scheduling'));
 const WeatherDashboard      = lazy(() => import('@/pages/WeatherDashboard'));
-const TrainingCenter        = lazy(() => import('@/pages/TrainingCenter'));
+
 const SettingsPage          = lazy(() => import('@/pages/Settings'));
 
 function PageFallback() {
@@ -75,7 +75,7 @@ const AuthenticatedApp = () => {
         <Route path="/SafetyQA" element={<SafetyQA />} />
         <Route path="/Scheduling" element={<Scheduling />} />
         <Route path="/Weather" element={<WeatherDashboard />} />
-        <Route path="/Training" element={<TrainingCenter />} />
+
         <Route path="/Settings" element={<SettingsPage />} />
       </Route>
       <Route path="*" element={<PageNotFound />} />

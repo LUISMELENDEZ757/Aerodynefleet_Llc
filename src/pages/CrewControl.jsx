@@ -6,7 +6,7 @@ import { Link } from 'react-router-dom';
 import { cn } from '@/lib/utils';
 import CrewStatusBoard from '@/components/crew/CrewStatusBoard';
 import FatiguePredictor from '@/components/crew/FatiguePredictor';
-import AIDispatcherAssistant from '@/components/crew/AIDispatcherAssistant';
+
 import OpsPipeline from '@/components/crew/OpsPipeline';
 
 const TODAY = new Date().toISOString().split('T')[0];
@@ -15,7 +15,6 @@ const TABS = [
   { key: 'pipeline', label: 'Ops Pipeline',       icon: GitMerge },
   { key: 'board',    label: 'Crew Board',          icon: Users },
   { key: 'fatigue',  label: 'Fatigue Predictor',   icon: Brain },
-  { key: 'ai',       label: 'AI Dispatcher',        icon: Zap },
 ];
 
 export default function CrewControl() {
@@ -122,7 +121,6 @@ export default function CrewControl() {
         {activeTab === 'pipeline' && <OpsPipeline crew={crew} flights={flights} releases={releases} oosEntries={oosEntries} />}
         {activeTab === 'board'    && <CrewStatusBoard crew={crew} flights={flights} isLoading={isLoading} />}
         {activeTab === 'fatigue'  && <FatiguePredictor crew={crew} flights={flights} />}
-        {activeTab === 'ai'       && <AIDispatcherAssistant crew={crew} flights={flights} releases={releases} oosEntries={oosEntries} />}
       </div>
     </div>
   );
