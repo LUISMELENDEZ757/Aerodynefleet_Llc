@@ -106,19 +106,27 @@ export default function Dashboard() {
 
         {/* Tab content */}
         {activeTab === 'flights' && (
-          <FlightStatusBoard flights={flights} isLoading={loadingFlights} />
+          <PullToRefresh onRefresh={refetchFlights}>
+            <FlightStatusBoard flights={flights} isLoading={loadingFlights} />
+          </PullToRefresh>
         )}
         {activeTab === 'crew' && (
-          <CrewBoard crew={crew} isLoading={loadingCrew} />
+          <PullToRefresh onRefresh={refetchCrew}>
+            <CrewBoard crew={crew} isLoading={loadingCrew} />
+          </PullToRefresh>
         )}
         {activeTab === 'dispatch' && (
-          <div className="space-y-4">
-            <DispatchPanel flights={flights} />
-            <DispatchBoard releases={releases} isLoading={loadingReleases} />
-          </div>
+          <PullToRefresh onRefresh={() => { refetchFlights(); refetchReleases(); }}>
+            <div className="space-y-4">
+              <DispatchPanel flights={flights} />
+              <DispatchBoard releases={releases} isLoading={loadingReleases} />
+            </div>
+          </PullToRefresh>
         )}
         {activeTab === 'weather' && (
-          <WeatherPanel flights={flights} />
+          <PullToRefresh onRefresh={refetchFlights}>
+            <WeatherPanel flights={flights} />
+          </PullToRefresh>
         )}
       </div>
     </div>
