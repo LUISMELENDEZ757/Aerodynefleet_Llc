@@ -3,6 +3,7 @@ import { Link, useLocation } from 'react-router-dom';
 import { Plane, Plus, Menu } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
+import UserMenu from './UserMenu';
 
 export default function AppHeader() {
   const location = useLocation();
@@ -19,13 +20,14 @@ export default function AppHeader() {
           </div>
         </Link>
 
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-3">
           <Link to="/NewOOS">
             <Button size="sm" className="bg-primary text-primary-foreground hover:bg-primary/90 font-semibold text-xs">
               <Plus className="w-3.5 h-3.5 mr-1" />
               NEW
             </Button>
           </Link>
+          <UserMenu />
         </div>
       </div>
     </header>
