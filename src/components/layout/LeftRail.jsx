@@ -19,6 +19,7 @@ const NAV_ITEMS = [
   { icon: Shield,       label: 'Safety & QA',    path: '/SafetyQA' },
   { icon: CalendarDays, label: 'Scheduling',     path: '/Scheduling' },
   { icon: Cloud,        label: 'Weather',        path: '/Weather' },
+  { icon: GraduationCap, label: 'Training',      path: '/Training' },
 ];
 
 const MOBILE_TAB_ITEMS = [
