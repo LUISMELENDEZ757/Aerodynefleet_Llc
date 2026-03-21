@@ -65,7 +65,7 @@ function StationCard({ icao }) {
     enabled: expanded,
   });
 
-  const { data: owWeather } = useWeatherByCity(coords?.name || icao, showOpenWeather && !!coords);
+  const { data: owWeather, isLoading: owLoading, error: owError } = useWeatherByCity(coords?.name || icao, showOpenWeather && !!coords);
 
   const isLoading = mLoading;
   const cat = metar?.flightCategory;
@@ -176,7 +176,7 @@ function StationCard({ icao }) {
               >
                 {showOpenWeather ? '▼' : '▶'} OpenWeather
               </button>
-              {showOpenWeather && <OpenWeatherCard weather={owWeather} station={icao} />}
+              {showOpenWeather && <OpenWeatherCard weather={owWeather} station={icao} isLoading={owLoading} error={owError} />}
             </div>
           )}
         </div>
