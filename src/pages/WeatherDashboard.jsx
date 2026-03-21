@@ -342,13 +342,14 @@ export default function WeatherDashboard() {
           <div className="flex-1 relative">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" aria-hidden="true" />
             <input
+              id="station-search"
               type="text"
               value={searchInput}
               onChange={e => setSearchInput(e.target.value.toUpperCase())}
               onKeyDown={e => e.key === 'Enter' && addStation()}
               placeholder="Add ICAO station (e.g. EGLL)"
               maxLength={4}
-              aria-label="Enter ICAO station code to add"
+              aria-label="Enter ICAO station code to add to weather dashboard"
               className="w-full h-10 bg-card border border-border rounded-xl pl-9 pr-3 text-sm font-mono text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-1 focus:ring-primary"
             />
           </div>
