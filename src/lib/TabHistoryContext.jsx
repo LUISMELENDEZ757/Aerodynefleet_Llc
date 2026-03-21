@@ -2,30 +2,25 @@
  * TabHistoryContext
  * ─────────────────
  * Maintains an independent navigation stack per primary tab, mimicking
- * iOS UITabBarController behaviour:
+ * iOS UITabBarController behaviour, synchronized with NavigationStack.
  *
  *  - Tapping a tab you're already on pops back to that tab's root.
  *  - Tapping a new tab restores where you left off in that tab.
  *  - Child navigations within a tab push onto that tab's stack.
+ * 
+ * Enforces strict validation via NavigationStack to prevent orphaned routes.
  */
 import React, { createContext, useContext, useCallback, useRef, useState } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
+import { getTabForRoute, getPrimaryTabRoutes, isValidNavigation, getRouteDepth } from './NavigationStack';
 
-// Map each primary tab to its "root" path
-export const TAB_ROOTS = {
-  home:    '/Home',
-  ops:     '/Dashboard',
-  efb:     '/EFB',
-  crew:    '/CrewControl',
-};
+// Map each primary tab to its "root" path (from NavigationStack)
+export const TAB_ROOTS = getPrimaryTabRoutes();
 
-// Which root belongs to which tab key
+// Which root belongs to which tab key (using NavigationStack mapping)
 export function getTabForPath(pathname) {
-  if (pathname.startsWith('/Home') || pathname === '/') return 'home';
-  if (['/Dashboard', '/OOSDetail', '/NewOOS'].some(p => pathname.startsWith(p))) return 'ops';
-  if (pathname.startsWith('/EFB')) return 'efb';
-  if (['/CrewControl', '/CrewCalendar', '/CrewControl'].some(p => pathname.startsWith(p))) return 'crew';
-  return null; // "more" tab group — no independent stack needed
+  const tab = getTabForRoute(pathname);
+  return tab === 'more' ? null : tab;
 }
 
 const TabHistoryContext = createContext(null);
@@ -60,7 +55,16 @@ export function TabHistoryProvider({ children }) {
   }, [activeTab, navigate]);
 
   // Called by pages when they push a child route within a tab
+  // Validates navigation via NavigationStack before recording
   const recordPath = useCallback((pathname) => {
+    const prevPathname = Object.values(lastPaths.current)[0] || '/Home';
+    
+    // Validate navigation before recording
+    if (!isValidNavigation(pathname, prevPathname, { lastPaths })) {
+      console.warn(`[TabHistory] Invalid navigation blocked: ${prevPathname} → ${pathname}`);
+      return;
+    }
+
     const tab = getTabForPath(pathname);
     if (tab) {
       lastPaths.current[tab] = pathname;
