@@ -17,6 +17,7 @@ const NAV_ITEMS = [
   { icon: Globe,        label: 'World Clock',    path: '/WorldClock' },
   { icon: Shield,       label: 'Safety & QA',    path: '/SafetyQA' },
   { icon: CalendarDays, label: 'Scheduling',     path: '/Scheduling' },
+  { icon: Cloud,        label: 'Weather',        path: '/Weather' },
 ];
 
 // Bottom 5 items shown in mobile/tablet tab bar

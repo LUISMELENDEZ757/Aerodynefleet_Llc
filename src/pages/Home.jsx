@@ -1,6 +1,6 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
-import { Users, Plane, Radio, BookOpen, CalendarDays, Zap, Globe, Shield } from 'lucide-react';
+import { Users, Plane, Radio, BookOpen, CalendarDays, Zap, Globe, Shield, Cloud } from 'lucide-react';
 
 const MODULES = [
   {
