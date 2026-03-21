@@ -48,7 +48,7 @@ export default function LeftRail() {
       {/* ─── DESKTOP SIDE RAIL ─── */}
       <aside
         className={cn(
-          'hidden md:flex fixed left-0 top-0 h-full bg-card border-r border-border flex-col items-start py-4 z-50 transition-all duration-300 overflow-hidden',
+          'hidden lg:flex fixed left-0 top-0 h-full bg-card border-r border-border flex-col items-start py-4 z-50 transition-all duration-300 overflow-hidden',
           expanded ? 'w-44' : 'w-16'
         )}
       >
