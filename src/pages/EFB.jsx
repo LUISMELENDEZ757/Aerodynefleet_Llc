@@ -115,9 +115,15 @@ function PerformanceCalc({ flightData = [] }) {
               { label: 'Runway Heading (°)', key: 'rwy_hdg' },
             ].map(({ label, key }) => (
               <div key={key}>
-                <label className="text-xs text-muted-foreground block mb-1">{label}</label>
-                <input type="number" value={form[key]} onChange={e => set(key, e.target.value)}
-                  className="w-full h-9 bg-secondary border border-border rounded-lg px-3 text-sm font-mono text-foreground focus:outline-none focus:ring-1 focus:ring-primary" />
+                <label htmlFor={`perf-${key}`} className="text-xs text-muted-foreground block mb-1">{label}</label>
+                <input 
+                  id={`perf-${key}`}
+                  type="number" 
+                  value={form[key]} 
+                  onChange={e => set(key, e.target.value)}
+                  aria-label={label}
+                  className="w-full h-9 bg-secondary border border-border rounded-lg px-3 text-sm font-mono text-foreground focus:outline-none focus:ring-1 focus:ring-primary" 
+                />
               </div>
             ))}
           </div>
@@ -189,17 +195,17 @@ function FlightBrief({ flights, releases, crew }) {
         const cfg = STATUS_COLORS[f.status] || STATUS_COLORS.scheduled;
 
         return (
-          <div key={f.id} className="rounded-xl bg-card border border-border overflow-hidden">
-            <div className="px-4 py-3 bg-secondary/40 flex items-center justify-between border-b border-border/50">
-              <div className="flex items-center gap-3">
-                <Plane className="w-4 h-4 text-primary" />
-                <div>
-                  <p className="text-sm font-mono font-bold text-foreground">{f.flight_number}</p>
-                  <p className="text-xs text-muted-foreground">{f.origin} → {f.destination} · {f.aircraft_tail} {f.aircraft_type ? `(${f.aircraft_type})` : ''}</p>
-                </div>
-              </div>
-              <span className={cn('text-xs font-semibold px-2.5 py-1 rounded-full', cfg.bg, cfg.color)}>{cfg.label}</span>
-            </div>
+           <div key={f.id} className="rounded-xl bg-card border border-border overflow-hidden" role="article" aria-label={`Flight ${f.flight_number} from ${f.origin} to ${f.destination} - ${cfg.label}`}>
+             <div className="px-4 py-3 bg-secondary/40 flex items-center justify-between border-b border-border/50">
+               <div className="flex items-center gap-3">
+                 <Plane className="w-4 h-4 text-primary" aria-hidden="true" />
+                 <div>
+                   <p className="text-sm font-mono font-bold text-foreground">{f.flight_number}</p>
+                   <p className="text-xs text-muted-foreground">{f.origin} → {f.destination} · {f.aircraft_tail} {f.aircraft_type ? `(${f.aircraft_type})` : ''}</p>
+                 </div>
+               </div>
+               <span className={cn('text-xs font-semibold px-2.5 py-1 rounded-full', cfg.bg, cfg.color)}>{cfg.label}</span>
+             </div>
             <div className="p-4 space-y-3">
               <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
                 {[
