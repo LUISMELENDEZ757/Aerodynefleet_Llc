@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { useNavigate, Link } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { base44 } from '@/api/base44Client';
 import { Loader2 } from 'lucide-react';
@@ -8,7 +8,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import ActionSheet from '@/components/ui/ActionSheet';
 
 export default function NewOOS() {
   const navigate = useNavigate();
@@ -32,6 +32,20 @@ export default function NewOOS() {
 
   const createMutation = useMutation({
     mutationFn: (data) => base44.entities.OOSEntry.create(data),
+    onMutate: async (data) => {
+      await queryClient.cancelQueries({ queryKey: ['oos-entries'] });
+      const previous = queryClient.getQueryData(['oos-entries']);
+      queryClient.setQueryData(['oos-entries'], (old = []) => [
+        ...old,
+        { ...data, id: `temp-${Date.now()}`, created_date: new Date().toISOString() },
+      ]);
+      return { previous };
+    },
+    onError: (_err, _data, ctx) => {
+      if (ctx?.previous !== undefined) {
+        queryClient.setQueryData(['oos-entries'], ctx.previous);
+      }
+    },
     onSuccess: (result) => {
       queryClient.invalidateQueries({ queryKey: ['oos-entries'] });
       navigate(`/OOSDetail?id=${result.id}`);
@@ -62,22 +76,22 @@ export default function NewOOS() {
           </div>
           <div>
             <Label className="text-xs text-muted-foreground">Aircraft Type</Label>
-            <Select value={form.aircraft_type} onValueChange={(v) => setForm({ ...form, aircraft_type: v })}>
-              <SelectTrigger className="bg-secondary border-border">
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="CRJ-550">CRJ-550</SelectItem>
-                <SelectItem value="CRJ-700">CRJ-700</SelectItem>
-                <SelectItem value="CRJ-900">CRJ-900</SelectItem>
-                <SelectItem value="ERJ-145">ERJ-145</SelectItem>
-                <SelectItem value="ERJ-175">ERJ-175</SelectItem>
-                <SelectItem value="E175">E175</SelectItem>
-                <SelectItem value="B737">B737</SelectItem>
-                <SelectItem value="A320">A320</SelectItem>
-                <SelectItem value="Other">Other</SelectItem>
-              </SelectContent>
-            </Select>
+            <ActionSheet
+              value={form.aircraft_type}
+              onChange={(v) => setForm({ ...form, aircraft_type: v })}
+              placeholder="Select aircraft"
+              options={[
+                { value: 'CRJ-550', label: 'CRJ-550' },
+                { value: 'CRJ-700', label: 'CRJ-700' },
+                { value: 'CRJ-900', label: 'CRJ-900' },
+                { value: 'ERJ-145', label: 'ERJ-145' },
+                { value: 'ERJ-175', label: 'ERJ-175' },
+                { value: 'E175', label: 'E175' },
+                { value: 'B737', label: 'B737' },
+                { value: 'A320', label: 'A320' },
+                { value: 'Other', label: 'Other' },
+              ]}
+            />
           </div>
         </div>
 
@@ -145,16 +159,16 @@ export default function NewOOS() {
 
         <div>
           <Label className="text-xs text-muted-foreground">Status</Label>
-          <Select value={form.status} onValueChange={(v) => setForm({ ...form, status: v })}>
-            <SelectTrigger className="bg-secondary border-border">
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="in_work">In Work</SelectItem>
-              <SelectItem value="waiting_on_parts">Waiting on Parts</SelectItem>
-              <SelectItem value="deferred">Deferred</SelectItem>
-            </SelectContent>
-          </Select>
+          <ActionSheet
+            value={form.status}
+            onChange={(v) => setForm({ ...form, status: v })}
+            placeholder="Select status"
+            options={[
+              { value: 'in_work', label: 'In Work' },
+              { value: 'waiting_on_parts', label: 'Waiting on Parts' },
+              { value: 'deferred', label: 'Deferred' },
+            ]}
+          />
         </div>
 
         <div>
