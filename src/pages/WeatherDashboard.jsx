@@ -14,23 +14,38 @@ const AWC_BASE = 'https://aviationweather.gov/api/data';
 const DEFAULT_STATIONS = ['KEWR', 'KJFK', 'KORD', 'KLAX', 'KATL', 'KDFW', 'KSEA', 'KMIA'];
 
 async function fetchMetar(icao) {
-  const res = await fetch(`${AWC_BASE}/metar?ids=${icao}&format=json&hours=2`);
-  if (!res.ok) throw new Error('failed');
-  const data = await res.json();
-  return data[0] || null;
+  try {
+    const res = await fetch(`${AWC_BASE}/metar?ids=${icao}&format=json&hours=2`);
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    const data = await res.json();
+    return data[0] || null;
+  } catch (err) {
+    console.error('METAR fetch error:', err.message);
+    throw err;
+  }
 }
 
 async function fetchTaf(icao) {
-  const res = await fetch(`${AWC_BASE}/taf?ids=${icao}&format=json`);
-  if (!res.ok) throw new Error('failed');
-  const data = await res.json();
-  return data[0] || null;
+  try {
+    const res = await fetch(`${AWC_BASE}/taf?ids=${icao}&format=json`);
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    const data = await res.json();
+    return data[0] || null;
+  } catch (err) {
+    console.error('TAF fetch error:', err.message);
+    throw err;
+  }
 }
 
 async function fetchSigmet() {
-  const res = await fetch(`${AWC_BASE}/airsigmet?format=json&type=sigmet`);
-  if (!res.ok) throw new Error('failed');
-  return await res.json();
+  try {
+    const res = await fetch(`${AWC_BASE}/airsigmet?format=json&type=sigmet`);
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    return await res.json();
+  } catch (err) {
+    console.error('SIGMET fetch error:', err.message);
+    throw err;
+  }
 }
 
 const FLIGHT_CAT = {
