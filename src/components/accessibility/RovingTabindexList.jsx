@@ -22,7 +22,7 @@
  *     )}
  *   />
  */
-import React from 'react';
+import React, { useEffect } from 'react';
 import { useListRovingTabindex } from '@/hooks/useListRovingTabindex';
 
 export default function RovingTabindexList({

@@ -22,7 +22,7 @@
  *     )}
  *   />
  */
-import React from 'react';
+import React, { useEffect } from 'react';
 import { useGridRovingTabindex } from '@/hooks/useRovingTabindex';
 
 export default function RovingTabindexGrid({
