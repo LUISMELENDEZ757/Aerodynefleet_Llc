@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import {
   Plane, Home, Users, Settings, Radio, BookOpen,
-  CalendarDays, Zap, Globe, Shield, X, Menu, Cloud
+  CalendarDays, Zap, Globe, Shield, X, Menu, Cloud, GraduationCap
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useRail } from '@/lib/RailContext';

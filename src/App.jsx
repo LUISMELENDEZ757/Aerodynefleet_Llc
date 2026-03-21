@@ -20,6 +20,7 @@ import WorldClock from '@/pages/WorldClock';
 import SafetyQA from '@/pages/SafetyQA';
 import Scheduling from '@/pages/Scheduling';
 import WeatherDashboard from '@/pages/WeatherDashboard';
+import TrainingCenter from '@/pages/TrainingCenter';
 
 const AuthenticatedApp = () => {
   const { isLoadingAuth, isLoadingPublicSettings, authError, navigateToLogin } = useAuth();
