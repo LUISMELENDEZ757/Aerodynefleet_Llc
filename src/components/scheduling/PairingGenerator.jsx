@@ -151,9 +151,9 @@ export default function PairingGenerator({ flights }) {
                          <p className="text-xs text-destructive font-semibold">Crew rest violation — reassignment required</p>
                        </div>
                     )}
-                    </div>
-                    )}
-                    </button>
+                  </div>
+                )}
+              </button>
             ))}
           </div>
         </>
