@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { lazy, Suspense } from 'react';
+import { lazy, Suspense, useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { base44 } from '@/api/base44Client';
 import { Plane, RefreshCw } from 'lucide-react';
@@ -28,18 +28,21 @@ export default function Dashboard() {
     queryKey: ['flights', TODAY],
     queryFn: () => base44.entities.Flight.filter({ flight_date: TODAY }),
     refetchInterval: 60000,
+    enabled: activeTab === 'flights' || activeTab === 'dispatch' || activeTab === 'weather',
   });
 
   const { data: crew = [], isLoading: loadingCrew, refetch: refetchCrew } = useQuery({
     queryKey: ['crew', TODAY],
     queryFn: () => base44.entities.CrewAssignment.filter({ flight_date: TODAY }),
     refetchInterval: 60000,
+    enabled: activeTab === 'crew',
   });
 
   const { data: releases = [], isLoading: loadingReleases, refetch: refetchReleases } = useQuery({
     queryKey: ['releases', TODAY],
     queryFn: () => base44.entities.DispatchRelease.filter({ flight_date: TODAY }),
     refetchInterval: 60000,
+    enabled: activeTab === 'dispatch',
   });
 
   const handleRefresh = () => {
