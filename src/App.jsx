@@ -58,6 +58,7 @@ const AuthenticatedApp = () => {
 
   // Render the main app
   return (
+    <Suspense fallback={<PageFallback />}>
     <Routes>
       <Route element={<AppLayout />}>
         <Route path="/" element={<Navigate to="/Home" replace />} />
