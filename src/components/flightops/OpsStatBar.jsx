@@ -1,7 +1,7 @@
 import React from 'react';
 import { Plane, Users, FileText, AlertTriangle } from 'lucide-react';
 
-export default function OpsStatBar({ flights, crew, releases }) {
+export default React.memo(function OpsStatBar({ flights, crew, releases }) {
   const airborne = flights.filter(f => f.status === 'airborne').length;
   const delayed  = flights.filter(f => f.status === 'delayed' || f.delay_minutes > 0).length;
   const illegal  = crew.filter(c => c.legal_status === 'illegal').length;
@@ -29,4 +29,4 @@ export default function OpsStatBar({ flights, crew, releases }) {
       ))}
     </div>
   );
-}
+});

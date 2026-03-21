@@ -367,19 +367,19 @@ export default function EFB() {
         {/* Content area — scrolls independently so tab clicks don't jump to top */}
         <div className="flex-1 p-4 space-y-3 overflow-y-auto">
           {activeTab === 'brief'      && <FlightBrief flights={flights} releases={releases} crew={crew} />}
-          {activeTab === 'release'    && <FlightReleaseSignOff />}
-          {activeTab === 'map'        && <LiveMap flights={flights} />}
-          {activeTab === 'airport'    && <AirportBriefing flights={flights} />}
-          {activeTab === 'etops'      && <ETOPSDriftDown />}
-          {activeTab === 'wb'         && <WeightBalance flightData={flights} />}
+          {activeTab === 'release'    && <Suspense fallback={<div className="text-muted-foreground">Loading...</div>}><FlightReleaseSignOff /></Suspense>}
+          {activeTab === 'map'        && <Suspense fallback={<div className="text-muted-foreground">Loading...</div>}><LiveMap flights={flights} /></Suspense>}
+          {activeTab === 'airport'    && <Suspense fallback={<div className="text-muted-foreground">Loading...</div>}><AirportBriefing flights={flights} /></Suspense>}
+          {activeTab === 'etops'      && <Suspense fallback={<div className="text-muted-foreground">Loading...</div>}><ETOPSDriftDown /></Suspense>}
+          {activeTab === 'wb'         && <Suspense fallback={<div className="text-muted-foreground">Loading...</div>}><WeightBalance flightData={flights} /></Suspense>}
           {activeTab === 'perf'       && <PerformanceCalc flightData={flights} />}
-          {activeTab === 'fuel'       && <FuelPlanning flightData={flights} />}
-          {activeTab === 'runway'     && <RunwayAnalysis flightData={flights} />}
-          {activeTab === 'wx'         && <WeatherPanel flights={flights} />}
-          {activeTab === 'notams'     && <NotamViewer />}
-          {activeTab === 'crew'       && <CrewLegality />}
-          {activeTab === 'acars'      && <AcarsMessaging />}
-          {activeTab === 'postflight' && <PostflightReport />}
+          {activeTab === 'fuel'       && <Suspense fallback={<div className="text-muted-foreground">Loading...</div>}><FuelPlanning flightData={flights} /></Suspense>}
+          {activeTab === 'runway'     && <Suspense fallback={<div className="text-muted-foreground">Loading...</div>}><RunwayAnalysis flightData={flights} /></Suspense>}
+          {activeTab === 'wx'         && <Suspense fallback={<div className="text-muted-foreground">Loading...</div>}><WeatherPanel flights={flights} /></Suspense>}
+          {activeTab === 'notams'     && <Suspense fallback={<div className="text-muted-foreground">Loading...</div>}><NotamViewer /></Suspense>}
+          {activeTab === 'crew'       && <Suspense fallback={<div className="text-muted-foreground">Loading...</div>}><CrewLegality /></Suspense>}
+          {activeTab === 'acars'      && <Suspense fallback={<div className="text-muted-foreground">Loading...</div>}><AcarsMessaging /></Suspense>}
+          {activeTab === 'postflight' && <Suspense fallback={<div className="text-muted-foreground">Loading...</div>}><PostflightReport /></Suspense>}
         </div>
       </div>
     </div>

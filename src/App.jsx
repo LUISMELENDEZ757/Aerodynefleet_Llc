@@ -28,7 +28,7 @@ const SettingsPage          = lazy(() => import('@/pages/Settings'));
 
 function PageFallback() {
   return (
-    <div className="fixed inset-0 flex items-center justify-center">
+    <div className="fixed inset-0 flex items-center justify-center bg-background z-50">
       <div className="w-8 h-8 border-4 border-slate-200 border-t-primary rounded-full animate-spin" />
     </div>
   );

@@ -3,12 +3,13 @@ import { useQuery } from '@tanstack/react-query';
 import { base44 } from '@/api/base44Client';
 import { Plane, RefreshCw } from 'lucide-react';
 import { Link } from 'react-router-dom';
+import { lazy, Suspense } from 'react';
 import OpsStatBar from '@/components/flightops/OpsStatBar';
-import FlightStatusBoard from '@/components/flightops/FlightStatusBoard';
-import CrewBoard from '@/components/flightops/CrewBoard';
-import DispatchBoard from '@/components/flightops/DispatchBoard';
-import WeatherPanel from '@/components/flightops/WeatherPanel';
-import DispatchPanel from '@/components/dispatch/DispatchPanel';
+const FlightStatusBoard = lazy(() => import('@/components/flightops/FlightStatusBoard'));
+const CrewBoard = lazy(() => import('@/components/flightops/CrewBoard'));
+const DispatchBoard = lazy(() => import('@/components/flightops/DispatchBoard'));
+const WeatherPanel = lazy(() => import('@/components/flightops/WeatherPanel'));
+const DispatchPanel = lazy(() => import('@/components/dispatch/DispatchPanel'));
 import PullToRefresh from '@/components/ui/PullToRefresh';
 
 const TODAY = new Date().toISOString().split('T')[0];
@@ -110,27 +111,35 @@ export default function Dashboard() {
 
         {/* Tab content */}
         {activeTab === 'flights' && (
-          <PullToRefresh onRefresh={refetchFlights}>
-            <FlightStatusBoard flights={flights} isLoading={loadingFlights} />
-          </PullToRefresh>
+          <Suspense fallback={<div className="h-96 flex items-center justify-center text-muted-foreground">Loading...</div>}>
+            <PullToRefresh onRefresh={refetchFlights}>
+              <FlightStatusBoard flights={flights} isLoading={loadingFlights} />
+            </PullToRefresh>
+          </Suspense>
         )}
         {activeTab === 'crew' && (
-          <PullToRefresh onRefresh={refetchCrew}>
-            <CrewBoard crew={crew} isLoading={loadingCrew} />
-          </PullToRefresh>
+          <Suspense fallback={<div className="h-96 flex items-center justify-center text-muted-foreground">Loading...</div>}>
+            <PullToRefresh onRefresh={refetchCrew}>
+              <CrewBoard crew={crew} isLoading={loadingCrew} />
+            </PullToRefresh>
+          </Suspense>
         )}
         {activeTab === 'dispatch' && (
-          <PullToRefresh onRefresh={() => { refetchFlights(); refetchReleases(); }}>
-            <div className="space-y-4">
-              <DispatchPanel flights={flights} />
-              <DispatchBoard releases={releases} isLoading={loadingReleases} />
-            </div>
-          </PullToRefresh>
+          <Suspense fallback={<div className="h-96 flex items-center justify-center text-muted-foreground">Loading...</div>}>
+            <PullToRefresh onRefresh={() => { refetchFlights(); refetchReleases(); }}>
+              <div className="space-y-4">
+                <DispatchPanel flights={flights} />
+                <DispatchBoard releases={releases} isLoading={loadingReleases} />
+              </div>
+            </PullToRefresh>
+          </Suspense>
         )}
         {activeTab === 'weather' && (
-          <PullToRefresh onRefresh={refetchFlights}>
-            <WeatherPanel flights={flights} />
-          </PullToRefresh>
+          <Suspense fallback={<div className="h-96 flex items-center justify-center text-muted-foreground">Loading...</div>}>
+            <PullToRefresh onRefresh={refetchFlights}>
+              <WeatherPanel flights={flights} />
+            </PullToRefresh>
+          </Suspense>
         )}
       </div>
     </div>
