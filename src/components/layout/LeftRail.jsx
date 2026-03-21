@@ -22,7 +22,7 @@ const NAV_ITEMS = [
 // Bottom 5 items shown in mobile tab bar
 const MOBILE_TAB_ITEMS = [
   { icon: Home,     label: 'Home',       path: '/Home' },
-  { icon: Plane,    label: 'Flight Ops', path: '/Dashboard' },
+  { icon: Plane,    label: 'Ops',        path: '/Dashboard' },
   { icon: BookOpen, label: 'EFB',        path: '/EFB' },
   { icon: Zap,      label: 'Crew',       path: '/CrewControl' },
   { icon: Menu,     label: 'More',       path: null }, // opens drawer
