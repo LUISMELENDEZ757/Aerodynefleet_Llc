@@ -278,29 +278,24 @@ export default function SafetyQA() {
         <div className="rounded-xl bg-card border border-border p-3 space-y-2">
           <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Filters</p>
           <div className="flex flex-wrap gap-2">
-            {/* Report type filter */}
-            <select
+            <ActionSheet
               value={filterType}
-              onChange={e => setFilterType(e.target.value)}
-              className="h-8 bg-secondary border border-border rounded-lg px-2 text-xs text-foreground focus:outline-none focus:ring-1 focus:ring-primary"
-            >
-              <option value="all">All Types</option>
-              {Object.entries(REPORT_TYPE_CONFIG).map(([key, cfg]) => (
-                <option key={key} value={key}>{cfg.label}</option>
-              ))}
-            </select>
-
-            {/* Severity filter */}
-            <select
+              onChange={setFilterType}
+              placeholder="All Types"
+              options={[
+                { value: 'all', label: 'All Types' },
+                ...Object.entries(REPORT_TYPE_CONFIG).map(([key, cfg]) => ({ value: key, label: cfg.label })),
+              ]}
+            />
+            <ActionSheet
               value={filterSeverity}
-              onChange={e => setFilterSeverity(e.target.value)}
-              className="h-8 bg-secondary border border-border rounded-lg px-2 text-xs text-foreground focus:outline-none focus:ring-1 focus:ring-primary"
-            >
-              <option value="all">All Severities</option>
-              {Object.entries(SEVERITY_CONFIG).map(([key, cfg]) => (
-                <option key={key} value={key}>{cfg.label}</option>
-              ))}
-            </select>
+              onChange={setFilterSeverity}
+              placeholder="All Severities"
+              options={[
+                { value: 'all', label: 'All Severities' },
+                ...Object.entries(SEVERITY_CONFIG).map(([key, cfg]) => ({ value: key, label: cfg.label })),
+              ]}
+            />
           </div>
         </div>
 
