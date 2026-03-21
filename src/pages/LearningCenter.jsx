@@ -7,7 +7,7 @@ import {
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import BackHeader from '@/components/layout/BackHeader';
-import { useGridRovingTabindex } from '@/hooks/useRovingTabindex';
+import RovingTabindexGrid from '@/components/accessibility/RovingTabindexGrid';
 
 const MODULES = [
   {
@@ -125,9 +125,6 @@ const BENEFITS = [
 
 export default function LearningCenter() {
   const [expandedModule, setExpandedModule] = useState(null);
-  const rowCount = Math.ceil(MODULES.length / 3);
-  const { focusedIndex, setFocusedIndex, handleKeyDown, getTabIndex, registerRef } = 
-    useGridRovingTabindex(rowCount, 3, 0);
 
   return (
     <div className="min-h-screen bg-background pb-20">
@@ -165,22 +162,22 @@ export default function LearningCenter() {
             <Play className="w-5 h-5 text-primary" aria-hidden="true" />
             Operational Modules
           </h2>
-          <div 
+          <RovingTabindexGrid
+            items={MODULES}
+            columns={3}
+            ariaLabel="Operational modules with arrow key navigation"
             className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4"
-            onKeyDown={handleKeyDown}
-            role="grid"
-            aria-label="Operational modules with arrow key navigation"
-          >
-            {MODULES.map(({ icon: Icon, title, path, description, benefits, color }, idx) => (
+            renderItem={({ icon: Icon, title, path, description, benefits, color }, idx, { focusedIndex, handleKeyDown, getTabIndex, registerRef }) => (
               <button
                 key={idx}
                 ref={(el) => registerRef(idx, el)}
                 tabIndex={getTabIndex(idx)}
                 onClick={() => setExpandedModule(expandedModule === idx ? null : idx)}
+                onKeyDown={handleKeyDown}
                 aria-expanded={expandedModule === idx}
                 aria-label={`${title}: ${description}${expandedModule === idx ? ' - expanded' : ''}`}
                 className={cn(
-                  'rounded-xl border border-border bg-card p-4 text-left transition-all hover:border-primary/50 hover:shadow-lg cursor-pointer focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2',
+                  'rounded-xl border border-border bg-card p-4 text-left transition-all hover:border-primary/50 hover:shadow-lg cursor-pointer focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 relative',
                   focusedIndex === idx && 'ring-2 ring-primary ring-offset-2',
                   expandedModule === idx && 'border-primary/60 bg-card/80'
                 )}
@@ -223,8 +220,8 @@ export default function LearningCenter() {
                   </div>
                 )}
               </button>
-            ))}
-          </div>
+            )}
+          />
         </div>
 
         {/* Benefits Section */}
