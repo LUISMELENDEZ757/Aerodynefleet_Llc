@@ -134,11 +134,11 @@ export default function LearningCenter() {
       <BackHeader title="Learning Center" subtitle="App Guide & Tutorials" />
       {/* Header */}
       <div className="border-b border-border bg-card px-5 pt-6 pb-5">
-        <div className="flex items-start justify-between gap-4">
-          <div className="flex items-center gap-3">
-            <Link to="/Home" aria-label="Go to Home" className="w-10 h-10 rounded-xl bg-primary/20 flex items-center justify-center flex-shrink-0 hover:bg-primary/30 transition-colors focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-1">
-              <BookOpen className="w-5 h-5 text-primary" aria-hidden="true" />
-            </Link>
+      <div className="flex items-start justify-between gap-4">
+      <div className="flex items-center gap-3">
+        <Link to="/Home" aria-label="Go to Home" className="w-10 h-10 rounded-xl bg-primary/20 flex items-center justify-center flex-shrink-0 hover:bg-primary/30 transition-colors focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2">
+          <BookOpen className="w-5 h-5 text-primary" aria-hidden="true" />
+        </Link>
             <div>
               <h1 className="text-lg font-extrabold text-foreground tracking-wide">LEARNING CENTER</h1>
               <p className="text-xs font-mono text-primary tracking-widest uppercase">App Guide · Module Tutorials · Operations Benefits</p>
@@ -180,8 +180,8 @@ export default function LearningCenter() {
                 aria-expanded={expandedModule === idx}
                 aria-label={`${title}: ${description}${expandedModule === idx ? ' - expanded' : ''}`}
                 className={cn(
-                  'rounded-xl border border-border bg-card p-4 text-left transition-all hover:border-primary/50 hover:shadow-lg cursor-pointer focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-1',
-                  focusedIndex === idx && 'ring-2 ring-primary ring-offset-1',
+                  'rounded-xl border border-border bg-card p-4 text-left transition-all hover:border-primary/50 hover:shadow-lg cursor-pointer focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2',
+                  focusedIndex === idx && 'ring-2 ring-primary ring-offset-2',
                   expandedModule === idx && 'border-primary/60 bg-card/80'
                 )}
               >
@@ -214,12 +214,12 @@ export default function LearningCenter() {
                        ))}
                     </ul>
                     <Link
-                       to={path}
-                       aria-label={`Open ${title} module`}
-                       className="inline-block mt-3 text-xs font-bold text-primary hover:text-primary/80 transition-colors flex items-center gap-1 focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-1 rounded px-2 py-1"
-                     >
-                       Open Module <ChevronRight className="w-3 h-3" aria-hidden="true" />
-                     </Link>
+                        to={path}
+                        aria-label={`Open ${title} module`}
+                        className="inline-block mt-3 text-xs font-bold text-primary hover:text-primary/80 transition-colors flex items-center gap-1 focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 rounded px-2 py-1"
+                      >
+                        Open Module <ChevronRight className="w-3 h-3" aria-hidden="true" />
+                      </Link>
                   </div>
                 )}
               </button>
