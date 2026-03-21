@@ -19,6 +19,7 @@ const NAV_ITEMS = [
   { icon: Shield,        label: 'Safety & QA',   path: '/SafetyQA' },
   { icon: CalendarDays,  label: 'Scheduling',    path: '/Scheduling' },
   { icon: Cloud,         label: 'Weather',       path: '/Weather' },
+  { icon: BookOpen,      label: 'Learning',      path: '/Learning' },
 ];
 
 export default function LeftRail() {
