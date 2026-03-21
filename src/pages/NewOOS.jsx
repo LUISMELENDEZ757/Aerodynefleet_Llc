@@ -47,12 +47,7 @@ export default function NewOOS() {
 
   return (
     <div>
-      <div className="bg-card border-b border-border p-4 flex items-center gap-3">
-        <Link to="/Dashboard" className="p-1 -ml-1">
-          <ArrowLeft className="w-5 h-5 text-muted-foreground" />
-        </Link>
-        <h1 className="text-base font-bold text-foreground">New OOS Entry</h1>
-      </div>
+      <BackHeader title="New OOS Entry" subtitle="Create maintenance entry" />
 
       <form onSubmit={handleSubmit} className="p-4 space-y-4">
         <div className="grid grid-cols-2 gap-3">
