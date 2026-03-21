@@ -17,6 +17,7 @@ import EFB from '@/pages/EFB';
 import CrewCalendar from '@/pages/CrewCalendar';
 import CrewControl from '@/pages/CrewControl';
 import WorldClock from '@/pages/WorldClock';
+import SafetyQA from '@/pages/SafetyQA';
 
 const AuthenticatedApp = () => {
   const { isLoadingAuth, isLoadingPublicSettings, authError, navigateToLogin } = useAuth();
