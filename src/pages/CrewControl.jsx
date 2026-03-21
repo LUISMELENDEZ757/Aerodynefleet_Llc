@@ -4,9 +4,9 @@ import { base44 } from '@/api/base44Client';
 import { Users, AlertTriangle, Brain, RefreshCw, Zap, GitMerge, Wrench } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { cn } from '@/lib/utils';
+import { useDynamicPolling } from '@/hooks/useDynamicPolling';
 import CrewStatusBoard from '@/components/crew/CrewStatusBoard';
 import FatiguePredictor from '@/components/crew/FatiguePredictor';
-
 import OpsPipeline from '@/components/crew/OpsPipeline';
 
 const TODAY = new Date().toISOString().split('T')[0];
@@ -19,29 +19,30 @@ const TABS = [
 
 export default function CrewControl() {
   const [activeTab, setActiveTab] = useState('pipeline');
+  const pollingInterval = useDynamicPolling(30000, 300000); // 30s active, 5min hidden
 
   const { data: crew = [], isLoading, refetch: refetchCrew } = useQuery({
     queryKey: ['crew-control', TODAY],
     queryFn: () => base44.entities.CrewAssignment.filter({ flight_date: TODAY }),
-    refetchInterval: 30000,
+    refetchInterval: pollingInterval,
   });
 
   const { data: flights = [], refetch: refetchFlights } = useQuery({
     queryKey: ['cc-flights', TODAY],
     queryFn: () => base44.entities.Flight.filter({ flight_date: TODAY }),
-    refetchInterval: 30000,
+    refetchInterval: pollingInterval,
   });
 
   const { data: releases = [], refetch: refetchReleases } = useQuery({
     queryKey: ['cc-releases', TODAY],
     queryFn: () => base44.entities.DispatchRelease.filter({ flight_date: TODAY }),
-    refetchInterval: 30000,
+    refetchInterval: pollingInterval,
   });
 
   const { data: oosEntries = [], refetch: refetchOOS } = useQuery({
     queryKey: ['cc-oos'],
     queryFn: () => base44.entities.OOSEntry.list(),
-    refetchInterval: 60000,
+    refetchInterval: pollingInterval,
   });
 
   const refetch = () => { refetchCrew(); refetchFlights(); refetchReleases(); refetchOOS(); };
@@ -69,8 +70,12 @@ export default function CrewControl() {
           </div>
           <div className="flex flex-col items-end gap-1">
             <p className="text-lg font-mono font-bold text-foreground">{timeStr} Z</p>
-            <button onClick={refetch} className="flex items-center gap-1 text-xs text-muted-foreground hover:text-foreground transition-colors">
-              <RefreshCw className="w-3 h-3" /> Sync
+            <button 
+              onClick={refetch}
+              aria-label="Sync all crew control data from server"
+              className="flex items-center gap-1 text-xs text-muted-foreground hover:text-foreground transition-colors focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-1 rounded px-2 py-1"
+            >
+              <RefreshCw className="w-3 h-3" aria-hidden="true" /> Sync
             </button>
           </div>
         </div>
@@ -78,15 +83,15 @@ export default function CrewControl() {
         {/* Alert banner if violations */}
         {(illegal > 0 || near > 0) && (
           <div className={cn(
-            'mt-3 flex items-center gap-2 rounded-xl px-4 py-2.5 text-sm font-semibold',
-            illegal > 0 ? 'bg-destructive/15 text-destructive border border-destructive/30' : 'bg-orange-500/15 text-orange-400 border border-orange-500/30'
-          )}>
-            <AlertTriangle className="w-4 h-4 flex-shrink-0" />
-            {illegal > 0
-              ? `⚠ ${illegal} crew member${illegal > 1 ? 's' : ''} in VIOLATION — immediate action required`
-              : `${near} crew member${near > 1 ? 's' : ''} approaching FAR 117 limits`}
+           'mt-3 flex items-center gap-2 rounded-xl px-4 py-2.5 text-sm font-semibold',
+           illegal > 0 ? 'bg-destructive/15 text-destructive border border-destructive/30' : 'bg-orange-500/15 text-orange-400 border border-orange-500/30'
+          )} role="alert" aria-live="assertive">
+           <AlertTriangle className="w-4 h-4 flex-shrink-0" aria-hidden="true" />
+           {illegal > 0
+             ? `⚠ ${illegal} crew member${illegal > 1 ? 's' : ''} in VIOLATION — immediate action required`
+             : `${near} crew member${near > 1 ? 's' : ''} approaching FAR 117 limits`}
           </div>
-        )}
+          )}
 
         {/* Stat pills */}
         <div className="flex gap-2 mt-3">
@@ -104,14 +109,19 @@ export default function CrewControl() {
 
       {/* Tabs */}
       <div className="border-b border-border bg-card">
-        <div className="flex gap-0.5 px-4 py-2 overflow-x-auto">
+        <div className="flex gap-0.5 px-4 py-2 overflow-x-auto" role="tablist" aria-label="Crew Control operations navigation">
           {TABS.map(({ key, label, icon: Icon }) => (
-            <button key={key} onClick={() => setActiveTab(key)}
+            <button 
+              key={key} 
+              onClick={() => setActiveTab(key)}
+              role="tab"
+              aria-selected={activeTab === key}
+              aria-label={`${label}${activeTab === key ? ' - currently selected' : ''}`}
               className={cn(
-                'flex items-center gap-1.5 whitespace-nowrap text-xs font-semibold px-3 py-2 rounded-lg transition-all flex-shrink-0',
+                'flex items-center gap-1.5 whitespace-nowrap text-xs font-semibold px-3 py-2 rounded-lg transition-all flex-shrink-0 focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-1',
                 activeTab === key ? 'bg-primary text-primary-foreground' : 'text-muted-foreground hover:text-foreground hover:bg-secondary'
               )}>
-              <Icon className="w-3.5 h-3.5" />{label}
+              <Icon className="w-3.5 h-3.5" aria-hidden="true" />{label}
             </button>
           ))}
         </div>
