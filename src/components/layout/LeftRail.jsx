@@ -148,7 +148,7 @@ export default function LeftRail() {
               key={label}
               to={path}
               className={cn(
-                'flex-1 flex flex-col items-center justify-center gap-1 py-2 transition-colors',
+                'flex-1 flex flex-col items-center justify-center gap-1 py-2 transition-colors min-h-[56px]',
                 isActive ? 'text-primary' : 'text-muted-foreground'
               )}
             >
