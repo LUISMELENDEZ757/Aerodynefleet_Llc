@@ -4,33 +4,13 @@
  *
  * On mobile: slides left/right based on navigation direction.
  * On desktop: subtle fade only (no lateral movement).
+ * 
+ * Integrates with NavigationStack for precise route depth mapping.
  */
 import React, { useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useLocation } from 'react-router-dom';
-
-// Route depth map — higher = deeper in stack (child screen)
-const ROUTE_DEPTH = {
-  '/Home':             0,
-  '/Dashboard':        1,
-  '/OOSDetail':        2,
-  '/NewOOS':           2,
-  '/FlightAttendant':  1,
-  '/FlightCrew':       1,
-  '/EFB':              1,
-  '/CrewCalendar':     1,
-  '/CrewControl':      1,
-  '/WorldClock':       1,
-  '/SafetyQA':         1,
-  '/Scheduling':       1,
-  '/Weather':          1,
-  '/Training':         1,
-  '/Settings':         1,
-};
-
-function getDepth(pathname) {
-  return ROUTE_DEPTH[pathname] ?? 1;
-}
+import { getRouteDepth, getNavigationDirection } from '@/lib/NavigationStack';
 
 // Mobile: directional slide. Desktop: fade only.
 function makeVariants(direction) {
@@ -50,13 +30,13 @@ const DESKTOP_VARIANTS = {
 
 export default function PageTransition({ children }) {
   const location = useLocation();
-  const prevDepth = useRef(getDepth(location.pathname));
-  const currentDepth = getDepth(location.pathname);
+  const prevDepthRef = useRef(getRouteDepth(location.pathname));
+  const currentDepth = getRouteDepth(location.pathname);
 
   // direction > 0 means pushing deeper (slide from right)
   // direction < 0 means popping (slide from left)
-  const direction = currentDepth - prevDepth.current;
-  prevDepth.current = currentDepth;
+  const direction = getNavigationDirection(currentDepth, prevDepthRef.current);
+  prevDepthRef.current = currentDepth;
 
   const isMobile = typeof window !== 'undefined' && window.innerWidth < 1024;
   const variants = isMobile ? makeVariants(direction) : DESKTOP_VARIANTS;
