@@ -83,11 +83,13 @@ export default function RunwayAnalysis({ flightData = [] }) {
         <div className="p-4 space-y-3">
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
             <div>
-              <label className="text-xs text-muted-foreground block mb-1">Airport (ICAO)</label>
-              <select value={airport} onChange={e => setAirport(e.target.value)}
-                className="w-full h-9 bg-secondary border border-border rounded-lg px-2 text-sm font-mono text-foreground focus:outline-none focus:ring-1 focus:ring-primary">
-                {Object.keys(RUNWAYS).map(a => <option key={a}>{a}</option>)}
-              </select>
+              <ActionSheet
+                label="Airport (ICAO)"
+                value={airport}
+                onChange={setAirport}
+                options={Object.keys(RUNWAYS).map(a => ({ value: a, label: a }))}
+                triggerClassName="w-full font-mono"
+              />
             </div>
             <div>
               <label className="text-xs text-muted-foreground block mb-1">Wind Dir (°)</label>
