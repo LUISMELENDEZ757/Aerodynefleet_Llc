@@ -74,13 +74,14 @@ export default function Dashboard() {
         </div>
 
         {/* Refresh */}
-        <button
-          onClick={handleRefresh}
-          className="mt-3 flex items-center gap-1.5 text-xs text-muted-foreground hover:text-foreground transition-colors"
-        >
-          <RefreshCw className="w-3 h-3" />
-          Refresh data
-        </button>
+         <button
+           onClick={handleRefresh}
+           aria-label="Refresh all operational data (flights, crew, dispatch)"
+           className="mt-3 flex items-center gap-1.5 text-xs text-muted-foreground hover:text-foreground transition-colors"
+         >
+           <RefreshCw className="w-3 h-3" aria-hidden="true" />
+           Refresh data
+         </button>
       </div>
 
       <div className="p-4 space-y-4">
@@ -88,11 +89,14 @@ export default function Dashboard() {
         <OpsStatBar flights={flights} crew={crew} releases={releases} />
 
         {/* Tabs */}
-        <div className="flex gap-1 bg-secondary rounded-xl p-1">
+        <div className="flex gap-1 bg-secondary rounded-xl p-1" role="tablist" aria-label="Operations view navigation">
           {TABS.map(tab => (
             <button
               key={tab.key}
               onClick={() => setActiveTab(tab.key)}
+              role="tab"
+              aria-selected={activeTab === tab.key}
+              aria-label={`View ${tab.label}`}
               className={`flex-1 text-xs font-semibold py-2 rounded-lg transition-all ${
                 activeTab === tab.key
                   ? 'bg-primary text-primary-foreground shadow'
