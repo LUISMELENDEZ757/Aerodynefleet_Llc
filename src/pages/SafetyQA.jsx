@@ -9,6 +9,7 @@ import {
 } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import ActionSheet from '@/components/ui/ActionSheet';
+import BackHeader from '@/components/layout/BackHeader';
 
 const TODAY = new Date().toISOString().split('T')[0];
 
@@ -242,6 +243,7 @@ export default function SafetyQA() {
 
   return (
     <div className="min-h-screen bg-background">
+      <BackHeader title="Safety & QA" subtitle="Incident Tracking & Risk Management" />
       {/* Header */}
       <div className="border-b border-border bg-card px-5 pt-5 pb-4">
         <div className="flex items-start justify-between gap-4">

@@ -1,12 +1,14 @@
 import React, { useState, useMemo } from 'react';
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { base44 } from '@/api/base44Client';
 import { cn } from '@/lib/utils';
-import { Fuel, AlertTriangle, CheckCircle, TrendingDown } from 'lucide-react';
+import { Fuel, AlertTriangle, CheckCircle, TrendingDown, Save } from 'lucide-react';
+import { Button } from '@/components/ui/button';
 import AircraftSelector from './AircraftSelector';
 import useAircraftPerformance from '@/hooks/useAircraftPerformance';
 
 export default function FuelPlanning({ flightData = [] }) {
+  const queryClient = useQueryClient();
   const [selectedTail, setSelectedTail] = useState('');
   const { profile, acType, isLoading } = useAircraftPerformance(selectedTail, null);
 
@@ -61,6 +63,22 @@ export default function FuelPlanning({ flightData = [] }) {
   const status = calc.extra >= 0 ? (calc.extra < 500 ? 'near' : 'ok') : 'over';
   const statusColor = { ok: 'text-green-400', near: 'text-orange-400', over: 'text-destructive' };
   const statusLabel = { ok: 'FUEL SUFFICIENT', near: 'LOW MARGIN', over: 'FUEL INSUFFICIENT' };
+
+  const saveMutation = useMutation({
+    mutationFn: async (data) => {
+      return new Promise(resolve => setTimeout(() => resolve(data), 300));
+    },
+    onMutate: async (data) => {
+      await queryClient.cancelQueries({ queryKey: ['fuel-plan'] });
+      const previous = queryClient.getQueryData(['fuel-plan']);
+      queryClient.setQueryData(['fuel-plan'], data);
+      return { previous };
+    },
+    onError: (_err, _data, ctx) => {
+      if (ctx?.previous) queryClient.setQueryData(['fuel-plan'], ctx.previous);
+    },
+    onSettled: () => queryClient.invalidateQueries({ queryKey: ['fuel-plan'] }),
+  });
 
   return (
     <div className="space-y-4">
@@ -151,8 +169,18 @@ export default function FuelPlanning({ flightData = [] }) {
               </div>
             </div>
           </div>
-        </div>
-      </div>
-    </div>
-  );
-}
+          </div>
+          </div>
+
+          {/* Save button */}
+          <Button 
+          onClick={() => saveMutation.mutate(form)}
+          disabled={saveMutation.isPending}
+          className="w-full bg-primary text-primary-foreground hover:bg-primary/90"
+          >
+          <Save className="w-4 h-4 mr-2" />
+          {saveMutation.isPending ? 'Saving...' : 'Save Fuel Plan'}
+          </Button>
+          </div>
+          );
+          }
