@@ -5,6 +5,7 @@ import {
   CalendarDays, Zap, Globe, Shield, X, Menu, Cloud
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { useRail } from '@/lib/RailContext';
 
 const NAV_ITEMS = [
   { icon: Home,         label: 'Home',           path: '/Home' },
@@ -20,44 +21,30 @@ const NAV_ITEMS = [
   { icon: Cloud,        label: 'Weather',        path: '/Weather' },
 ];
 
-// Bottom 5 items shown in mobile/tablet tab bar
 const MOBILE_TAB_ITEMS = [
-  { icon: Home,     label: 'Home',       path: '/Home' },
-  { icon: Plane,    label: 'Ops',        path: '/Dashboard' },
-  { icon: BookOpen, label: 'EFB',        path: '/EFB' },
-  { icon: Zap,      label: 'Crew',       path: '/CrewControl' },
-  { icon: Menu,     label: 'More',       path: null },
+  { icon: Home,     label: 'Home',  path: '/Home' },
+  { icon: Plane,    label: 'Ops',   path: '/Dashboard' },
+  { icon: BookOpen, label: 'EFB',   path: '/EFB' },
+  { icon: Zap,      label: 'Crew',  path: '/CrewControl' },
+  { icon: Menu,     label: 'More',  path: null },
 ];
 
 export default function LeftRail() {
   const location = useLocation();
   const navigate = useNavigate();
-  const [expanded, setExpanded] = useState(() => {
-    try {
-      const stored = localStorage.getItem('rail_expanded');
-      return stored === null ? true : stored === 'true';
-    } catch { return true; }
-  });
-
-  const toggleExpanded = () => {
-    setExpanded(e => {
-      const next = !e;
-      try { localStorage.setItem('rail_expanded', next); } catch {}
-      return next;
-    });
-  };
+  const { expanded, toggle, setExpanded } = useRail();
+  const [mobileDrawerOpen, setMobileDrawerOpen] = useState(false);
 
   const handleHomeClick = (e) => {
     e.preventDefault();
     if (location.pathname === '/Home') {
-      toggleExpanded();
+      toggle();
     } else {
       navigate('/Home');
       setExpanded(true);
       try { localStorage.setItem('rail_expanded', 'true'); } catch {}
     }
   };
-  const [mobileDrawerOpen, setMobileDrawerOpen] = useState(false);
 
   return (
     <>
@@ -68,7 +55,7 @@ export default function LeftRail() {
           expanded ? 'w-44' : 'w-16'
         )}
       >
-        {/* Logo — click to go to Dashboard */}
+        {/* Logo */}
         <div className="mb-4 flex items-center justify-center w-full px-3.5">
           <Link
             to="/Dashboard"
@@ -117,15 +104,15 @@ export default function LeftRail() {
 
         <div className="flex flex-col w-full px-2">
           <div className="h-px bg-border mb-3 mx-1.5" />
-          <Link
-            to="/Home"
-            className="flex items-center gap-3 px-2.5 h-10 rounded-xl text-muted-foreground hover:bg-secondary hover:text-foreground transition-all"
+          <button
+            onClick={toggle}
+            className="flex items-center gap-3 px-2.5 h-10 rounded-xl text-muted-foreground hover:bg-secondary hover:text-foreground transition-all w-full"
           >
             <Settings className="w-5 h-5 flex-shrink-0" />
             {expanded && (
-              <span className="text-sm font-medium whitespace-nowrap">Settings</span>
+              <span className="text-sm font-medium whitespace-nowrap">Collapse</span>
             )}
-          </Link>
+          </button>
         </div>
       </aside>
 
@@ -168,14 +155,11 @@ export default function LeftRail() {
       {/* ─── MOBILE FULL DRAWER ─── */}
       {mobileDrawerOpen && (
         <div className="lg:hidden fixed inset-0 z-[60] flex flex-col">
-          {/* Backdrop */}
           <div
             className="absolute inset-0 bg-black/60 backdrop-blur-sm"
             onClick={() => setMobileDrawerOpen(false)}
           />
-          {/* Sheet from bottom */}
           <div className="relative mt-auto bg-card rounded-t-2xl border-t border-border pb-safe overflow-y-auto max-h-[85vh]">
-            {/* Handle */}
             <div className="flex items-center justify-between px-5 pt-4 pb-3 border-b border-border">
               <Link
                 to="/Home"
