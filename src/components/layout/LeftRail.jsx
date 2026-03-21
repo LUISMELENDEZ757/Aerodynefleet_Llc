@@ -106,36 +106,33 @@ export default function LeftRail() {
         {MOBILE_TAB_ITEMS.map(({ icon: Icon, label, path }) => {
           const isActive = path && location.pathname === path;
           const isMore = path === null;
-          return (
-            <button
-              key={label}
-              onClick={() => isMore ? setMobileDrawerOpen(true) : null}
-              className="flex-1"
-            >
-              {isMore ? (
-                <div className={cn(
-                  'flex flex-col items-center justify-center gap-1 py-2 h-full transition-colors',
+          if (isMore) {
+            return (
+              <button
+                key={label}
+                onClick={() => setMobileDrawerOpen(true)}
+                className={cn(
+                  'flex-1 flex flex-col items-center justify-center gap-1 py-2 transition-colors',
                   mobileDrawerOpen ? 'text-primary' : 'text-muted-foreground'
-                )}>
-                  <Icon className="w-5 h-5" />
-                  <span className="text-[10px] font-semibold">{label}</span>
-                </div>
-              ) : (
-                <Link
-                  to={path}
-                  className={cn(
-                    'flex flex-col items-center justify-center gap-1 py-2 h-full transition-colors w-full',
-                    isActive ? 'text-primary' : 'text-muted-foreground'
-                  )}
-                >
-                  {isActive && (
-                    <span className="absolute bottom-0 w-8 h-0.5 bg-primary rounded-full" />
-                  )}
-                  <Icon className="w-5 h-5" />
-                  <span className="text-[10px] font-semibold">{label}</span>
-                </Link>
+                )}
+              >
+                <Icon className="w-5 h-5" />
+                <span className="text-[10px] font-semibold">{label}</span>
+              </button>
+            );
+          }
+          return (
+            <Link
+              key={label}
+              to={path}
+              className={cn(
+                'flex-1 flex flex-col items-center justify-center gap-1 py-2 transition-colors',
+                isActive ? 'text-primary' : 'text-muted-foreground'
               )}
-            </button>
+            >
+              <Icon className="w-5 h-5" />
+              <span className="text-[10px] font-semibold">{label}</span>
+            </Link>
           );
         })}
       </nav>
