@@ -4,6 +4,7 @@ import { base44 } from '@/api/base44Client';
 import { cn } from '@/lib/utils';
 import { CalendarDays, GitMerge, Plane, Users, ArrowLeftRight, Zap, RefreshCw } from 'lucide-react';
 import { Link } from 'react-router-dom';
+import BackHeader from '@/components/layout/BackHeader';
 
 import PairingGenerator  from '@/components/scheduling/PairingGenerator';
 import Bidlines          from '@/components/scheduling/Bidlines';
@@ -62,9 +63,13 @@ export default function Scheduling() {
           </div>
           <div className="flex flex-col items-end gap-1">
             <p className="text-lg font-mono font-bold text-foreground">{timeStr} Z</p>
-            <button onClick={refetch} className="flex items-center gap-1 text-xs text-muted-foreground hover:text-foreground transition-colors">
-              <RefreshCw className="w-3 h-3" /> Sync
-            </button>
+            <button 
+              onClick={refetch}
+              aria-label="Sync scheduling data from server"
+              className="flex items-center gap-1 text-xs text-muted-foreground hover:text-foreground transition-colors focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-1 rounded px-2 py-1"
+            >
+                <RefreshCw className="w-3 h-3" aria-hidden="true" /> Sync
+              </button>
           </div>
         </div>
 
@@ -88,8 +93,11 @@ export default function Scheduling() {
             <button
               key={key}
               onClick={() => setActiveTab(key)}
+              role="tab"
+              aria-selected={activeTab === key}
+              aria-label={`${label}${activeTab === key ? ' - currently selected' : ''}`}
               className={cn(
-                'flex items-center gap-1.5 whitespace-nowrap text-xs font-semibold px-3 py-2 rounded-lg transition-all flex-shrink-0',
+                'flex items-center gap-1.5 whitespace-nowrap text-xs font-semibold px-3 py-2 rounded-lg transition-all flex-shrink-0 focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-1',
                 activeTab === key
                   ? 'bg-primary text-primary-foreground'
                   : 'text-muted-foreground hover:text-foreground hover:bg-secondary'

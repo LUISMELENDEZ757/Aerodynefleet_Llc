@@ -5,6 +5,7 @@ import { ChevronLeft, ChevronRight, Shield, User, Clock, Plane } from 'lucide-re
 import { Link } from 'react-router-dom';
 import { cn } from '@/lib/utils';
 import FAR117Modal from '@/components/crew/FAR117Modal';
+import BackHeader from '@/components/layout/BackHeader';
 
 const ROLE_LABEL = { captain: 'CPT', first_officer: 'F/O', dispatcher: 'DISP', flight_attendant: 'F/A' };
 
@@ -24,6 +25,10 @@ function getFirstDayOfMonth(year, month) {
 
 function formatDate(year, month, day) {
   return `${year}-${String(month + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+}
+
+function formatDateLong(date) {
+  return date.toLocaleString('en-US', { month: 'long', year: 'numeric' });
 }
 
 export default function CrewCalendar() {
@@ -74,7 +79,7 @@ export default function CrewCalendar() {
 
   return (
     <div className="min-h-screen bg-background">
-      <BackHeader title="Crew Calendar" subtitle={format(new Date(), 'MMMM yyyy')} />
+      <BackHeader title="Crew Calendar" subtitle={formatDateLong(new Date(year, month))} />
       {/* Header */}
       <div className="border-b border-border bg-card px-5 pt-5 pb-4 flex items-center justify-between gap-4">
         <div className="flex items-center gap-3">
@@ -89,9 +94,10 @@ export default function CrewCalendar() {
         {/* FAR 117 Quick Action */}
         <button
           onClick={() => setShowFAR117(true)}
-          className="flex items-center gap-2 bg-primary text-primary-foreground text-xs font-bold px-4 py-2.5 rounded-xl hover:bg-primary/90 transition-colors"
+          aria-label="Open FAR 117 compliance audit modal"
+          className="flex items-center gap-2 bg-primary text-primary-foreground text-xs font-bold px-4 py-2.5 rounded-xl hover:bg-primary/90 transition-colors focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-1"
         >
-          <Shield className="w-4 h-4" />
+          <Shield className="w-4 h-4" aria-hidden="true" />
           FAR 117 Check
         </button>
       </div>
@@ -101,12 +107,20 @@ export default function CrewCalendar() {
         <div className="rounded-xl bg-card border border-border overflow-hidden">
           {/* Month nav */}
           <div className="flex items-center justify-between px-4 py-3 border-b border-border bg-secondary/60">
-            <button onClick={prevMonth} className="p-1.5 rounded-lg hover:bg-secondary transition-colors">
-              <ChevronLeft className="w-4 h-4 text-muted-foreground" />
+            <button 
+              onClick={prevMonth} 
+              aria-label="Go to previous month"
+              className="p-1.5 rounded-lg hover:bg-secondary transition-colors focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-1"
+            >
+              <ChevronLeft className="w-4 h-4 text-muted-foreground" aria-hidden="true" />
             </button>
             <p className="text-sm font-bold text-foreground">{monthLabel}</p>
-            <button onClick={nextMonth} className="p-1.5 rounded-lg hover:bg-secondary transition-colors">
-              <ChevronRight className="w-4 h-4 text-muted-foreground" />
+            <button 
+              onClick={nextMonth}
+              aria-label="Go to next month"
+              className="p-1.5 rounded-lg hover:bg-secondary transition-colors focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-1"
+            >
+              <ChevronRight className="w-4 h-4 text-muted-foreground" aria-hidden="true" />
             </button>
           </div>
 
@@ -135,8 +149,10 @@ export default function CrewCalendar() {
                 <button
                   key={day}
                   onClick={() => setSelectedDate(dateStr)}
+                  aria-label={`${dateStr}: ${dayAssignments.length} assignment${dayAssignments.length !== 1 ? 's' : ''}${hasViolation ? ' — FAR 117 violation' : hasNear ? ' — near limit' : ''}`}
+                  aria-pressed={isSelected}
                   className={cn(
-                    'h-12 flex flex-col items-center justify-center border-r border-b border-border/30 transition-all relative',
+                    'h-12 flex flex-col items-center justify-center border-r border-b border-border/30 transition-all relative focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-1',
                     isSelected ? 'bg-primary/20' : 'hover:bg-secondary/50',
                     (day + firstDay - 1) % 7 === 6 && 'border-r-0'
                   )}

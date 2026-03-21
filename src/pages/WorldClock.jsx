@@ -4,6 +4,7 @@ import { base44 } from '@/api/base44Client';
 import { Globe, Plane, Clock, AlertTriangle, CheckCircle, TrendingUp } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { cn } from '@/lib/utils';
+import BackHeader from '@/components/layout/BackHeader';
 
 const TODAY = new Date().toISOString().split('T')[0];
 
@@ -100,7 +101,11 @@ function TimeZoneCard({ hub, currentTime }) {
   const isDaylight = currentTime.getHours() >= 6 && currentTime.getHours() < 18;
   
   return (
-    <div className="rounded-lg bg-card border border-border overflow-hidden">
+    <div 
+      className="rounded-lg bg-card border border-border overflow-hidden"
+      role="region"
+      aria-label={`${hub.name} (${hub.icao}) timezone card`}
+    >
       <div className="px-3 py-2.5 bg-secondary/40 flex items-center justify-between border-b border-border/50">
         <div>
           <p className="text-sm font-bold text-foreground">{hub.name}</p>
