@@ -21,6 +21,7 @@ import SafetyQA from '@/pages/SafetyQA';
 import Scheduling from '@/pages/Scheduling';
 import WeatherDashboard from '@/pages/WeatherDashboard';
 import TrainingCenter from '@/pages/TrainingCenter';
+import SettingsPage from '@/pages/Settings';
 
 const AuthenticatedApp = () => {
   const { isLoadingAuth, isLoadingPublicSettings, authError, navigateToLogin } = useAuth();
@@ -64,6 +65,7 @@ const AuthenticatedApp = () => {
         <Route path="/Scheduling" element={<Scheduling />} />
         <Route path="/Weather" element={<WeatherDashboard />} />
         <Route path="/Training" element={<TrainingCenter />} />
+        <Route path="/Settings" element={<SettingsPage />} />
       </Route>
       <Route path="*" element={<PageNotFound />} />
     </Routes>
