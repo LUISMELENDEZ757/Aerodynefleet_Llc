@@ -94,6 +94,11 @@ export const AuthProvider = ({ children }) => {
       const currentUser = await base44.auth.me();
       setUser(currentUser);
       setIsAuthenticated(true);
+      
+      // Preload critical dashboard components in parallel (fire and forget)
+      // This eliminates initial load latency on slow networks
+      preloadCriticalDashboardData();
+      
       setIsLoadingAuth(false);
     } catch (error) {
       console.error('User auth check failed:', error);
@@ -107,6 +112,28 @@ export const AuthProvider = ({ children }) => {
           message: 'Authentication required'
         });
       }
+    }
+  };
+
+  const preloadCriticalDashboardData = async () => {
+    try {
+      const today = new Date().toISOString().split('T')[0];
+      
+      // Fire and forget — preload critical entities in parallel
+      // These are used across Dashboard, EFB, CrewControl, and other modules
+      // Errors are silently caught; preload should never block user interaction
+      Promise.allSettled([
+        base44.entities.Flight.filter({ flight_date: today }),
+        base44.entities.CrewAssignment.filter({ flight_date: today }),
+        base44.entities.DispatchRelease.filter({ flight_date: today }),
+        base44.entities.Aircraft.list(),
+        base44.entities.OOSEntry.list(),
+      ]).catch(() => {
+        // Silently ignore preload errors; app should function without preload
+      });
+    } catch (error) {
+      // Preload errors should never break the app
+      console.debug('[AuthContext] Dashboard preload failed (non-blocking):', error.message);
     }
   };
 
