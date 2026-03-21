@@ -6,6 +6,7 @@ import {
   RefreshCw, Scale, Fuel, Map, Radio, AlertTriangle,
   Users, Send, Plane, PenLine, Navigation2, MapPin, Zap
 } from 'lucide-react';
+import { Link } from 'react-router-dom';
 import { cn } from '@/lib/utils';
 import useAircraftPerformance from '@/hooks/useAircraftPerformance';
 

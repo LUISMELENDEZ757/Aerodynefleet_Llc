@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { base44 } from '@/api/base44Client';
 import { Users, Plane, ClipboardList, ShieldCheck, RefreshCw, ChevronDown, ChevronRight, CheckCircle, Clock, AlertTriangle, Radio } from 'lucide-react';
+import { Link, useNavigate } from 'react-router-dom';
 import { cn } from '@/lib/utils';
 import CabinChecklistWidget from '@/components/cabin/CabinChecklistWidget';
 import CabinZonesPanel from '@/components/cabin/CabinZonesPanel';

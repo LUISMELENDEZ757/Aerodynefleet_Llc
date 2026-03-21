@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { base44 } from '@/api/base44Client';
 import { Users, AlertTriangle, Brain, RefreshCw, Zap, GitMerge, Wrench } from 'lucide-react';
+import { Link } from 'react-router-dom';
 import { cn } from '@/lib/utils';
 import CrewStatusBoard from '@/components/crew/CrewStatusBoard';
 import FatiguePredictor from '@/components/crew/FatiguePredictor';

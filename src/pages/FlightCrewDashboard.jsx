@@ -5,6 +5,7 @@ import {
   Plane, Users, RefreshCw, ChevronDown, ChevronRight,
   Clock, AlertTriangle, CheckCircle, ShieldCheck, FileText, Wind
 } from 'lucide-react';
+import { Link } from 'react-router-dom';
 import ELogbook from '@/components/crew/ELogbook';
 import CabinZonesPanel from '@/components/cabin/CabinZonesPanel';
 import { cn } from '@/lib/utils';

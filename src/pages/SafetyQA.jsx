@@ -7,6 +7,7 @@ import {
   RefreshCw, Plus, ChevronDown, ChevronRight, User, Zap, Activity,
   Flag, Wrench, GitBranch
 } from 'lucide-react';
+import { Link } from 'react-router-dom';
 
 const TODAY = new Date().toISOString().split('T')[0];
 
