@@ -85,15 +85,15 @@ const MODULES = [
 
 export default function Home() {
   return (
-    <div className="min-h-screen bg-[#0f1117] px-4 py-8 flex flex-col items-center">
+    <div className="min-h-screen bg-[#0f1117] px-4 py-6 flex flex-col items-center">
       {/* Header */}
-      <div className="mb-8 text-center">
+      <div className="mb-6 text-center">
         <p className="text-xs font-mono font-bold text-primary tracking-widest uppercase mb-1">Aerodyne Fleet LLC</p>
         <h1 className="text-2xl font-extrabold text-white tracking-wide">Operations Hub</h1>
       </div>
 
       {/* Module cards */}
-      <div className="w-full max-w-sm space-y-4">
+      <div className="w-full max-w-sm space-y-3">
         {MODULES.map(({ icon: Icon, iconBg, iconColor, title, subtitle, items, itemColor, borderColor, path }) => (
           <Link
             key={title}
