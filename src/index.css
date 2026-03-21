@@ -177,3 +177,29 @@ nav.fixed.bottom-0 {
     transition: opacity 0.1s, transform 0.1s;
   }
 }
+
+/* ─── High contrast enhancements for dark mode ─────────────────────── */
+/* Ensure critical text meets WCAG AA minimum 4.5:1 contrast ratio */
+.dark {
+  /* Increase muted-foreground contrast for data labels */
+  --muted-foreground: 210 10% 70%;
+  
+  /* Ensure stat card values are highly readable */
+  --text-stat-value: 210 20% 95%;
+}
+
+/* Disabled state styling with proper contrast */
+:disabled, [aria-disabled="true"] {
+  opacity: 0.55;
+}
+
+/* Enhanced focus indicator for keyboard navigation */
+:focus-visible {
+  outline: 2px solid hsl(var(--primary));
+  outline-offset: 2px;
+}
+
+button:focus-visible {
+  outline: 2px solid hsl(var(--primary));
+  outline-offset: -2px;
+}
