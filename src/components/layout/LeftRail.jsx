@@ -152,12 +152,16 @@ export default function LeftRail() {
           <div className="relative mt-auto bg-card rounded-t-2xl border-t border-border pb-safe overflow-y-auto max-h-[85vh]">
             {/* Handle */}
             <div className="flex items-center justify-between px-5 pt-4 pb-3 border-b border-border">
-              <div className="flex items-center gap-2">
+              <Link
+                to="/Home"
+                onClick={() => setMobileDrawerOpen(false)}
+                className="flex items-center gap-2"
+              >
                 <div className="w-8 h-8 rounded-lg bg-primary/20 flex items-center justify-center">
                   <Plane className="w-4 h-4 text-primary" />
                 </div>
                 <span className="text-sm font-bold text-primary tracking-wide">FLIGHT OPS</span>
-              </div>
+              </Link>
               <button
                 onClick={() => setMobileDrawerOpen(false)}
                 className="w-8 h-8 rounded-lg bg-secondary flex items-center justify-center text-muted-foreground hover:text-foreground"
