@@ -328,7 +328,7 @@ export default function EFB() {
       </div>
 
       {/* Body: left rail tabs + content */}
-      <div className="flex min-h-[calc(100vh-88px)]">
+      <div className="flex h-[calc(100vh-88px)]">
         {/* Left vertical tab rail */}
         <div className="w-44 flex-shrink-0 bg-card border-r border-border flex flex-col py-2 overflow-y-auto">
           {TABS.map(({ key, label, icon: Icon }) => (
@@ -351,7 +351,7 @@ export default function EFB() {
           ))}
         </div>
 
-        {/* Content area */}
+        {/* Content area — scrolls independently so tab clicks don't jump to top */}
         <div className="flex-1 p-4 space-y-3 overflow-y-auto">
           {activeTab === 'brief'      && <FlightBrief flights={flights} releases={releases} crew={crew} />}
           {activeTab === 'release'    && <FlightReleaseSignOff />}
