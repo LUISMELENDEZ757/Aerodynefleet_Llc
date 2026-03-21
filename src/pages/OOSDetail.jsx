@@ -52,17 +52,53 @@ export default function OOSDetail() {
 
   const createEventMutation = useMutation({
     mutationFn: (data) => base44.entities.TimelineEvent.create({ ...data, oos_entry_id: id }),
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['timeline-events', id] }),
+    onMutate: async (data) => {
+      await queryClient.cancelQueries({ queryKey: ['timeline-events', id] });
+      const previous = queryClient.getQueryData(['timeline-events', id]);
+      queryClient.setQueryData(['timeline-events', id], (old = []) => [
+        ...old,
+        { ...data, oos_entry_id: id, id: `temp-${Date.now()}` },
+      ]);
+      return { previous };
+    },
+    onError: (_err, _data, ctx) => {
+      if (ctx?.previous !== undefined)
+        queryClient.setQueryData(['timeline-events', id], ctx.previous);
+    },
+    onSettled: () => queryClient.invalidateQueries({ queryKey: ['timeline-events', id] }),
   });
 
   const createPartMutation = useMutation({
     mutationFn: (data) => base44.entities.Part.create({ ...data, oos_entry_id: id }),
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['parts', id] }),
+    onMutate: async (data) => {
+      await queryClient.cancelQueries({ queryKey: ['parts', id] });
+      const previous = queryClient.getQueryData(['parts', id]);
+      queryClient.setQueryData(['parts', id], (old = []) => [
+        ...old,
+        { ...data, oos_entry_id: id, id: `temp-${Date.now()}` },
+      ]);
+      return { previous };
+    },
+    onError: (_err, _data, ctx) => {
+      if (ctx?.previous !== undefined)
+        queryClient.setQueryData(['parts', id], ctx.previous);
+    },
+    onSettled: () => queryClient.invalidateQueries({ queryKey: ['parts', id] }),
   });
 
   const updateStatusMutation = useMutation({
     mutationFn: (status) => base44.entities.OOSEntry.update(id, { status }),
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['oos-entry', id] }),
+    onMutate: async (status) => {
+      await queryClient.cancelQueries({ queryKey: ['oos-entry', id] });
+      const previous = queryClient.getQueryData(['oos-entry', id]);
+      queryClient.setQueryData(['oos-entry', id], (old) => old ? { ...old, status } : old);
+      return { previous };
+    },
+    onError: (_err, _status, ctx) => {
+      if (ctx?.previous !== undefined)
+        queryClient.setQueryData(['oos-entry', id], ctx.previous);
+    },
+    onSettled: () => queryClient.invalidateQueries({ queryKey: ['oos-entry', id] }),
   });
 
   const elapsed = useMemo(() => entry ? getElapsed(entry.oos_date, entry.oos_time) : '--:--', [entry]);
