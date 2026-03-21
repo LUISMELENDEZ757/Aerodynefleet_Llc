@@ -43,19 +43,19 @@ export default function LeftRail() {
         )}
       >
         {/* Logo / expand toggle */}
-        <button
-          onClick={() => setExpanded(e => !e)}
-          className="mb-6 flex items-center gap-3 px-3.5 w-full"
-        >
-          <div className="w-9 h-9 rounded-lg bg-primary/20 flex items-center justify-center flex-shrink-0 hover:bg-primary/30 transition-colors">
+        <div className="mb-6 flex items-center gap-3 px-3.5 w-full">
+          <Link
+            to="/Home"
+            className="w-9 h-9 rounded-lg bg-primary/20 flex items-center justify-center flex-shrink-0 hover:bg-primary/30 transition-colors"
+          >
             <Plane className="w-5 h-5 text-primary" />
-          </div>
+          </Link>
           {expanded && (
-            <span className="text-sm font-bold tracking-wide text-primary whitespace-nowrap">
+            <button onClick={() => setExpanded(e => !e)} className="text-sm font-bold tracking-wide text-primary whitespace-nowrap">
               FLIGHT OPS
-            </span>
+            </button>
           )}
-        </button>
+        </div>
 
         <div className="w-full px-3.5 mb-4">
           <div className="h-px bg-border" />
