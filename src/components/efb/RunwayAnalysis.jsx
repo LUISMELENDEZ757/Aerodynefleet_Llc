@@ -3,6 +3,7 @@ import { cn } from '@/lib/utils';
 import { AlertTriangle, CheckCircle } from 'lucide-react';
 import AircraftSelector from './AircraftSelector';
 import useAircraftPerformance from '@/hooks/useAircraftPerformance';
+import ActionSheet from '@/components/ui/ActionSheet';
 
 const RUNWAYS = {
   'KEWR': [
