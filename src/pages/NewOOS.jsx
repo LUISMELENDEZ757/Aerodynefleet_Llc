@@ -33,8 +33,10 @@ export default function NewOOS() {
   const createMutation = useMutation({
     mutationFn: (data) => base44.entities.OOSEntry.create(data),
     onSuccess: (result) => {
+      queryClient.invalidateQueries({ queryKey: ['oos-entries'] });
       navigate(`/OOSDetail?id=${result.id}`);
     },
+    onSettled: () => queryClient.invalidateQueries({ queryKey: ['oos-entries'] }),
   });
 
   const handleSubmit = (e) => {
