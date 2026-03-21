@@ -149,7 +149,7 @@ export default function LeftRail() {
 
       {/* ─── MOBILE FULL DRAWER ─── */}
       {mobileDrawerOpen && (
-        <div className="md:hidden fixed inset-0 z-[60] flex flex-col">
+        <div className="lg:hidden fixed inset-0 z-[60] flex flex-col">
           {/* Backdrop */}
           <div
             className="absolute inset-0 bg-black/60 backdrop-blur-sm"
