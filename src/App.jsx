@@ -22,6 +22,7 @@ const WorldClock            = lazy(() => import('@/pages/WorldClock'));
 const SafetyQA              = lazy(() => import('@/pages/SafetyQA'));
 const Scheduling            = lazy(() => import('@/pages/Scheduling'));
 const WeatherDashboard      = lazy(() => import('@/pages/WeatherDashboard'));
+const LearningCenter        = lazy(() => import('@/pages/LearningCenter'));
 
 const SettingsPage          = lazy(() => import('@/pages/Settings'));
 
