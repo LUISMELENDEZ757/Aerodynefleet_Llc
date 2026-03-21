@@ -243,9 +243,9 @@ export default function SafetyQA() {
       <div className="border-b border-border bg-card px-5 pt-5 pb-4">
         <div className="flex items-start justify-between gap-4">
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-xl bg-primary/20 flex items-center justify-center flex-shrink-0">
+            <Link to="/Home" className="w-10 h-10 rounded-xl bg-primary/20 flex items-center justify-center flex-shrink-0 hover:bg-primary/30 transition-colors">
               <Shield className="w-5 h-5 text-primary" />
-            </div>
+            </Link>
             <div>
               <h1 className="text-lg font-extrabold text-foreground tracking-wide">SAFETY & QA</h1>
               <p className="text-xs font-mono text-primary tracking-widest uppercase">Incident Tracking & Risk Management</p>
