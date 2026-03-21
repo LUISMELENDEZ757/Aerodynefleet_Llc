@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
+import { lazy, Suspense, useState } from 'react';
 import { base44 } from '@/api/base44Client';
 import { useDynamicPolling } from '@/hooks/useDynamicPolling';
 import {
