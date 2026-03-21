@@ -30,7 +30,17 @@ const MOBILE_TAB_ITEMS = [
 
 export default function LeftRail() {
   const location = useLocation();
-  const [expanded, setExpanded] = useState(false);
+  const [expanded, setExpanded] = useState(() => {
+    try { return localStorage.getItem('rail_expanded') === 'true'; } catch { return false; }
+  });
+
+  const toggleExpanded = () => {
+    setExpanded(e => {
+      const next = !e;
+      try { localStorage.setItem('rail_expanded', next); } catch {}
+      return next;
+    });
+  };
   const [mobileDrawerOpen, setMobileDrawerOpen] = useState(false);
 
   return (
