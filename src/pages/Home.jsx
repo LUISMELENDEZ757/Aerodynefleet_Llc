@@ -84,6 +84,15 @@ const MODULES = [
     borderColor: 'border-orange-500/30',
     path: '/SafetyQA',
   },
+  {
+    icon: Cloud,
+    iconBg: 'bg-cyan-500',
+    iconColor: 'text-white',
+    title: 'WEATHER',
+    subtitle: 'METAR · TAF · SIGMET',
+    borderColor: 'border-cyan-500/30',
+    path: '/Weather',
+  },
 ];
 
 export default function Home() {

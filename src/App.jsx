@@ -19,6 +19,7 @@ import CrewControl from '@/pages/CrewControl';
 import WorldClock from '@/pages/WorldClock';
 import SafetyQA from '@/pages/SafetyQA';
 import Scheduling from '@/pages/Scheduling';
+import WeatherDashboard from '@/pages/WeatherDashboard';
 
 const AuthenticatedApp = () => {
   const { isLoadingAuth, isLoadingPublicSettings, authError, navigateToLogin } = useAuth();
@@ -60,6 +61,7 @@ const AuthenticatedApp = () => {
         <Route path="/WorldClock" element={<WorldClock />} />
         <Route path="/SafetyQA" element={<SafetyQA />} />
         <Route path="/Scheduling" element={<Scheduling />} />
+        <Route path="/Weather" element={<WeatherDashboard />} />
       </Route>
       <Route path="*" element={<PageNotFound />} />
     </Routes>
