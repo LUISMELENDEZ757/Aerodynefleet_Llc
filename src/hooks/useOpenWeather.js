@@ -1,55 +1,39 @@
 import { useQuery } from '@tanstack/react-query';
 
-const OPENWEATHER_BASE = 'https://api.openweathermap.org/data/2.5';
+const OPENMETEO_BASE = 'https://api.open-meteo.com/v1/forecast';
 
 export function useWeatherByCoords(lat, lon, enabled = true) {
-  const apiKey = import.meta.env.VITE_OPENWEATHER_API_KEY;
   return useQuery({
-    queryKey: ['openweather', lat, lon],
+    queryKey: ['openmeteo', lat, lon],
     queryFn: async () => {
       const res = await fetch(
-        `${OPENWEATHER_BASE}/weather?lat=${lat}&lon=${lon}&appid=${apiKey}&units=metric`
+        `${OPENMETEO_BASE}?latitude=${lat}&longitude=${lon}&current_weather=true&hourly=temperature_2m,relative_humidity_2m,precipitation,wind_speed_10m`
       );
       if (!res.ok) throw new Error('Failed to fetch weather');
       return res.json();
     },
-    enabled: enabled && !!apiKey,
+    enabled: !!lat && !!lon && enabled,
     refetchInterval: 10 * 60 * 1000, // 10 minutes
-    retry: false,
   });
 }
 
 export function useWeatherByCity(city, enabled = true) {
-  const apiKey = import.meta.env.VITE_OPENWEATHER_API_KEY;
-  return useQuery({
-    queryKey: ['openweather-city', city],
-    queryFn: async () => {
-      const res = await fetch(
-        `${OPENWEATHER_BASE}/weather?q=${city}&appid=${apiKey}&units=metric`
-      );
-      if (!res.ok) throw new Error('Failed to fetch weather');
-      return res.json();
-    },
-    enabled: enabled && !!apiKey,
-    refetchInterval: 10 * 60 * 1000,
-    retry: false,
-  });
+  const coords = city ? AIRPORT_COORDS[city] : null;
+  return useWeatherByCoords(coords?.lat, coords?.lon, enabled && !!city);
 }
 
 export function useForecast(lat, lon, enabled = true) {
-  const apiKey = import.meta.env.VITE_OPENWEATHER_API_KEY;
   return useQuery({
-    queryKey: ['openweather-forecast', lat, lon],
+    queryKey: ['openmeteo-forecast', lat, lon],
     queryFn: async () => {
       const res = await fetch(
-        `${OPENWEATHER_BASE}/forecast?lat=${lat}&lon=${lon}&appid=${apiKey}&units=metric`
+        `${OPENMETEO_BASE}?latitude=${lat}&longitude=${lon}&hourly=temperature_2m,precipitation_probability,weather_code&timezone=auto`
       );
       if (!res.ok) throw new Error('Failed to fetch forecast');
       return res.json();
     },
-    enabled: enabled && !!apiKey,
+    enabled: !!lat && !!lon && enabled,
     refetchInterval: 30 * 60 * 1000, // 30 minutes
-    retry: false,
   });
 }
 
