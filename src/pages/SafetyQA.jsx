@@ -49,18 +49,18 @@ function calculateRiskScore(report) {
 }
 
 function StatCard({ icon: Icon, label, value, color }) {
-  return (
-    <div className="rounded-xl bg-card border border-border px-4 py-3 flex items-center gap-3">
-      <div className="w-9 h-9 rounded-lg bg-secondary flex items-center justify-center flex-shrink-0">
-        <Icon className={cn('w-4 h-4', color)} />
-      </div>
-      <div>
-        <p className={cn('text-2xl font-extrabold font-mono', color)}>{value}</p>
-        <p className="text-xs text-muted-foreground">{label}</p>
-      </div>
-    </div>
-  );
-}
+   return (
+     <div className="rounded-xl bg-card border border-border px-4 py-3 flex items-center gap-3" role="region" aria-label={`${label}: ${value}`}>
+       <div className="w-9 h-9 rounded-lg bg-secondary flex items-center justify-center flex-shrink-0" aria-hidden="true">
+         <Icon className={cn('w-4 h-4', color)} />
+       </div>
+       <div>
+         <p className={cn('text-2xl font-extrabold font-mono', color)} aria-label={value}>{value}</p>
+         <p className="text-xs text-muted-foreground">{label}</p>
+       </div>
+     </div>
+   );
+ }
 
 function ReportCard({ report }) {
   const [expanded, setExpanded] = useState(false);
@@ -72,9 +72,11 @@ function ReportCard({ report }) {
   return (
     <div className="rounded-xl bg-card border border-border overflow-hidden">
       <button
-        onClick={() => setExpanded(!expanded)}
-        className="w-full flex items-start justify-between px-4 py-3 hover:bg-secondary/40 transition-colors"
-      >
+         onClick={() => setExpanded(!expanded)}
+         aria-expanded={expanded}
+         aria-label={`${expanded ? 'Collapse' : 'Expand'} safety report: ${report.title}`}
+         className="w-full flex items-start justify-between px-4 py-3 hover:bg-secondary/40 transition-colors focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-1"
+       >
         <div className="flex items-start gap-3 min-w-0 flex-1">
           <div className={cn('w-9 h-9 rounded-lg flex items-center justify-center flex-shrink-0', typeConfig.bg)}>
             {typeConfig.icon && <typeConfig.icon className={cn('w-4 h-4', typeConfig.color)} />}
@@ -92,10 +94,10 @@ function ReportCard({ report }) {
             <p className={cn('text-xs font-mono', statConfig.color)}>{statConfig.label}</p>
           </div>
           <div className="flex items-center gap-2">
-            <div className={cn('text-xs font-bold px-2 py-0.5 rounded-full', riskScore >= 75 ? 'bg-destructive/15 text-destructive' : riskScore >= 50 ? 'bg-orange-500/15 text-orange-400' : 'bg-green-500/15 text-green-400')}>
-              {riskScore}
-            </div>
-            {expanded ? <ChevronDown className="w-4 h-4 text-muted-foreground" /> : <ChevronRight className="w-4 h-4 text-muted-foreground" />}
+            <div className={cn('text-xs font-bold px-2 py-0.5 rounded-full', riskScore >= 75 ? 'bg-destructive/15 text-destructive' : riskScore >= 50 ? 'bg-orange-500/15 text-orange-400' : 'bg-green-500/15 text-green-400')} aria-label={`Risk score: ${riskScore} out of 100`}>
+                {riskScore}
+              </div>
+              {expanded ? <ChevronDown className="w-4 h-4 text-muted-foreground" aria-hidden="true" /> : <ChevronRight className="w-4 h-4 text-muted-foreground" aria-hidden="true" />}
           </div>
         </div>
       </button>
@@ -258,11 +260,12 @@ export default function SafetyQA() {
           </div>
         </div>
         <button
-          onClick={refetch}
-          className="mt-3 flex items-center gap-1.5 text-xs text-muted-foreground hover:text-foreground transition-colors"
-        >
-          <RefreshCw className="w-3 h-3" /> Sync reports
-        </button>
+            onClick={refetch}
+            aria-label="Refresh all safety reports from server"
+            className="mt-3 flex items-center gap-1.5 text-xs text-muted-foreground hover:text-foreground transition-colors"
+          >
+            <RefreshCw className="w-3 h-3" aria-hidden="true" /> Sync reports
+          </button>
       </div>
 
       <div className="p-4 space-y-4">
