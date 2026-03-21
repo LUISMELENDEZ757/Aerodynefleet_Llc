@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { Link } from 'react-router-dom';
 import { cn } from '@/lib/utils';
+import { base44 } from '@/api/base44Client';
 import {
   Cloud, Wind, Eye, Thermometer, Gauge, RefreshCw,
   AlertTriangle, ChevronDown, ChevronRight, Search, MapPin, Zap
@@ -9,16 +10,12 @@ import {
 import { useWeatherByCity, AIRPORT_COORDS } from '@/hooks/useOpenWeather';
 import OpenWeatherCard from '@/components/weather/OpenWeatherCard';
 
-const AWC_BASE = 'https://aviationweather.gov/api/data';
-
 const DEFAULT_STATIONS = ['KEWR', 'KJFK', 'KORD', 'KLAX', 'KATL', 'KDFW', 'KSEA', 'KMIA'];
 
 async function fetchMetar(icao) {
   try {
-    const res = await fetch(`${AWC_BASE}/metar?ids=${icao}&format=json&hours=2`);
-    if (!res.ok) throw new Error(`HTTP ${res.status}`);
-    const data = await res.json();
-    return data[0] || null;
+    const res = await base44.functions.invoke('fetchWeatherData', { type: 'metar', icao });
+    return res.data[0] || null;
   } catch (err) {
     console.error('METAR fetch error:', err.message);
     throw err;
@@ -27,10 +24,8 @@ async function fetchMetar(icao) {
 
 async function fetchTaf(icao) {
   try {
-    const res = await fetch(`${AWC_BASE}/taf?ids=${icao}&format=json`);
-    if (!res.ok) throw new Error(`HTTP ${res.status}`);
-    const data = await res.json();
-    return data[0] || null;
+    const res = await base44.functions.invoke('fetchWeatherData', { type: 'taf', icao });
+    return res.data[0] || null;
   } catch (err) {
     console.error('TAF fetch error:', err.message);
     throw err;
@@ -39,9 +34,8 @@ async function fetchTaf(icao) {
 
 async function fetchSigmet() {
   try {
-    const res = await fetch(`${AWC_BASE}/airsigmet?format=json&type=sigmet`);
-    if (!res.ok) throw new Error(`HTTP ${res.status}`);
-    return await res.json();
+    const res = await base44.functions.invoke('fetchWeatherData', { type: 'sigmet' });
+    return res.data;
   } catch (err) {
     console.error('SIGMET fetch error:', err.message);
     throw err;
