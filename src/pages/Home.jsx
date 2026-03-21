@@ -93,6 +93,15 @@ const MODULES = [
     borderColor: 'border-cyan-500/30',
     path: '/Weather',
   },
+  {
+    icon: BookOpen,
+    iconBg: 'bg-emerald-500',
+    iconColor: 'text-white',
+    title: 'LEARNING CENTER',
+    subtitle: 'App Guide · Tutorials',
+    borderColor: 'border-emerald-500/30',
+    path: '/Learning',
+  },
 
 ];
 
