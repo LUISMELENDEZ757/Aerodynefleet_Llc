@@ -9,7 +9,6 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import ActionSheet from '@/components/ui/ActionSheet';
-import BackHeader from '@/components/layout/BackHeader';
 
 export default function NewOOS() {
   const navigate = useNavigate();
