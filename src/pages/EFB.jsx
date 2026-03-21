@@ -328,7 +328,7 @@ export default function EFB() {
       </div>
 
       {/* Body: left rail tabs + content */}
-      <div className="flex h-[calc(100vh-88px)]">
+      <div className="flex flex-1 overflow-hidden">
         {/* Left vertical tab rail */}
         <div className="w-44 flex-shrink-0 bg-card border-r border-border flex flex-col py-2 overflow-y-auto">
           {TABS.map(({ key, label, icon: Icon }) => (
