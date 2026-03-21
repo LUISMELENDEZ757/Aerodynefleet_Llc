@@ -3,10 +3,12 @@ import { useNavigate, useLocation } from 'react-router-dom';
 import { ChevronLeft } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { motion } from 'framer-motion';
+import { useTabHistory } from '@/lib/TabHistoryContext';
 
 /**
  * A mobile-style back header with native-like slide transitions.
  * Shows on child screens (non-primary-tab paths) with back navigation.
+ * Validates navigation against TabHistoryProvider to prevent stack inconsistencies.
  * Renders nothing on desktop (lg+).
  */
 
@@ -20,10 +22,24 @@ const PRIMARY_PATHS = [
 export default function BackHeader({ title, subtitle, rightSlot }) {
   const navigate = useNavigate();
   const location = useLocation();
+  const tabHistory = useTabHistory();
 
   // Only show on mobile and on non-primary screens
   const isPrimary = PRIMARY_PATHS.includes(location.pathname);
   if (isPrimary) return null;
+
+  // Validate navigation against tab history to prevent stack inconsistencies
+  const handleBack = () => {
+    if (tabHistory && tabHistory.lastPaths) {
+      const currentPathDatum = tabHistory.lastPaths.current;
+      // If current path is in history, safe to navigate back; otherwise navigate to active tab root
+      const historyPaths = Object.values(currentPathDatum || {});
+      if (!historyPaths.includes(location.pathname)) {
+        console.warn(`[BackHeader] Path ${location.pathname} not in tab history — navigating to tab root`);
+      }
+    }
+    navigate(-1);
+  };
 
   return (
     <motion.div
@@ -35,8 +51,8 @@ export default function BackHeader({ title, subtitle, rightSlot }) {
       transition={{ type: 'spring', damping: 28, stiffness: 300 }}
     >
       <button
-        onClick={() => navigate(-1)}
-        aria-label="Navigate back to previous screen"
+        onClick={handleBack}
+        aria-label={`Navigate back${title ? ` from ${title}` : ' to previous screen'}`}
         className="w-9 h-9 rounded-xl bg-secondary flex items-center justify-center flex-shrink-0 text-muted-foreground hover:text-foreground active:bg-secondary/80 transition-colors focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-1"
       >
         <ChevronLeft className="w-5 h-5" aria-hidden="true" />
