@@ -2,8 +2,14 @@ const AWC_BASE = 'https://aviationweather.gov/api/data';
 
 Deno.serve(async (req) => {
   try {
-    const body = await req.json();
-    const { type, icao } = body;
+    let type, icao;
+    try {
+      const body = await req.json();
+      type = body.type;
+      icao = body.icao;
+    } catch {
+      return Response.json({ error: 'Invalid request body' }, { status: 400 });
+    }
 
     let fetchUrl = '';
     if (type === 'metar' && icao) {
