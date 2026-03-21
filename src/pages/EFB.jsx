@@ -327,39 +327,47 @@ export default function EFB() {
         </button>
       </div>
 
-      {/* Horizontal scroll tab bar */}
-      <div className="border-b border-border bg-card">
-        <div className="flex gap-0.5 px-4 overflow-x-auto py-2 scrollbar-none">
+      {/* Body: left rail tabs + content */}
+      <div className="flex min-h-[calc(100vh-88px)]">
+        {/* Left vertical tab rail */}
+        <div className="w-44 flex-shrink-0 bg-card border-r border-border flex flex-col py-2 overflow-y-auto">
           {TABS.map(({ key, label, icon: Icon }) => (
-            <button key={key} onClick={() => setActiveTab(key)}
+            <button
+              key={key}
+              onClick={() => setActiveTab(key)}
               className={cn(
-                'flex items-center gap-1.5 whitespace-nowrap text-xs font-semibold px-3 py-2 rounded-lg transition-all flex-shrink-0',
+                'flex items-center gap-2.5 px-3 py-2.5 mx-2 rounded-lg text-xs font-semibold transition-all text-left relative',
                 activeTab === key
-                  ? 'bg-primary text-primary-foreground'
-                  : 'text-muted-foreground hover:text-foreground hover:bg-secondary'
-              )}>
-              <Icon className="w-3.5 h-3.5" />
-              {label}
+                  ? 'bg-primary/20 text-primary'
+                  : 'text-muted-foreground hover:bg-secondary hover:text-foreground'
+              )}
+            >
+              {activeTab === key && (
+                <span className="absolute left-0 top-1/2 -translate-y-1/2 w-1 h-5 bg-primary rounded-r-full" />
+              )}
+              <Icon className="w-3.5 h-3.5 flex-shrink-0" />
+              <span className="leading-tight">{label}</span>
             </button>
           ))}
         </div>
-      </div>
 
-      <div className="p-4 space-y-3">
-        {activeTab === 'brief'      && <FlightBrief flights={flights} releases={releases} crew={crew} />}
-        {activeTab === 'release'    && <FlightReleaseSignOff />}
-        {activeTab === 'map'        && <LiveMap flights={flights} />}
-        {activeTab === 'airport'    && <AirportBriefing flights={flights} />}
-        {activeTab === 'etops'      && <ETOPSDriftDown />}
-        {activeTab === 'wb'         && <WeightBalance flightData={flights} />}
-        {activeTab === 'perf'       && <PerformanceCalc flightData={flights} />}
-        {activeTab === 'fuel'       && <FuelPlanning flightData={flights} />}
-        {activeTab === 'runway'     && <RunwayAnalysis flightData={flights} />}
-        {activeTab === 'wx'         && <WeatherPanel flights={flights} />}
-        {activeTab === 'notams'     && <NotamViewer />}
-        {activeTab === 'crew'       && <CrewLegality />}
-        {activeTab === 'acars'      && <AcarsMessaging />}
-        {activeTab === 'postflight' && <PostflightReport />}
+        {/* Content area */}
+        <div className="flex-1 p-4 space-y-3 overflow-y-auto">
+          {activeTab === 'brief'      && <FlightBrief flights={flights} releases={releases} crew={crew} />}
+          {activeTab === 'release'    && <FlightReleaseSignOff />}
+          {activeTab === 'map'        && <LiveMap flights={flights} />}
+          {activeTab === 'airport'    && <AirportBriefing flights={flights} />}
+          {activeTab === 'etops'      && <ETOPSDriftDown />}
+          {activeTab === 'wb'         && <WeightBalance flightData={flights} />}
+          {activeTab === 'perf'       && <PerformanceCalc flightData={flights} />}
+          {activeTab === 'fuel'       && <FuelPlanning flightData={flights} />}
+          {activeTab === 'runway'     && <RunwayAnalysis flightData={flights} />}
+          {activeTab === 'wx'         && <WeatherPanel flights={flights} />}
+          {activeTab === 'notams'     && <NotamViewer />}
+          {activeTab === 'crew'       && <CrewLegality />}
+          {activeTab === 'acars'      && <AcarsMessaging />}
+          {activeTab === 'postflight' && <PostflightReport />}
+        </div>
       </div>
     </div>
   );
