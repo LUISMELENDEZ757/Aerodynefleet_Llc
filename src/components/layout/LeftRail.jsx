@@ -30,6 +30,7 @@ const MOBILE_TAB_ITEMS = [
 
 export default function LeftRail() {
   const location = useLocation();
+  const navigate = useNavigate();
   const [expanded, setExpanded] = useState(() => {
     try { return localStorage.getItem('rail_expanded') === 'true'; } catch { return false; }
   });
@@ -40,6 +41,17 @@ export default function LeftRail() {
       try { localStorage.setItem('rail_expanded', next); } catch {}
       return next;
     });
+  };
+
+  const handleHomeClick = (e) => {
+    e.preventDefault();
+    if (location.pathname === '/Home') {
+      toggleExpanded();
+    } else {
+      navigate('/Home');
+      setExpanded(true);
+      try { localStorage.setItem('rail_expanded', 'true'); } catch {}
+    }
   };
   const [mobileDrawerOpen, setMobileDrawerOpen] = useState(false);
 
