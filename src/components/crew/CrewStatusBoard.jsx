@@ -101,7 +101,7 @@ function CrewCard({ member, flights }) {
         onClick={() => setExpanded(e => !e)}
         aria-expanded={expanded}
         aria-label={`${expanded ? 'Collapse' : 'Expand'} ${member.crew_name} (${ROLE_LABEL[member.role]}): ${cfg.label}`}
-        className="w-full flex items-center justify-between px-4 py-3 hover:bg-secondary/30 transition-colors focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-1">
+        className="w-full flex items-center justify-between px-3 sm:px-4 py-2.5 sm:py-3 hover:bg-secondary/30 transition-colors focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-1">
         <div className="flex items-center gap-3">
           {/* Status dot */}
           <div className="relative flex-shrink-0">
@@ -136,16 +136,16 @@ function CrewCard({ member, flights }) {
           )}
 
           {/* Metrics */}
-          <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+          <div className="grid grid-cols-2 xs:grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-1.5 sm:gap-2">
             {[
               { label: 'Duty Start', value: member.duty_start ? `${member.duty_start}Z` : '—' },
               { label: 'Duty End',   value: member.duty_end   ? `${member.duty_end}Z`   : '—' },
               { label: 'Rest Prior', value: member.rest_hours_prior != null ? `${member.rest_hours_prior}h` : '—', warn: member.rest_hours_prior != null && member.rest_hours_prior < 10 },
               { label: 'Flt Time',  value: member.total_flight_time_today != null ? `${member.total_flight_time_today}h` : '—', warn: member.total_flight_time_today > 8 },
             ].map(({ label, value, warn }) => (
-              <div key={label} className={cn('rounded-lg px-3 py-2', warn ? 'bg-destructive/10' : 'bg-background/40')}>
-                <p className="text-xs text-muted-foreground">{label}</p>
-                <p className={cn('text-sm font-mono font-bold', warn ? 'text-destructive' : 'text-foreground')}>{value}</p>
+              <div key={label} className={cn('rounded-lg px-2 sm:px-3 py-1.5 sm:py-2', warn ? 'bg-destructive/10' : 'bg-background/40')}>
+                <p className="text-[10px] sm:text-xs text-muted-foreground line-clamp-1">{label}</p>
+                <p className={cn('text-xs sm:text-sm font-mono font-bold', warn ? 'text-destructive' : 'text-foreground')}>{value}</p>
               </div>
             ))}
           </div>

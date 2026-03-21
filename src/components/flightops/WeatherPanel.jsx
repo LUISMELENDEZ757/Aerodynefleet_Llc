@@ -75,7 +75,9 @@ function StationCard({ icao }) {
       {/* Station header */}
       <button
         onClick={() => setExpanded(!expanded)}
-        className="w-full flex items-center justify-between px-4 py-3 hover:bg-secondary/40 transition-colors"
+        aria-expanded={expanded}
+        aria-label={`${icao}: ${metar?.flightCategory || 'loading'} – ${metar && <WindBadge wdir={metar.wdir} wspd={metar.wspd} wgst={metar.wgst} />}`}
+        className="w-full flex items-center justify-between px-3 sm:px-4 py-2.5 sm:py-3 hover:bg-secondary/40 transition-colors focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-1"
       >
         <div className="flex items-center gap-3">
           <span className={cn('text-xs font-mono font-bold px-2 py-0.5 rounded', flightCatColor(cat))}>
@@ -121,29 +123,29 @@ function StationCard({ icao }) {
 
           {/* Decoded summary */}
           {metar && (
-            <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+            <div className="grid grid-cols-2 xs:grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-1.5 sm:gap-2">
               {metar.visib != null && (
-                <div className="bg-background/40 rounded-lg px-2 py-1.5 text-center">
-                  <p className="text-xs text-muted-foreground flex items-center justify-center gap-1"><Eye className="w-3 h-3" /> Vis</p>
-                  <p className="text-sm font-mono font-bold text-foreground">{metar.visib} SM</p>
+                <div className="bg-background/40 rounded-lg px-1.5 sm:px-2 py-1 sm:py-1.5 text-center">
+                  <p className="text-[10px] sm:text-xs text-muted-foreground flex items-center justify-center gap-0.5"><Eye className="w-2 h-2 sm:w-3 sm:h-3" /> Vis</p>
+                  <p className="text-xs sm:text-sm font-mono font-bold text-foreground">{metar.visib} SM</p>
                 </div>
               )}
               {metar.altim != null && (
-                <div className="bg-background/40 rounded-lg px-2 py-1.5 text-center">
-                  <p className="text-xs text-muted-foreground">Altimeter</p>
-                  <p className="text-sm font-mono font-bold text-foreground">{metar.altim.toFixed(2)}"</p>
+                <div className="bg-background/40 rounded-lg px-1.5 sm:px-2 py-1 sm:py-1.5 text-center">
+                  <p className="text-[10px] sm:text-xs text-muted-foreground">Alt</p>
+                  <p className="text-xs sm:text-sm font-mono font-bold text-foreground">{metar.altim.toFixed(2)}"</p>
                 </div>
               )}
               {metar.temp != null && (
-                <div className="bg-background/40 rounded-lg px-2 py-1.5 text-center">
-                  <p className="text-xs text-muted-foreground flex items-center justify-center gap-1"><Thermometer className="w-3 h-3" /> Temp</p>
-                  <p className="text-sm font-mono font-bold text-foreground">{metar.temp}°C / {metar.dewp}°C</p>
+                <div className="bg-background/40 rounded-lg px-1.5 sm:px-2 py-1 sm:py-1.5 text-center">
+                  <p className="text-[10px] sm:text-xs text-muted-foreground flex items-center justify-center gap-0.5"><Thermometer className="w-2 h-2 sm:w-3 sm:h-3" /> Tmp</p>
+                  <p className="text-xs sm:text-sm font-mono font-bold text-foreground">{metar.temp}°/{metar.dewp}°</p>
                 </div>
               )}
               {metar.clouds?.length > 0 && (
-                <div className="bg-background/40 rounded-lg px-2 py-1.5 text-center">
-                  <p className="text-xs text-muted-foreground">Ceiling</p>
-                  <p className="text-sm font-mono font-bold text-foreground">
+                <div className="bg-background/40 rounded-lg px-1.5 sm:px-2 py-1 sm:py-1.5 text-center">
+                  <p className="text-[10px] sm:text-xs text-muted-foreground">Ceiling</p>
+                  <p className="text-xs sm:text-sm font-mono font-bold text-foreground">
                     {metar.clouds[0].cover} {metar.clouds[0].base != null ? `${metar.clouds[0].base}'` : ''}
                   </p>
                 </div>
