@@ -7,8 +7,9 @@ import {
   Clock, AlertTriangle, CheckCircle, ShieldCheck, FileText, Wind
 } from 'lucide-react';
 import { Link } from 'react-router-dom';
-import ELogbook from '@/components/crew/ELogbook';
-import CabinZonesPanel from '@/components/cabin/CabinZonesPanel';
+import { lazy } from 'react';
+const ELogbook = lazy(() => import('@/components/crew/ELogbook'));
+const CabinZonesPanel = lazy(() => import('@/components/cabin/CabinZonesPanel'));
 import { cn } from '@/lib/utils';
 
 const TODAY = new Date().toISOString().split('T')[0];
@@ -401,7 +402,9 @@ export default function FlightCrewDashboard() {
             <p className="text-xs font-mono font-semibold text-muted-foreground uppercase tracking-wider mb-2">
               Cabin Configuration — {flights[0].aircraft_type}
             </p>
-            <CabinZonesPanel aircraftType={flights[0].aircraft_type} />
+            <Suspense fallback={<div className="text-xs text-muted-foreground p-4">Loading cabin config...</div>}>
+              <CabinZonesPanel aircraftType={flights[0].aircraft_type} />
+            </Suspense>
           </div>
         )}
 
@@ -410,7 +413,9 @@ export default function FlightCrewDashboard() {
           <p className="text-xs font-mono font-semibold text-muted-foreground uppercase tracking-wider mb-2 flex items-center gap-1.5">
             <FileText className="w-3.5 h-3.5" aria-hidden="true" /> E-Logbook
           </p>
-          <ELogbook flights={flights} />
+          <Suspense fallback={<div className="text-xs text-muted-foreground p-4">Loading logbook...</div>}>
+            <ELogbook flights={flights} />
+          </Suspense>
         </div>
       </div>
     </div>

@@ -11,19 +11,19 @@ import { Link } from 'react-router-dom';
 import { cn } from '@/lib/utils';
 import useAircraftPerformance from '@/hooks/useAircraftPerformance';
 
-// EFB module components
-import WeightBalance         from '@/components/efb/WeightBalance';
-import FuelPlanning          from '@/components/efb/FuelPlanning';
-import RunwayAnalysis        from '@/components/efb/RunwayAnalysis';
-import CrewLegality          from '@/components/efb/CrewLegality';
-import NotamViewer           from '@/components/efb/NotamViewer';
-import AcarsMessaging        from '@/components/efb/AcarsMessaging';
-import PostflightReport      from '@/components/efb/PostflightReport';
-import WeatherPanel          from '@/components/flightops/WeatherPanel';
-import FlightReleaseSignOff  from '@/components/efb/FlightReleaseSignOff';
-import LiveMap               from '@/components/efb/LiveMap';
-import AirportBriefing       from '@/components/efb/AirportBriefing';
-import ETOPSDriftDown        from '@/components/efb/ETOPSDriftDown';
+// EFB module components - lazy-loaded per tab
+const WeightBalance         = lazy(() => import('@/components/efb/WeightBalance'));
+const FuelPlanning          = lazy(() => import('@/components/efb/FuelPlanning'));
+const RunwayAnalysis        = lazy(() => import('@/components/efb/RunwayAnalysis'));
+const CrewLegality          = lazy(() => import('@/components/efb/CrewLegality'));
+const NotamViewer           = lazy(() => import('@/components/efb/NotamViewer'));
+const AcarsMessaging        = lazy(() => import('@/components/efb/AcarsMessaging'));
+const PostflightReport      = lazy(() => import('@/components/efb/PostflightReport'));
+const WeatherPanel          = lazy(() => import('@/components/flightops/WeatherPanel'));
+const FlightReleaseSignOff  = lazy(() => import('@/components/efb/FlightReleaseSignOff'));
+const LiveMap               = lazy(() => import('@/components/efb/LiveMap'));
+const AirportBriefing       = lazy(() => import('@/components/efb/AirportBriefing'));
+const ETOPSDriftDown        = lazy(() => import('@/components/efb/ETOPSDriftDown'));
 
 const TODAY = new Date().toISOString().split('T')[0];
 
