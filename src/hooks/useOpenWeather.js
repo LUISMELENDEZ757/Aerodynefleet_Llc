@@ -6,14 +6,20 @@ export function useWeatherByCoords(lat, lon, enabled = true) {
   return useQuery({
     queryKey: ['openmeteo', lat, lon],
     queryFn: async () => {
-      const res = await fetch(
-        `${OPENMETEO_BASE}?latitude=${lat}&longitude=${lon}&current_weather=true&hourly=temperature_2m,relative_humidity_2m,precipitation,wind_speed_10m`
-      );
-      if (!res.ok) throw new Error('Failed to fetch weather');
-      return res.json();
+      try {
+        const res = await fetch(
+          `${OPENMETEO_BASE}?latitude=${lat}&longitude=${lon}&current_weather=true&hourly=temperature_2m,relative_humidity_2m,precipitation&timezone=auto`
+        );
+        if (!res.ok) throw new Error(`HTTP ${res.status}`);
+        return res.json();
+      } catch (err) {
+        console.error('Weather fetch error:', err);
+        throw err;
+      }
     },
     enabled: !!lat && !!lon && enabled,
-    refetchInterval: 10 * 60 * 1000, // 10 minutes
+    refetchInterval: 10 * 60 * 1000,
+    staleTime: 5 * 60 * 1000,
   });
 }
 
@@ -26,14 +32,20 @@ export function useForecast(lat, lon, enabled = true) {
   return useQuery({
     queryKey: ['openmeteo-forecast', lat, lon],
     queryFn: async () => {
-      const res = await fetch(
-        `${OPENMETEO_BASE}?latitude=${lat}&longitude=${lon}&hourly=temperature_2m,precipitation_probability,weather_code&timezone=auto`
-      );
-      if (!res.ok) throw new Error('Failed to fetch forecast');
-      return res.json();
+      try {
+        const res = await fetch(
+          `${OPENMETEO_BASE}?latitude=${lat}&longitude=${lon}&hourly=temperature_2m,precipitation_probability&timezone=auto`
+        );
+        if (!res.ok) throw new Error(`HTTP ${res.status}`);
+        return res.json();
+      } catch (err) {
+        console.error('Forecast fetch error:', err);
+        throw err;
+      }
     },
     enabled: !!lat && !!lon && enabled,
-    refetchInterval: 30 * 60 * 1000, // 30 minutes
+    refetchInterval: 30 * 60 * 1000,
+    staleTime: 15 * 60 * 1000,
   });
 }
 
