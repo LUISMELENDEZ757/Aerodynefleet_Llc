@@ -6,6 +6,7 @@ import { Link } from 'react-router-dom';
 import { cn } from '@/lib/utils';
 import { useDynamicPolling } from '@/hooks/useDynamicPolling';
 import CrewStatusBoard from '@/components/crew/CrewStatusBoard';
+import RovingTabindexList from '@/components/accessibility/RovingTabindexList';
 import FatiguePredictor from '@/components/crew/FatiguePredictor';
 import OpsPipeline from '@/components/crew/OpsPipeline';
 
@@ -109,22 +110,31 @@ export default function CrewControl() {
 
       {/* Tabs */}
       <div className="border-b border-border bg-card">
-        <div className="flex gap-0.5 px-4 py-2 overflow-x-auto" role="tablist" aria-label="Crew Control operations navigation">
-          {TABS.map(({ key, label, icon: Icon }) => (
+        <RovingTabindexList
+          items={TABS}
+          ariaLabel="Crew Control operations navigation with keyboard support"
+          role="tablist"
+          className="flex gap-0.5 px-4 py-2 overflow-x-auto scrollbar-hide"
+          renderItem={({ key, label, icon: Icon }, index, { focusedIndex, handleKeyDown, getTabIndex, registerRef }) => (
             <button 
-              key={key} 
+              key={key}
+              ref={(el) => registerRef(index, el)}
+              tabIndex={getTabIndex(index)}
               onClick={() => setActiveTab(key)}
+              onKeyDown={handleKeyDown}
               role="tab"
               aria-selected={activeTab === key}
               aria-label={`${label}${activeTab === key ? ' - currently selected' : ''}`}
               className={cn(
-                'flex items-center gap-1.5 whitespace-nowrap text-xs font-semibold px-3 py-2 rounded-lg transition-all flex-shrink-0 focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-1',
-                activeTab === key ? 'bg-primary text-primary-foreground' : 'text-muted-foreground hover:text-foreground hover:bg-secondary'
-              )}>
+                'flex items-center gap-1.5 whitespace-nowrap text-xs font-semibold px-3 py-2 rounded-lg transition-all flex-shrink-0 focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2',
+                activeTab === key ? 'bg-primary text-primary-foreground' : 'text-muted-foreground hover:text-foreground hover:bg-secondary',
+                focusedIndex === index && 'ring-2 ring-primary ring-offset-2'
+              )}
+            >
               <Icon className="w-3.5 h-3.5" aria-hidden="true" />{label}
             </button>
-          ))}
-        </div>
+          )}
+        />
       </div>
 
       <div className="p-4" role="main" aria-label="Crew Control operations content">
