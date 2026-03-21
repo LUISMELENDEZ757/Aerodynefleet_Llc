@@ -97,8 +97,11 @@ function CrewCard({ member, flights }) {
 
   return (
     <div className={cn('rounded-xl bg-card border overflow-hidden transition-all', cfg.border, 'border')}>
-      <button onClick={() => setExpanded(e => !e)}
-        className="w-full flex items-center justify-between px-4 py-3 hover:bg-secondary/30 transition-colors">
+      <button 
+        onClick={() => setExpanded(e => !e)}
+        aria-expanded={expanded}
+        aria-label={`${expanded ? 'Collapse' : 'Expand'} ${member.crew_name} (${ROLE_LABEL[member.role]}): ${cfg.label}`}
+        className="w-full flex items-center justify-between px-4 py-3 hover:bg-secondary/30 transition-colors focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-1">
         <div className="flex items-center gap-3">
           {/* Status dot */}
           <div className="relative flex-shrink-0">
@@ -198,26 +201,28 @@ export default function CrewStatusBoard({ crew, flights, isLoading }) {
 
   return (
     <div className="space-y-4">
-      {/* No-legal-crew alerts */}
-      {noCrewAlerts.map(f => (
-        <div key={f.id} className="flex items-center gap-3 bg-destructive/10 border border-destructive/30 rounded-xl px-4 py-3">
-          <AlertTriangle className="w-5 h-5 text-destructive flex-shrink-0" />
-          <p className="text-sm font-bold text-destructive">
-            NO LEGAL CREW — {f.flight_number} ({f.origin} → {f.destination}) departing {f.scheduled_departure}Z
-          </p>
-        </div>
-      ))}
+       {/* No-legal-crew alerts */}
+       {noCrewAlerts.map(f => (
+         <div key={f.id} className="flex items-center gap-3 bg-destructive/10 border border-destructive/30 rounded-xl px-4 py-3" role="alert" aria-live="assertive">
+           <AlertTriangle className="w-5 h-5 text-destructive flex-shrink-0" aria-hidden="true" />
+           <p className="text-sm font-bold text-destructive">
+             NO LEGAL CREW — {f.flight_number} ({f.origin} → {f.destination}) departing {f.scheduled_departure}Z
+           </p>
+         </div>
+       ))}
 
       {/* Filter bar */}
-      <div className="flex gap-2">
+      <div className="flex gap-2" role="group" aria-label="Filter crew by legal status">
         {[
           { key: 'all',       label: `All (${crew.length})` },
-          { key: 'legal',     label: `🟢 Legal (${crew.filter(c => c.legal_status === 'legal' || !c.legal_status).length})` },
-          { key: 'near_limit',label: `🟡 Near (${crew.filter(c => c.legal_status === 'near_limit').length})` },
-          { key: 'illegal',   label: `🔴 Illegal (${crew.filter(c => c.legal_status === 'illegal').length})` },
+          { key: 'legal',     label: `Legal (${crew.filter(c => c.legal_status === 'legal' || !c.legal_status).length})` },
+          { key: 'near_limit',label: `Near Limit (${crew.filter(c => c.legal_status === 'near_limit').length})` },
+          { key: 'illegal',   label: `Violations (${crew.filter(c => c.legal_status === 'illegal').length})` },
         ].map(({ key, label }) => (
           <button key={key} onClick={() => setFilter(key)}
-            className={cn('px-3 py-1.5 rounded-lg text-xs font-bold transition-all border',
+            aria-pressed={filter === key}
+            aria-label={`${label}${filter === key ? ' - currently selected' : ''}`}
+            className={cn('px-3 py-1.5 rounded-lg text-xs font-bold transition-all border focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-1',
               filter === key ? 'bg-primary text-primary-foreground border-primary' : 'border-border text-muted-foreground hover:text-foreground'
             )}>{label}</button>
         ))}

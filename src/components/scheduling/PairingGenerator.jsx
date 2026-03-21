@@ -65,9 +65,10 @@ export default function PairingGenerator({ flights }) {
           </div>
           <button
             onClick={() => { setGenerated(true); setSelectedPairing(null); }}
-            className="flex items-center gap-2 bg-primary text-primary-foreground text-xs font-bold px-4 py-2 rounded-lg hover:bg-primary/90 transition-colors"
+            aria-label="Generate FAR 117 compliant crew pairings from flight schedule"
+            className="flex items-center gap-2 bg-primary text-primary-foreground text-xs font-bold px-4 py-2 rounded-lg hover:bg-primary/90 transition-colors focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-1"
           >
-            <GitMerge className="w-3.5 h-3.5" />
+            <GitMerge className="w-3.5 h-3.5" aria-hidden="true" />
             Generate Pairings
           </button>
         </div>
@@ -94,15 +95,17 @@ export default function PairingGenerator({ flights }) {
           {/* Pairing list */}
           <div className="space-y-2">
             {pairings.map(p => (
-              <div
-                key={p.id}
-                onClick={() => setSelectedPairing(selectedPairing?.id === p.id ? null : p)}
-                className={cn(
-                  'rounded-xl bg-card border cursor-pointer transition-all hover:bg-secondary/40 overflow-hidden',
-                  p.legal ? 'border-border' : 'border-destructive/40',
-                  selectedPairing?.id === p.id && 'ring-1 ring-primary'
-                )}
-              >
+              <button
+                  key={p.id}
+                  onClick={() => setSelectedPairing(selectedPairing?.id === p.id ? null : p)}
+                  aria-pressed={selectedPairing?.id === p.id}
+                  aria-label={`${p.id}: ${p.legs.map(l => `${l.origin}→${l.destination}`).join(' / ')} with ${p.captain} and ${p.fo}${p.legal ? '' : ' - VIOLATION'}`}
+                  className={cn(
+                    'w-full rounded-xl bg-card border cursor-pointer transition-all hover:bg-secondary/40 overflow-hidden text-left focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-1',
+                    p.legal ? 'border-border' : 'border-destructive/40',
+                    selectedPairing?.id === p.id && 'ring-1 ring-primary'
+                  )}
+                >
                 <div className="px-4 py-3 flex items-center justify-between gap-4">
                   <div className="flex items-center gap-3">
                     <div className={cn('w-8 h-8 rounded-lg flex items-center justify-center text-xs font-bold', p.legal ? 'bg-primary/20 text-primary' : 'bg-destructive/20 text-destructive')}>
@@ -147,8 +150,8 @@ export default function PairingGenerator({ flights }) {
                         <AlertTriangle className="w-3.5 h-3.5 text-destructive" />
                         <p className="text-xs text-destructive font-semibold">Crew rest violation — reassignment required</p>
                       </div>
-                    )}
-                  </div>
+                      )}
+                      </button>
                 )}
               </div>
             ))}

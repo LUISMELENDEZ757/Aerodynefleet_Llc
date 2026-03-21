@@ -127,7 +127,7 @@ export default function CrewControl() {
         </div>
       </div>
 
-      <div className="p-4">
+      <div className="p-4" role="main" aria-label="Crew Control operations content">
         {activeTab === 'pipeline' && <OpsPipeline crew={crew} flights={flights} releases={releases} oosEntries={oosEntries} />}
         {activeTab === 'board'    && <CrewStatusBoard crew={crew} flights={flights} isLoading={isLoading} />}
         {activeTab === 'fatigue'  && <FatiguePredictor crew={crew} flights={flights} />}

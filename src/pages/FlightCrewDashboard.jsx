@@ -391,11 +391,13 @@ export default function FlightCrewDashboard() {
         </div>
 
         {/* Preflight checklist */}
-        <PreflightChecklist />
+        <div role="region" aria-label="Preflight preparation checklist">
+          <PreflightChecklist />
+        </div>
 
         {/* Cabin zones — aircraft-specific configuration */}
         {flights.length > 0 && flights[0].aircraft_type && (
-          <div>
+          <div role="region" aria-label={`Cabin configuration for ${flights[0].aircraft_type}`}>
             <p className="text-xs font-mono font-semibold text-muted-foreground uppercase tracking-wider mb-2">
               Cabin Configuration — {flights[0].aircraft_type}
             </p>
@@ -404,9 +406,9 @@ export default function FlightCrewDashboard() {
         )}
 
         {/* E-Logbook — MEL review & post-arrival discrepancy */}
-        <div>
+        <div role="region" aria-label="Aircraft electronic logbook and maintenance discrepancies">
           <p className="text-xs font-mono font-semibold text-muted-foreground uppercase tracking-wider mb-2 flex items-center gap-1.5">
-            <FileText className="w-3.5 h-3.5" /> E-Logbook
+            <FileText className="w-3.5 h-3.5" aria-hidden="true" /> E-Logbook
           </p>
           <ELogbook flights={flights} />
         </div>

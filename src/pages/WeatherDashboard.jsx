@@ -236,12 +236,12 @@ function StationDetail({ icao, pollingInterval }) {
         {coords && (
           <div>
             <button
-               onClick={() => setShowOpenWeather(!showOpenWeather)}
-               aria-expanded={showOpenWeather}
-               aria-label={`${showOpenWeather ? 'Hide' : 'Show'} OpenWeather details for ${icao}`}
-               className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-2 hover:text-foreground transition-colors flex items-center gap-1 focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-1 rounded px-1"
-             >
-              {showOpenWeather ? '▼' : '▶'} OpenWeather
+              onClick={() => setShowOpenWeather(!showOpenWeather)}
+              aria-expanded={showOpenWeather}
+              aria-label={`${showOpenWeather ? 'Hide' : 'Show'} OpenWeather details for ${icao}`}
+              className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-2 hover:text-foreground transition-colors flex items-center gap-1 focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-1 rounded px-2 py-1"
+            >
+             <span aria-hidden="true">{showOpenWeather ? '▼' : '▶'}</span> OpenWeather
             </button>
             {showOpenWeather && <OpenWeatherCard weather={owWeather} station={icao} isLoading={owLoading} error={owError} />}
             </div>
@@ -304,8 +304,8 @@ export default function WeatherDashboard() {
       <div className="border-b border-border bg-card px-5 pt-5 pb-4">
         <div className="flex items-start justify-between gap-4">
           <div className="flex items-center gap-3">
-            <Link to="/Home" className="w-10 h-10 rounded-xl bg-primary/20 flex items-center justify-center flex-shrink-0 hover:bg-primary/30 transition-colors">
-              <Cloud className="w-5 h-5 text-primary" />
+            <Link to="/Home" aria-label="Go to Home" className="w-10 h-10 rounded-xl bg-primary/20 flex items-center justify-center flex-shrink-0 hover:bg-primary/30 transition-colors focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-1">
+              <Cloud className="w-5 h-5 text-primary" aria-hidden="true" />
             </Link>
             <div>
               <h1 className="text-lg font-extrabold text-foreground tracking-wide">WEATHER DASHBOARD</h1>
@@ -316,7 +316,7 @@ export default function WeatherDashboard() {
         </div>
 
         {/* Legend */}
-        <div className="flex gap-3 mt-3 flex-wrap">
+        <div className="flex gap-3 mt-3 flex-wrap" role="region" aria-label="Flight category legend">
           {[
             { cat: 'VFR',  label: 'VFR > 3SM & > 1000\'' },
             { cat: 'MVFR', label: 'MVFR 1–3SM / 500–1000\'' },
@@ -338,9 +338,9 @@ export default function WeatherDashboard() {
         <SigmetBanner />
 
         {/* Search / add station */}
-        <div className="flex gap-2">
+        <div className="flex gap-2" role="region" aria-label="Add aviation weather station">
           <div className="flex-1 relative">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" aria-hidden="true" />
             <input
               type="text"
               value={searchInput}
@@ -348,13 +348,14 @@ export default function WeatherDashboard() {
               onKeyDown={e => e.key === 'Enter' && addStation()}
               placeholder="Add ICAO station (e.g. EGLL)"
               maxLength={4}
+              aria-label="Enter ICAO station code to add"
               className="w-full h-10 bg-card border border-border rounded-xl pl-9 pr-3 text-sm font-mono text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-1 focus:ring-primary"
             />
           </div>
           <button
             onClick={addStation}
             aria-label="Add ICAO station to weather dashboard"
-            className="h-10 px-4 bg-primary text-primary-foreground text-sm font-bold rounded-xl hover:bg-primary/90 transition-colors"
+            className="h-10 px-4 bg-primary text-primary-foreground text-sm font-bold rounded-xl hover:bg-primary/90 transition-colors focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-1"
           >
             Add
           </button>
