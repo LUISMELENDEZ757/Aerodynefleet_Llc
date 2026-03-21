@@ -86,17 +86,15 @@ export default function LeftRail() {
         <nav className="flex flex-col gap-1 flex-1 w-full px-2 overflow-y-auto">
           {NAV_ITEMS.map(({ icon: Icon, label, path }) => {
             const isActive = location.pathname === path;
-            return (
-              <Link
-                key={path}
-                to={path}
-                className={cn(
-                  'relative flex items-center gap-3 px-2.5 h-10 rounded-xl transition-all flex-shrink-0',
-                  isActive
-                    ? 'bg-primary/20 text-primary'
-                    : 'text-muted-foreground hover:bg-secondary hover:text-foreground'
-                )}
-              >
+            const isHome = path === '/Home';
+            const sharedClass = cn(
+              'relative flex items-center gap-3 px-2.5 h-10 rounded-xl transition-all flex-shrink-0 w-full',
+              isActive
+                ? 'bg-primary/20 text-primary'
+                : 'text-muted-foreground hover:bg-secondary hover:text-foreground'
+            );
+            const inner = (
+              <>
                 {isActive && (
                   <span className="absolute left-0 top-1/2 -translate-y-1/2 w-1 h-6 bg-primary rounded-r-full" />
                 )}
@@ -104,6 +102,15 @@ export default function LeftRail() {
                 {expanded && (
                   <span className="text-sm font-medium whitespace-nowrap">{label}</span>
                 )}
+              </>
+            );
+            return isHome ? (
+              <button key={path} onClick={handleHomeClick} className={sharedClass}>
+                {inner}
+              </button>
+            ) : (
+              <Link key={path} to={path} className={sharedClass}>
+                {inner}
               </Link>
             );
           })}
