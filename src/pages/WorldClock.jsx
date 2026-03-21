@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { base44 } from '@/api/base44Client';
 import { Globe, Plane, Clock, AlertTriangle, CheckCircle, TrendingUp } from 'lucide-react';
+import { Link } from 'react-router-dom';
 import { cn } from '@/lib/utils';
 
 const TODAY = new Date().toISOString().split('T')[0];
@@ -235,9 +236,9 @@ export default function WorldClock() {
       <div className="border-b border-border bg-card px-5 pt-5 pb-4">
         <div className="flex items-start justify-between gap-4">
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-xl bg-primary/20 flex items-center justify-center flex-shrink-0">
+            <Link to="/Home" className="w-10 h-10 rounded-xl bg-primary/20 flex items-center justify-center flex-shrink-0 hover:bg-primary/30 transition-colors">
               <Globe className="w-5 h-5 text-primary" />
-            </div>
+            </Link>
             <div>
               <h1 className="text-lg font-extrabold text-foreground tracking-wide">World Clock</h1>
               <p className="text-xs font-mono text-primary tracking-widest uppercase">Aviation Hub Time Reference</p>
