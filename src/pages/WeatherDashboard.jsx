@@ -114,21 +114,22 @@ function StationSummary({ icao, onClick, selected, pollingInterval }) {
 }
 
 // ── Detail Panel ─────────────────────────────────────────────────────────────
-function StationDetail({ icao }) {
+function StationDetail({ icao, pollingInterval }) {
   const [showOpenWeather, setShowOpenWeather] = useState(false);
   const coords = AIRPORT_COORDS[icao];
+  const tafPollingInterval = Math.max(pollingInterval * 3, 15 * 60 * 1000); // TAF less frequent
 
   const { data: metar, isLoading: mLoad, error: mErr, refetch: rMetar } = useQuery({
     queryKey: ['metar', icao],
     queryFn: () => fetchMetar(icao),
-    refetchInterval: 5 * 60 * 1000,
+    refetchInterval: pollingInterval,
     retry: 1,
   });
 
   const { data: taf, isLoading: tLoad, error: tErr } = useQuery({
     queryKey: ['taf', icao],
     queryFn: () => fetchTaf(icao),
-    refetchInterval: 15 * 60 * 1000,
+    refetchInterval: tafPollingInterval,
     retry: 1,
   });
 
@@ -373,7 +374,7 @@ export default function WeatherDashboard() {
         </div>
 
         {/* Detail panel */}
-        {selected && <StationDetail icao={selected} />}
+        {selected && <StationDetail icao={selected} pollingInterval={pollingInterval} />}
 
         <p className="text-xs text-muted-foreground text-center">
           Data from <span className="text-primary font-semibold">aviationweather.gov</span> · METAR auto-refreshes every 5 min · TAF every 15 min
