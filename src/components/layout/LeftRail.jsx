@@ -105,15 +105,21 @@ export default function LeftRail() {
 
         <div className="flex flex-col w-full px-2">
           <div className="h-px bg-border mb-3 mx-1.5" />
-          <button
-            onClick={toggle}
-            className="flex items-center gap-3 px-2.5 h-10 rounded-xl text-muted-foreground hover:bg-secondary hover:text-foreground transition-all w-full"
+          <Link
+            to="/Settings"
+            className={cn(
+              'flex items-center gap-3 px-2.5 rounded-xl transition-all w-full',
+              location.pathname === '/Settings'
+                ? 'bg-primary/20 text-primary'
+                : 'text-muted-foreground hover:bg-secondary hover:text-foreground',
+              'min-h-[44px]'
+            )}
           >
             <Settings className="w-5 h-5 flex-shrink-0" />
             {expanded && (
-              <span className="text-sm font-medium whitespace-nowrap">Collapse</span>
+              <span className="text-sm font-medium whitespace-nowrap">Settings</span>
             )}
-          </button>
+          </Link>
         </div>
       </aside>
 
