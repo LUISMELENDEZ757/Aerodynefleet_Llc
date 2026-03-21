@@ -1,6 +1,5 @@
-import React, { useState } from 'react';
+import React, { useState, lazy, Suspense } from 'react';
 import { useQuery } from '@tanstack/react-query';
-import { lazy, Suspense, useState } from 'react';
 import { base44 } from '@/api/base44Client';
 import { useDynamicPolling } from '@/hooks/useDynamicPolling';
 import {
@@ -8,7 +7,6 @@ import {
   Clock, AlertTriangle, CheckCircle, ShieldCheck, FileText, Wind
 } from 'lucide-react';
 import { Link } from 'react-router-dom';
-import { lazy } from 'react';
 const ELogbook = lazy(() => import('@/components/crew/ELogbook'));
 const CabinZonesPanel = lazy(() => import('@/components/cabin/CabinZonesPanel'));
 import { cn } from '@/lib/utils';
