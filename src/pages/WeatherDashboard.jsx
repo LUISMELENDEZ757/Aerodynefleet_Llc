@@ -225,13 +225,12 @@ function StationDetail({ icao }) {
               {showOpenWeather ? '▼' : '▶'} OpenWeather
             </button>
             {showOpenWeather && <OpenWeatherCard weather={owWeather} station={icao} isLoading={owLoading} error={owError} />}
-          </div>
-        )}
-        </div>
-        </div>
-        );
-        }
-}
+            </div>
+            )}
+            </div>
+            </div>
+            );
+            }
 
 // ── SIGMET Banner ─────────────────────────────────────────────────────────────
 function SigmetBanner() {
