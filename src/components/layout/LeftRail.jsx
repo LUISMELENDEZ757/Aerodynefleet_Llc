@@ -111,8 +111,8 @@ export default function LeftRail() {
         </div>
       </aside>
 
-      {/* ─── MOBILE BOTTOM TAB BAR ─── */}
-      <nav className="md:hidden fixed bottom-0 left-0 right-0 z-50 bg-card border-t border-border flex items-stretch">
+      {/* ─── MOBILE/TABLET BOTTOM TAB BAR ─── */}
+      <nav className="lg:hidden fixed bottom-0 left-0 right-0 z-50 bg-card border-t border-border flex items-stretch">
         {MOBILE_TAB_ITEMS.map(({ icon: Icon, label, path }) => {
           const isActive = path && location.pathname === path;
           const isMore = path === null;
