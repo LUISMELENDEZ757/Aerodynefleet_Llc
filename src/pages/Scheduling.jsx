@@ -3,6 +3,7 @@ import { useQuery } from '@tanstack/react-query';
 import { base44 } from '@/api/base44Client';
 import { cn } from '@/lib/utils';
 import { CalendarDays, GitMerge, Plane, Users, ArrowLeftRight, Zap, RefreshCw } from 'lucide-react';
+import { Link } from 'react-router-dom';
 
 import PairingGenerator  from '@/components/scheduling/PairingGenerator';
 import Bidlines          from '@/components/scheduling/Bidlines';
