@@ -123,6 +123,7 @@ export default function ActionSheet({
                   <p className="text-sm font-bold text-foreground">{label || placeholder}</p>
                   <button
                     onClick={() => setOpen(false)}
+                    aria-label="Close"
                     className="w-8 h-8 rounded-lg bg-secondary flex items-center justify-center text-muted-foreground"
                   >
                     <X className="w-4 h-4" />
