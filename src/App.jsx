@@ -8,6 +8,7 @@ import UserNotRegisteredError from '@/components/UserNotRegisteredError';
 import { Navigate } from 'react-router-dom';
 import { lazy, Suspense } from 'react';
 import AppLayout from '@/components/layout/AppLayout';
+import { ROUTE_DEPTH } from '@/lib/NavigationStack';
 
 const Home                  = lazy(() => import('@/pages/Home'));
 const Dashboard             = lazy(() => import('@/pages/Dashboard'));
