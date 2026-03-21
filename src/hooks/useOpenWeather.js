@@ -3,56 +3,53 @@ import { useQuery } from '@tanstack/react-query';
 const OPENWEATHER_BASE = 'https://api.openweathermap.org/data/2.5';
 
 export function useWeatherByCoords(lat, lon, enabled = true) {
+  const apiKey = import.meta.env.VITE_OPENWEATHER_API_KEY;
   return useQuery({
     queryKey: ['openweather', lat, lon],
     queryFn: async () => {
-      const apiKey = import.meta.env.VITE_OPENWEATHER_API_KEY;
-      if (!apiKey) throw new Error('OpenWeather API key not configured');
-      
       const res = await fetch(
         `${OPENWEATHER_BASE}/weather?lat=${lat}&lon=${lon}&appid=${apiKey}&units=metric`
       );
       if (!res.ok) throw new Error('Failed to fetch weather');
       return res.json();
     },
-    enabled,
+    enabled: enabled && !!apiKey,
     refetchInterval: 10 * 60 * 1000, // 10 minutes
+    retry: false,
   });
 }
 
 export function useWeatherByCity(city, enabled = true) {
+  const apiKey = import.meta.env.VITE_OPENWEATHER_API_KEY;
   return useQuery({
     queryKey: ['openweather-city', city],
     queryFn: async () => {
-      const apiKey = import.meta.env.VITE_OPENWEATHER_API_KEY;
-      if (!apiKey) throw new Error('OpenWeather API key not configured');
-      
       const res = await fetch(
         `${OPENWEATHER_BASE}/weather?q=${city}&appid=${apiKey}&units=metric`
       );
       if (!res.ok) throw new Error('Failed to fetch weather');
       return res.json();
     },
-    enabled,
+    enabled: enabled && !!apiKey,
     refetchInterval: 10 * 60 * 1000,
+    retry: false,
   });
 }
 
 export function useForecast(lat, lon, enabled = true) {
+  const apiKey = import.meta.env.VITE_OPENWEATHER_API_KEY;
   return useQuery({
     queryKey: ['openweather-forecast', lat, lon],
     queryFn: async () => {
-      const apiKey = import.meta.env.VITE_OPENWEATHER_API_KEY;
-      if (!apiKey) throw new Error('OpenWeather API key not configured');
-      
       const res = await fetch(
         `${OPENWEATHER_BASE}/forecast?lat=${lat}&lon=${lon}&appid=${apiKey}&units=metric`
       );
       if (!res.ok) throw new Error('Failed to fetch forecast');
       return res.json();
     },
-    enabled,
+    enabled: enabled && !!apiKey,
     refetchInterval: 30 * 60 * 1000, // 30 minutes
+    retry: false,
   });
 }
 

@@ -2,7 +2,15 @@ import React from 'react';
 import { Cloud, Wind, Eye, Droplets, Gauge } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
-export default function OpenWeatherCard({ weather, station }) {
+export default function OpenWeatherCard({ weather, station, isLoading, error }) {
+  if (isLoading) {
+    return <div className="text-xs text-muted-foreground">Loading weather…</div>;
+  }
+
+  if (error) {
+    return <div className="text-xs text-orange-400">Unable to load OpenWeather data. Check API key configuration.</div>;
+  }
+
   if (!weather) return null;
 
   const temp = Math.round(weather.main?.temp || 0);
