@@ -10,6 +10,7 @@ import {
 import { Link } from 'react-router-dom';
 import { cn } from '@/lib/utils';
 import useAircraftPerformance from '@/hooks/useAircraftPerformance';
+import RovingTabindexList from '@/components/accessibility/RovingTabindexList';
 
 // EFB module components - lazy-loaded per tab
 const WeightBalance         = lazy(() => import('@/components/efb/WeightBalance'));
@@ -352,32 +353,38 @@ export default function EFB() {
       {/* Body: left rail tabs + content */}
       <div className="flex flex-1 overflow-hidden">
         {/* Left vertical tab rail */}
-          <div className="w-44 flex-shrink-0 bg-card border-r border-border flex flex-col py-2 overflow-y-auto" role="tablist" aria-label="EFB module navigation">
-            {TABS.map(({ key, label, icon: Icon }) => (
-              <button
-                key={key}
-                onClick={() => setActiveTab(key)}
-                role="tab"
-                aria-selected={activeTab === key}
-                aria-label={`${label}${activeTab === key ? ' - currently selected' : ''}`}
-                className={cn(
-                  'flex items-center gap-2.5 px-3 py-2.5 mx-2 rounded-lg text-xs font-semibold transition-all text-left relative focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-1',
-                  activeTab === key
-                    ? 'bg-primary/20 text-primary'
-                    : 'text-muted-foreground hover:bg-secondary hover:text-foreground'
-                )}
-              >
+        <RovingTabindexList
+          items={TABS}
+          ariaLabel="EFB module navigation with keyboard support"
+          role="tablist"
+          className="w-44 flex-shrink-0 bg-card border-r border-border flex flex-col py-2 overflow-y-auto scrollbar-hide"
+          renderItem={({ key, label, icon: Icon }, index, { focusedIndex, handleKeyDown, getTabIndex, registerRef }) => (
+            <button
+              key={key}
+              ref={(el) => registerRef(index, el)}
+              tabIndex={getTabIndex(index)}
+              onClick={() => setActiveTab(key)}
+              onKeyDown={handleKeyDown}
+              role="tab"
+              aria-selected={activeTab === key}
+              aria-label={`${label}${activeTab === key ? ' - currently selected' : ''}`}
+              className={cn(
+                'flex items-center gap-2.5 px-3 py-2.5 mx-2 rounded-lg text-xs font-semibold transition-all text-left relative focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2',
+                activeTab === key ? 'bg-primary/20 text-primary' : 'text-muted-foreground hover:bg-secondary hover:text-foreground',
+                focusedIndex === index && 'ring-2 ring-primary ring-offset-2'
+              )}
+            >
               {activeTab === key && (
                 <span className="absolute left-0 top-1/2 -translate-y-1/2 w-1 h-5 bg-primary rounded-r-full" aria-hidden="true" />
               )}
               <Icon className="w-3.5 h-3.5 flex-shrink-0" aria-hidden="true" />
               <span className="leading-tight">{label}</span>
             </button>
-          ))}
-        </div>
+          )}
+        />
 
         {/* Content area — scrolls independently so tab clicks don't jump to top */}
-        <div className="flex-1 p-4 space-y-3 overflow-y-auto">
+        <div className="flex-1 p-4 space-y-3 overflow-y-auto scrollbar-hide">
           {activeTab === 'brief'      && <FlightBrief flights={flights} releases={releases} crew={crew} />}
           {activeTab === 'release'    && <Suspense fallback={<div className="text-muted-foreground">Loading...</div>}><FlightReleaseSignOff /></Suspense>}
           {activeTab === 'map'        && <Suspense fallback={<div className="text-muted-foreground">Loading...</div>}><LiveMap flights={flights} /></Suspense>}
