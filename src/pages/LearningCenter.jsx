@@ -3,9 +3,11 @@ import { Link } from 'react-router-dom';
 import {
   Plane, BookOpen, Users, Radio, Zap, Globe, Shield, Cloud,
   ChevronRight, Play, Award, TrendingUp, Clock, Zap as ZapIcon,
-  FileText, BarChart3, AlertTriangle, CheckCircle
+  FileText, BarChart3, AlertTriangle, CheckCircle, ChevronDown
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import BackHeader from '@/components/layout/BackHeader';
+import { useGridRovingTabindex } from '@/hooks/useRovingTabindex';
 
 const MODULES = [
   {
@@ -123,15 +125,19 @@ const BENEFITS = [
 
 export default function LearningCenter() {
   const [expandedModule, setExpandedModule] = useState(null);
+  const rowCount = Math.ceil(MODULES.length / 3);
+  const { focusedIndex, setFocusedIndex, handleKeyDown, getTabIndex, registerRef } = 
+    useGridRovingTabindex(rowCount, 3, 0);
 
   return (
     <div className="min-h-screen bg-background pb-20">
+      <BackHeader title="Learning Center" subtitle="App Guide & Tutorials" />
       {/* Header */}
       <div className="border-b border-border bg-card px-5 pt-6 pb-5">
         <div className="flex items-start justify-between gap-4">
           <div className="flex items-center gap-3">
-            <Link to="/Home" aria-label="Go to Home" className="w-10 h-10 rounded-xl bg-primary/20 flex items-center justify-center flex-shrink-0 hover:bg-primary/30 transition-colors">
-              <BookOpen className="w-5 h-5 text-primary" />
+            <Link to="/Home" aria-label="Go to Home" className="w-10 h-10 rounded-xl bg-primary/20 flex items-center justify-center flex-shrink-0 hover:bg-primary/30 transition-colors focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-1">
+              <BookOpen className="w-5 h-5 text-primary" aria-hidden="true" />
             </Link>
             <div>
               <h1 className="text-lg font-extrabold text-foreground tracking-wide">LEARNING CENTER</h1>
@@ -156,44 +162,64 @@ export default function LearningCenter() {
         {/* Module Grid */}
         <div>
           <h2 className="text-xl font-extrabold text-foreground mb-4 flex items-center gap-2">
-            <Play className="w-5 h-5 text-primary" />
+            <Play className="w-5 h-5 text-primary" aria-hidden="true" />
             Operational Modules
           </h2>
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+          <div 
+            className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4"
+            onKeyDown={handleKeyDown}
+            role="grid"
+            aria-label="Operational modules with arrow key navigation"
+          >
             {MODULES.map(({ icon: Icon, title, path, description, benefits, color }, idx) => (
               <button
                 key={idx}
+                ref={(el) => registerRef(idx, el)}
+                tabIndex={getTabIndex(idx)}
                 onClick={() => setExpandedModule(expandedModule === idx ? null : idx)}
+                aria-expanded={expandedModule === idx}
+                aria-label={`${title}: ${description}${expandedModule === idx ? ' - expanded' : ''}`}
                 className={cn(
-                  'rounded-xl border border-border bg-card p-4 text-left transition-all hover:border-primary/50 hover:shadow-lg cursor-pointer',
+                  'rounded-xl border border-border bg-card p-4 text-left transition-all hover:border-primary/50 hover:shadow-lg cursor-pointer focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-1',
+                  focusedIndex === idx && 'ring-2 ring-primary ring-offset-1',
                   expandedModule === idx && 'border-primary/60 bg-card/80'
                 )}
               >
                 {/* Header */}
-                <div className={cn('w-10 h-10 rounded-lg flex items-center justify-center mb-3 bg-gradient-to-r', color)}>
+                <div className={cn('w-10 h-10 rounded-lg flex items-center justify-center mb-3 bg-gradient-to-r', color)} aria-hidden="true">
                   <Icon className="w-5 h-5 text-white" />
                 </div>
                 <h3 className="text-sm font-bold text-foreground mb-1">{title}</h3>
                 <p className="text-xs text-muted-foreground line-clamp-2">{description}</p>
 
+                {/* Expanded indicator */}
+                <div className="absolute top-4 right-4">
+                  {expandedModule === idx ? (
+                    <ChevronDown className="w-4 h-4 text-primary" aria-hidden="true" />
+                  ) : (
+                    <ChevronRight className="w-4 h-4 text-muted-foreground" aria-hidden="true" />
+                  )}
+                </div>
+
                 {/* Expanded Content */}
                 {expandedModule === idx && (
                   <div className="mt-3 pt-3 border-t border-border/50 space-y-2">
                     <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Key Benefits:</p>
-                    <ul className="space-y-1.5">
-                      {benefits.map((benefit, i) => (
-                        <li key={i} className="text-xs text-foreground flex items-start gap-2">
-                          <CheckCircle className="w-3 h-3 text-green-400 flex-shrink-0 mt-0.5" />
-                          {benefit}
-                        </li>
-                      ))}
+                    <ul className="space-y-1.5" aria-label="Key benefits">
+                       {benefits.map((benefit, i) => (
+                         <li key={i} className="text-xs text-foreground flex items-start gap-2">
+                           <CheckCircle className="w-3 h-3 text-green-400 flex-shrink-0 mt-0.5" aria-hidden="true" />
+                           {benefit}
+                         </li>
+                       ))}
                     </ul>
                     <Link
-                      to={path}
-                      className="inline-block mt-3 text-xs font-bold text-primary hover:text-primary/80 transition-colors flex items-center gap-1"
-                    >
-                      Open Module <ChevronRight className="w-3 h-3" />
-                    </Link>
+                       to={path}
+                       aria-label={`Open ${title} module`}
+                       className="inline-block mt-3 text-xs font-bold text-primary hover:text-primary/80 transition-colors flex items-center gap-1 focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-1 rounded px-2 py-1"
+                     >
+                       Open Module <ChevronRight className="w-3 h-3" aria-hidden="true" />
+                     </Link>
                   </div>
                 )}
               </button>
@@ -204,13 +230,18 @@ export default function LearningCenter() {
         {/* Benefits Section */}
         <div>
           <h2 className="text-xl font-extrabold text-foreground mb-4 flex items-center gap-2">
-            <Award className="w-5 h-5 text-primary" />
+            <Award className="w-5 h-5 text-primary" aria-hidden="true" />
             Operational Benefits
           </h2>
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4" role="region" aria-label="Platform benefits overview">
             {BENEFITS.map(({ icon: Icon, title, description }, idx) => (
-              <div key={idx} className="rounded-xl bg-card border border-border p-5">
-                <div className="w-10 h-10 rounded-lg bg-secondary flex items-center justify-center mb-3">
+              <div 
+                key={idx} 
+                className="rounded-xl bg-card border border-border p-5"
+                role="article"
+                aria-label={`${title}: ${description}`}
+              >
+                <div className="w-10 h-10 rounded-lg bg-secondary flex items-center justify-center mb-3" aria-hidden="true">
                   <Icon className="w-5 h-5 text-primary" />
                 </div>
                 <h3 className="text-sm font-bold text-foreground mb-1.5">{title}</h3>
@@ -221,42 +252,42 @@ export default function LearningCenter() {
         </div>
 
         {/* Key Concepts */}
-        <div className="rounded-xl bg-secondary/30 border border-border p-6">
+        <div className="rounded-xl bg-secondary/30 border border-border p-6" role="region" aria-label="Key aviation concepts">
           <h2 className="text-lg font-bold text-foreground mb-4 flex items-center gap-2">
-            <FileText className="w-5 h-5 text-primary" />
+            <FileText className="w-5 h-5 text-primary" aria-hidden="true" />
             Key Concepts
           </h2>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-sm">
-            <div>
-              <p className="font-semibold text-foreground mb-1">Flight Categories</p>
+            <article>
+              <h3 className="font-semibold text-foreground mb-1">Flight Categories</h3>
               <p className="text-xs text-muted-foreground">VFR (Visual Flight Rules), MVFR (Marginal VFR), IFR (Instrument Flight Rules), LIFR (Low IFR)</p>
-            </div>
-            <div>
-              <p className="font-semibold text-foreground mb-1">FAR 117 Compliance</p>
+            </article>
+            <article>
+              <h3 className="font-semibold text-foreground mb-1">FAR 117 Compliance</h3>
               <p className="text-xs text-muted-foreground">Federal Aviation Regulation Part 117 governs flight crew duty time and rest requirements.</p>
-            </div>
-            <div>
-              <p className="font-semibold text-foreground mb-1">MEL/CDL Logic</p>
+            </article>
+            <article>
+              <h3 className="font-semibold text-foreground mb-1">MEL/CDL Logic</h3>
               <p className="text-xs text-muted-foreground">Minimum Equipment List (MEL) and Configuration Deviation List (CDL) determine dispatch rules.</p>
-            </div>
-            <div>
-              <p className="font-semibold text-foreground mb-1">METAR/TAF</p>
+            </article>
+            <article>
+              <h3 className="font-semibold text-foreground mb-1">METAR/TAF</h3>
               <p className="text-xs text-muted-foreground">METAR = current weather. TAF = forecast. Critical for flight planning and dispatch decisions.</p>
-            </div>
+            </article>
           </div>
         </div>
 
         {/* Getting Started */}
-        <div className="rounded-xl bg-primary/10 border border-primary/30 p-6">
+        <div className="rounded-xl bg-primary/10 border border-primary/30 p-6" role="region" aria-label="Getting started guide">
           <h2 className="text-lg font-bold text-foreground mb-3 flex items-center gap-2">
-            <BarChart3 className="w-5 h-5 text-primary" />
+            <BarChart3 className="w-5 h-5 text-primary" aria-hidden="true" />
             Getting Started
           </h2>
           <ol className="space-y-2 text-sm text-foreground/80">
-            <li><span className="font-bold text-primary">1.</span> Browse the modules in the grid above to understand each operational area.</li>
-            <li><span className="font-bold text-primary">2.</span> Click "Open Module" to access the actual dashboard and see live data.</li>
-            <li><span className="font-bold text-primary">3.</span> Explore the features, data, and tools available in each module.</li>
-            <li><span className="font-bold text-primary">4.</span> Reference this learning center anytime you need guidance on platform usage.</li>
+            <li><span className="font-bold text-primary" aria-hidden="true">1.</span> <span>Browse the modules in the grid above to understand each operational area.</span></li>
+            <li><span className="font-bold text-primary" aria-hidden="true">2.</span> <span>Click "Open Module" to access the actual dashboard and see live data.</span></li>
+            <li><span className="font-bold text-primary" aria-hidden="true">3.</span> <span>Explore the features, data, and tools available in each module.</span></li>
+            <li><span className="font-bold text-primary" aria-hidden="true">4.</span> <span>Reference this learning center anytime you need guidance on platform usage.</span></li>
           </ol>
         </div>
       </div>
