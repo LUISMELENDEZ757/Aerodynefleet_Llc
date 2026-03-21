@@ -303,7 +303,7 @@ export default function EFB() {
   const dateStr = now.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric', year: 'numeric' });
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="bg-background flex flex-col" style={{ minHeight: '100vh' }}>
       {/* EFB Header */}
       <div className="border-b border-border bg-card px-5 pt-5 pb-4">
         <div className="flex items-start justify-between gap-4">
