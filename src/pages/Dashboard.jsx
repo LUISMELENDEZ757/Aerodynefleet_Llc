@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { base44 } from '@/api/base44Client';
 import { Plane, RefreshCw } from 'lucide-react';
+import { Link } from 'react-router-dom';
 import OpsStatBar from '@/components/flightops/OpsStatBar';
 import FlightStatusBoard from '@/components/flightops/FlightStatusBoard';
 import CrewBoard from '@/components/flightops/CrewBoard';
