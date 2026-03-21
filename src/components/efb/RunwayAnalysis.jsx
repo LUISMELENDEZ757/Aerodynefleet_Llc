@@ -117,22 +117,30 @@ export default function RunwayAnalysis({ flightData = [] }) {
                 className="w-full h-9 bg-secondary border border-border rounded-lg px-2 text-sm font-mono text-foreground focus:outline-none focus:ring-1 focus:ring-primary" />
             </div>
             <div>
-              <label className="text-xs text-muted-foreground block mb-1">Surface</label>
-              <select value={conditions.surface} onChange={e => setCond('surface', e.target.value)}
-                className="w-full h-9 bg-secondary border border-border rounded-lg px-2 text-sm text-foreground focus:outline-none focus:ring-1 focus:ring-primary">
-                <option value="dry">Dry</option>
-                <option value="wet">Wet</option>
-                <option value="contaminated">Contaminated</option>
-              </select>
+              <ActionSheet
+                label="Surface"
+                value={conditions.surface}
+                onChange={v => setCond('surface', v)}
+                options={[
+                  { value: 'dry', label: 'Dry' },
+                  { value: 'wet', label: 'Wet' },
+                  { value: 'contaminated', label: 'Contaminated' },
+                ]}
+                triggerClassName="w-full"
+              />
             </div>
             <div>
-              <label className="text-xs text-muted-foreground block mb-1">Braking Action</label>
-              <select value={conditions.braking} onChange={e => setCond('braking', e.target.value)}
-                className="w-full h-9 bg-secondary border border-border rounded-lg px-2 text-sm text-foreground focus:outline-none focus:ring-1 focus:ring-primary">
-                <option value="good">Good</option>
-                <option value="medium">Medium</option>
-                <option value="poor">Poor</option>
-              </select>
+              <ActionSheet
+                label="Braking Action"
+                value={conditions.braking}
+                onChange={v => setCond('braking', v)}
+                options={[
+                  { value: 'good', label: 'Good' },
+                  { value: 'medium', label: 'Medium' },
+                  { value: 'poor', label: 'Poor' },
+                ]}
+                triggerClassName="w-full"
+              />
             </div>
           </div>
           <div>
