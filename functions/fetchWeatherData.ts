@@ -2,9 +2,8 @@ const AWC_BASE = 'https://aviationweather.gov/api/data';
 
 Deno.serve(async (req) => {
   try {
-    const url = new URL(req.url);
-    const type = url.searchParams.get('type'); // metar, taf, sigmet
-    const icao = url.searchParams.get('icao');
+    const body = await req.json();
+    const { type, icao } = body;
 
     let fetchUrl = '';
     if (type === 'metar' && icao) {
