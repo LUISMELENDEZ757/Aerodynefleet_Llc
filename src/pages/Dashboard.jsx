@@ -1,10 +1,9 @@
 import React, { useState } from 'react';
-import { Suspense } from 'react';
+import { lazy, Suspense } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { base44 } from '@/api/base44Client';
 import { Plane, RefreshCw } from 'lucide-react';
 import { Link } from 'react-router-dom';
-import { lazy, Suspense } from 'react';
 import OpsStatBar from '@/components/flightops/OpsStatBar';
 const FlightStatusBoard = lazy(() => import('@/components/flightops/FlightStatusBoard'));
 const CrewBoard = lazy(() => import('@/components/flightops/CrewBoard'));
