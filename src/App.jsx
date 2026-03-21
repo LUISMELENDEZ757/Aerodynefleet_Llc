@@ -57,6 +57,7 @@ const AuthenticatedApp = () => {
         <Route path="/CrewCalendar" element={<CrewCalendar />} />
         <Route path="/CrewControl" element={<CrewControl />} />
         <Route path="/WorldClock" element={<WorldClock />} />
+        <Route path="/SafetyQA" element={<SafetyQA />} />
       </Route>
       <Route path="*" element={<PageNotFound />} />
     </Routes>
