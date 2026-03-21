@@ -93,6 +93,15 @@ const MODULES = [
     borderColor: 'border-cyan-500/30',
     path: '/Weather',
   },
+  {
+    icon: GraduationCap,
+    iconBg: 'bg-emerald-500',
+    iconColor: 'text-white',
+    title: 'TRAINING',
+    subtitle: 'Interactive Walkthroughs',
+    borderColor: 'border-emerald-500/30',
+    path: '/Training',
+  },
 ];
 
 export default function Home() {
