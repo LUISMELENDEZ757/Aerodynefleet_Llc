@@ -26,6 +26,10 @@ import ETOPSDriftDown        from '@/components/efb/ETOPSDriftDown';
 
 const TODAY = new Date().toISOString().split('T')[0];
 
+function TabLoading() {
+  return <div className="text-muted-foreground p-4">Loading...</div>;
+}
+
 const TABS = [
   { key: 'brief',       label: 'Flight Brief',    icon: BookOpen },
   { key: 'release',     label: 'Release Sign-Off', icon: PenLine },
