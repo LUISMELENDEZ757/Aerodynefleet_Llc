@@ -6,6 +6,8 @@ import {
   Cloud, Wind, Eye, Thermometer, Gauge, RefreshCw,
   AlertTriangle, ChevronDown, ChevronRight, Search, MapPin, Zap
 } from 'lucide-react';
+import { useWeatherByCity, AIRPORT_COORDS } from '@/hooks/useOpenWeather';
+import OpenWeatherCard from '@/components/weather/OpenWeatherCard';
 
 const AWC_BASE = 'https://aviationweather.gov/api/data';
 
@@ -101,6 +103,9 @@ function StationSummary({ icao, onClick, selected }) {
 
 // ── Detail Panel ─────────────────────────────────────────────────────────────
 function StationDetail({ icao }) {
+  const [showOpenWeather, setShowOpenWeather] = useState(false);
+  const coords = AIRPORT_COORDS[icao];
+
   const { data: metar, isLoading: mLoad, error: mErr, refetch: rMetar } = useQuery({
     queryKey: ['metar', icao],
     queryFn: () => fetchMetar(icao),
@@ -114,6 +119,8 @@ function StationDetail({ icao }) {
     refetchInterval: 15 * 60 * 1000,
     retry: 1,
   });
+
+  const { data: owWeather } = useWeatherByCity(coords?.name || icao, showOpenWeather && !!coords);
 
   const cat = metar?.flightCategory;
   const cfg = catCfg(cat);
@@ -207,9 +214,22 @@ function StationDetail({ icao }) {
             <p className="text-xs text-muted-foreground">No TAF available</p>
           )}
         </div>
-      </div>
-    </div>
-  );
+
+        {/* OpenWeather Section */}
+        {coords && (
+          <div>
+            <button
+              onClick={() => setShowOpenWeather(!showOpenWeather)}
+              className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-2 hover:text-foreground transition-colors flex items-center gap-1"
+            >
+              {showOpenWeather ? '▼' : '▶'} OpenWeather
+            </button>
+            {showOpenWeather && <OpenWeatherCard weather={owWeather} station={icao} />}
+          </div>
+        )}
+        </div>
+        </div>
+        );
 }
 
 // ── SIGMET Banner ─────────────────────────────────────────────────────────────
