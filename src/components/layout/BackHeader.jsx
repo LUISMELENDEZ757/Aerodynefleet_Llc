@@ -4,29 +4,23 @@ import { ChevronLeft } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { motion } from 'framer-motion';
 import { useTabHistory } from '@/lib/TabHistoryContext';
+import { isPrimaryTab, isChildScreen } from '@/lib/NavigationStack';
 
 /**
  * A mobile-style back header with native-like slide transitions.
- * Shows on child screens (non-primary-tab paths) with back navigation.
- * Validates navigation against TabHistoryProvider to prevent stack inconsistencies.
+ * Shows on child screens (depth 2+) with back navigation.
+ * Validates navigation via NavigationStack to prevent stack inconsistencies.
  * Renders nothing on desktop (lg+).
  */
-
-const PRIMARY_PATHS = [
-  '/Home', '/Dashboard', '/EFB', '/CrewControl',
-  '/FlightAttendant', '/FlightCrew', '/CrewCalendar',
-  '/WorldClock', '/SafetyQA', '/Scheduling', '/Weather',
-  '/Learning', '/Settings',
-];
 
 export default function BackHeader({ title, subtitle, rightSlot }) {
   const navigate = useNavigate();
   const location = useLocation();
   const tabHistory = useTabHistory();
 
-  // Only show on mobile and on non-primary screens
-  const isPrimary = PRIMARY_PATHS.includes(location.pathname);
-  if (isPrimary) return null;
+  // Only show on mobile and on child screens (depth 2+)
+  // Uses NavigationStack for precise route depth validation
+  if (!isChildScreen(location.pathname)) return null;
 
   // Validate navigation against tab history to prevent stack inconsistencies
   const handleBack = () => {
