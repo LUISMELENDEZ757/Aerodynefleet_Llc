@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { lazy, Suspense, useState } from 'react';
+import { lazy, Suspense } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { base44 } from '@/api/base44Client';
 import { Plane, RefreshCw } from 'lucide-react';
