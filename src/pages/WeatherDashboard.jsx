@@ -66,13 +66,15 @@ function StationSummary({ icao, onClick, selected }) {
   const cfg = catCfg(cat);
 
   return (
-    <button
-      onClick={() => onClick(icao)}
-      className={cn(
-        'rounded-xl border p-3 text-left transition-all hover:shadow-lg',
-        selected ? `${cfg.bg} ${cfg.border} border-2` : 'bg-card border-border hover:border-primary/40'
-      )}
-    >
+     <button
+       onClick={() => onClick(icao)}
+       aria-pressed={selected}
+       aria-label={`${icao} weather station: ${isLoading ? 'loading' : error ? 'unavailable' : `${cat || 'unknown flight category'}`}`}
+       className={cn(
+         'rounded-xl border p-3 text-left transition-all hover:shadow-lg focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-1',
+         selected ? `${cfg.bg} ${cfg.border} border-2` : 'bg-card border-border hover:border-primary/40'
+       )}
+     >
       <div className="flex items-center justify-between mb-2">
         <span className="text-sm font-mono font-extrabold text-foreground">{icao}</span>
         <span className={cn('text-xs font-bold px-2 py-0.5 rounded-full', cfg.bg, cfg.color)}>
@@ -148,9 +150,13 @@ function StationDetail({ icao }) {
             {mLoad ? '…' : mErr ? 'ERR' : cat || '---'}
           </span>
         </div>
-        <button onClick={rMetar} className="text-muted-foreground hover:text-foreground transition-colors">
-          <RefreshCw className="w-4 h-4" />
-        </button>
+        <button 
+          onClick={rMetar} 
+          aria-label={`Refresh METAR for ${icao}`}
+          className="text-muted-foreground hover:text-foreground transition-colors focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-1 rounded-lg p-1"
+        >
+           <RefreshCw className="w-4 h-4" aria-hidden="true" />
+         </button>
       </div>
 
       <div className="p-4 space-y-4">
@@ -228,9 +234,11 @@ function StationDetail({ icao }) {
         {coords && (
           <div>
             <button
-              onClick={() => setShowOpenWeather(!showOpenWeather)}
-              className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-2 hover:text-foreground transition-colors flex items-center gap-1"
-            >
+               onClick={() => setShowOpenWeather(!showOpenWeather)}
+               aria-expanded={showOpenWeather}
+               aria-label={`${showOpenWeather ? 'Hide' : 'Show'} OpenWeather details for ${icao}`}
+               className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-2 hover:text-foreground transition-colors flex items-center gap-1 focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-1 rounded px-1"
+             >
               {showOpenWeather ? '▼' : '▶'} OpenWeather
             </button>
             {showOpenWeather && <OpenWeatherCard weather={owWeather} station={icao} isLoading={owLoading} error={owError} />}
@@ -254,9 +262,9 @@ function SigmetBanner() {
 
   return (
     <div className="rounded-xl bg-destructive/10 border border-destructive/30 px-4 py-3">
-      <p className="text-xs font-bold text-destructive flex items-center gap-1.5 mb-2">
-        <Zap className="w-3.5 h-3.5" /> ACTIVE SIGMETS ({sigmets.length})
-      </p>
+      <p className="text-xs font-bold text-destructive flex items-center gap-1.5 mb-2" role="alert" aria-live="polite">
+         <Zap className="w-3.5 h-3.5" aria-hidden="true" /> ACTIVE SIGMETS ({sigmets.length})
+       </p>
       <div className="space-y-1">
         {sigmets.slice(0, 3).map((s, i) => (
           <p key={i} className="text-xs font-mono text-foreground bg-background/40 rounded px-2 py-1">
@@ -342,6 +350,7 @@ export default function WeatherDashboard() {
           </div>
           <button
             onClick={addStation}
+            aria-label="Add ICAO station to weather dashboard"
             className="h-10 px-4 bg-primary text-primary-foreground text-sm font-bold rounded-xl hover:bg-primary/90 transition-colors"
           >
             Add
