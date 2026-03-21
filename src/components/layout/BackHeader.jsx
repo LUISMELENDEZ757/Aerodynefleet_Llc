@@ -29,6 +29,7 @@ export default function BackHeader({ title, subtitle, rightSlot }) {
     >
       <button
         onClick={() => navigate(-1)}
+        aria-label="Go back"
         className="w-9 h-9 rounded-xl bg-secondary flex items-center justify-center flex-shrink-0 text-muted-foreground hover:text-foreground transition-colors"
       >
         <ChevronLeft className="w-5 h-5" />

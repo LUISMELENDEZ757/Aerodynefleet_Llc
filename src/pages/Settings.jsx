@@ -277,6 +277,7 @@ export default function SettingsPage() {
           {/* Mobile back button */}
           <button
             onClick={() => navigate(-1)}
+            aria-label="Go back"
             className="lg:hidden w-10 h-10 rounded-xl bg-secondary flex items-center justify-center flex-shrink-0 text-muted-foreground hover:text-foreground transition-colors"
           >
             <ChevronLeft className="w-5 h-5" />

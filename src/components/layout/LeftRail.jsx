@@ -49,6 +49,7 @@ export default function LeftRail() {
       <div className="mb-4 flex items-center justify-center w-full px-3.5">
         <Link
           to="/Dashboard"
+          aria-label="Go to Flight Ops Dashboard"
           className="w-9 h-9 rounded-lg bg-primary/20 flex items-center justify-center flex-shrink-0 hover:bg-primary/30 transition-colors"
         >
           <Plane className="w-5 h-5 text-primary" />
