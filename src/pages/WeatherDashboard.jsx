@@ -230,6 +230,7 @@ function StationDetail({ icao }) {
         </div>
         </div>
         );
+        }
 }
 
 // ── SIGMET Banner ─────────────────────────────────────────────────────────────
