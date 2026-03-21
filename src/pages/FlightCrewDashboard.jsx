@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { base44 } from '@/api/base44Client';
+import { useDynamicPolling } from '@/hooks/useDynamicPolling';
 import {
   Plane, Users, RefreshCw, ChevronDown, ChevronRight,
   Clock, AlertTriangle, CheckCircle, ShieldCheck, FileText, Wind
@@ -313,10 +314,11 @@ function PreflightChecklist() {
 }
 
 export default function FlightCrewDashboard() {
+  const pollingInterval = useDynamicPolling(60000, 300000); // 60s active, 5min hidden
   const { data: flights = [], isLoading, refetch } = useQuery({
     queryKey: ['fc-flights', TODAY],
     queryFn: () => base44.entities.Flight.filter({ flight_date: TODAY }),
-    refetchInterval: 60000,
+    refetchInterval: pollingInterval,
   });
 
   const now = new Date();
@@ -351,17 +353,17 @@ export default function FlightCrewDashboard() {
         </div>
         <button
           onClick={refetch}
-          aria-label="Refresh flight crew dashboard data"
-          className="mt-3 flex items-center gap-1.5 text-xs text-muted-foreground hover:text-foreground transition-colors"
+          aria-label="Refresh all flight crew data from server"
+          className="mt-3 flex items-center gap-1.5 text-xs text-muted-foreground hover:text-foreground transition-colors focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-1 rounded px-2 py-1"
         >
           <RefreshCw className="w-3 h-3" aria-hidden="true" />
           Refresh data
         </button>
       </div>
 
-      <div className="p-4 space-y-4">
+      <div className="p-4 space-y-4" role="main" aria-label="Flight crew dashboard content">
         {/* Stat bar */}
-        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3" role="region" aria-label="Flight operations summary statistics">
           <StatCard icon={Plane}         label="Airborne"  value={airborne}  color={airborne > 0 ? 'text-green-400' : 'text-muted-foreground'} />
           <StatCard icon={Clock}         label="On Sched"  value={scheduled} color={scheduled > 0 ? 'text-primary' : 'text-muted-foreground'} />
           <StatCard icon={AlertTriangle} label="Delayed"   value={delayed}   color={delayed > 0 ? 'text-orange-400' : 'text-muted-foreground'} />

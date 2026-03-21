@@ -3,6 +3,7 @@ import { useQuery } from '@tanstack/react-query';
 import { Link } from 'react-router-dom';
 import { cn } from '@/lib/utils';
 import { base44 } from '@/api/base44Client';
+import { useDynamicPolling } from '@/hooks/useDynamicPolling';
 import {
   Cloud, Wind, Eye, Thermometer, Gauge, RefreshCw,
   AlertTriangle, ChevronDown, ChevronRight, Search, MapPin, Zap
@@ -54,11 +55,11 @@ function catCfg(cat) {
 }
 
 // ── Summary Card (compact grid tile) ────────────────────────────────────────
-function StationSummary({ icao, onClick, selected }) {
+function StationSummary({ icao, onClick, selected, pollingInterval }) {
   const { data: metar, isLoading, error } = useQuery({
     queryKey: ['metar', icao],
     queryFn: () => fetchMetar(icao),
-    refetchInterval: 5 * 60 * 1000,
+    refetchInterval: pollingInterval,
     retry: 1,
   });
 
@@ -282,6 +283,7 @@ export default function WeatherDashboard() {
   const [stations, setStations] = useState(DEFAULT_STATIONS);
   const [selected, setSelected] = useState(DEFAULT_STATIONS[0]);
   const [searchInput, setSearchInput] = useState('');
+  const pollingInterval = useDynamicPolling(5 * 60 * 1000, 15 * 60 * 1000); // 5m active, 15m hidden
 
   const now = new Date();
   const timeStr = now.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: false });
@@ -358,13 +360,14 @@ export default function WeatherDashboard() {
         </div>
 
         {/* Station grid */}
-        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-2">
+        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-2" role="region" aria-label="Aviation weather stations">
           {stations.map(icao => (
             <StationSummary
               key={icao}
               icao={icao}
               selected={selected === icao}
               onClick={setSelected}
+              pollingInterval={pollingInterval}
             />
           ))}
         </div>

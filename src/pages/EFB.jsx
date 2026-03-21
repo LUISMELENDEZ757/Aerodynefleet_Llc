@@ -1,6 +1,7 @@
-import React, { useState } from 'react';
+import React, { useState, Suspense } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { base44 } from '@/api/base44Client';
+import { useDynamicPolling } from '@/hooks/useDynamicPolling';
 import {
   BookOpen, Cloud, Calculator, ClipboardList, FileText,
   RefreshCw, Scale, Fuel, Map, Radio, AlertTriangle,
@@ -292,21 +293,22 @@ function FlightBrief({ flights, releases, crew }) {
 // ─── MAIN EFB ─────────────────────────────────────────────────────────────
 export default function EFB() {
   const [activeTab, setActiveTab] = useState('brief');
+  const pollingInterval = useDynamicPolling(60000, 300000); // 60s active, 5min hidden
 
   const { data: flights = [], refetch } = useQuery({
     queryKey: ['efb-flights', TODAY],
     queryFn: () => base44.entities.Flight.filter({ flight_date: TODAY }),
-    refetchInterval: 60000,
+    refetchInterval: pollingInterval,
   });
   const { data: releases = [] } = useQuery({
     queryKey: ['efb-releases', TODAY],
     queryFn: () => base44.entities.DispatchRelease.filter({ flight_date: TODAY }),
-    refetchInterval: 60000,
+    refetchInterval: pollingInterval,
   });
   const { data: crew = [] } = useQuery({
     queryKey: ['efb-crew', TODAY],
     queryFn: () => base44.entities.CrewAssignment.filter({ flight_date: TODAY }),
-    refetchInterval: 60000,
+    refetchInterval: pollingInterval,
   });
 
   const now = new Date();
