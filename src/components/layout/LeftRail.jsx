@@ -44,12 +44,12 @@ export default function LeftRail() {
       >
         {/* Logo / expand toggle */}
         <div className="mb-6 flex items-center gap-3 px-3.5 w-full">
-          <Link
-            to="/Home"
+          <button
+            onClick={() => setExpanded(e => !e)}
             className="w-9 h-9 rounded-lg bg-primary/20 flex items-center justify-center flex-shrink-0 hover:bg-primary/30 transition-colors"
           >
             <Plane className="w-5 h-5 text-primary" />
-          </Link>
+          </button>
           {expanded && (
             <button onClick={() => setExpanded(e => !e)} className="text-sm font-bold tracking-wide text-primary whitespace-nowrap">
               FLIGHT OPS
