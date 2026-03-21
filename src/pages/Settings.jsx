@@ -41,7 +41,7 @@ function DeleteAccountModal({ onClose }) {
                   <p className="text-xs text-muted-foreground">Step 1 of 3 — What gets deleted</p>
                 </div>
               </div>
-              <button onClick={onClose} className="w-8 h-8 rounded-lg bg-secondary flex items-center justify-center text-muted-foreground">
+              <button onClick={onClose} aria-label="Close" className="w-8 h-8 rounded-lg bg-secondary flex items-center justify-center text-muted-foreground">
                 <X className="w-4 h-4" />
               </button>
             </div>
