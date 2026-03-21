@@ -6,9 +6,13 @@ import {
 } from 'lucide-react';
 import { base44 } from '@/api/base44Client';
 import { cn } from '@/lib/utils';
+import DeleteAccountModal from '@/components/layout/UserMenu';
 
-// ─── 4-Step Account Deletion Modal ───────────────────────────────────────────
-function DeleteAccountModal({ onClose }) {
+// For Settings page, we export the modal separately
+export { DeleteAccountModal };
+
+// Legacy modal kept inline for backward compatibility
+function DeleteAccountModalLegacy({ onClose }) {
   const [step, setStep] = useState(1);
   const [confirmText, setConfirmText] = useState('');
   const [loading, setLoading] = useState(false);
@@ -336,7 +340,7 @@ export default function SettingsPage() {
         </div>
       </div>
 
-      {showDelete && <DeleteAccountModal onClose={() => setShowDelete(false)} />}
+      {showDelete && <DeleteAccountModalLegacy onClose={() => setShowDelete(false)} />}
     </div>
   );
 }
