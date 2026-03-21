@@ -61,7 +61,7 @@ export default function LeftRail() {
             <Plane className="w-5 h-5 text-primary" />
           </button>
           {expanded && (
-            <button onClick={() => setExpanded(e => !e)} className="text-sm font-bold tracking-wide text-primary whitespace-nowrap">
+            <button onClick={toggleExpanded} className="text-sm font-bold tracking-wide text-primary whitespace-nowrap">
               FLIGHT OPS
             </button>
           )}
