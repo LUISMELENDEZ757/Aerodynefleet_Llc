@@ -2,6 +2,8 @@ import React, { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { Cloud, RefreshCw, ChevronDown, ChevronRight, AlertTriangle, Wind, Eye, Thermometer } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { useWeatherByCity, AIRPORT_COORDS } from '@/hooks/useOpenWeather';
+import OpenWeatherCard from '@/components/weather/OpenWeatherCard';
 
 // Aviation Weather Center — no API key required
 const AWC_BASE = 'https://aviationweather.gov/api/data';
@@ -45,6 +47,8 @@ function WindBadge({ wdir, wspd, wgst }) {
 
 function StationCard({ icao }) {
   const [expanded, setExpanded] = useState(false);
+  const [showOpenWeather, setShowOpenWeather] = useState(false);
+  const coords = AIRPORT_COORDS[icao];
 
   const { data: metar, isLoading: mLoading, error: mError, refetch: refetchMetar } = useQuery({
     queryKey: ['metar', icao],
@@ -60,6 +64,8 @@ function StationCard({ icao }) {
     retry: 1,
     enabled: expanded,
   });
+
+  const { data: owWeather } = useWeatherByCity(coords?.name || icao, showOpenWeather && !!coords);
 
   const isLoading = mLoading;
   const cat = metar?.flightCategory;
@@ -160,6 +166,19 @@ function StationCard({ icao }) {
               <p className="text-xs text-muted-foreground">No TAF available</p>
             )}
           </div>
+
+          {/* OpenWeather */}
+          {coords && (
+            <div>
+              <button
+                onClick={() => setShowOpenWeather(!showOpenWeather)}
+                className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-2 hover:text-foreground transition-colors flex items-center gap-1"
+              >
+                {showOpenWeather ? '▼' : '▶'} OpenWeather
+              </button>
+              {showOpenWeather && <OpenWeatherCard weather={owWeather} station={icao} />}
+            </div>
+          )}
         </div>
       )}
     </div>
