@@ -1,4 +1,4 @@
-import React, { useState, lazy, Suspense } from 'react';
+import { useState, lazy, Suspense } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { base44 } from '@/api/base44Client';
 import { useDynamicPolling } from '@/hooks/useDynamicPolling';
@@ -10,6 +10,7 @@ import { Link } from 'react-router-dom';
 const ELogbook = lazy(() => import('@/components/crew/ELogbook'));
 const CabinZonesPanel = lazy(() => import('@/components/cabin/CabinZonesPanel'));
 import { cn } from '@/lib/utils';
+import RovingTabindexList from '@/components/accessibility/RovingTabindexList';
 
 const TODAY = new Date().toISOString().split('T')[0];
 
@@ -384,9 +385,27 @@ export default function FlightCrewDashboard() {
               No flights scheduled for today
             </div>
           ) : (
-            <div className="space-y-2">
-              {flights.map(f => <FlightCrewCard key={f.id} flight={f} />)}
-            </div>
+            <RovingTabindexList
+              items={flights}
+              ariaLabel="Today's flight assignments with keyboard navigation"
+              role="list"
+              className="space-y-2"
+              renderItem={(flight, index, { focusedIndex, handleKeyDown, getTabIndex, registerRef }) => (
+                <div
+                  key={flight.id}
+                  ref={(el) => registerRef(index, el)}
+                  tabIndex={getTabIndex(index)}
+                  onKeyDown={handleKeyDown}
+                  role="listitem"
+                  className={cn(
+                    'focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 rounded-xl',
+                    focusedIndex === index && 'ring-2 ring-primary ring-offset-2'
+                  )}
+                >
+                  <FlightCrewCard flight={flight} />
+                </div>
+              )}
+            />
           )}
         </div>
 
