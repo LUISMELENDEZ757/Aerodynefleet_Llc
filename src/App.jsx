@@ -5,8 +5,8 @@ import { BrowserRouter as Router, Route, Routes } from 'react-router-dom';
 import PageNotFound from './lib/PageNotFound';
 import { AuthProvider, useAuth } from '@/lib/AuthContext';
 import UserNotRegisteredError from '@/components/UserNotRegisteredError';
-import { Navigate, Suspense } from 'react-router-dom';
-import { lazy } from 'react';
+import { Navigate } from 'react-router-dom';
+import { lazy, Suspense } from 'react';
 import AppLayout from '@/components/layout/AppLayout';
 
 const Home                  = lazy(() => import('@/pages/Home'));
