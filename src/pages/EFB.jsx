@@ -88,10 +88,14 @@ function PerformanceCalc({ flightData = [] }) {
           <p className="text-xs font-mono font-semibold text-muted-foreground uppercase tracking-wider">Takeoff Performance — 737 Family</p>
         </div>
         <div className="p-4 space-y-3">
-          <div className="flex gap-2 flex-wrap">
+          <div className="flex gap-2 flex-wrap" role="group" aria-label="Aircraft type selection">
             {AC_TYPES_PERF.map(t => (
-              <button key={t} onClick={() => setAcType(t)}
-                className={cn('px-3 py-1.5 rounded-lg text-xs font-bold transition-all border',
+              <button 
+                key={t} 
+                onClick={() => setAcType(t)}
+                aria-pressed={acType === t}
+                aria-label={`Select ${t}${acType === t ? ' - currently selected' : ''}`}
+                className={cn('px-3 py-1.5 rounded-lg text-xs font-bold transition-all border focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-1',
                   acType === t ? 'bg-primary text-primary-foreground border-primary' : 'border-border text-muted-foreground hover:text-foreground'
                 )}>{t}</button>
             ))}
@@ -112,8 +116,11 @@ function PerformanceCalc({ flightData = [] }) {
               </div>
             ))}
           </div>
-          <button onClick={calculate}
-            className="w-full h-10 bg-primary text-primary-foreground font-bold text-sm rounded-lg hover:bg-primary/90 transition-colors">
+          <button 
+            onClick={calculate}
+            aria-label="Calculate takeoff performance with current parameters"
+            className="w-full h-10 bg-primary text-primary-foreground font-bold text-sm rounded-lg hover:bg-primary/90 transition-colors focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-1"
+          >
             Compute Takeoff Performance
           </button>
           <p className="text-xs text-muted-foreground">Aircraft: <span className="text-foreground font-semibold">{acType}</span></p>
@@ -321,31 +328,37 @@ export default function EFB() {
             <p className="text-xs text-muted-foreground">{dateStr}</p>
           </div>
         </div>
-        <button onClick={refetch}
-          className="mt-3 flex items-center gap-1.5 text-xs text-muted-foreground hover:text-foreground transition-colors">
-          <RefreshCw className="w-3 h-3" /> Sync data
-        </button>
+        <button 
+          onClick={refetch}
+          aria-label="Sync EFB data from server"
+          className="mt-3 flex items-center gap-1.5 text-xs text-muted-foreground hover:text-foreground transition-colors focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-1 rounded px-2 py-1"
+        >
+           <RefreshCw className="w-3 h-3" aria-hidden="true" /> Sync data
+         </button>
       </div>
 
       {/* Body: left rail tabs + content */}
       <div className="flex flex-1 overflow-hidden">
         {/* Left vertical tab rail */}
-        <div className="w-44 flex-shrink-0 bg-card border-r border-border flex flex-col py-2 overflow-y-auto">
-          {TABS.map(({ key, label, icon: Icon }) => (
-            <button
-              key={key}
-              onClick={() => setActiveTab(key)}
-              className={cn(
-                'flex items-center gap-2.5 px-3 py-2.5 mx-2 rounded-lg text-xs font-semibold transition-all text-left relative',
-                activeTab === key
-                  ? 'bg-primary/20 text-primary'
-                  : 'text-muted-foreground hover:bg-secondary hover:text-foreground'
-              )}
-            >
+          <div className="w-44 flex-shrink-0 bg-card border-r border-border flex flex-col py-2 overflow-y-auto" role="tablist" aria-label="EFB module navigation">
+            {TABS.map(({ key, label, icon: Icon }) => (
+              <button
+                key={key}
+                onClick={() => setActiveTab(key)}
+                role="tab"
+                aria-selected={activeTab === key}
+                aria-label={`${label}${activeTab === key ? ' - currently selected' : ''}`}
+                className={cn(
+                  'flex items-center gap-2.5 px-3 py-2.5 mx-2 rounded-lg text-xs font-semibold transition-all text-left relative focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-1',
+                  activeTab === key
+                    ? 'bg-primary/20 text-primary'
+                    : 'text-muted-foreground hover:bg-secondary hover:text-foreground'
+                )}
+              >
               {activeTab === key && (
-                <span className="absolute left-0 top-1/2 -translate-y-1/2 w-1 h-5 bg-primary rounded-r-full" />
+                <span className="absolute left-0 top-1/2 -translate-y-1/2 w-1 h-5 bg-primary rounded-r-full" aria-hidden="true" />
               )}
-              <Icon className="w-3.5 h-3.5 flex-shrink-0" />
+              <Icon className="w-3.5 h-3.5 flex-shrink-0" aria-hidden="true" />
               <span className="leading-tight">{label}</span>
             </button>
           ))}
