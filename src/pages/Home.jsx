@@ -107,12 +107,7 @@ const MODULES = [
 ];
 
 export default function Home() {
-  const [showSplash, setShowSplash] = useState(() => {
-    // Only show once per session
-    if (sessionStorage.getItem('splashSeen')) return false;
-    sessionStorage.setItem('splashSeen', '1');
-    return true;
-  });
+  const [showSplash, setShowSplash] = useState(true);
 
   return (
     <div className="min-h-screen bg-[#0d1117] px-4 pt-6 pb-24 flex flex-col items-center">
