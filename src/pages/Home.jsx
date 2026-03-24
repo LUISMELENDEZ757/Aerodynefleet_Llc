@@ -118,7 +118,7 @@ export default function Home() {
       <TierSection label="Operational" modules={TIER2} delayStart={0.45} />
 
       {/* Tier 3 — Enterprise (loads last) */}
-      <TierSection label="Enterprise" modules={TIER3} delayStart={0.85} />
+      <TierSection label="More Tools" modules={TIER3} delayStart={0.85} />
 
       {/* Footer */}
       <p className="text-xs text-gray-600 font-mono">AERODYNE FLEET LLC · OPS v2.0</p>
