@@ -1,10 +1,11 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { base44 } from '@/api/base44Client';
-import { Bell, X, AlertTriangle, Info, Zap, CheckCircle, ChevronRight } from 'lucide-react';
+import { Bell, X, AlertTriangle, Info, Zap, CheckCircle, ChevronRight, Radio, Satellite } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useNavigate } from 'react-router-dom';
 import { AnimatePresence, motion } from 'framer-motion';
+import { useCommSystemBridge } from '@/hooks/useCommSystemBridge';
 
 const SEV = {
   info:     { icon: Info,          color: 'text-blue-400',    bg: 'bg-blue-500/10',    border: 'border-blue-500/20' },
@@ -16,6 +17,7 @@ export default function OpsAlertsPanel() {
   const [open, setOpen] = useState(false);
   const queryClient = useQueryClient();
   const navigate = useNavigate();
+  const { commStatus, sendAlert } = useCommSystemBridge();
 
   const { data: alerts = [] } = useQuery({
     queryKey: ['ops-alerts'],
@@ -27,6 +29,23 @@ export default function OpsAlertsPanel() {
     mutationFn: (id) => base44.entities.OpsAlert.update(id, { is_dismissed: true }),
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ['ops-alerts'] }),
   });
+
+  // Broadcast critical alerts to comm system
+  useEffect(() => {
+    const criticalAlerts = alerts.filter(a => a.severity === 'critical' && !a.is_read);
+    criticalAlerts.forEach(alert => {
+      sendAlert({
+        id: alert.id,
+        title: alert.title,
+        message: alert.message,
+        severity: alert.severity,
+        flight_number: alert.flight_number,
+        target_roles: alert.target_roles,
+        channels: ['acars', 'broadcast'],
+        timestamp: new Date().toISOString(),
+      });
+    });
+  }, [alerts, sendAlert]);
 
   const unread = alerts.filter(a => !a.is_read).length;
   const critical = alerts.filter(a => a.severity === 'critical').length;
@@ -74,9 +93,17 @@ export default function OpsAlertsPanel() {
                     <span className="text-xs font-bold px-2 py-0.5 rounded-full bg-primary/15 text-primary">{unread} new</span>
                   )}
                 </div>
-                <button onClick={() => setOpen(false)} className="w-8 h-8 rounded-lg bg-secondary flex items-center justify-center text-muted-foreground">
-                  <X className="w-4 h-4" />
-                </button>
+                <div className="flex items-center gap-2">
+                  {commStatus && (
+                    <div className="flex items-center gap-1 text-xs">
+                      <div className={cn('w-2 h-2 rounded-full', commStatus.connected ? 'bg-green-400' : 'bg-orange-400')} />
+                      <span className="text-muted-foreground">{commStatus.type === 'starlink' ? <Satellite className="w-3 h-3" /> : <Radio className="w-3 h-3" />}</span>
+                    </div>
+                  )}
+                  <button onClick={() => setOpen(false)} className="w-8 h-8 rounded-lg bg-secondary flex items-center justify-center text-muted-foreground">
+                    <X className="w-4 h-4" />
+                  </button>
+                </div>
               </div>
 
               {/* Alert list */}
