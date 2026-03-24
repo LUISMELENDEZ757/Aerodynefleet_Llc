@@ -1,6 +1,6 @@
 import { Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { Users, Plane, Radio, BookOpen, CalendarDays, Zap, Globe, Shield, Cloud, BookMarked, LayoutDashboard, AlertTriangle, Fuel, FileText, BarChart3, Weight, Navigation2, DollarSign, CalendarCheck, Wrench, GraduationCap } from 'lucide-react';
+import { Users, Plane, Radio, BookOpen, CalendarDays, Zap, Globe, Shield, Cloud, BookMarked, LayoutDashboard, AlertTriangle, Fuel, FileText, BarChart3, Weight, Navigation2, DollarSign, CalendarCheck, Wrench, GraduationCap, Satellite } from 'lucide-react';
 import useTieredPreload from '@/hooks/useTieredPreload';
 
 // ── Tier 1: Critical modules ──────────────────────────────────────────────────
@@ -39,6 +39,7 @@ const TIER3 = [
   { icon: GraduationCap, iconBg: 'bg-green-600',  iconColor: 'text-white',              title: 'TRAINING',      subtitle: 'Records · Currency',      borderColor: 'border-green-600/30',  path: '/Training' },
   { icon: Fuel,          iconBg: 'bg-yellow-600', iconColor: 'text-white',              title: 'FUEL CONTRACTS',subtitle: 'Suppliers · Invoices',     borderColor: 'border-yellow-600/30', path: '/FuelContracts' },
   { icon: Users,         iconBg: 'bg-pink-600',   iconColor: 'text-white',              title: 'PAX REACCOM',   subtitle: 'IROPS Rebooking',         borderColor: 'border-pink-600/30',   path: '/PaxReaccom' },
+  { icon: Satellite,     iconBg: 'bg-sky-700',    iconColor: 'text-white',              title: 'STARLINK',      subtitle: 'Aviation Connectivity',   borderColor: 'border-sky-700/30',    path: '/Starlink' },
 ];
 
 // Stagger config per tier

@@ -42,6 +42,7 @@ const DocumentLibraryPage   = lazy(() => import('@/pages/DocumentLibraryPage'));
 const TrainingRecords       = lazy(() => import('@/pages/TrainingRecords'));
 const FuelContracts         = lazy(() => import('@/pages/FuelContracts'));
 const PaxReaccommodationPage = lazy(() => import('@/pages/PaxReaccommodationPage'));
+const StarlinkDashboard     = lazy(() => import('@/pages/StarlinkDashboard'));
 
 function PageFallback() {
   return (
@@ -110,6 +111,7 @@ const AuthenticatedApp = () => {
         <Route path="/Training" element={<TrainingRecords />} />
         <Route path="/FuelContracts" element={<FuelContracts />} />
         <Route path="/PaxReaccom" element={<PaxReaccommodationPage />} />
+        <Route path="/Starlink" element={<StarlinkDashboard />} />
         <Route path="/Settings" element={<SettingsPage />} />
       </Route>
       <Route path="*" element={<PageNotFound />} />
