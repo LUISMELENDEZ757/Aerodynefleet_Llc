@@ -1,7 +1,5 @@
-import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { Users, Plane, Radio, BookOpen, CalendarDays, Zap, Globe, Shield, Cloud } from 'lucide-react';
-import SplashScreen from '@/components/SplashScreen';
 
 const MODULES = [
   {
@@ -107,11 +105,8 @@ const MODULES = [
 ];
 
 export default function Home() {
-  const [showSplash, setShowSplash] = useState(true);
-
   return (
     <div className="min-h-screen bg-[#0d1117] px-4 pt-6 pb-24 flex flex-col items-center">
-      {showSplash && <SplashScreen onComplete={() => setShowSplash(false)} />}
       {/* Header */}
       <div className="mb-6 text-center w-full max-w-lg">
         <div className="flex items-center justify-center gap-2 mb-2">

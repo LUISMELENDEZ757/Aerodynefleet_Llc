@@ -6,7 +6,8 @@ import PageNotFound from './lib/PageNotFound';
 import { AuthProvider, useAuth } from '@/lib/AuthContext';
 import UserNotRegisteredError from '@/components/UserNotRegisteredError';
 import { Navigate } from 'react-router-dom';
-import { lazy, Suspense } from 'react';
+import { lazy, Suspense, useState } from 'react';
+import SplashScreen from '@/components/SplashScreen';
 import AppLayout from '@/components/layout/AppLayout';
 import { ROUTE_DEPTH } from '@/lib/NavigationStack';
 
@@ -89,10 +90,12 @@ const AuthenticatedApp = () => {
 
 
 function App() {
+  const [showSplash, setShowSplash] = useState(true);
 
   return (
     <AuthProvider>
       <QueryClientProvider client={queryClientInstance}>
+        {showSplash && <SplashScreen onComplete={() => setShowSplash(false)} />}
         <Router>
           <AuthenticatedApp />
         </Router>
