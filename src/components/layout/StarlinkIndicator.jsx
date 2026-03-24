@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { base44 } from '@/api/base44Client';
 import { Satellite, Signal, AlertTriangle } from 'lucide-react';
@@ -6,13 +6,40 @@ import { cn } from '@/lib/utils';
 
 export default function StarlinkIndicator() {
   const [showDetails, setShowDetails] = useState(false);
+  const [terminals, setTerminals] = useState([]);
 
-  const { data: terminals = [] } = useQuery({
+  const { data: initialTerminals = [], refetch } = useQuery({
     queryKey: ['starlink-terminals-indicator'],
     queryFn: () => base44.entities.StarlinkTerminal.list(),
     refetchInterval: 30000,
     staleTime: 25000,
   });
+
+  // Subscribe to real-time terminal updates
+  useEffect(() => {
+    const unsubscribe = base44.entities.StarlinkTerminal.subscribe((event) => {
+      if (event.type === 'update' || event.type === 'create') {
+        setTerminals(prev => {
+          const idx = prev.findIndex(t => t.id === event.id);
+          if (idx >= 0) {
+            const updated = [...prev];
+            updated[idx] = event.data;
+            return updated;
+          }
+          return [...prev, event.data];
+        });
+      } else if (event.type === 'delete') {
+        setTerminals(prev => prev.filter(t => t.id !== event.id));
+      }
+    });
+
+    // Set initial data
+    if (initialTerminals.length > 0) {
+      setTerminals(initialTerminals);
+    }
+
+    return unsubscribe;
+  }, [initialTerminals]);
 
   const active = terminals.filter(t => t.activation_status === 'active');
   const primary = active[0] || terminals[0];
