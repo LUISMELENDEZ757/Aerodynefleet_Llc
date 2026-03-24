@@ -9,6 +9,8 @@ import {
 import { Link } from 'react-router-dom';
 const ELogbook = lazy(() => import('@/components/crew/ELogbook'));
 const CabinZonesPanel = lazy(() => import('@/components/cabin/CabinZonesPanel'));
+const Timeline = lazy(() => import('@/components/flightcrew/Timeline'));
+const ReleaseSignOff = lazy(() => import('@/components/flightcrew/ReleaseSignOff'));
 import { cn } from '@/lib/utils';
 import RovingTabindexList from '@/components/accessibility/RovingTabindexList';
 
@@ -63,7 +65,13 @@ function StatCard({ icon: Icon, label, value, color }) {
 
 function FlightCrewCard({ flight }) {
   const [expanded, setExpanded] = useState(false);
+  const [detailTab, setDetailTab] = useState('info');
   const cfg = STATUS_CONFIG[flight.status] || STATUS_CONFIG.scheduled;
+  const DETAIL_TABS = [
+    { key: 'info',    label: 'Info' },
+    { key: 'timeline',label: 'Timeline' },
+    { key: 'release', label: 'Release' },
+  ];
 
   const { data: crewList = [] } = useQuery({
     queryKey: ['crew-flight', flight.flight_number, TODAY],
@@ -118,7 +126,38 @@ function FlightCrewCard({ flight }) {
       </button>
 
       {expanded && (
-        <div className="border-t border-border/50 px-4 pb-4 pt-3 space-y-4 bg-secondary/10">
+        <div className="border-t border-border/50 bg-secondary/10">
+          {/* Sub-tabs */}
+          <div className="flex gap-0.5 px-4 pt-3 pb-0">
+            {DETAIL_TABS.map(t => (
+              <button
+                key={t.key}
+                onClick={() => setDetailTab(t.key)}
+                className={cn(
+                  'px-3 py-1.5 text-xs font-semibold rounded-lg transition-all',
+                  detailTab === t.key ? 'bg-primary text-primary-foreground' : 'text-muted-foreground hover:text-foreground hover:bg-secondary'
+                )}
+              >{t.label}</button>
+            ))}
+          </div>
+
+        <div className="px-4 pb-4 pt-3 space-y-4">
+          {/* Timeline tab */}
+          {detailTab === 'timeline' && (
+            <Suspense fallback={<p className="text-xs text-muted-foreground">Loading…</p>}>
+              <Timeline flightNumber={flight.flight_number} />
+            </Suspense>
+          )}
+
+          {/* Release tab */}
+          {detailTab === 'release' && (
+            <Suspense fallback={<p className="text-xs text-muted-foreground">Loading…</p>}>
+              <ReleaseSignOff flightNumber={flight.flight_number} />
+            </Suspense>
+          )}
+
+          {/* Info tab */}
+          {detailTab === 'info' && <>
           {/* Flight details grid */}
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
             <div className="bg-background/40 rounded-lg px-3 py-2">
@@ -241,6 +280,8 @@ function FlightCrewCard({ flight }) {
               <p className="text-xs text-foreground bg-background/40 rounded-lg px-3 py-2">{flight.notes}</p>
             </div>
           )}
+          </>}
+        </div>
         </div>
       )}
     </div>
