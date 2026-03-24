@@ -12,6 +12,7 @@ import { useRail } from '@/lib/RailContext';
 const NAV_ITEMS = [
   { icon: Home,          label: 'Home',          path: '/Home' },
   { icon: Plane,         label: 'Flight Ops',    path: '/Dashboard' },
+  { icon: Radio,         label: 'Dispatch',      path: '/Dispatch' },
   { icon: Users,         label: 'Cabin Crew',    path: '/FlightAttendant' },
   { icon: Radio,         label: 'Flight Crew',   path: '/FlightCrew' },
   { icon: BookOpen,      label: 'EFB',           path: '/EFB' },

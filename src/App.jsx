@@ -48,6 +48,7 @@ const PaxReaccommodationPage = lazy(() => import('@/pages/PaxReaccommodationPage
 const StarlinkDashboard     = lazy(() => import('@/pages/StarlinkDashboard'));
 const CommCenter            = lazy(() => import('@/pages/CommCenter'));
 const SupervisorDashboard   = lazy(() => import('@/pages/SupervisorDashboard'));
+const DispatchWorkstation   = lazy(() => import('@/pages/DispatchWorkstation'));
 
 function PageFallback() {
   return (
@@ -120,6 +121,7 @@ const AuthenticatedApp = () => {
         <Route path="/Starlink" element={<StarlinkDashboard />} />
         <Route path="/CommCenter" element={<CommCenter />} />
         <Route path="/Supervisor" element={<SupervisorDashboard />} />
+        <Route path="/Dispatch" element={<DispatchWorkstation />} />
         <Route path="/Settings" element={<SettingsPage />} />
       </Route>
       <Route path="*" element={<PageNotFound />} />
