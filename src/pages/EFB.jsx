@@ -26,6 +26,7 @@ const LiveMap               = lazy(() => import('@/components/efb/LiveMap'));
 const AirportBriefing       = lazy(() => import('@/components/efb/AirportBriefing'));
 const ETOPSDriftDown        = lazy(() => import('@/components/efb/ETOPSDriftDown'));
 const QRScanPanel           = lazy(() => import('@/components/efb/QRScanPanel'));
+const FlightTimesPanel      = lazy(() => import('@/components/flightcrew/FlightTimesPanel'));
 
 const TODAY = new Date().toISOString().split('T')[0];
 
@@ -291,6 +292,11 @@ function FlightBrief({ flights, releases, crew }) {
               {f.notes && (
                 <p className="text-xs text-foreground bg-background/40 rounded-lg px-3 py-2">{f.notes}</p>
               )}
+
+              {/* OUT / IN compact widget */}
+              <Suspense fallback={null}>
+                <FlightTimesPanel flight={f} compact={true} />
+              </Suspense>
             </div>
           </div>
         );

@@ -11,6 +11,7 @@ const ELogbook = lazy(() => import('@/components/crew/ELogbook'));
 const CabinZonesPanel = lazy(() => import('@/components/cabin/CabinZonesPanel'));
 const Timeline = lazy(() => import('@/components/flightcrew/Timeline'));
 const ReleaseSignOff = lazy(() => import('@/components/flightcrew/ReleaseSignOff'));
+const FlightTimesPanel = lazy(() => import('@/components/flightcrew/FlightTimesPanel'));
 import { cn } from '@/lib/utils';
 import RovingTabindexList from '@/components/accessibility/RovingTabindexList';
 
@@ -69,6 +70,7 @@ function FlightCrewCard({ flight }) {
   const cfg = STATUS_CONFIG[flight.status] || STATUS_CONFIG.scheduled;
   const DETAIL_TABS = [
     { key: 'info',    label: 'Info' },
+    { key: 'times',   label: 'OUT / IN' },
     { key: 'timeline',label: 'Timeline' },
     { key: 'release', label: 'Release' },
   ];
@@ -142,6 +144,13 @@ function FlightCrewCard({ flight }) {
           </div>
 
         <div className="px-4 pb-4 pt-3 space-y-4">
+          {/* OUT / IN Times tab */}
+          {detailTab === 'times' && (
+            <Suspense fallback={<p className="text-xs text-muted-foreground">Loading…</p>}>
+              <FlightTimesPanel flight={flight} />
+            </Suspense>
+          )}
+
           {/* Timeline tab */}
           {detailTab === 'timeline' && (
             <Suspense fallback={<p className="text-xs text-muted-foreground">Loading…</p>}>
