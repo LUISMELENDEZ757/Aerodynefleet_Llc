@@ -1,7 +1,7 @@
 import React from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import {
-  Home, Users, Settings, Radio, BookOpen,
+  Plane, Home, Users, Settings, Radio, BookOpen,
   CalendarDays, Zap, Globe, Shield, Cloud
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
