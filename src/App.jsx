@@ -6,10 +6,13 @@ import PageNotFound from './lib/PageNotFound';
 import { AuthProvider, useAuth } from '@/lib/AuthContext';
 import UserNotRegisteredError from '@/components/UserNotRegisteredError';
 import { Navigate } from 'react-router-dom';
-import { lazy, Suspense, useState } from 'react';
+import { lazy, Suspense, useState, useEffect } from 'react';
 import SplashScreen from '@/components/SplashScreen';
 import AppLayout from '@/components/layout/AppLayout';
 import { ROUTE_DEPTH } from '@/lib/NavigationStack';
+import useOfflineSync from '@/hooks/useOfflineSync';
+import { offlineStore } from '@/lib/offline-store';
+import OfflineBadge from '@/components/layout/OfflineBadge';
 
 const Home                  = lazy(() => import('@/pages/Home'));
 const Dashboard             = lazy(() => import('@/pages/Dashboard'));
@@ -56,6 +59,7 @@ function PageFallback() {
 
 const AuthenticatedApp = () => {
   const { isLoadingAuth, isLoadingPublicSettings, authError, navigateToLogin } = useAuth();
+  useOfflineSync(); // Enable offline sync
 
   // Show loading spinner while checking app public settings or auth
   if (isLoadingPublicSettings || isLoadingAuth) {
@@ -135,6 +139,7 @@ function App() {
         <Router>
           <AuthenticatedApp />
         </Router>
+        <OfflineBadge />
         <Toaster />
       </QueryClientProvider>
     </AuthProvider>
