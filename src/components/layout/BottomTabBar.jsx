@@ -3,7 +3,8 @@ import { useLocation, useNavigate } from 'react-router-dom';
 import {
   Home, Plane, BookOpen, Zap, MoreHorizontal, X,
   Users, Radio, CalendarDays, Globe, Shield, Cloud, GraduationCap, Settings,
-  AlertTriangle, Fuel, BarChart3, FileText, LayoutDashboard
+  AlertTriangle, Fuel, BarChart3, FileText, LayoutDashboard,
+  Weight, Navigation2, DollarSign, CalendarCheck, Wrench, BookMarked
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useTabHistory, TAB_ROOTS } from '@/lib/TabHistoryContext';
@@ -32,6 +33,15 @@ const MORE_ITEMS = [
   { icon: BarChart3,     label: 'Analytics',      path: '/Analytics' },
   { icon: FileText,      label: 'Audit Log',      path: '/AuditLog' },
   { icon: Settings,      label: 'Settings',       path: '/Settings' },
+  { icon: Weight,        label: 'Load Control',   path: '/LoadControl' },
+  { icon: Navigation2,   label: 'Flight Plans',   path: '/FlightPlanner' },
+  { icon: DollarSign,    label: 'Delay Costs',    path: '/DelayCost' },
+  { icon: CalendarCheck, label: 'Crew Bidding',   path: '/CrewBidding' },
+  { icon: Wrench,        label: 'MEL',            path: '/MEL' },
+  { icon: BookMarked,    label: 'Documents',      path: '/Documents' },
+  { icon: GraduationCap, label: 'Training',       path: '/Training' },
+  { icon: Fuel,          label: 'Fuel Contracts', path: '/FuelContracts' },
+  { icon: Users,         label: 'PAX Reaccom',    path: '/PaxReaccom' },
 ];
 
 const MORE_PATHS = new Set(MORE_ITEMS.map(i => i.path));

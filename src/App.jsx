@@ -33,6 +33,15 @@ const AuditLogPage          = lazy(() => import('@/pages/AuditLog'));
 const Analytics             = lazy(() => import('@/pages/Analytics'));
 
 const SettingsPage          = lazy(() => import('@/pages/Settings'));
+const LoadControl           = lazy(() => import('@/pages/LoadControl'));
+const FlightPlanner         = lazy(() => import('@/pages/FlightPlanner'));
+const DelayCostTracker      = lazy(() => import('@/pages/DelayCostTracker'));
+const CrewBidding           = lazy(() => import('@/pages/CrewBidding'));
+const MELDashboard          = lazy(() => import('@/pages/MELDashboard'));
+const DocumentLibraryPage   = lazy(() => import('@/pages/DocumentLibraryPage'));
+const TrainingRecords       = lazy(() => import('@/pages/TrainingRecords'));
+const FuelContracts         = lazy(() => import('@/pages/FuelContracts'));
+const PaxReaccommodationPage = lazy(() => import('@/pages/PaxReaccommodationPage'));
 
 function PageFallback() {
   return (
@@ -92,6 +101,15 @@ const AuthenticatedApp = () => {
         <Route path="/AuditLog" element={<AuditLogPage />} />
         <Route path="/Analytics" element={<Analytics />} />
 
+        <Route path="/LoadControl" element={<LoadControl />} />
+        <Route path="/FlightPlanner" element={<FlightPlanner />} />
+        <Route path="/DelayCost" element={<DelayCostTracker />} />
+        <Route path="/CrewBidding" element={<CrewBidding />} />
+        <Route path="/MEL" element={<MELDashboard />} />
+        <Route path="/Documents" element={<DocumentLibraryPage />} />
+        <Route path="/Training" element={<TrainingRecords />} />
+        <Route path="/FuelContracts" element={<FuelContracts />} />
+        <Route path="/PaxReaccom" element={<PaxReaccommodationPage />} />
         <Route path="/Settings" element={<SettingsPage />} />
       </Route>
       <Route path="*" element={<PageNotFound />} />

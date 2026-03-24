@@ -1,5 +1,5 @@
 import { Link } from 'react-router-dom';
-import { Users, Plane, Radio, BookOpen, CalendarDays, Zap, Globe, Shield, Cloud, BookMarked, LayoutDashboard, AlertTriangle, Fuel, FileText, BarChart3 } from 'lucide-react';
+import { Users, Plane, Radio, BookOpen, CalendarDays, Zap, Globe, Shield, Cloud, BookMarked, LayoutDashboard, AlertTriangle, Fuel, FileText, BarChart3, Weight, Navigation2, DollarSign, CalendarCheck, Wrench, GraduationCap } from 'lucide-react';
 
 const MODULES = [
   {
@@ -154,6 +154,87 @@ const MODULES = [
     subtitle: 'FAA Compliance Trail',
     borderColor: 'border-slate-500/30',
     path: '/AuditLog',
+  },
+  {
+    icon: Weight,
+    iconBg: 'bg-cyan-600',
+    iconColor: 'text-white',
+    title: 'LOAD CONTROL',
+    subtitle: 'PAX Manifest · W&B',
+    borderColor: 'border-cyan-600/30',
+    path: '/LoadControl',
+  },
+  {
+    icon: Navigation2,
+    iconBg: 'bg-blue-600',
+    iconColor: 'text-white',
+    title: 'FLIGHT PLANS',
+    subtitle: 'IFR · Clearances',
+    borderColor: 'border-blue-600/30',
+    path: '/FlightPlanner',
+  },
+  {
+    icon: DollarSign,
+    iconBg: 'bg-red-700',
+    iconColor: 'text-white',
+    title: 'DELAY COSTS',
+    subtitle: 'Cost Tracker',
+    borderColor: 'border-red-700/30',
+    path: '/DelayCost',
+  },
+  {
+    icon: CalendarCheck,
+    iconBg: 'bg-indigo-600',
+    iconColor: 'text-white',
+    title: 'CREW BIDDING',
+    subtitle: 'Monthly Pairings',
+    borderColor: 'border-indigo-600/30',
+    path: '/CrewBidding',
+  },
+  {
+    icon: Wrench,
+    iconBg: 'bg-orange-600',
+    iconColor: 'text-white',
+    title: 'MEL DASHBOARD',
+    subtitle: 'Deferrals · Expiry',
+    borderColor: 'border-orange-600/30',
+    path: '/MEL',
+  },
+  {
+    icon: BookMarked,
+    iconBg: 'bg-teal-600',
+    iconColor: 'text-white',
+    title: 'DOCUMENTS',
+    subtitle: 'FARs · SOPs · CBAs',
+    borderColor: 'border-teal-600/30',
+    path: '/Documents',
+  },
+  {
+    icon: GraduationCap,
+    iconBg: 'bg-green-600',
+    iconColor: 'text-white',
+    title: 'TRAINING',
+    subtitle: 'Records · Currency',
+    borderColor: 'border-green-600/30',
+    path: '/Training',
+  },
+  {
+    icon: Fuel,
+    iconBg: 'bg-yellow-600',
+    iconColor: 'text-white',
+    title: 'FUEL CONTRACTS',
+    subtitle: 'Suppliers · Invoices',
+    borderColor: 'border-yellow-600/30',
+    path: '/FuelContracts',
+  },
+  {
+    icon: Users,
+    iconBg: 'bg-pink-600',
+    iconColor: 'text-white',
+    title: 'PAX REACCOM',
+    subtitle: 'IROPS Rebooking',
+    borderColor: 'border-pink-600/30',
+    path: '/PaxReaccom',
   },
 ];
 
