@@ -1,5 +1,5 @@
 import { Link } from 'react-router-dom';
-import { Users, Plane, Radio, BookOpen, CalendarDays, Zap, Globe, Shield, Cloud } from 'lucide-react';
+import { Users, Plane, Radio, BookOpen, CalendarDays, Zap, Globe, Shield, Cloud, BookMarked, LayoutDashboard } from 'lucide-react';
 
 const MODULES = [
   {
@@ -101,7 +101,24 @@ const MODULES = [
     borderColor: 'border-emerald-500/30',
     path: '/Learning',
   },
-
+  {
+    icon: BookMarked,
+    iconBg: 'bg-violet-500',
+    iconColor: 'text-white',
+    title: 'LOGBOOK',
+    subtitle: 'Hours · Approaches · Currency',
+    borderColor: 'border-violet-500/30',
+    path: '/Logbook',
+  },
+  {
+    icon: LayoutDashboard,
+    iconBg: 'bg-rose-500',
+    iconColor: 'text-white',
+    title: 'OPS CENTER',
+    subtitle: 'Unified Command View',
+    borderColor: 'border-rose-500/30',
+    path: '/OpsCenter',
+  },
 ];
 
 export default function Home() {

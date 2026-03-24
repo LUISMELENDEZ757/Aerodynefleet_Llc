@@ -25,6 +25,8 @@ const SafetyQA              = lazy(() => import('@/pages/SafetyQA'));
 const Scheduling            = lazy(() => import('@/pages/Scheduling'));
 const WeatherDashboard      = lazy(() => import('@/pages/WeatherDashboard'));
 const LearningCenter        = lazy(() => import('@/pages/LearningCenter'));
+const Logbook               = lazy(() => import('@/pages/Logbook'));
+const OpsCenter             = lazy(() => import('@/pages/OpsCenter'));
 
 const SettingsPage          = lazy(() => import('@/pages/Settings'));
 
@@ -79,6 +81,8 @@ const AuthenticatedApp = () => {
         <Route path="/Scheduling" element={<Scheduling />} />
         <Route path="/Weather" element={<WeatherDashboard />} />
         <Route path="/Learning" element={<LearningCenter />} />
+        <Route path="/Logbook" element={<Logbook />} />
+        <Route path="/OpsCenter" element={<OpsCenter />} />
 
         <Route path="/Settings" element={<SettingsPage />} />
       </Route>
