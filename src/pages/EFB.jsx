@@ -5,7 +5,7 @@ import { useDynamicPolling } from '@/hooks/useDynamicPolling';
 import {
   BookOpen, Cloud, Calculator, ClipboardList, FileText,
   RefreshCw, Scale, Fuel, Map, Radio, AlertTriangle,
-  Users, Send, Plane, PenLine, Navigation2, MapPin, Zap
+  Users, Send, Plane, PenLine, Navigation2, MapPin, Zap, QrCode
 } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { cn } from '@/lib/utils';
@@ -25,6 +25,7 @@ const FlightReleaseSignOff  = lazy(() => import('@/components/efb/FlightReleaseS
 const LiveMap               = lazy(() => import('@/components/efb/LiveMap'));
 const AirportBriefing       = lazy(() => import('@/components/efb/AirportBriefing'));
 const ETOPSDriftDown        = lazy(() => import('@/components/efb/ETOPSDriftDown'));
+const QRScanPanel           = lazy(() => import('@/components/efb/QRScanPanel'));
 
 const TODAY = new Date().toISOString().split('T')[0];
 
@@ -33,6 +34,7 @@ function TabLoading() {
 }
 
 const TABS = [
+  { key: 'qrscan',      label: 'QR / Photos',     icon: QrCode },
   { key: 'brief',       label: 'Flight Brief',    icon: BookOpen },
   { key: 'release',     label: 'Release Sign-Off', icon: PenLine },
   { key: 'map',         label: 'Live Map',        icon: Navigation2 },
@@ -385,6 +387,7 @@ export default function EFB() {
 
         {/* Content area — scrolls independently so tab clicks don't jump to top */}
         <div className="flex-1 p-4 space-y-3 overflow-y-auto scrollbar-hide">
+          {activeTab === 'qrscan'     && <Suspense fallback={<div className="text-muted-foreground">Loading...</div>}><QRScanPanel /></Suspense>}
           {activeTab === 'brief'      && <FlightBrief flights={flights} releases={releases} crew={crew} />}
           {activeTab === 'release'    && <Suspense fallback={<div className="text-muted-foreground">Loading...</div>}><FlightReleaseSignOff /></Suspense>}
           {activeTab === 'map'        && <Suspense fallback={<div className="text-muted-foreground">Loading...</div>}><LiveMap flights={flights} /></Suspense>}
