@@ -3,6 +3,7 @@ import { Outlet, useLocation } from 'react-router-dom';
 import LeftRail from './LeftRail';
 import BottomTabBar from './BottomTabBar';
 import OpsAlertsPanel from './OpsAlertsPanel';
+import StarlinkIndicator from './StarlinkIndicator';
 import { RailProvider, useRail } from '@/lib/RailContext';
 import { TabHistoryProvider, useTabHistory } from '@/lib/TabHistoryContext';
 import PageTransition from '@/components/ui/PageTransition';
@@ -31,8 +32,9 @@ function AppContent() {
         </main>
       </div>
       <BottomTabBar />
-      {/* Global alerts bell — fixed top-right */}
-      <div className="fixed top-3 right-48 z-[60]" style={{ top: 'calc(env(safe-area-inset-top, 0px) + 12px)' }}>
+      {/* Global indicators — fixed top-right */}
+      <div className="fixed top-3 right-48 z-[60] flex items-center gap-2" style={{ top: 'calc(env(safe-area-inset-top, 0px) + 12px)' }}>
+        <StarlinkIndicator />
         <OpsAlertsPanel />
       </div>
     </div>
