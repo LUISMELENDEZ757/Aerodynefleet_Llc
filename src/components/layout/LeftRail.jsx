@@ -2,7 +2,9 @@ import React from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import {
   Plane, Home, Users, Settings, Radio, BookOpen,
-  CalendarDays, Zap, Globe, Shield, Cloud
+  CalendarDays, Zap, Globe, Shield, Cloud, BarChart3,
+  AlertTriangle, Fuel, Weight, Navigation2, DollarSign,
+  Wrench, GraduationCap, MessageSquare, Satellite
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useRail } from '@/lib/RailContext';
@@ -17,10 +19,23 @@ const NAV_ITEMS = [
   { icon: Zap,           label: 'Crew Control',  path: '/CrewControl' },
   { icon: Globe,         label: 'World Clock',   path: '/WorldClock' },
   { icon: Shield,        label: 'Safety & QA',   path: '/SafetyQA' },
-  { icon: CalendarDays,  label: 'Scheduling',    path: '/Scheduling' },
+  { icon: AlertTriangle, label: 'IROPS',        path: '/IROPS' },
+  { icon: Fuel,          label: 'Fuel Mgmt',     path: '/Fuel' },
+  { icon: Weight,        label: 'Load Control',  path: '/LoadControl' },
+  { icon: Navigation2,   label: 'Flight Planner',path: '/FlightPlanner' },
   { icon: Cloud,         label: 'Weather',       path: '/Weather' },
   { icon: BookOpen,      label: 'Learning',      path: '/Learning' },
-  { icon: Globe,         label: 'Supervisor',    path: '/Supervisor' },
+  { icon: BarChart3,     label: 'Analytics',     path: '/Analytics' },
+  { icon: DollarSign,    label: 'Delay Costs',   path: '/DelayCost' },
+  { icon: CalendarDays,  label: 'Crew Bidding',  path: '/CrewBidding' },
+  { icon: Wrench,        label: 'MEL Dashboard', path: '/MEL' },
+  { icon: BookOpen,      label: 'Documents',     path: '/Documents' },
+  { icon: GraduationCap, label: 'Training',      path: '/Training' },
+  { icon: Fuel,          label: 'Fuel Contracts',path: '/FuelContracts' },
+  { icon: Users,         label: 'PAX Reaccom',   path: '/PaxReaccom' },
+  { icon: Satellite,     label: 'Starlink',      path: '/Starlink' },
+  { icon: MessageSquare, label: 'Comms',         path: '/CommCenter' },
+  { icon: Shield,        label: 'Supervisor',    path: '/Supervisor' },
 ];
 
 export default function LeftRail() {
