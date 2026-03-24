@@ -41,14 +41,16 @@ const TIER_3 = [
 
 export default function useTieredPreload() {
   useEffect(() => {
+    const load = (fn) => { try { fn().catch(() => {}); } catch (_) {} };
+
     // Tier 1 — immediate, critical modules
-    TIER_1.forEach(fn => fn());
+    TIER_1.forEach(load);
 
     // Tier 2 — operational, after short delay
-    const t2 = setTimeout(() => TIER_2.forEach(fn => fn()), 800);
+    const t2 = setTimeout(() => TIER_2.forEach(load), 800);
 
     // Tier 3 — enterprise, after user has had time to interact
-    const t3 = setTimeout(() => TIER_3.forEach(fn => fn()), 2000);
+    const t3 = setTimeout(() => TIER_3.forEach(load), 2000);
 
     return () => {
       clearTimeout(t2);
