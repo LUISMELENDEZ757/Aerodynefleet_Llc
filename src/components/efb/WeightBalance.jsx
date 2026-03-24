@@ -1,8 +1,7 @@
 import React, { useState, useMemo } from 'react';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { cn } from '@/lib/utils';
-import { AlertTriangle, CheckCircle, Scale, Save } from 'lucide-react';
-import { Button } from '@/components/ui/button';
+import { AlertTriangle, CheckCircle, Save } from 'lucide-react';
 import AircraftSelector from './AircraftSelector';
 import useAircraftPerformance from '@/hooks/useAircraftPerformance';
 
@@ -227,14 +226,14 @@ export default function WeightBalance({ flightData = [] }) {
       </div>
 
       {/* Save button */}
-      <Button 
+      <button
         onClick={() => saveMutation.mutate({ selectedTail, fuel, loads })}
         disabled={saveMutation.isPending}
-        className="w-full bg-primary text-primary-foreground hover:bg-primary/90"
+        className="w-full h-10 bg-primary text-primary-foreground hover:bg-primary/90 rounded-xl text-sm font-bold flex items-center justify-center gap-2 disabled:opacity-50 transition-colors"
       >
-        <Save className="w-4 h-4 mr-2" />
+        <Save className="w-4 h-4" />
         {saveMutation.isPending ? 'Saving...' : 'Save W&B'}
-      </Button>
+      </button>
     </div>
   );
 }
