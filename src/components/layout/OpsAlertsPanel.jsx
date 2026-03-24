@@ -36,7 +36,7 @@ export default function OpsAlertsPanel() {
       {/* Bell button */}
       <button
         onClick={() => setOpen(true)}
-        className="relative w-10 h-10 rounded-xl bg-secondary flex items-center justify-center text-muted-foreground hover:text-foreground transition-colors"
+        className={cn("relative w-10 h-10 rounded-xl bg-secondary flex items-center justify-center transition-colors", unread > 0 ? "text-muted-foreground hover:text-foreground" : "text-primary hover:text-primary/80")}
         aria-label="Operational alerts"
       >
         <Bell className="w-5 h-5" />
