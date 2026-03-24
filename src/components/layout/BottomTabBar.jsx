@@ -2,7 +2,8 @@ import React, { useState, useEffect } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import {
   Home, Plane, BookOpen, Zap, MoreHorizontal, X,
-  Users, Radio, CalendarDays, Globe, Shield, Cloud, GraduationCap, Settings
+  Users, Radio, CalendarDays, Globe, Shield, Cloud, GraduationCap, Settings,
+  AlertTriangle, Fuel, BarChart3, FileText, LayoutDashboard
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useTabHistory, TAB_ROOTS } from '@/lib/TabHistoryContext';
@@ -24,8 +25,13 @@ const MORE_ITEMS = [
   { icon: Globe,         label: 'World Clock',   path: '/WorldClock' },
   { icon: Shield,        label: 'Safety & QA',   path: '/SafetyQA' },
   { icon: Cloud,         label: 'Weather',       path: '/Weather' },
-  { icon: GraduationCap, label: 'Learning',      path: '/Learning' },
-  { icon: Settings,      label: 'Settings',      path: '/Settings' },
+  { icon: GraduationCap,  label: 'Learning',      path: '/Learning' },
+  { icon: LayoutDashboard, label: 'OPS Center',   path: '/OpsCenter' },
+  { icon: AlertTriangle, label: 'IROPS',          path: '/IROPS' },
+  { icon: Fuel,          label: 'Fuel Mgmt',      path: '/Fuel' },
+  { icon: BarChart3,     label: 'Analytics',      path: '/Analytics' },
+  { icon: FileText,      label: 'Audit Log',      path: '/AuditLog' },
+  { icon: Settings,      label: 'Settings',       path: '/Settings' },
 ];
 
 const MORE_PATHS = new Set(MORE_ITEMS.map(i => i.path));

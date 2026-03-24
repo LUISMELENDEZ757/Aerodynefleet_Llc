@@ -1,5 +1,5 @@
 import { Link } from 'react-router-dom';
-import { Users, Plane, Radio, BookOpen, CalendarDays, Zap, Globe, Shield, Cloud, BookMarked, LayoutDashboard } from 'lucide-react';
+import { Users, Plane, Radio, BookOpen, CalendarDays, Zap, Globe, Shield, Cloud, BookMarked, LayoutDashboard, AlertTriangle, Fuel, FileText, BarChart3 } from 'lucide-react';
 
 const MODULES = [
   {
@@ -118,6 +118,42 @@ const MODULES = [
     subtitle: 'Unified Command View',
     borderColor: 'border-rose-500/30',
     path: '/OpsCenter',
+  },
+  {
+    icon: AlertTriangle,
+    iconBg: 'bg-red-600',
+    iconColor: 'text-white',
+    title: 'IROPS',
+    subtitle: 'Recovery · AI Assist',
+    borderColor: 'border-red-600/30',
+    path: '/IROPS',
+  },
+  {
+    icon: Fuel,
+    iconBg: 'bg-amber-500',
+    iconColor: 'text-white',
+    title: 'FUEL MGMT',
+    subtitle: 'Variance · Tankering',
+    borderColor: 'border-amber-500/30',
+    path: '/Fuel',
+  },
+  {
+    icon: BarChart3,
+    iconBg: 'bg-lime-600',
+    iconColor: 'text-white',
+    title: 'ANALYTICS',
+    subtitle: 'OTP · Delays · Fleet',
+    borderColor: 'border-lime-600/30',
+    path: '/Analytics',
+  },
+  {
+    icon: FileText,
+    iconBg: 'bg-slate-500',
+    iconColor: 'text-white',
+    title: 'AUDIT LOG',
+    subtitle: 'FAA Compliance Trail',
+    borderColor: 'border-slate-500/30',
+    path: '/AuditLog',
   },
 ];
 
