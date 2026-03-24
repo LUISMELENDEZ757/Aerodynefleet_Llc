@@ -32,6 +32,8 @@ export const ROUTE_DEPTH = {
   '/Weather': 1,
   '/Learning': 1,
   '/Settings': 1,
+  '/Logbook': 1,
+  '/OpsCenter': 1,
 
   // Child screens - Dashboard tab (depth 2)
   '/OOSDetail': 2,
