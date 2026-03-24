@@ -44,12 +44,8 @@ export default function StarlinkIndicator() {
   const active = terminals.filter(t => t.activation_status === 'active');
   const primary = active[0] || terminals[0];
   
-  const statusColor = primary?.activation_status === 'active' ? 'text-green-400' : 
-                      primary?.activation_status === 'suspended' ? 'text-destructive' :
-                      'text-muted-foreground';
-  const statusBg = primary?.activation_status === 'active' ? 'bg-green-500/20' : 
-                   primary?.activation_status === 'suspended' ? 'bg-destructive/20' :
-                   'bg-secondary';
+  const statusColor = primary?.activation_status === 'active' ? 'text-green-400' : 'text-amber-400';
+  const statusBg = primary?.activation_status === 'active' ? 'bg-green-500/20' : 'bg-amber-500/20';
 
   const signalQuality = primary?.signal_quality ?? 0;
   const signalColor = signalQuality > 75 ? 'text-green-400' :
@@ -75,11 +71,9 @@ export default function StarlinkIndicator() {
               {primary.aircraft_tail}
             </p>
             <span className={cn('text-xs font-bold px-2 py-0.5 rounded-full', 
-              primary.activation_status === 'active' ? 'bg-green-500/20 text-green-400' :
-              primary.activation_status === 'suspended' ? 'bg-destructive/20 text-destructive' :
-              'bg-muted text-muted-foreground'
+              primary.activation_status === 'active' ? 'bg-green-500/20 text-green-400' : 'bg-amber-500/20 text-amber-400'
             )}>
-              {primary.activation_status?.toUpperCase()}
+              {primary.activation_status === 'active' ? 'OPERATIONAL' : 'DISCONNECTED'}
             </span>
           </div>
 
