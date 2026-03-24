@@ -17,6 +17,16 @@ const ALERT_TYPES = [
 
 const ROLES = ['dispatcher', 'captain', 'first_officer', 'flight_attendant', 'all'];
 
+const DEPARTMENTS = [
+  { id: 'dispatch', label: 'Dispatch', icon: '📍' },
+  { id: 'crew', label: 'Flight Crew', icon: '👨‍✈️' },
+  { id: 'maintenance', label: 'Maintenance', icon: '🔧' },
+  { id: 'operations', label: 'Operations', icon: '🎛️' },
+  { id: 'catering', label: 'Catering', icon: '🍽️' },
+  { id: 'ground', label: 'Ground Ops', icon: '🚘' },
+  { id: 'ramp', label: 'Ramp', icon: '⚙️' },
+];
+
 export default function OpsAlertCreationModal({ open, onClose }) {
   const queryClient = useQueryClient();
   const [form, setForm] = useState({
@@ -27,6 +37,7 @@ export default function OpsAlertCreationModal({ open, onClose }) {
     flight_number: '',
     aircraft_tail: '',
     target_roles: ['dispatcher'],
+    target_departments: ['dispatch'],
     action_required: false,
   });
 
@@ -48,6 +59,7 @@ export default function OpsAlertCreationModal({ open, onClose }) {
       flight_number: '',
       aircraft_tail: '',
       target_roles: ['dispatcher'],
+      target_departments: ['dispatch'],
       action_required: false,
     });
   };
@@ -65,6 +77,14 @@ export default function OpsAlertCreationModal({ open, onClose }) {
       setForm(prev => ({ ...prev, target_roles: prev.target_roles.filter(r => r !== role) }));
     } else {
       setForm(prev => ({ ...prev, target_roles: [...prev.target_roles, role] }));
+    }
+  };
+
+  const toggleDepartment = (dept) => {
+    if (form.target_departments.includes(dept)) {
+      setForm(prev => ({ ...prev, target_departments: prev.target_departments.filter(d => d !== dept) }));
+    } else {
+      setForm(prev => ({ ...prev, target_departments: [...prev.target_departments, dept] }));
     }
   };
 
@@ -135,9 +155,31 @@ export default function OpsAlertCreationModal({ open, onClose }) {
             </div>
           </div>
 
+          {/* Target departments */}
+          <div>
+            <label className="text-xs font-semibold text-muted-foreground uppercase tracking-wider block mb-2">Route to Departments</label>
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+              {DEPARTMENTS.map(dept => (
+                <button
+                  key={dept.id}
+                  onClick={() => toggleDepartment(dept.id)}
+                  className={cn(
+                    'px-3 py-2 rounded-lg text-xs font-bold transition-all flex items-center gap-1.5 justify-center',
+                    form.target_departments.includes(dept.id)
+                      ? 'bg-primary text-primary-foreground'
+                      : 'bg-secondary text-muted-foreground hover:text-foreground'
+                  )}
+                >
+                  <span>{dept.icon}</span>
+                  <span>{dept.label}</span>
+                </button>
+              ))}
+            </div>
+          </div>
+
           {/* Target roles */}
           <div>
-            <label className="text-xs font-semibold text-muted-foreground uppercase tracking-wider block mb-2">Notify Roles</label>
+            <label className="text-xs font-semibold text-muted-foreground uppercase tracking-wider block mb-2">Also Notify Roles</label>
             <div className="flex flex-wrap gap-2">
               {ROLES.map(role => (
                 <button
