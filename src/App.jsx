@@ -25,7 +25,7 @@ const SafetyQA              = lazy(() => import('@/pages/SafetyQA'));
 const Scheduling            = lazy(() => import('@/pages/Scheduling'));
 const WeatherDashboard      = lazy(() => import('@/pages/WeatherDashboard'));
 const LearningCenter        = lazy(() => import('@/pages/LearningCenter'));
-const Logbook               = lazy(() => import('@/pages/Logbook'));
+const Logbook               = lazy(() => import('@/pages/Logbook/index'));
 const OpsCenter             = lazy(() => import('@/pages/OpsCenter'));
 
 const SettingsPage          = lazy(() => import('@/pages/Settings'));
