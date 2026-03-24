@@ -20,6 +20,7 @@ const NAV_ITEMS = [
   { icon: CalendarDays,  label: 'Scheduling',    path: '/Scheduling' },
   { icon: Cloud,         label: 'Weather',       path: '/Weather' },
   { icon: BookOpen,      label: 'Learning',      path: '/Learning' },
+  { icon: Globe,         label: 'Supervisor',    path: '/Supervisor' },
 ];
 
 export default function LeftRail() {
