@@ -92,22 +92,20 @@ export default function BottomTabBar() {
       {/* ── MORE DRAWER ── */}
       <AnimatePresence>
         {drawerOpen && (
-          <motion.div
-            className="lg:hidden fixed inset-0 z-[60]"
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            transition={{ duration: 0.18 }}
-          >
+          <>
             {/* Backdrop */}
-            <div
-              className="absolute inset-0 bg-black/55 backdrop-blur-sm"
+            <motion.div
+              className="lg:hidden fixed inset-0 z-[60] bg-black/55 backdrop-blur-sm"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              transition={{ duration: 0.18 }}
               onClick={() => setDrawerOpen(false)}
             />
 
             {/* Sheet */}
             <motion.div
-              className="absolute bottom-0 left-0 right-0 bg-card rounded-t-2xl border-t border-border"
+              className="lg:hidden fixed bottom-0 left-0 right-0 z-[61] bg-card rounded-t-2xl border-t border-border"
               style={{ paddingBottom: 'env(safe-area-inset-bottom, 0px)' }}
               initial={{ y: '100%' }}
               animate={{ y: 0 }}
@@ -157,7 +155,7 @@ export default function BottomTabBar() {
                 })}
               </div>
             </motion.div>
-          </motion.div>
+          </>
         )}
       </AnimatePresence>
     </>
