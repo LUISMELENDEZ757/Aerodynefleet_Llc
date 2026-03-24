@@ -7,36 +7,43 @@ import { cn } from '@/lib/utils';
 export default function WifiIndicator() {
   const [showDetails, setShowDetails] = useState(false);
   const [connectionStatus, setConnectionStatus] = useState(null);
+  const [lastSuccessfulQuery, setLastSuccessfulQuery] = useState(new Date());
 
-  // Monitor CommMessage activity for network health
-  const { data: recentMessages = [] } = useQuery({
-    queryKey: ['wifi-health-check'],
-    queryFn: () => base44.entities.CommMessage.list('-created_date', 5),
-    refetchInterval: 30000,
-    staleTime: 25000,
+  // Actively test connection via API health check (every 10 seconds)
+  const { isError, refetch } = useQuery({
+    queryKey: ['wifi-connectivity-test'],
+    queryFn: async () => {
+      try {
+        // Make a simple entity query to test backend connectivity
+        await base44.entities.Flight.list(undefined, 1);
+        setLastSuccessfulQuery(new Date());
+        return true;
+      } catch (err) {
+        throw err;
+      }
+    },
+    refetchInterval: 10000, // Check every 10 seconds
+    staleTime: 8000,
+    retry: 1,
   });
 
-  // Check connection status based on recent message activity
+  // Determine connection status from API health + time since last success
   useEffect(() => {
-    if (recentMessages.length === 0) {
-      setConnectionStatus({ connected: false, latency: null, messageCount: 0 });
-      return;
-    }
-
     const now = new Date();
-    const recentCount = recentMessages.filter(m => {
-      const msgTime = new Date(m.created_date);
-      return (now - msgTime) / 1000 < 60; // Messages in last 60 seconds
-    }).length;
+    const timeSinceLastSuccess = (now - lastSuccessfulQuery) / 1000; // seconds
 
-    const isConnected = recentCount > 0;
+    // Connected if:
+    // 1. Last query succeeded within 15 seconds AND
+    // 2. Current query is not erroring
+    const isConnected = timeSinceLastSuccess < 15 && !isError;
+
     setConnectionStatus({
       connected: isConnected,
       latency: isConnected ? Math.floor(Math.random() * 50) + 10 : null,
-      messageCount: recentCount,
-      lastUpdate: new Date().toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', second: '2-digit' })
+      lastUpdate: new Date().toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', second: '2-digit' }),
+      timeSinceCheck: Math.round(timeSinceLastSuccess),
     });
-  }, [recentMessages]);
+  }, [isError, lastSuccessfulQuery]);
 
   if (!connectionStatus) return null;
 
