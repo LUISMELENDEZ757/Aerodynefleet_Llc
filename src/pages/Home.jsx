@@ -1,6 +1,6 @@
 import { Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { Users, Plane, Radio, BookOpen, CalendarDays, Zap, Globe, Shield, Cloud, BookMarked, LayoutDashboard, AlertTriangle, Fuel, FileText, BarChart3, Weight, Navigation2, DollarSign, CalendarCheck, Wrench, GraduationCap, Satellite } from 'lucide-react';
+import { Users, Plane, Radio, BookOpen, CalendarDays, Zap, Globe, Shield, Cloud, BookMarked, LayoutDashboard, AlertTriangle, Fuel, FileText, BarChart3, Weight, Navigation2, DollarSign, CalendarCheck, Wrench, GraduationCap, Satellite, MessageSquare } from 'lucide-react';
 
 import useTieredPreload from '@/hooks/useTieredPreload';
 
@@ -41,6 +41,7 @@ const TIER3 = [
   { icon: Fuel,          iconBg: 'bg-yellow-600', iconColor: 'text-white',              title: 'FUEL CONTRACTS',subtitle: 'Suppliers · Invoices',     borderColor: 'border-yellow-600/30', path: '/FuelContracts' },
   { icon: Users,         iconBg: 'bg-pink-600',   iconColor: 'text-white',              title: 'PAX REACCOM',   subtitle: 'IROPS Rebooking',         borderColor: 'border-pink-600/30',   path: '/PaxReaccom' },
   { icon: Satellite,     iconBg: 'bg-sky-700',    iconColor: 'text-white',              title: 'STARLINK',      subtitle: 'Aviation Connectivity',   borderColor: 'border-sky-700/30',    path: '/Starlink' },
+  { icon: MessageSquare, iconBg: 'bg-emerald-700',iconColor: 'text-white',              title: 'COMM CENTER',   subtitle: 'Channels · ACARS · Broadcast', borderColor: 'border-emerald-700/30',path: '/CommCenter' },
 ];
 
 // Stagger config per tier
