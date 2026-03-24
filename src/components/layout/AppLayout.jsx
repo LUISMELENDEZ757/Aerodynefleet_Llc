@@ -32,7 +32,7 @@ function AppContent() {
       </div>
       <BottomTabBar />
       {/* Global alerts bell — fixed top-right */}
-      <div className="fixed top-3 right-4 z-[60]" style={{ top: 'calc(env(safe-area-inset-top, 0px) + 12px)' }}>
+      <div className="fixed top-3 right-24 z-[60]" style={{ top: 'calc(env(safe-area-inset-top, 0px) + 12px)' }}>
         <OpsAlertsPanel />
       </div>
     </div>
