@@ -1,7 +1,7 @@
 import React from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import {
-  Plane, Home, Users, Settings, Radio, BookOpen,
+  Home, Users, Settings, Radio, BookOpen,
   CalendarDays, Zap, Globe, Shield, Cloud
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
@@ -45,20 +45,7 @@ export default function LeftRail() {
         expanded ? 'w-44' : 'w-16'
       )}
     >
-      {/* Logo */}
-      <div className="mb-4 flex items-center justify-center w-full px-3.5">
-        <Link
-          to="/Dashboard"
-          aria-label="Go to Flight Ops Dashboard"
-          className="w-9 h-9 rounded-lg bg-primary/20 flex items-center justify-center flex-shrink-0 hover:bg-primary/30 transition-colors"
-        >
-          <Plane className="w-5 h-5 text-primary" />
-        </Link>
-      </div>
 
-      <div className="w-full px-3.5 mb-4">
-        <div className="h-px bg-border" />
-      </div>
 
       <nav className="flex flex-col gap-1 flex-1 w-full px-2 overflow-y-auto">
         {NAV_ITEMS.map(({ icon: Icon, label, path }) => {
