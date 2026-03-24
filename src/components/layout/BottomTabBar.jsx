@@ -24,7 +24,7 @@ const MORE_ITEMS = [
   { icon: Globe,         label: 'World Clock',   path: '/WorldClock' },
   { icon: Shield,        label: 'Safety & QA',   path: '/SafetyQA' },
   { icon: Cloud,         label: 'Weather',       path: '/Weather' },
-  { icon: GraduationCap, label: 'Training',      path: '/Training' },
+  { icon: GraduationCap, label: 'Learning',      path: '/Learning' },
   { icon: Settings,      label: 'Settings',      path: '/Settings' },
 ];
 
