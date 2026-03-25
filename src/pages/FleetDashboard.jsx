@@ -89,9 +89,15 @@ function AircraftDetailOverlay({ aircraft: initialAircraft, onClose }) {
             <p className="text-lg font-extrabold text-white tracking-wide">{aircraft.tail_number}</p>
             <p className="text-xs text-gray-500 font-mono">{aircraft.aircraft_type}</p>
           </div>
-          <span className={cn('flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold text-white ml-2', status.bg)}>
-            <StatusIcon className="w-3 h-3" /> {status.label}
-          </span>
+          {aircraft.status === 'oos' ? (
+            <span className="flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold text-white ml-2 bg-red-600">
+              <Wrench className="w-3 h-3" /> OUT OF SERVICE
+            </span>
+          ) : (
+            <span className={cn('flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold text-white ml-2', status.bg)}>
+              <StatusIcon className="w-3 h-3" /> {status.label}
+            </span>
+          )}
         </div>
         <button
           onClick={onClose}
