@@ -30,10 +30,13 @@ export default function OpsAlertsPanel() {
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ['ops-alerts'] }),
   });
 
-  // Broadcast critical alerts to comm system
+  // Broadcast critical alerts to comm system — track sent IDs to avoid loops
+  const sentAlertIds = useState(() => new Set())[0];
   useEffect(() => {
-    const criticalAlerts = alerts.filter(a => a.severity === 'critical' && !a.is_read);
+    const criticalAlerts = alerts.filter(a => a.severity === 'critical' && !a.is_read && !sentAlertIds.has(a.id));
+    if (criticalAlerts.length === 0) return;
     criticalAlerts.forEach(alert => {
+      sentAlertIds.add(alert.id);
       sendAlert({
         id: alert.id,
         title: alert.title,
@@ -45,7 +48,8 @@ export default function OpsAlertsPanel() {
         timestamp: new Date().toISOString(),
       });
     });
-  }, [alerts, sendAlert]);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [alerts]);
 
   const unread = alerts.filter(a => !a.is_read).length;
   const critical = alerts.filter(a => a.severity === 'critical').length;
