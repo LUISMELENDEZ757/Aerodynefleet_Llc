@@ -250,7 +250,7 @@ function AircraftDetailOverlay({ aircraft, onClose }) {
               <p className="text-lg font-extrabold text-gray-400">No Timeline Events</p>
               <p className="text-sm text-gray-600">Use "PLACE OOS" to begin the maintenance record.</p>
               <button
-                onClick={handlePlaceOOS}
+                onClick={() => setShowPlaceOOSModal(true)}
                 className="flex items-center gap-2 px-6 py-3 rounded-xl bg-red-700/80 border border-red-600 text-white text-sm font-extrabold hover:bg-red-600 transition-colors mt-2"
               >
                 <AlertTriangle className="w-4 h-4" /> PLACE OOS
