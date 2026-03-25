@@ -292,11 +292,11 @@ export default function SettingsPage() {
       {/* Header */}
       <div className="border-b border-border bg-card px-5 pt-5 pb-4">
         <div className="flex items-center gap-3">
-          {/* Mobile back button */}
+          {/* Back button */}
           <button
             onClick={() => navigate(-1)}
             aria-label="Go back"
-            className="lg:hidden w-10 h-10 rounded-xl bg-secondary flex items-center justify-center flex-shrink-0 text-muted-foreground hover:text-foreground transition-colors"
+            className="w-10 h-10 rounded-xl bg-secondary flex items-center justify-center flex-shrink-0 text-muted-foreground hover:text-foreground transition-colors"
           >
             <ChevronLeft className="w-5 h-5" />
           </button>
