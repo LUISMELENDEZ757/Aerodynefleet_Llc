@@ -37,6 +37,64 @@ function Field({ label, children }) {
 
 const inputCls = "w-full bg-[#1a1f2e] border border-white/10 rounded-xl px-4 py-2.5 text-sm text-white placeholder-gray-600 outline-none focus:border-primary";
 
+const ATA_CHAPTERS = [
+  { code: '05', label: '05 — Time Limits / Maintenance Checks' },
+  { code: '06', label: '06 — Dimensions & Areas' },
+  { code: '07', label: '07 — Lifting & Shoring' },
+  { code: '08', label: '08 — Leveling & Weighing' },
+  { code: '09', label: '09 — Towing & Taxiing' },
+  { code: '10', label: '10 — Parking, Mooring, Storage & Return to Service' },
+  { code: '11', label: '11 — Placards & Markings' },
+  { code: '12', label: '12 — Servicing' },
+  { code: '18', label: '18 — Vibration & Noise Analysis' },
+  { code: '20', label: '20 — Standard Practices — Airframe' },
+  { code: '21', label: '21 — Air Conditioning & Pressurization' },
+  { code: '22', label: '22 — Auto Flight' },
+  { code: '23', label: '23 — Communications' },
+  { code: '24', label: '24 — Electrical Power' },
+  { code: '25', label: '25 — Equipment / Furnishings' },
+  { code: '26', label: '26 — Fire Protection' },
+  { code: '27', label: '27 — Flight Controls' },
+  { code: '28', label: '28 — Fuel' },
+  { code: '29', label: '29 — Hydraulic Power' },
+  { code: '30', label: '30 — Ice & Rain Protection' },
+  { code: '31', label: '31 — Indicating / Recording Systems' },
+  { code: '32', label: '32 — Landing Gear' },
+  { code: '33', label: '33 — Lights' },
+  { code: '34', label: '34 — Navigation' },
+  { code: '35', label: '35 — Oxygen' },
+  { code: '36', label: '36 — Pneumatic' },
+  { code: '37', label: '37 — Vacuum' },
+  { code: '38', label: '38 — Water / Waste' },
+  { code: '39', label: '39 — Electrical — Electronic Panels & Multipurpose Components' },
+  { code: '44', label: '44 — Cabin Systems' },
+  { code: '45', label: '45 — Central Maintenance System' },
+  { code: '46', label: '46 — Information Systems' },
+  { code: '47', label: '47 — Nitrogen Generation System' },
+  { code: '49', label: '49 — Airborne Auxiliary Power (APU)' },
+  { code: '51', label: '51 — Standard Practices & Structures — General' },
+  { code: '52', label: '52 — Doors' },
+  { code: '53', label: '53 — Fuselage' },
+  { code: '54', label: '54 — Nacelles / Pylons' },
+  { code: '55', label: '55 — Stabilizers' },
+  { code: '56', label: '56 — Windows' },
+  { code: '57', label: '57 — Wings' },
+  { code: '61', label: '61 — Propellers' },
+  { code: '71', label: '71 — Power Plant — General' },
+  { code: '72', label: '72 — Engine' },
+  { code: '73', label: '73 — Engine Fuel & Control' },
+  { code: '74', label: '74 — Ignition' },
+  { code: '75', label: '75 — Air' },
+  { code: '76', label: '76 — Engine Controls' },
+  { code: '77', label: '77 — Engine Indicating' },
+  { code: '78', label: '78 — Exhaust' },
+  { code: '79', label: '79 — Oil' },
+  { code: '80', label: '80 — Starting' },
+  { code: '82', label: '82 — Water Injection' },
+  { code: '91', label: '91 — Charts' },
+  { code: '92', label: '92 — Electrical Components' },
+];
+
 // ── 1. New Logbook Entry Modal ──────────────────────────────────────────────
 function NewEntryModal({ onClose }) {
   const queryClient = useQueryClient();
@@ -86,7 +144,10 @@ function NewEntryModal({ onClose }) {
             </select>
           </Field>
           <Field label="ATA Chapter">
-            <input value={form.ata_chapter} onChange={e => set('ata_chapter', e.target.value)} placeholder="e.g. 21-31" className={inputCls} />
+            <select value={form.ata_chapter} onChange={e => set('ata_chapter', e.target.value)} className={inputCls}>
+              <option value="">Select ATA…</option>
+              {ATA_CHAPTERS.map(a => <option key={a.code} value={a.code}>{a.label}</option>)}
+            </select>
           </Field>
         </div>
         <Field label="Description *">
