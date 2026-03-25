@@ -5,7 +5,7 @@ import { Bell, X, AlertTriangle, Info, Zap, CheckCircle, ChevronRight, Radio, Sa
 import { cn } from '@/lib/utils';
 import { useNavigate } from 'react-router-dom';
 import { AnimatePresence, motion } from 'framer-motion';
-import { useCommSystemBridge } from '@/hooks/useCommSystemBridge';
+
 
 const SEV = {
   info:     { icon: Info,          color: 'text-blue-400',    bg: 'bg-blue-500/10',    border: 'border-blue-500/20' },
@@ -17,7 +17,6 @@ export default function OpsAlertsPanel() {
   const [open, setOpen] = useState(false);
   const queryClient = useQueryClient();
   const navigate = useNavigate();
-  const { commStatus, sendAlert } = useCommSystemBridge();
 
   const { data: alerts = [] } = useQuery({
     queryKey: ['ops-alerts'],
@@ -79,17 +78,9 @@ export default function OpsAlertsPanel() {
                     <span className="text-xs font-bold px-2 py-0.5 rounded-full bg-primary/15 text-primary">{unread} new</span>
                   )}
                 </div>
-                <div className="flex items-center gap-2">
-                  {commStatus && (
-                    <div className="flex items-center gap-1 text-xs">
-                      <div className={cn('w-2 h-2 rounded-full', commStatus.connected ? 'bg-green-400' : 'bg-orange-400')} />
-                      <span className="text-muted-foreground">{commStatus.type === 'starlink' ? <Satellite className="w-3 h-3" /> : <Radio className="w-3 h-3" />}</span>
-                    </div>
-                  )}
-                  <button onClick={() => setOpen(false)} className="w-8 h-8 rounded-lg bg-secondary flex items-center justify-center text-muted-foreground">
-                    <X className="w-4 h-4" />
-                  </button>
-                </div>
+                <button onClick={() => setOpen(false)} className="w-8 h-8 rounded-lg bg-secondary flex items-center justify-center text-muted-foreground hover:bg-secondary/80 transition-colors">
+                  <X className="w-4 h-4" />
+                </button>
               </div>
 
               {/* Alert list */}
