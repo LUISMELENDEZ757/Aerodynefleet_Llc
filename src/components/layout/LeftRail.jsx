@@ -39,7 +39,7 @@ const FLIGHT_OPS = [
 const TECH_OPS = [
   { icon: Home,          label: 'Home',              path: '/Home' },
   { icon: Activity,      label: 'Fleet Dashboard',   path: '/FleetDashboard' },
-  { icon: BookOpen,      label: 'E-Logbook',         path: '/Logbook' },
+  { icon: BookOpen,      label: 'E-Logbook',         path: '/TechOpsLogbook' },
   { icon: Wrench,        label: 'Line Maintenance',  path: '/MEL' },
   { icon: Users,         label: 'Manpower & Staff',  path: '/CrewDirectory' },
   { icon: Sofa,          label: 'Cabin Mode (FA)',   path: '/FlightAttendant' },

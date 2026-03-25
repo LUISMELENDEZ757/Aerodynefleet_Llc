@@ -14,7 +14,7 @@ const TECH_CARDS = [
   { icon: AlertTriangle, iconBg: 'bg-red-800',    title: 'NOTAMs',         subtitle: 'Notices · Field Alerts',     path: '/NOTAMs' },
   { icon: ClipboardList, iconBg: 'bg-orange-500', title: 'Safety & QA',    subtitle: 'ASAP · Incidents',           path: '/SafetyQA' },
   { icon: Package,       iconBg: 'bg-yellow-700', title: 'Parts / OOS',    subtitle: 'New OOS Entry',              path: '/NewOOS' },
-  { icon: BookOpen,      iconBg: 'bg-violet-600', title: 'E-Logbook',      subtitle: 'Hours · Approaches · Currency', path: '/Logbook' },
+  { icon: BookOpen,      iconBg: 'bg-violet-600', title: 'E-Logbook',      subtitle: 'Discrepancies · Faults · MEL', path: '/TechOpsLogbook' },
   { icon: GraduationCap, iconBg: 'bg-green-600',  title: 'Training',       subtitle: 'Records · Currency',         path: '/Training' },
   { icon: FileText,      iconBg: 'bg-teal-600',   title: 'Documents',      subtitle: 'FARs · SOPs · CBAs',         path: '/Documents' },
   { icon: BookOpen,      iconBg: 'bg-emerald-500',title: 'Learning',       subtitle: 'App Guide · Tutorials',      path: '/Learning' },
