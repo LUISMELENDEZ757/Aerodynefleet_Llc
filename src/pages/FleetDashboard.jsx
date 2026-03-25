@@ -22,8 +22,9 @@ const STATUS_STYLES = {
 };
 
 // ── Aircraft Detail Overlay ─────────────────────────────────────────────────
-function AircraftDetailOverlay({ aircraft, onClose }) {
+function AircraftDetailOverlay({ aircraft: initialAircraft, onClose }) {
   const queryClient = useQueryClient();
+  const [aircraft, setAircraft] = useState(initialAircraft);
   const status = STATUS_STYLES[aircraft.status] || STATUS_STYLES.active;
   const StatusIcon = status.icon;
 
@@ -54,7 +55,8 @@ function AircraftDetailOverlay({ aircraft, onClose }) {
         queryClient.invalidateQueries({ queryKey: ['fleet-logbook', aircraft.tail_number] });
       }
     });
-    // Update aircraft status to OOS
+    // Update aircraft status to OOS locally and in DB
+    setAircraft(prev => ({ ...prev, status: 'oos' }));
     queryClient.setQueryData(['fleet-aircraft'], (old = []) =>
       old.map(a => a.tail_number === aircraft.tail_number ? { ...a, status: 'oos' } : a)
     );
