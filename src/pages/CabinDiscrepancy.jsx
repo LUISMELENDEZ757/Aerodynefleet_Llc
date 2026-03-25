@@ -27,7 +27,7 @@ export default function CabinDiscrepancy() {
 
   const { data: aircraft = [] } = useQuery({
     queryKey: ['cabin-disc-aircraft'],
-    queryFn: () => base44.entities.Aircraft.list(),
+    queryFn: () => base44.entities.Aircraft.list('tail_number', 200),
   });
 
   const [form, setForm] = useState({
