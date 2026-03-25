@@ -48,8 +48,8 @@ export default function AddTimelineEventModal({ aircraftTail, onClose, onSubmit,
   };
 
   return (
-    <div className="fixed inset-0 z-[60] flex items-center justify-center bg-black/70 p-4">
-      <div className="w-full max-w-lg bg-[#1a1f2e] border border-white/10 rounded-2xl overflow-hidden shadow-2xl">
+    <div className="fixed inset-0 z-[60] bg-black/70 p-4 flex justify-center" style={{ paddingTop: '96px' }}>
+      <div className="w-full max-w-lg bg-[#1a1f2e] border border-white/10 rounded-2xl overflow-hidden shadow-2xl max-h-[calc(100vh-120px)] overflow-y-auto">
         {/* Header */}
         <div className="flex items-center justify-between px-6 py-4 border-b border-white/10 bg-[#141922]">
           <p className="text-lg font-extrabold text-primary tracking-wide">Add Timeline Event</p>
