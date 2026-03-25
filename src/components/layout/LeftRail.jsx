@@ -42,7 +42,7 @@ const TECH_OPS = [
   { icon: BookOpen,      label: 'E-Logbook',         path: '/TechOpsLogbook' },
   { icon: Wrench,        label: 'Line Maintenance',  path: '/MEL' },
   { icon: Users,         label: 'Manpower & Staff',  path: '/CrewDirectory' },
-  { icon: Sofa,          label: 'Cabin Mode (FA)',   path: '/FlightAttendant' },
+  { icon: Sofa,          label: 'Cabin Mode (FA)',   path: '/CabinDiscrepancy' },
   { icon: ClipboardCheck,label: 'Technician Mode',   path: '/OOSDashboard' },
   { icon: Cog,           label: 'Tooling Mgmt',      path: '/GroundOps' },
   { icon: Gauge,         label: 'OOS Dashboard',     path: '/OOSDashboard' },
