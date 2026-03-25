@@ -9,6 +9,7 @@ import {
 import { cn } from '@/lib/utils';
 import { motion, AnimatePresence } from 'framer-motion';
 import AddTimelineEventModal from '@/components/fleet/AddTimelineEventModal';
+import TakingOwnershipModal from '@/components/fleet/TakingOwnershipModal';
 
 const STATUS_OPTIONS = ['All Status', 'active', 'oos', 'maintenance', 'retired'];
 
@@ -35,6 +36,7 @@ function AircraftDetailOverlay({ aircraft, onClose }) {
   const [showCatDropdown, setShowCatDropdown] = useState(false);
   const [showEtopsDropdown, setShowEtopsDropdown] = useState(false);
   const [showAddEventModal, setShowAddEventModal] = useState(false);
+  const [showTakingOwnershipModal, setShowTakingOwnershipModal] = useState(false);
 
   const createEntryMutation = useMutation({
     mutationFn: (data) => base44.entities.LogbookEntry.create(data),
@@ -53,12 +55,9 @@ function AircraftDetailOverlay({ aircraft, onClose }) {
     });
   };
 
-  const handleTakingOwnership = () => {
-    createEntryMutation.mutate({
-      aircraft_tail: aircraft.tail_number,
-      entry_type: 'info',
-      description: `Technician taking ownership of ${aircraft.tail_number}`,
-    });
+  const handleTakingOwnershipSubmit = (data) => {
+    createEntryMutation.mutate(data);
+    setShowTakingOwnershipModal(false);
   };
 
   return (
@@ -231,7 +230,7 @@ function AircraftDetailOverlay({ aircraft, onClose }) {
               <AlertTriangle className="w-4 h-4" /> PLACE OOS
             </button>
             <button
-              onClick={handleTakingOwnership}
+              onClick={() => setShowTakingOwnershipModal(true)}
               disabled={createEntryMutation.isPending}
               className="flex items-center gap-2 px-5 py-2.5 rounded-xl bg-[#1a1f2e] border border-white/15 text-white text-sm font-extrabold hover:bg-white/10 transition-colors disabled:opacity-50"
             >
@@ -288,6 +287,18 @@ function AircraftDetailOverlay({ aircraft, onClose }) {
                 aircraftTail={aircraft.tail_number}
                 onClose={() => setShowAddEventModal(false)}
                 onSubmit={(data) => createEntryMutation.mutate(data)}
+                isPending={createEntryMutation.isPending}
+              />
+            )}
+          </AnimatePresence>
+
+          {/* Taking Ownership Modal */}
+          <AnimatePresence>
+            {showTakingOwnershipModal && (
+              <TakingOwnershipModal
+                aircraft={aircraft}
+                onClose={() => setShowTakingOwnershipModal(false)}
+                onSubmit={handleTakingOwnershipSubmit}
                 isPending={createEntryMutation.isPending}
               />
             )}
