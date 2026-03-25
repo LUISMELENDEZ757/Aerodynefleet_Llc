@@ -35,7 +35,7 @@ const TIER3 = [
   { icon: FileText,      iconBg: 'bg-slate-500',  iconColor: 'text-white',              title: 'AUDIT LOG',     subtitle: 'FAA Compliance Trail',    borderColor: 'border-slate-500/30',  path: '/AuditLog' },
   { icon: DollarSign,    iconBg: 'bg-red-700',    iconColor: 'text-white',              title: 'DELAY COSTS',   subtitle: 'Cost Tracker',            borderColor: 'border-red-700/30',    path: '/DelayCost' },
   { icon: CalendarCheck, iconBg: 'bg-indigo-600', iconColor: 'text-white',              title: 'CREW BIDDING',  subtitle: 'Monthly Pairings',        borderColor: 'border-indigo-600/30', path: '/CrewBidding' },
-  { icon: Wrench,        iconBg: 'bg-orange-600', iconColor: 'text-white',              title: 'MEL DASHBOARD', subtitle: 'Deferrals · Expiry',      borderColor: 'border-orange-600/30', path: '/MEL' },
+  { icon: Wrench,        iconBg: 'bg-orange-600', iconColor: 'text-white',              title: 'MEL DASHBOARD', subtitle: 'Deferrals · Expiring',      borderColor: 'border-orange-600/30', path: '/MEL' },
   { icon: BookMarked,    iconBg: 'bg-teal-600',   iconColor: 'text-white',              title: 'DOCUMENTS',     subtitle: 'FARs · SOPs · CBAs',      borderColor: 'border-teal-600/30',   path: '/Documents' },
   { icon: GraduationCap, iconBg: 'bg-green-600',  iconColor: 'text-white',              title: 'TRAINING',      subtitle: 'Records · Currency',      borderColor: 'border-green-600/30',  path: '/Training' },
   { icon: Fuel,          iconBg: 'bg-yellow-600', iconColor: 'text-white',              title: 'FUEL CONTRACTS',subtitle: 'Suppliers · Invoices',     borderColor: 'border-yellow-600/30', path: '/FuelContracts' },
