@@ -49,7 +49,11 @@ function AircraftDetailOverlay({ aircraft, onClose }) {
   });
 
   const handlePlaceOOSSubmit = (data) => {
-    createEntryMutation.mutate(data);
+    createEntryMutation.mutate(data, {
+      onSuccess: () => {
+        queryClient.invalidateQueries({ queryKey: ['fleet-logbook', aircraft.tail_number] });
+      }
+    });
     // Update aircraft status to OOS
     queryClient.setQueryData(['fleet-aircraft'], (old = []) =>
       old.map(a => a.tail_number === aircraft.tail_number ? { ...a, status: 'oos' } : a)
