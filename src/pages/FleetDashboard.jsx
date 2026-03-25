@@ -15,10 +15,10 @@ import PlaceOOSModal from '@/components/fleet/PlaceOOSModal';
 const STATUS_OPTIONS = ['All Status', 'active', 'oos', 'maintenance', 'retired'];
 
 const STATUS_STYLES = {
-  active:      { label: 'RELEASED',    bg: 'bg-green-600',  icon: CheckCircle },
-  oos:         { label: 'OOS',         bg: 'bg-red-600',    icon: Wrench },
-  maintenance: { label: 'MAINTENANCE', bg: 'bg-orange-500', icon: Wrench },
-  retired:     { label: 'RETIRED',     bg: 'bg-gray-600',   icon: Plane },
+  active:      { label: 'RELEASED',      bg: 'bg-green-600',  icon: CheckCircle },
+  oos:         { label: 'OUT OF SERVICE', bg: 'bg-red-600',    icon: Wrench },
+  maintenance: { label: 'MAINTENANCE',   bg: 'bg-orange-500', icon: Wrench },
+  retired:     { label: 'RETIRED',       bg: 'bg-gray-600',   icon: Plane },
 };
 
 // ── Aircraft Detail Overlay ─────────────────────────────────────────────────
