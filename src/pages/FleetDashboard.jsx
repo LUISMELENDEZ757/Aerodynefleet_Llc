@@ -8,6 +8,7 @@ import {
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { motion, AnimatePresence } from 'framer-motion';
+import AddTimelineEventModal from '@/components/fleet/AddTimelineEventModal';
 
 const STATUS_OPTIONS = ['All Status', 'active', 'oos', 'maintenance', 'retired'];
 
@@ -33,10 +34,14 @@ function AircraftDetailOverlay({ aircraft, onClose }) {
   const [etopsStatus, setEtopsStatus] = useState('NON-ETOPS');
   const [showCatDropdown, setShowCatDropdown] = useState(false);
   const [showEtopsDropdown, setShowEtopsDropdown] = useState(false);
+  const [showAddEventModal, setShowAddEventModal] = useState(false);
 
   const createEntryMutation = useMutation({
     mutationFn: (data) => base44.entities.LogbookEntry.create(data),
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['fleet-logbook', aircraft.tail_number] }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['fleet-logbook', aircraft.tail_number] });
+      setShowAddEventModal(false);
+    },
   });
 
   const handlePlaceOOS = () => {
@@ -53,14 +58,6 @@ function AircraftDetailOverlay({ aircraft, onClose }) {
       aircraft_tail: aircraft.tail_number,
       entry_type: 'info',
       description: `Technician taking ownership of ${aircraft.tail_number}`,
-    });
-  };
-
-  const handleAddEvent = () => {
-    createEntryMutation.mutate({
-      aircraft_tail: aircraft.tail_number,
-      entry_type: 'info',
-      description: 'Maintenance event added via Fleet Dashboard',
     });
   };
 
@@ -241,7 +238,7 @@ function AircraftDetailOverlay({ aircraft, onClose }) {
               <UserCheck className="w-4 h-4" /> TAKING OWNERSHIP
             </button>
             <button
-              onClick={handleAddEvent}
+              onClick={() => setShowAddEventModal(true)}
               disabled={createEntryMutation.isPending}
               className="flex items-center gap-2 px-5 py-2.5 rounded-xl bg-primary text-primary-foreground text-sm font-extrabold hover:bg-primary/90 transition-colors disabled:opacity-50"
             >
@@ -283,6 +280,18 @@ function AircraftDetailOverlay({ aircraft, onClose }) {
               ))}
             </div>
           )}
+
+          {/* Add Event Modal */}
+          <AnimatePresence>
+            {showAddEventModal && (
+              <AddTimelineEventModal
+                aircraftTail={aircraft.tail_number}
+                onClose={() => setShowAddEventModal(false)}
+                onSubmit={(data) => createEntryMutation.mutate(data)}
+                isPending={createEntryMutation.isPending}
+              />
+            )}
+          </AnimatePresence>
         </div>
       </div>
     </motion.div>
