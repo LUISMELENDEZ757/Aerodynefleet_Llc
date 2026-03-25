@@ -71,10 +71,10 @@ function TierSection({ label, modules, delayStart = 0 }) {
   const handleNavClick = (e) => {
     if (isNavigating) {
       e.preventDefault();
-    } else {
-      setIsNavigating(true);
-      setTimeout(() => setIsNavigating(false), 500);
+      return;
     }
+    setIsNavigating(true);
+    setTimeout(() => setIsNavigating(false), 500);
   };
 
   return (
