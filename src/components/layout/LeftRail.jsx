@@ -6,7 +6,7 @@ import {
   AlertTriangle, Fuel, Weight, Navigation2, DollarSign,
   Wrench, GraduationCap, MessageSquare, Satellite,
   Truck, UserCheck, MonitorPlay, Gauge, ClipboardList,
-  Package, FileText
+  Package, FileText, Activity, Sofa, ClipboardCheck, Cog
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useRail } from '@/lib/RailContext';
@@ -37,17 +37,22 @@ const FLIGHT_OPS = [
 ];
 
 const TECH_OPS = [
-  { icon: Home,          label: 'Home',           path: '/Home' },
-  { icon: Wrench,        label: 'MEL Dashboard',  path: '/MEL' },
-  { icon: Gauge,         label: 'OOS Dashboard',  path: '/OOSDashboard' },
-  { icon: Truck,         label: 'Ground Ops',     path: '/GroundOps' },
-  { icon: ClipboardList, label: 'Safety & QA',    path: '/SafetyQA' },
-  { icon: Package,       label: 'Parts / OOS',    path: '/NewOOS' },
-  { icon: GraduationCap, label: 'Training',       path: '/Training' },
-  { icon: FileText,      label: 'Documents',      path: '/Documents' },
-  { icon: BookOpen,      label: 'Learning',       path: '/Learning' },
-  { icon: DollarSign,    label: 'Cost Reporting', path: '/CostReporting' },
-  { icon: BarChart3,     label: 'Analytics',      path: '/Analytics' },
+  { icon: Home,          label: 'Home',              path: '/Home' },
+  { icon: Activity,      label: 'Fleet Dashboard',   path: '/Dashboard' },
+  { icon: BookOpen,      label: 'E-Logbook',         path: '/Logbook' },
+  { icon: Wrench,        label: 'Line Maintenance',  path: '/MEL' },
+  { icon: Users,         label: 'Manpower & Staff',  path: '/CrewDirectory' },
+  { icon: Sofa,          label: 'Cabin Mode (FA)',   path: '/FlightAttendant' },
+  { icon: ClipboardCheck,label: 'Technician Mode',   path: '/OOSDashboard' },
+  { icon: Cog,           label: 'Tooling Mgmt',      path: '/GroundOps' },
+  { icon: Gauge,         label: 'OOS Dashboard',     path: '/OOSDashboard' },
+  { icon: Truck,         label: 'Ground Ops',        path: '/GroundOps' },
+  { icon: ClipboardList, label: 'Safety & QA',       path: '/SafetyQA' },
+  { icon: Package,       label: 'Parts / OOS',       path: '/NewOOS' },
+  { icon: GraduationCap, label: 'Training',          path: '/Training' },
+  { icon: FileText,      label: 'Documents',         path: '/Documents' },
+  { icon: DollarSign,    label: 'Cost Reporting',    path: '/CostReporting' },
+  { icon: BarChart3,     label: 'Analytics',         path: '/Analytics' },
 ];
 
 export default function LeftRail() {
