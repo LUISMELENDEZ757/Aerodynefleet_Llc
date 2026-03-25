@@ -50,6 +50,11 @@ function AircraftDetailOverlay({ aircraft, onClose }) {
 
   const handlePlaceOOSSubmit = (data) => {
     createEntryMutation.mutate(data);
+    // Update aircraft status to OOS
+    queryClient.setQueryData(['fleet-aircraft'], (old = []) =>
+      old.map(a => a.tail_number === aircraft.tail_number ? { ...a, status: 'oos' } : a)
+    );
+    base44.entities.Aircraft.update(aircraft.id, { status: 'oos' });
     setShowPlaceOOSModal(false);
   };
 
