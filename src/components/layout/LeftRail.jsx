@@ -43,7 +43,6 @@ const TECH_OPS = [
   { icon: AlertTriangle, label: 'NOTAMs',         path: '/NOTAMs' },
   { icon: ClipboardList, label: 'Safety & QA',    path: '/SafetyQA' },
   { icon: Package,       label: 'Parts / OOS',    path: '/NewOOS' },
-  { icon: BookOpen,      label: 'E-Logbook',      path: '/Logbook' },
   { icon: GraduationCap, label: 'Training',       path: '/Training' },
   { icon: FileText,      label: 'Documents',      path: '/Documents' },
   { icon: BookOpen,      label: 'Learning',       path: '/Learning' },
