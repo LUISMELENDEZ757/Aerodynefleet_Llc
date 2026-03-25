@@ -3,6 +3,8 @@ import { motion } from 'framer-motion';
 import { Users, Plane, Radio, BookOpen, CalendarDays, Zap, Globe, Shield, Cloud, BookMarked, LayoutDashboard, AlertTriangle, Fuel, FileText, BarChart3, Weight, Navigation2, DollarSign, CalendarCheck, Wrench, GraduationCap, Satellite, MessageSquare, Truck, UserCheck, MonitorPlay, PieChart, UserCog } from 'lucide-react';
 
 import useTieredPreload from '@/hooks/useTieredPreload';
+import { useRail } from '@/lib/RailContext';
+import TechOpsDashboard from '@/components/techops/TechOpsDashboard';
 
 // ── Tier 1: Critical modules ──────────────────────────────────────────────────
 const TIER1 = [
@@ -101,6 +103,11 @@ function TierSection({ label, modules, delayStart = 0 }) {
 
 export default function Home() {
   useTieredPreload();
+  const { mode } = useRail();
+
+  if (mode === 'tech') {
+    return <TechOpsDashboard />;
+  }
 
   return (
     <div className="min-h-screen bg-[#0d1117] px-4 pt-6 pb-24 flex flex-col items-center gap-6">
