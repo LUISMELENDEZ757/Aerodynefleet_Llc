@@ -109,6 +109,20 @@ function NewEntryModal({ onClose }) {
   });
   const set = (k, v) => setForm(p => ({ ...p, [k]: v }));
 
+  // ATA chapters that affect CAT II/III approach authorization
+  const CAT_AFFECTED_ATAS = {
+    '22': 'ATA 22 — Auto Flight affects CAT II/III autoland capability. Aircraft CAT status may be downgraded.',
+    '34': 'ATA 34 — Navigation systems (ILS/GPS/RA) are CAT II/III critical. Aircraft CAT status may be downgraded.',
+    '31': 'ATA 31 — Indicating/Recording systems include CAT II/III flight instruments. Aircraft CAT status may be downgraded.',
+    '24': 'ATA 24 — Electrical Power is essential for CAT II/III operations. Aircraft CAT status may be downgraded.',
+    '30': 'ATA 30 — Ice & Rain Protection (windshield heat, probes) affects CAT II/III minima. Aircraft CAT status may be downgraded.',
+    '27': 'ATA 27 — Flight Controls (autopilot servos, spoilers) are required for autoland. Aircraft CAT status may be downgraded.',
+    '32': 'ATA 32 — Landing Gear (auto-brakes, antiskid) are CAT II/III approach critical. Aircraft CAT status may be downgraded.',
+    '23': 'ATA 23 — Communications systems (marker beacons, radio altimeter) are CAT II/III critical. Aircraft CAT status may be downgraded.',
+  };
+
+  const catWarning = CAT_AFFECTED_ATAS[form.ata_chapter] || null;
+
   const mutation = useMutation({
     mutationFn: (data) => base44.entities.LogbookEntry.create(data),
     onSuccess: () => { queryClient.invalidateQueries({ queryKey: ['logbook-entries'] }); onClose(); },
@@ -150,6 +164,17 @@ function NewEntryModal({ onClose }) {
             </select>
           </Field>
         </div>
+        {catWarning && (
+          <div className="flex items-start gap-3 bg-amber-500/15 border border-amber-500/40 rounded-xl px-4 py-3">
+            <AlertTriangle className="w-5 h-5 text-amber-400 flex-shrink-0 mt-0.5" />
+            <div>
+              <p className="text-xs font-extrabold text-amber-400 uppercase tracking-widest mb-0.5">⚠ CAT Status Warning</p>
+              <p className="text-xs text-amber-300 leading-snug">{catWarning}</p>
+              <p className="text-[10px] text-amber-500 mt-1">Notify Dispatch & Captain. Update MEL/CAT authorization before next ILS approach.</p>
+            </div>
+          </div>
+        )}
+
         <Field label="Description *">
           <textarea required rows={4} value={form.description} onChange={e => set('description', e.target.value)}
             placeholder="Describe the discrepancy or action…"
