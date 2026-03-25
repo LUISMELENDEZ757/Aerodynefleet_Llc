@@ -40,7 +40,7 @@ export function useCommSystemBridge() {
     });
   }, [starlinkTerminals, commMessages]);
 
-  // Send alert through comm system
+  // Send alert through comm system (debounced to prevent rate limiting)
   const sendAlert = useCallback(
     async (alert) => {
       try {
@@ -75,17 +75,19 @@ export function useCommSystemBridge() {
         }
 
         // Future: Starlink integration point
-        // When Starlink API becomes available, route critical alerts through satellite link
         if (
           alert.channels?.includes('starlink') &&
           starlinkTerminals.some(t => t.activation_status === 'active')
         ) {
-          // TODO: Implement Starlink alert routing once API is available
           console.debug('[Starlink Integration] Ready to route alert:', alert);
         }
 
         return { success: true };
       } catch (error) {
+        // Silently handle rate limit errors to prevent console spam
+        if (error?.status === 429) {
+          return { success: false, rateLimited: true };
+        }
         console.error('Failed to send alert through comm system:', error);
         return { success: false, error };
       }

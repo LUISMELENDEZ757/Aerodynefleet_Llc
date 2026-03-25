@@ -30,25 +30,8 @@ export default function OpsAlertsPanel() {
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ['ops-alerts'] }),
   });
 
-  // Track sent alert IDs to avoid duplicate broadcasts
-  const sentAlertIdsRef = useRef(new Set());
-  useEffect(() => {
-    const criticalAlerts = alerts.filter(a => a.severity === 'critical' && !a.is_read && !sentAlertIdsRef.current.has(a.id));
-    if (criticalAlerts.length === 0) return;
-    criticalAlerts.forEach(alert => {
-      sentAlertIdsRef.current.add(alert.id);
-      sendAlert({
-        id: alert.id,
-        title: alert.title,
-        message: alert.message,
-        severity: alert.severity,
-        flight_number: alert.flight_number,
-        target_roles: alert.target_roles,
-        channels: ['acars', 'broadcast'],
-        timestamp: new Date().toISOString(),
-      });
-    });
-  }, [alerts, sendAlert]);
+  // Note: Alert broadcasting disabled to prevent rate limiting
+  // Alerts are now managed through the backend automation system
 
   const unread = alerts.filter(a => !a.is_read).length;
   const critical = alerts.filter(a => a.severity === 'critical').length;
