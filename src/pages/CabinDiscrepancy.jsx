@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useRef } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { base44 } from '@/api/base44Client';
 import { Link } from 'react-router-dom';
@@ -44,6 +44,9 @@ export default function CabinDiscrepancy() {
   });
   const [submitted, setSubmitted] = useState(false);
   const [photoCount, setPhotoCount] = useState(0);
+  const cameraInputRef = useRef(null);
+  const photoInputRef = useRef(null);
+  const docInputRef = useRef(null);
 
   const set = (k, v) => setForm(p => ({ ...p, [k]: v }));
 
@@ -276,27 +279,44 @@ export default function CabinDiscrepancy() {
                 </div>
 
                 <div className="p-4 border border-dashed border-white/10 m-3 rounded-xl space-y-3">
+                  {/* Hidden inputs */}
+                  <input ref={cameraInputRef} type="file" accept="image/*" capture="environment" className="hidden" onChange={handlePhotoInput} />
+                  <input ref={photoInputRef}  type="file" accept="image/*" multiple className="hidden" onChange={handlePhotoInput} />
+                  <input ref={docInputRef}    type="file" accept=".pdf,.doc,.docx" multiple className="hidden" onChange={handlePhotoInput} />
+
                   <div className="grid grid-cols-3 gap-2">
                     {/* Take Photo */}
-                    <label className="flex flex-col items-center justify-center gap-2 py-4 px-2 rounded-xl bg-amber-500 cursor-pointer hover:bg-amber-400 transition-colors">
+                    <button
+                      type="button"
+                      disabled={photoCount >= 5}
+                      onClick={() => cameraInputRef.current?.click()}
+                      className="flex flex-col items-center justify-center gap-2 py-4 px-2 rounded-xl bg-amber-500 hover:bg-amber-400 disabled:opacity-50 transition-colors"
+                    >
                       <Camera className="w-5 h-5 text-white" />
                       <span className="text-xs font-bold text-white text-center">Take Photo</span>
-                      <input type="file" accept="image/*" capture="environment" className="hidden" onChange={handlePhotoInput} disabled={photoCount >= 5} />
-                    </label>
+                    </button>
 
                     {/* Photo/Image */}
-                    <label className="flex flex-col items-center justify-center gap-2 py-4 px-2 rounded-xl bg-[#1a1f2e] border border-white/10 cursor-pointer hover:bg-white/5 transition-colors">
+                    <button
+                      type="button"
+                      disabled={photoCount >= 5}
+                      onClick={() => photoInputRef.current?.click()}
+                      className="flex flex-col items-center justify-center gap-2 py-4 px-2 rounded-xl bg-[#1a1f2e] border border-white/10 hover:bg-white/5 disabled:opacity-50 transition-colors"
+                    >
                       <Image className="w-5 h-5 text-gray-400" />
                       <span className="text-xs font-bold text-gray-300 text-center">Photo/Image</span>
-                      <input type="file" accept="image/*" multiple className="hidden" onChange={handlePhotoInput} disabled={photoCount >= 5} />
-                    </label>
+                    </button>
 
                     {/* Document */}
-                    <label className="flex flex-col items-center justify-center gap-2 py-4 px-2 rounded-xl bg-[#1a1f2e] border border-white/10 cursor-pointer hover:bg-white/5 transition-colors">
+                    <button
+                      type="button"
+                      disabled={photoCount >= 5}
+                      onClick={() => docInputRef.current?.click()}
+                      className="flex flex-col items-center justify-center gap-2 py-4 px-2 rounded-xl bg-[#1a1f2e] border border-white/10 hover:bg-white/5 disabled:opacity-50 transition-colors"
+                    >
                       <Upload className="w-5 h-5 text-gray-400" />
                       <span className="text-xs font-bold text-gray-300 text-center">Document</span>
-                      <input type="file" accept=".pdf,.doc,.docx" multiple className="hidden" onChange={handlePhotoInput} disabled={photoCount >= 5} />
-                    </label>
+                    </button>
                   </div>
                   <p className="text-xs text-gray-600 text-center">Or drag & drop images / PDFs here</p>
                 </div>
