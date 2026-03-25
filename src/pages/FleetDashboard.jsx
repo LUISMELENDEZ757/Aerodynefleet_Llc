@@ -10,6 +10,7 @@ import { cn } from '@/lib/utils';
 import { motion, AnimatePresence } from 'framer-motion';
 import AddTimelineEventModal from '@/components/fleet/AddTimelineEventModal';
 import TakingOwnershipModal from '@/components/fleet/TakingOwnershipModal';
+import PlaceOOSModal from '@/components/fleet/PlaceOOSModal';
 
 const STATUS_OPTIONS = ['All Status', 'active', 'oos', 'maintenance', 'retired'];
 
@@ -37,6 +38,7 @@ function AircraftDetailOverlay({ aircraft, onClose }) {
   const [showEtopsDropdown, setShowEtopsDropdown] = useState(false);
   const [showAddEventModal, setShowAddEventModal] = useState(false);
   const [showTakingOwnershipModal, setShowTakingOwnershipModal] = useState(false);
+  const [showPlaceOOSModal, setShowPlaceOOSModal] = useState(false);
 
   const createEntryMutation = useMutation({
     mutationFn: (data) => base44.entities.LogbookEntry.create(data),
@@ -46,13 +48,9 @@ function AircraftDetailOverlay({ aircraft, onClose }) {
     },
   });
 
-  const handlePlaceOOS = () => {
-    createEntryMutation.mutate({
-      aircraft_tail: aircraft.tail_number,
-      entry_type: 'discrepancy',
-      description: `Aircraft ${aircraft.tail_number} placed OOS`,
-      notes: 'OOS placement via Fleet Dashboard',
-    });
+  const handlePlaceOOSSubmit = (data) => {
+    createEntryMutation.mutate(data);
+    setShowPlaceOOSModal(false);
   };
 
   const handleTakingOwnershipSubmit = (data) => {
@@ -223,7 +221,7 @@ function AircraftDetailOverlay({ aircraft, onClose }) {
           {/* Action buttons */}
           <div className="flex flex-wrap gap-3">
             <button
-              onClick={handlePlaceOOS}
+              onClick={() => setShowPlaceOOSModal(true)}
               disabled={createEntryMutation.isPending}
               className="flex items-center gap-2 px-5 py-2.5 rounded-xl bg-red-700/80 border border-red-600 text-white text-sm font-extrabold hover:bg-red-600 transition-colors disabled:opacity-50"
             >
@@ -299,6 +297,18 @@ function AircraftDetailOverlay({ aircraft, onClose }) {
                 aircraft={aircraft}
                 onClose={() => setShowTakingOwnershipModal(false)}
                 onSubmit={handleTakingOwnershipSubmit}
+                isPending={createEntryMutation.isPending}
+              />
+            )}
+          </AnimatePresence>
+
+          {/* Place OOS Modal */}
+          <AnimatePresence>
+            {showPlaceOOSModal && (
+              <PlaceOOSModal
+                aircraft={aircraft}
+                onClose={() => setShowPlaceOOSModal(false)}
+                onSubmit={handlePlaceOOSSubmit}
                 isPending={createEntryMutation.isPending}
               />
             )}
