@@ -18,16 +18,10 @@ export default function OpsAlertsPanel() {
   const queryClient = useQueryClient();
   const navigate = useNavigate();
 
-  const { data: alerts = [] } = useQuery({
-    queryKey: ['ops-alerts'],
-    queryFn: () => base44.entities.OpsAlert.filter({ is_dismissed: false }),
-    refetchInterval: 15000,
-  });
+  // Alert creation disabled for now
+  const alerts = [];
 
-  const dismissMutation = useMutation({
-    mutationFn: (id) => base44.entities.OpsAlert.update(id, { is_dismissed: true }),
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['ops-alerts'] }),
-  });
+
 
   // Note: Alert broadcasting disabled to prevent rate limiting
   // Alerts are now managed through the backend automation system
@@ -112,7 +106,7 @@ export default function OpsAlertsPanel() {
                               </div>
                             </div>
                             <button
-                              onClick={() => dismissMutation.mutate(alert.id)}
+                              onClick={() => {}}
                               className="w-6 h-6 rounded-full bg-background/60 flex items-center justify-center text-muted-foreground hover:text-foreground flex-shrink-0"
                             >
                               <X className="w-3 h-3" />
