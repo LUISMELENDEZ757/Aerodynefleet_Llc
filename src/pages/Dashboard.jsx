@@ -2,15 +2,17 @@ import React, { useState } from 'react';
 import { lazy, Suspense } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { base44 } from '@/api/base44Client';
-import { Plane, RefreshCw } from 'lucide-react';
+import { Plane, RefreshCw, Wrench } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import OpsStatBar from '@/components/flightops/OpsStatBar';
+import { useRail } from '@/lib/RailContext';
 const FlightStatusBoard = lazy(() => import('@/components/flightops/FlightStatusBoard'));
 const CrewBoard = lazy(() => import('@/components/flightops/CrewBoard'));
 const DispatchBoard = lazy(() => import('@/components/flightops/DispatchBoard'));
 const WeatherPanel = lazy(() => import('@/components/flightops/WeatherPanel'));
 const DispatchPanel = lazy(() => import('@/components/dispatch/DispatchPanel'));
 import PullToRefresh from '@/components/ui/PullToRefresh';
+import TechOpsDashboard from '@/components/techops/TechOpsDashboard';
 
 const TODAY = new Date().toISOString().split('T')[0];
 
@@ -23,6 +25,7 @@ const TABS = [
 
 export default function Dashboard() {
   const [activeTab, setActiveTab] = useState('flights');
+  const { mode } = useRail();
 
   const { data: flights = [], isLoading: loadingFlights, refetch: refetchFlights } = useQuery({
     queryKey: ['flights', TODAY],
@@ -54,6 +57,10 @@ export default function Dashboard() {
   const now = new Date();
   const timeStr = now.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: false });
   const dateStr = now.toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric', year: 'numeric' });
+
+  if (mode === 'tech') {
+    return <TechOpsDashboard />;
+  }
 
   return (
     <div className="min-h-screen bg-background">

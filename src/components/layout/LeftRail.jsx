@@ -50,20 +50,10 @@ const TECH_OPS = [
   { icon: BarChart3,     label: 'Analytics',      path: '/Analytics' },
 ];
 
-const MODE_KEY = 'rail_mode';
-
 export default function LeftRail() {
   const location = useLocation();
   const navigate = useNavigate();
-  const { expanded, toggle, setExpanded } = useRail();
-  const [mode, setMode] = useState(() => {
-    try { return localStorage.getItem(MODE_KEY) || 'flight'; } catch { return 'flight'; }
-  });
-
-  const switchMode = (m) => {
-    setMode(m);
-    try { localStorage.setItem(MODE_KEY, m); } catch {}
-  };
+  const { expanded, toggle, setExpanded, mode, switchMode } = useRail();
 
   const NAV_ITEMS = mode === 'flight' ? FLIGHT_OPS : TECH_OPS;
 
