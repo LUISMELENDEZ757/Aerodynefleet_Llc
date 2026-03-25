@@ -1,13 +1,13 @@
 import { useState } from 'react';
 import { X } from 'lucide-react';
 
-export default function NewLogEntryModal({ aircraftTail, nextLogPage, onClose, onSave }) {
+export default function NewLogEntryModal({ aircraftTail, nextLogPage, preset, onClose, onSave }) {
   const [form, setForm] = useState({
     aircraft_tail: aircraftTail,
     log_page: nextLogPage,
-    entry_type: 'discrepancy',
+    entry_type: preset?.entry_type || 'discrepancy',
     ata_chapter: '',
-    description: '',
+    description: preset?.description ? `${preset.description}: ` : '',
     corrective_action: '',
     technician_name: '',
     technician_id: '',

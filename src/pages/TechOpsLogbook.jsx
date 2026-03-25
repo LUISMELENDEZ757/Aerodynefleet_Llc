@@ -58,6 +58,8 @@ export default function TechOpsLogbook() {
   const [showNewEntry, setShowNewEntry] = useState(false);
   const [showNewFault, setShowNewFault] = useState(false);
   const [faultTab, setFaultTab] = useState('active');
+  const [logTab, setLogTab] = useState('entries');
+  const [entryPreset, setEntryPreset] = useState(null);
   const elapsed = useElapsedTime();
   const queryClient = useQueryClient();
 
@@ -302,15 +304,61 @@ export default function TechOpsLogbook() {
           </div>
         </div>
 
+        {/* Create New Entry Panel */}
+        <div className="bg-[#141922] border border-white/10 rounded-2xl p-4 space-y-3">
+          <div className="flex items-center gap-2">
+            <div className="w-6 h-6 rounded-md border border-white/20 flex items-center justify-center">
+              <Plus className="w-3.5 h-3.5 text-gray-400" />
+            </div>
+            <p className="text-sm font-extrabold tracking-widest uppercase text-white">Create New Entry</p>
+          </div>
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+            {[
+              { label: 'Pilot Discrepancy',       type: 'discrepancy',       border: 'border-red-700',    text: 'text-red-400',    bg: 'bg-red-950/40' },
+              { label: 'Technician Discrepancy',  type: 'discrepancy',       border: 'border-amber-800',  text: 'text-amber-500',  bg: 'bg-amber-950/40' },
+              { label: 'Correction',              type: 'corrective_action', border: 'border-green-700',  text: 'text-green-400',  bg: 'bg-green-950/40' },
+              { label: 'Parts Installation',      type: 'corrective_action', border: 'border-purple-700', text: 'text-purple-400', bg: 'bg-purple-950/40' },
+              { label: 'Request Deferral Extension', type: 'deferred',       border: 'border-yellow-700', text: 'text-yellow-400', bg: 'bg-yellow-950/40' },
+              { label: 'Parts Ordering',          type: 'info',              border: 'border-amber-900',  text: 'text-amber-600',  bg: 'bg-amber-950/30' },
+              { label: 'Oil Service',             type: 'info',              border: 'border-blue-800',   text: 'text-blue-300',   bg: 'bg-blue-950/40' },
+              { label: 'Oxygen Service',          type: 'info',              border: 'border-cyan-700',   text: 'text-cyan-400',   bg: 'bg-cyan-950/40' },
+            ].map(({ label, type, border, text, bg }) => (
+              <button
+                key={label}
+                onClick={() => { setEntryPreset({ entry_type: type, description: label }); setShowNewEntry(true); }}
+                className={cn('px-3 py-2.5 rounded-xl border font-bold text-xs tracking-wide transition-all hover:brightness-125', border, text, bg)}
+              >
+                {label}
+              </button>
+            ))}
+          </div>
+
+          {/* Log Entries / MCC tabs */}
+          <div className="flex items-center gap-6 pt-2 border-t border-white/10 mt-1">
+            <button
+              onClick={() => setLogTab('entries')}
+              className={cn('text-sm font-bold pb-1 transition-colors', logTab === 'entries' ? 'text-amber-400 border-b-2 border-amber-400' : 'text-gray-500 hover:text-gray-300')}
+            >
+              Log Entries
+            </button>
+            <button
+              onClick={() => setLogTab('mcc')}
+              className={cn('flex items-center gap-1.5 text-sm font-bold pb-1 transition-colors', logTab === 'mcc' ? 'text-amber-400 border-b-2 border-amber-400' : 'text-gray-500 hover:text-gray-300')}
+            >
+              <Shield className="w-3.5 h-3.5" /> MCC Reopen Requests
+            </button>
+          </div>
+        </div>
+
         {/* Log Entries */}
         <div className="bg-[#141922] border border-white/10 rounded-2xl overflow-hidden">
           <div className="flex items-center justify-between px-5 py-4 border-b border-white/10">
             <div>
-              <p className="text-base font-extrabold tracking-wide">LOG ENTRIES</p>
+              <p className="text-base font-extrabold tracking-wide">{logTab === 'entries' ? 'LOG ENTRIES' : 'MCC REOPEN REQUESTS'}</p>
               <p className="text-xs text-gray-500 mt-0.5">Discrepancies, corrective actions, and deferrals</p>
             </div>
             <button
-              onClick={() => setShowNewEntry(true)}
+              onClick={() => { setEntryPreset(null); setShowNewEntry(true); }}
               className="flex items-center gap-1.5 bg-primary text-primary-foreground text-xs font-bold px-4 py-2 rounded-lg hover:bg-primary/90 transition-colors"
             >
               <Plus className="w-3.5 h-3.5" /> NEW ENTRY
@@ -377,7 +425,8 @@ export default function TechOpsLogbook() {
         <NewLogEntryModal
           aircraftTail={selectedTail}
           nextLogPage={nextLogPage}
-          onClose={() => setShowNewEntry(false)}
+          preset={entryPreset}
+          onClose={() => { setShowNewEntry(false); setEntryPreset(null); }}
           onSave={(data) => createEntryMutation.mutate(data)}
         />
       )}
