@@ -54,7 +54,9 @@ function AircraftDetailOverlay({ aircraft, onClose }) {
     queryClient.setQueryData(['fleet-aircraft'], (old = []) =>
       old.map(a => a.tail_number === aircraft.tail_number ? { ...a, status: 'oos' } : a)
     );
-    base44.entities.Aircraft.update(aircraft.id, { status: 'oos' });
+    base44.entities.Aircraft.update(aircraft.id, { status: 'oos' }).then(() => {
+      queryClient.invalidateQueries({ queryKey: ['fleet-aircraft'] });
+    });
     setShowPlaceOOSModal(false);
   };
 
