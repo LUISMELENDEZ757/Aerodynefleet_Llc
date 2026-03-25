@@ -50,6 +50,13 @@ const CommCenter            = lazy(() => import('@/pages/CommCenter'));
 const SupervisorDashboard   = lazy(() => import('@/pages/SupervisorDashboard'));
 const DispatchWorkstation   = lazy(() => import('@/pages/DispatchWorkstation'));
 const RecordRetentionPolicy = lazy(() => import('@/pages/RecordRetentionPolicy'));
+const GroundOpsPage         = lazy(() => import('@/pages/GroundOps'));
+const NOTAMsPage            = lazy(() => import('@/pages/NOTAMsPage'));
+const CrewDirectory         = lazy(() => import('@/pages/CrewDirectory'));
+const FlightBoard           = lazy(() => import('@/pages/FlightBoard'));
+const OOSDashboard          = lazy(() => import('@/pages/OOSDashboard'));
+const UserManagement        = lazy(() => import('@/pages/UserManagement'));
+const CostReporting         = lazy(() => import('@/pages/CostReporting'));
 
 function PageFallback() {
   return (
@@ -124,6 +131,13 @@ const AuthenticatedApp = () => {
         <Route path="/Supervisor" element={<SupervisorDashboard />} />
         <Route path="/Dispatch" element={<DispatchWorkstation />} />
         <Route path="/RetentionPolicy" element={<RecordRetentionPolicy />} />
+        <Route path="/GroundOps" element={<GroundOpsPage />} />
+        <Route path="/NOTAMs" element={<NOTAMsPage />} />
+        <Route path="/CrewDirectory" element={<CrewDirectory />} />
+        <Route path="/FlightBoard" element={<FlightBoard />} />
+        <Route path="/OOSDashboard" element={<OOSDashboard />} />
+        <Route path="/UserManagement" element={<UserManagement />} />
+        <Route path="/CostReporting" element={<CostReporting />} />
         <Route path="/Settings" element={<SettingsPage />} />
       </Route>
       <Route path="*" element={<PageNotFound />} />

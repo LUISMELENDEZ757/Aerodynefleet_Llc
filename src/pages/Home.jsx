@@ -1,6 +1,6 @@
 import { Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { Users, Plane, Radio, BookOpen, CalendarDays, Zap, Globe, Shield, Cloud, BookMarked, LayoutDashboard, AlertTriangle, Fuel, FileText, BarChart3, Weight, Navigation2, DollarSign, CalendarCheck, Wrench, GraduationCap, Satellite, MessageSquare } from 'lucide-react';
+import { Users, Plane, Radio, BookOpen, CalendarDays, Zap, Globe, Shield, Cloud, BookMarked, LayoutDashboard, AlertTriangle, Fuel, FileText, BarChart3, Weight, Navigation2, DollarSign, CalendarCheck, Wrench, GraduationCap, Satellite, MessageSquare, Truck, UserCheck, MonitorPlay, PieChart, UserCog } from 'lucide-react';
 
 import useTieredPreload from '@/hooks/useTieredPreload';
 
@@ -42,6 +42,13 @@ const TIER3 = [
   { icon: Users,         iconBg: 'bg-pink-600',   iconColor: 'text-white',              title: 'PAX REACCOM',   subtitle: 'IROPS Rebooking',         borderColor: 'border-pink-600/30',   path: '/PaxReaccom' },
   { icon: Satellite,     iconBg: 'bg-sky-700',    iconColor: 'text-white',              title: 'STARLINK',      subtitle: 'Aviation Connectivity',   borderColor: 'border-sky-700/30',    path: '/Starlink' },
   { icon: MessageSquare, iconBg: 'bg-emerald-700',iconColor: 'text-white',              title: 'COMM CENTER',   subtitle: 'Channels · ACARS · Broadcast', borderColor: 'border-emerald-700/30',path: '/CommCenter' },
+  { icon: Truck,         iconBg: 'bg-zinc-600',   iconColor: 'text-white',              title: 'GROUND OPS',    subtitle: 'Turnaround · Pushback',   borderColor: 'border-zinc-600/30',   path: '/GroundOps' },
+  { icon: AlertTriangle, iconBg: 'bg-red-800',    iconColor: 'text-white',              title: 'NOTAMs',        subtitle: 'Notices · Field Alerts',  borderColor: 'border-red-800/30',    path: '/NOTAMs' },
+  { icon: UserCheck,     iconBg: 'bg-violet-700', iconColor: 'text-white',              title: 'CREW DIRECTORY',subtitle: 'Roster · FAR 117 Status', borderColor: 'border-violet-700/30', path: '/CrewDirectory' },
+  { icon: MonitorPlay,   iconBg: 'bg-cyan-800',   iconColor: 'text-white',              title: 'FLIGHT BOARD',  subtitle: 'Live FIDS · Departures',  borderColor: 'border-cyan-800/30',   path: '/FlightBoard' },
+  { icon: Wrench,        iconBg: 'bg-stone-600',  iconColor: 'text-white',              title: 'OOS DASHBOARD', subtitle: 'Fleet MX · Status',       borderColor: 'border-stone-600/30',  path: '/OOSDashboard' },
+  { icon: PieChart,      iconBg: 'bg-rose-700',   iconColor: 'text-white',              title: 'COST REPORTING',subtitle: 'P&L · Delay · Fuel ROI',  borderColor: 'border-rose-700/30',   path: '/CostReporting' },
+  { icon: UserCog,       iconBg: 'bg-slate-600',  iconColor: 'text-white',              title: 'USER MGMT',     subtitle: 'Roles · Invitations',     borderColor: 'border-slate-600/30',  path: '/UserManagement' },
 ];
 
 // Stagger config per tier
