@@ -57,6 +57,7 @@ const FlightBoard           = lazy(() => import('@/pages/FlightBoard'));
 const OOSDashboard          = lazy(() => import('@/pages/OOSDashboard'));
 const UserManagement        = lazy(() => import('@/pages/UserManagement'));
 const CostReporting         = lazy(() => import('@/pages/CostReporting'));
+const FleetDashboard        = lazy(() => import('@/pages/FleetDashboard'));
 
 function PageFallback() {
   return (
@@ -138,6 +139,7 @@ const AuthenticatedApp = () => {
         <Route path="/OOSDashboard" element={<OOSDashboard />} />
         <Route path="/UserManagement" element={<UserManagement />} />
         <Route path="/CostReporting" element={<CostReporting />} />
+        <Route path="/FleetDashboard" element={<FleetDashboard />} />
         <Route path="/Settings" element={<SettingsPage />} />
       </Route>
       <Route path="*" element={<PageNotFound />} />

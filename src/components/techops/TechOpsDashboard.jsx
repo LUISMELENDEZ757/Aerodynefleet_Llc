@@ -3,11 +3,12 @@ import { motion } from 'framer-motion';
 import {
   Wrench, Gauge, Truck, AlertTriangle, ClipboardList,
   Package, BookOpen, GraduationCap, FileText, DollarSign,
-  BarChart3, Home
+  BarChart3, Home, Activity
 } from 'lucide-react';
 
 const TECH_CARDS = [
   { icon: Wrench,        iconBg: 'bg-orange-600', title: 'MEL Dashboard',  subtitle: 'Deferrals · Expiring',       path: '/MEL' },
+  { icon: Activity,      iconBg: 'bg-stone-600',  title: 'Fleet Dashboard', subtitle: 'Aircraft Status · Registry',  path: '/FleetDashboard' },
   { icon: Gauge,         iconBg: 'bg-stone-600',  title: 'OOS Dashboard',  subtitle: 'Fleet MX · Status',          path: '/OOSDashboard' },
   { icon: Truck,         iconBg: 'bg-zinc-600',   title: 'Ground Ops',     subtitle: 'Turnaround · Pushback',      path: '/GroundOps' },
   { icon: AlertTriangle, iconBg: 'bg-red-800',    title: 'NOTAMs',         subtitle: 'Notices · Field Alerts',     path: '/NOTAMs' },
