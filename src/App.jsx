@@ -1,3 +1,4 @@
+import React from 'react';
 import { Toaster } from "@/components/ui/toaster"
 import { QueryClientProvider } from '@tanstack/react-query'
 import { queryClientInstance } from '@/lib/query-client'
@@ -68,6 +69,35 @@ function PageFallback() {
   );
 }
 
+class ChunkErrorBoundary extends React.Component {
+  constructor(props) {
+    super(props);
+    this.state = { hasError: false };
+  }
+  static getDerivedStateFromError(error) {
+    if (error?.message?.includes('Failed to fetch dynamically imported module') ||
+        error?.message?.includes('Loading chunk') ||
+        error?.message?.includes('Importing a module script failed')) {
+      return { hasError: true };
+    }
+    return null;
+  }
+  componentDidCatch() {
+    // Force a hard reload to pick up fresh chunks
+    window.location.reload();
+  }
+  render() {
+    if (this.state.hasError) {
+      return (
+        <div className="fixed inset-0 flex items-center justify-center bg-background z-50">
+          <div className="w-8 h-8 border-4 border-slate-200 border-t-primary rounded-full animate-spin" />
+        </div>
+      );
+    }
+    return this.props.children;
+  }
+}
+
 const AuthenticatedApp = () => {
   const { isLoadingAuth, isLoadingPublicSettings, authError, navigateToLogin } = useAuth();
   useOfflineSync(); // Enable offline sync
@@ -94,6 +124,7 @@ const AuthenticatedApp = () => {
 
   // Render the main app
   return (
+    <ChunkErrorBoundary>
     <Suspense fallback={<PageFallback />}>
     <Routes>
       <Route element={<AppLayout />}>
@@ -147,6 +178,7 @@ const AuthenticatedApp = () => {
       <Route path="*" element={<PageNotFound />} />
     </Routes>
     </Suspense>
+    </ChunkErrorBoundary>
   );
 };
 
