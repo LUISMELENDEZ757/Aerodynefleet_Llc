@@ -2,8 +2,9 @@ import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { base44 } from '@/api/base44Client';
-import { Layers, Plus, ChevronLeft, Plane, Globe, Edit3, Trash2, X, Send, CheckCircle } from 'lucide-react';
+import { Layers, Plus, ChevronLeft, Plane, Globe, Edit3, Trash2, X, Send, CheckCircle, Upload } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import AircraftImportModal from '@/components/fleet/AircraftImportModal';
 
 const FLEET_COLORS = [
   '#3b82f6','#f59e0b','#10b981','#ef4444','#8b5cf6',
@@ -197,6 +198,7 @@ function FleetCard({ fleet, aircraft, onEdit, onDelete }) {
 
 export default function FleetRegistry() {
   const [showModal, setShowModal] = useState(false);
+  const [showAircraftModal, setShowAircraftModal] = useState(false);
   const [editFleet, setEditFleet] = useState(null);
   const queryClient = useQueryClient();
 
@@ -207,7 +209,7 @@ export default function FleetRegistry() {
 
   const { data: aircraft = [] } = useQuery({
     queryKey: ['registry-aircraft'],
-    queryFn: () => base44.entities.Aircraft.list('tail_number', 500),
+    queryFn: () => base44.entities.Aircraft.list('tail_number', 2000),
   });
 
   const saveMutation = useMutation({
@@ -248,12 +250,20 @@ export default function FleetRegistry() {
             <p className="text-[10px] text-sky-400 tracking-widest uppercase">Multi-Fleet Operator Management</p>
           </div>
         </div>
-        <button
-          onClick={handleNew}
-          className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-sky-600 hover:bg-sky-500 text-white text-sm font-bold transition-colors"
-        >
-          <Plus className="w-4 h-4" /> Add Fleet
-        </button>
+        <div className="flex items-center gap-2">
+          <button
+            onClick={() => setShowAircraftModal(true)}
+            className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-amber-600 hover:bg-amber-500 text-white text-sm font-bold transition-colors"
+          >
+            <Upload className="w-4 h-4" /> Add Aircraft
+          </button>
+          <button
+            onClick={handleNew}
+            className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-sky-600 hover:bg-sky-500 text-white text-sm font-bold transition-colors"
+          >
+            <Plus className="w-4 h-4" /> Add Fleet
+          </button>
+        </div>
       </div>
 
       {/* Summary KPIs */}
@@ -306,6 +316,17 @@ export default function FleetRegistry() {
           fleet={editFleet}
           onClose={() => { setShowModal(false); setEditFleet(null); }}
           onSave={(data) => saveMutation.mutate(data)}
+        />
+      )}
+
+      {showAircraftModal && (
+        <AircraftImportModal
+          fleets={fleets}
+          onClose={() => setShowAircraftModal(false)}
+          onSuccess={() => {
+            queryClient.invalidateQueries({ queryKey: ['registry-aircraft'] });
+            queryClient.invalidateQueries({ queryKey: ['fleet-aircraft'] });
+          }}
         />
       )}
     </div>
