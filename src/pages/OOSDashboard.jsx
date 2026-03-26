@@ -370,6 +370,7 @@ function OilServiceModal({ onClose }) {
   const set = (k, v) => setForm(p => ({ ...p, [k]: v }));
 
   const MAX_OIL_QT = 12;
+  const MAX_APU_QT = 5;
 
   const mutation = useMutation({
     mutationFn: () => base44.entities.LogbookEntry.create({
@@ -477,7 +478,7 @@ function OilServiceModal({ onClose }) {
                 </Field>
                 <Field label="APU Oil (QT)">
                   <div className="relative">
-                    <input type="number" min="0" max={MAX_OIL_QT} value={form.apu_oil}
+                    <input type="number" min="0" max={MAX_APU_QT} value={form.apu_oil}
                       onChange={e => set('apu_oil', e.target.value)}
                       placeholder="0" className={inputCls + " pr-8 border-cyan-500/50 focus:border-cyan-400"} />
                     <span className="absolute right-3 top-1/2 -translate-y-1/2 text-xs text-gray-500 font-bold">qt</span>
@@ -492,11 +493,11 @@ function OilServiceModal({ onClose }) {
               {/* Visual bars */}
               <div className="space-y-2 pt-1">
                 {[
-                  { label: 'ENG 1', val: form.eng1_oil, color: 'bg-green-400', textColor: 'text-green-400' },
-                  { label: 'ENG 2', val: form.eng2_oil, color: 'bg-green-400',  textColor: 'text-green-400' },
-                  { label: 'APU',   val: form.apu_oil,  color: 'bg-green-400',  textColor: 'text-green-400' },
-                ].map(({ label, val, color, textColor }) => {
-                  const pct = Math.min(100, ((Number(val) || 0) / MAX_OIL_QT) * 100);
+                  { label: 'ENG 1', val: form.eng1_oil, max: MAX_OIL_QT, color: 'bg-green-400', textColor: 'text-green-400' },
+                  { label: 'ENG 2', val: form.eng2_oil, max: MAX_OIL_QT, color: 'bg-green-400', textColor: 'text-green-400' },
+                  { label: 'APU',   val: form.apu_oil,  max: MAX_APU_QT, color: 'bg-green-400', textColor: 'text-green-400' },
+                ].map(({ label, val, max, color, textColor }) => {
+                  const pct = Math.min(100, ((Number(val) || 0) / max) * 100);
                   return (
                     <div key={label} className="flex items-center gap-3">
                       <span className="text-[10px] font-bold text-gray-400 w-10 flex-shrink-0">{label}</span>
