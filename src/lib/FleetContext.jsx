@@ -11,7 +11,7 @@ const FleetContext = createContext({
 
 export function FleetProvider({ children }) {
   const [activeFleetId, setActiveFleetIdState] = useState(() => {
-    try { return localStorage.getItem('active_fleet_id') || null; } catch { return null; }
+    try { return localStorage.getItem('active_fleet_id') || '69c56b4e764fbad32099b0a0'; } catch { return '69c56b4e764fbad32099b0a0'; }
   });
 
   const { data: fleets = [] } = useQuery({
