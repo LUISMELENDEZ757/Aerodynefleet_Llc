@@ -1,505 +1,318 @@
-import React, { useMemo, useState } from "react";
-import { useQuery } from "@tanstack/react-query";
+import { useState } from 'react';
+import { useQuery } from '@tanstack/react-query';
+import { base44 } from '@/api/base44Client';
+import { Link } from 'react-router-dom';
 import {
-  ResponsiveContainer,
-  BarChart,
-  Bar,
-  LineChart,
-  Line,
-  PieChart,
-  Pie,
-  Cell,
-  XAxis,
-  YAxis,
-  Tooltip,
-  Legend,
-  CartesianGrid,
-} from "recharts";
-import { base44 } from "@/api/base44Client";
+  BarChart3, TrendingUp, Plane, Users, Clock, RefreshCw,
+  AlertTriangle, CheckCircle, DollarSign
+} from 'lucide-react';
+import { cn } from '@/lib/utils';
+import {
+  BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer,
+  PieChart, Pie, Cell, Legend, LineChart, Line, CartesianGrid
+} from 'recharts';
 
-// ─────────────────────────────────────────────
-// Constants
-// ─────────────────────────────────────────────
+const TODAY = new Date().toISOString().split('T')[0];
+const COLORS = ['hsl(var(--primary))', '#60a5fa', '#f97316', '#ef4444', '#a78bfa', '#34d399'];
 
-const COLORS = ["#2563eb", "#16a34a", "#f97316", "#e11d48", "#0ea5e9"];
+function StatCard({ icon: Icon, label, value, sub, color }) {
+  return (
+    <div className="rounded-xl bg-card border border-border px-4 py-3 flex items-center gap-3">
+      <div className="w-9 h-9 rounded-lg bg-secondary flex items-center justify-center flex-shrink-0">
+        <Icon className={cn('w-4 h-4', color)} />
+      </div>
+      <div>
+        <p className={cn('text-xl font-extrabold font-mono', color)}>{value}</p>
+        <p className="text-xs text-muted-foreground">{label}</p>
+        {sub && <p className={cn('text-[11px]', color)}>{sub}</p>}
+      </div>
+    </div>
+  );
+}
 
 const TABS = [
-  { id: "overview", label: "Overview" },
-  { id: "delays", label: "Delays & Reliability" },
-  { id: "utilization", label: "Fleet Utilization" },
+  { key: 'otp',   label: 'On-Time Perf' },
+  { key: 'delay', label: 'Delay Analysis' },
+  { key: 'crew',  label: 'Crew Utilization' },
+  { key: 'fleet', label: 'Fleet Status' },
 ];
 
-// ─────────────────────────────────────────────
-// Data fetching (React Query)
-// ─────────────────────────────────────────────
+export default function Analytics() {
+  const [activeTab, setActiveTab] = useState('otp');
 
-async function fetchAnalytics() {
-  const [flights, crew, oos, releases] = await Promise.all([
-    base44.entities.Flight.list('-flight_date', 500),
-    base44.entities.CrewAssignment.list('-flight_date', 500),
-    base44.entities.OOSEntry.list(),
-    base44.entities.DispatchRelease.list('-flight_date', 500),
-  ]);
-
-  // Fleet KPIs
-  const fleetKpis = [
-    { fleet: "737", blockCompletion: 98.5, onTimeD0: 82.3, onTimeD15: 91.2, cancellations: 3, avgDelay: 18.4 },
-    { fleet: "A320", blockCompletion: 97.8, onTimeD0: 79.1, onTimeD15: 88.6, cancellations: 5, avgDelay: 22.1 },
-    { fleet: "E175", blockCompletion: 99.2, onTimeD0: 85.7, onTimeD15: 93.4, cancellations: 1, avgDelay: 14.2 },
-  ];
-
-  // Delay reasons
-  const delayReasons = [
-    { code: "MX", label: "Maintenance", minutes: flights.filter(f => f.delay_reason?.includes('MX')).length * 25 },
-    { code: "WX", label: "Weather", minutes: flights.filter(f => f.delay_reason?.includes('WX')).length * 35 },
-    { code: "ATC", label: "ATC / Flow", minutes: flights.filter(f => f.delay_reason?.includes('ATC')).length * 28 },
-    { code: "CREW", label: "Crew", minutes: flights.filter(f => f.delay_reason?.includes('crew')).length * 45 },
-    { code: "TURN", label: "Turnaround", minutes: flights.filter(f => f.delay_reason?.includes('late')).length * 15 },
-  ].filter(d => d.minutes > 0);
-
-  // Daily ops
-  const dailyOps = (() => {
-    const map = {};
-    flights.forEach(f => {
-      const d = new Date(f.flight_date || f.created_date);
-      const key = d.toISOString().split('T')[0];
-      if (!map[key]) map[key] = { date: key, departures: 0, arrivals: 0, completion: 0 };
-      if (['departed', 'airborne', 'arrived'].includes(f.status)) map[key].departures++;
-      if (f.status === 'arrived' || f.status === 'landed') map[key].arrivals++;
-    });
-    return Object.values(map).slice(-14).map(d => ({
-      ...d,
-      completion: d.departures > 0 ? ((d.arrivals / d.departures) * 100) : 0,
-    }));
-  })();
-
-  // Utilization
-  const utilization = [
-    { fleet: "737", avgDailyHours: 11.2 },
-    { fleet: "A320", avgDailyHours: 10.8 },
-    { fleet: "E175", avgDailyHours: 9.4 },
-  ];
-
-  return { fleetKpis, delayReasons, dailyOps, utilization };
-}
-
-// ─────────────────────────────────────────────
-// Small presentational components
-// ─────────────────────────────────────────────
-
-function StatCard({ label, value, sublabel }) {
-  return (
-    <div className="rounded-xl border border-white/10 bg-[#141922]/60 px-4 py-3 flex flex-col gap-1">
-      <span className="text-xs font-bold text-gray-400 uppercase tracking-wider">
-        {label}
-      </span>
-      <span className="text-xl font-extrabold text-white">{value}</span>
-      {sublabel && (
-        <span className="text-xs text-gray-500">{sublabel}</span>
-      )}
-    </div>
-  );
-}
-
-function SectionHeader({ title, description }) {
-  return (
-    <div className="flex flex-col gap-1 mb-3">
-      <h2 className="text-sm font-extrabold text-white tracking-tight">
-        {title}
-      </h2>
-      {description && (
-        <p className="text-xs text-gray-500">{description}</p>
-      )}
-    </div>
-  );
-}
-
-// ─────────────────────────────────────────────
-// Main Analytics Page
-// ─────────────────────────────────────────────
-
-const AnalyticsPage = () => {
-  const [activeTab, setActiveTab] = useState("overview");
-
-  const { data, isLoading, isError } = useQuery({
-    queryKey: ["ops-analytics"],
-    queryFn: fetchAnalytics,
-    staleTime: 60_000,
+  const { data: flights = [], isLoading, refetch } = useQuery({
+    queryKey: ['analytics-flights'],
+    queryFn: () => base44.entities.Flight.list('-flight_date', 200),
   });
 
-  // Stable "today" label (no render loop)
-  const todayLabel = useMemo(() => {
-    const d = new Date();
-    return d.toLocaleDateString(undefined, {
-      year: "numeric",
-      month: "short",
-      day: "numeric",
-    });
-  }, []);
+  const { data: crew = [] } = useQuery({
+    queryKey: ['analytics-crew'],
+    queryFn: () => base44.entities.CrewAssignment.list('-flight_date', 200),
+  });
 
-  const fleetKpis = data?.fleetKpis ?? [];
-  const delayReasons = data?.delayReasons ?? [];
-  const dailyOps = data?.dailyOps ?? [];
-  const utilization = data?.utilization ?? [];
+  const { data: oos = [] } = useQuery({
+    queryKey: ['analytics-oos'],
+    queryFn: () => base44.entities.OOSEntry.list(),
+  });
 
-  const overallCompletion = useMemo(() => {
-    if (!fleetKpis.length) return 0;
-    return (
-      fleetKpis.reduce((sum, f) => sum + f.blockCompletion, 0) /
-      fleetKpis.length
-    );
-  }, [fleetKpis]);
+  const { data: releases = [] } = useQuery({
+    queryKey: ['analytics-releases'],
+    queryFn: () => base44.entities.DispatchRelease.list('-flight_date', 200),
+  });
 
-  const overallD0 = useMemo(() => {
-    if (!fleetKpis.length) return 0;
-    return (
-      fleetKpis.reduce((sum, f) => sum + f.onTimeD0, 0) /
-      fleetKpis.length
-    );
-  }, [fleetKpis]);
+  // OTP calculations
+  const completed = flights.filter(f => ['arrived', 'airborne', 'departed'].includes(f.status));
+  const onTime = completed.filter(f => !f.delay_minutes || f.delay_minutes < 15);
+  const delayed = flights.filter(f => f.status === 'delayed' || f.delay_minutes >= 15);
+  const cancelled = flights.filter(f => f.status === 'cancelled');
+  const otpRate = completed.length ? ((onTime.length / completed.length) * 100).toFixed(1) : '—';
 
-  const totalCancellations = useMemo(
-    () => fleetKpis.reduce((sum, f) => sum + f.cancellations, 0),
-    [fleetKpis]
-  );
+  // Delay reason breakdown
+  const delayCodes = {};
+  delayed.forEach(f => {
+    const reason = f.delay_reason || 'Unspecified';
+    delayCodes[reason] = (delayCodes[reason] || 0) + 1;
+  });
+  const delayData = Object.entries(delayCodes).map(([name, value]) => ({ name, value }))
+    .sort((a, b) => b.value - a.value).slice(0, 6);
 
-  const avgDelay = useMemo(() => {
-    if (!fleetKpis.length) return 0;
-    return (
-      fleetKpis.reduce((sum, f) => sum + f.avgDelay, 0) /
-      fleetKpis.length
-    );
-  }, [fleetKpis]);
+  // Delay duration breakdown
+  const delayBuckets = [
+    { label: '0–15m', count: flights.filter(f => (f.delay_minutes || 0) > 0 && (f.delay_minutes || 0) <= 15).length },
+    { label: '15–30m', count: flights.filter(f => (f.delay_minutes || 0) > 15 && (f.delay_minutes || 0) <= 30).length },
+    { label: '30–60m', count: flights.filter(f => (f.delay_minutes || 0) > 30 && (f.delay_minutes || 0) <= 60).length },
+    { label: '60–120m', count: flights.filter(f => (f.delay_minutes || 0) > 60 && (f.delay_minutes || 0) <= 120).length },
+    { label: '>120m', count: flights.filter(f => (f.delay_minutes || 0) > 120).length },
+  ];
 
-  // ─────────────────────────────────────────
-  // Loading / Error states
-  // ─────────────────────────────────────────
+  // Crew utilization
+  const crewByRole = {};
+  crew.forEach(c => { crewByRole[c.role] = (crewByRole[c.role] || 0) + 1; });
+  const crewData = Object.entries(crewByRole).map(([name, value]) => ({ name, value }));
 
-  if (isLoading) {
-    return (
-      <div className="p-4 flex flex-col gap-4">
-        <div className="h-6 w-40 bg-white/10 rounded-md animate-pulse" />
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-          {Array.from({ length: 4 }).map((_, i) => (
-            <div
-              key={i}
-              className="h-20 rounded-xl bg-white/5 border border-white/10 animate-pulse"
-            />
-          ))}
-        </div>
-        <div className="h-64 rounded-xl bg-white/5 border border-white/10 animate-pulse" />
-      </div>
-    );
-  }
+  const illegal = crew.filter(c => c.legal_status === 'illegal').length;
+  const nearLimit = crew.filter(c => c.legal_status === 'near_limit').length;
+  const legalCrewPct = crew.length ? (((crew.length - illegal - nearLimit) / crew.length) * 100).toFixed(0) : '100';
 
-  if (isError || !data) {
-    return (
-      <div className="p-4 text-sm text-red-400">
-        Unable to load analytics right now. Try again in a moment.
-      </div>
-    );
-  }
+  // OOS fleet status
+  const inWork = oos.filter(o => o.status === 'in_work').length;
+  const waitingParts = oos.filter(o => o.status === 'waiting_on_parts').length;
+  const released = oos.filter(o => o.status === 'released').length;
+  const fleetStatusData = [
+    { name: 'In Work', value: inWork },
+    { name: 'Waiting Parts', value: waitingParts },
+    { name: 'Released', value: released },
+    { name: 'Deferred', value: oos.filter(o => o.status === 'deferred').length },
+  ].filter(d => d.value > 0);
 
-  // ─────────────────────────────────────────
-  // Render
-  // ─────────────────────────────────────────
+  // Dispatch release rate
+  const releasedCount = releases.filter(r => r.release_status === 'released').length;
+  const releaseRate = releases.length ? ((releasedCount / releases.length) * 100).toFixed(0) : '—';
+
+  const now = new Date();
+  const timeStr = now.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: false });
 
   return (
-    <div className="flex flex-col gap-4 p-4 min-h-screen bg-[#0d1117]">
-      {/* Header */}
-      <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-2">
-        <div>
-          <h1 className="text-lg font-extrabold text-white tracking-tight">
-            Operations Analytics
-          </h1>
-          <p className="text-xs text-gray-500">
-            Multi‑fleet reliability, utilization, and delay drivers — as of {todayLabel}.
-          </p>
+    <div className="min-h-screen bg-background">
+      <div className="border-b border-border bg-card px-5 pt-5 pb-4">
+        <div className="flex items-start justify-between gap-4">
+          <div className="flex items-center gap-3">
+            <Link to="/Home" className="w-10 h-10 rounded-xl bg-primary/20 flex items-center justify-center flex-shrink-0 hover:bg-primary/30 transition-colors">
+              <BarChart3 className="w-5 h-5 text-primary" />
+            </Link>
+            <div>
+              <h1 className="text-lg font-extrabold text-foreground tracking-wide">ANALYTICS</h1>
+              <p className="text-xs font-mono text-primary tracking-widest uppercase">OTP · Delays · Crew · Fleet Intelligence</p>
+            </div>
+          </div>
+          <div className="flex flex-col items-end gap-1">
+            <p className="text-lg font-mono font-bold text-foreground">{timeStr} Z</p>
+            <button onClick={refetch} className="flex items-center gap-1 text-xs text-muted-foreground hover:text-foreground">
+              <RefreshCw className="w-3 h-3" /> Refresh
+            </button>
+          </div>
         </div>
-        <div className="inline-flex items-center gap-1 rounded-full border border-white/10 bg-white/5 px-3 py-1">
-          <span className="h-2 w-2 rounded-full bg-green-500" />
-          <span className="text-xs text-gray-300">
-            Live feed from Ops Data Hub
-          </span>
+      </div>
+
+      <div className="p-4 space-y-4">
+        {/* KPI row */}
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+          <StatCard icon={Plane}          label="OTP Rate"         value={`${otpRate}%`}       color={parseFloat(otpRate) >= 80 ? 'text-green-400' : 'text-orange-400'} sub="On-time departure" />
+          <StatCard icon={AlertTriangle}  label="Delays"           value={delayed.length}      color={delayed.length > 0 ? 'text-orange-400' : 'text-muted-foreground'} />
+          <StatCard icon={Users}          label="Crew Legal"        value={`${legalCrewPct}%`}  color={legalCrewPct >= 95 ? 'text-green-400' : 'text-orange-400'} />
+          <StatCard icon={CheckCircle}    label="Release Rate"     value={`${releaseRate}%`}   color="text-primary" />
         </div>
-      </div>
 
-      {/* Tabs */}
-      <div className="flex gap-1 rounded-full bg-white/5 border border-white/10 p-1 w-fit">
-        {TABS.map((tab) => (
-          <button
-            key={tab.id}
-            onClick={() => setActiveTab(tab.id)}
-            className={`px-3 py-1.5 text-xs rounded-full transition ${
-              activeTab === tab.id
-                ? "bg-white text-black font-bold"
-                : "text-gray-400 hover:text-white"
-            }`}
-          >
-            {tab.label}
-          </button>
-        ))}
-      </div>
+        {/* Tabs */}
+        <div className="flex gap-1 bg-secondary rounded-xl p-1">
+          {TABS.map(t => (
+            <button key={t.key} onClick={() => setActiveTab(t.key)}
+              className={cn('flex-1 py-1.5 text-xs font-semibold rounded-lg transition-all',
+                activeTab === t.key ? 'bg-primary text-primary-foreground' : 'text-muted-foreground hover:text-foreground'
+              )}>{t.label}</button>
+          ))}
+        </div>
 
-      {/* KPI Row */}
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-        <StatCard
-          label="Block Completion"
-          value={`${overallCompletion.toFixed(1)}%`}
-          sublabel="All fleets, last 24h"
-        />
-        <StatCard
-          label="On‑Time D0"
-          value={`${overallD0.toFixed(1)}%`}
-          sublabel="Gate departure at 0"
-        />
-        <StatCard
-          label="Cancellations"
-          value={totalCancellations.toString()}
-          sublabel="All causes, last 24h"
-        />
-        <StatCard
-          label="Avg Delay"
-          value={`${avgDelay.toFixed(1)} min`}
-          sublabel="Delayed departures only"
-        />
-      </div>
+        {/* OTP Tab */}
+        {activeTab === 'otp' && (
+          <div className="space-y-4">
+            {/* OTP donut */}
+            <div className="rounded-xl bg-card border border-border p-4">
+              <p className="text-xs font-mono font-semibold text-muted-foreground uppercase tracking-wider mb-3">Flight Status Breakdown</p>
+              {flights.length === 0 ? (
+                <p className="text-xs text-muted-foreground text-center py-4">No flight data available</p>
+              ) : (
+                <ResponsiveContainer width="100%" height={200}>
+                  <PieChart>
+                    <Pie data={[
+                      { name: 'On Time', value: onTime.length },
+                      { name: 'Delayed', value: delayed.length },
+                      { name: 'Cancelled', value: cancelled.length },
+                      { name: 'Scheduled', value: flights.filter(f => f.status === 'scheduled').length },
+                    ].filter(d => d.value > 0)}
+                      cx="50%" cy="50%" innerRadius={50} outerRadius={80}
+                      dataKey="value" nameKey="name"
+                    >
+                      {[...Array(4)].map((_, i) => <Cell key={i} fill={COLORS[i]} />)}
+                    </Pie>
+                    <Tooltip contentStyle={{ background: 'hsl(var(--card))', border: '1px solid hsl(var(--border))', borderRadius: 8 }} />
+                    <Legend wrapperStyle={{ fontSize: 11 }} />
+                  </PieChart>
+                </ResponsiveContainer>
+              )}
+            </div>
 
-      {/* Tab Content */}
-      {activeTab === "overview" && (
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
-          {/* Fleet reliability bar chart */}
-          <div className="lg:col-span-2 rounded-xl border border-white/10 bg-white/5 p-4">
-            <SectionHeader
-              title="Fleet Reliability"
-              description="Block completion and on‑time performance by fleet family."
-            />
-            <div className="h-64">
-              <ResponsiveContainer width="100%" height="100%">
-                <BarChart data={fleetKpis}>
-                  <CartesianGrid strokeDasharray="3 3" stroke="#1e293b" />
-                  <XAxis dataKey="fleet" stroke="#64748b" />
-                  <YAxis stroke="#64748b" />
-                  <Tooltip
-                    contentStyle={{
-                      backgroundColor: "#020617",
-                      borderColor: "#1e293b",
-                      borderRadius: 8,
-                    }}
-                  />
-                  <Legend />
-                  <Bar
-                    dataKey="blockCompletion"
-                    name="Block Completion %"
-                    fill="#22c55e"
-                    radius={[4, 4, 0, 0]}
-                  />
-                  <Bar
-                    dataKey="onTimeD0"
-                    name="On‑Time D0 %"
-                    fill="#3b82f6"
-                    radius={[4, 4, 0, 0]}
-                  />
+            {/* OTP summary grid */}
+            <div className="grid grid-cols-3 gap-2">
+              {[
+                { label: 'Total Flights', value: flights.length, color: 'text-foreground' },
+                { label: 'On-Time (<15m)', value: onTime.length, color: 'text-green-400' },
+                { label: 'Cancelled', value: cancelled.length, color: 'text-destructive' },
+              ].map(({ label, value, color }) => (
+                <div key={label} className="bg-card border border-border rounded-xl px-3 py-3 text-center">
+                  <p className="text-xs text-muted-foreground mb-1">{label}</p>
+                  <p className={cn('text-2xl font-extrabold font-mono', color)}>{value}</p>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* Delay Analysis Tab */}
+        {activeTab === 'delay' && (
+          <div className="space-y-4">
+            <div className="rounded-xl bg-card border border-border p-4">
+              <p className="text-xs font-mono font-semibold text-muted-foreground uppercase tracking-wider mb-3">Delay Reasons</p>
+              {delayData.length === 0 ? (
+                <p className="text-xs text-muted-foreground text-center py-4">No delay data available</p>
+              ) : (
+                <ResponsiveContainer width="100%" height={200}>
+                  <BarChart data={delayData} layout="vertical" margin={{ left: 0, right: 10 }}>
+                    <XAxis type="number" tick={{ fontSize: 10, fill: 'hsl(var(--muted-foreground))' }} />
+                    <YAxis type="category" dataKey="name" tick={{ fontSize: 10, fill: 'hsl(var(--muted-foreground))' }} width={90} />
+                    <Tooltip contentStyle={{ background: 'hsl(var(--card))', border: '1px solid hsl(var(--border))', borderRadius: 8 }} />
+                    <Bar dataKey="value" fill="hsl(var(--primary))" radius={[0, 4, 4, 0]} name="Flights" />
+                  </BarChart>
+                </ResponsiveContainer>
+              )}
+            </div>
+
+            <div className="rounded-xl bg-card border border-border p-4">
+              <p className="text-xs font-mono font-semibold text-muted-foreground uppercase tracking-wider mb-3">Delay Duration Distribution</p>
+              <ResponsiveContainer width="100%" height={160}>
+                <BarChart data={delayBuckets} margin={{ top: 0, right: 0, left: -20, bottom: 0 }}>
+                  <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
+                  <XAxis dataKey="label" tick={{ fontSize: 10, fill: 'hsl(var(--muted-foreground))' }} />
+                  <YAxis tick={{ fontSize: 10, fill: 'hsl(var(--muted-foreground))' }} />
+                  <Tooltip contentStyle={{ background: 'hsl(var(--card))', border: '1px solid hsl(var(--border))', borderRadius: 8 }} />
+                  <Bar dataKey="count" fill="hsl(var(--destructive))" radius={[4, 4, 0, 0]} name="Flights" />
                 </BarChart>
               </ResponsiveContainer>
             </div>
           </div>
+        )}
 
-          {/* Delay reasons pie */}
-          <div className="rounded-xl border border-white/10 bg-white/5 p-4">
-            <SectionHeader
-              title="Delay Drivers"
-              description="Minutes of delay by primary cause."
-            />
-            <div className="h-64">
-              <ResponsiveContainer width="100%" height="100%">
-                <PieChart>
-                  <Pie
-                    data={delayReasons}
-                    dataKey="minutes"
-                    nameKey="label"
-                    innerRadius={50}
-                    outerRadius={80}
-                    paddingAngle={3}
-                  >
-                    {delayReasons.map((entry, index) => (
-                      <Cell
-                        key={entry.code}
-                        fill={COLORS[index % COLORS.length]}
-                      />
-                    ))}
-                  </Pie>
-                  <Tooltip
-                    contentStyle={{
-                      backgroundColor: "#020617",
-                      borderColor: "#1e293b",
-                      borderRadius: 8,
-                    }}
-                    formatter={(value) => [`${value} min`, "Delay"]}
-                  />
-                  <Legend />
-                </PieChart>
-              </ResponsiveContainer>
+        {/* Crew Utilization Tab */}
+        {activeTab === 'crew' && (
+          <div className="space-y-4">
+            <div className="grid grid-cols-3 gap-2">
+              {[
+                { label: 'Legal', value: crew.filter(c => !c.legal_status || c.legal_status === 'legal').length, color: 'text-green-400' },
+                { label: 'Near Limit', value: nearLimit, color: 'text-orange-400' },
+                { label: 'Illegal', value: illegal, color: 'text-destructive' },
+              ].map(({ label, value, color }) => (
+                <div key={label} className="bg-card border border-border rounded-xl px-3 py-3 text-center">
+                  <p className="text-xs text-muted-foreground mb-1">{label}</p>
+                  <p className={cn('text-2xl font-extrabold font-mono', color)}>{value}</p>
+                </div>
+              ))}
+            </div>
+
+            <div className="rounded-xl bg-card border border-border p-4">
+              <p className="text-xs font-mono font-semibold text-muted-foreground uppercase tracking-wider mb-3">Assignments by Role</p>
+              {crewData.length === 0 ? (
+                <p className="text-xs text-muted-foreground text-center py-4">No crew data available</p>
+              ) : (
+                <ResponsiveContainer width="100%" height={200}>
+                  <PieChart>
+                    <Pie data={crewData} cx="50%" cy="50%" outerRadius={80} dataKey="value" nameKey="name">
+                      {crewData.map((_, i) => <Cell key={i} fill={COLORS[i % COLORS.length]} />)}
+                    </Pie>
+                    <Tooltip contentStyle={{ background: 'hsl(var(--card))', border: '1px solid hsl(var(--border))', borderRadius: 8 }} />
+                    <Legend wrapperStyle={{ fontSize: 11 }} />
+                  </PieChart>
+                </ResponsiveContainer>
+              )}
             </div>
           </div>
-        </div>
-      )}
+        )}
 
-      {activeTab === "delays" && (
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-          {/* Daily ops line chart */}
-          <div className="rounded-xl border border-white/10 bg-white/5 p-4">
-            <SectionHeader
-              title="Daily Completion"
-              description="Departures, arrivals, and completion factor over time."
-            />
-            <div className="h-64">
-              <ResponsiveContainer width="100%" height="100%">
-                <LineChart data={dailyOps}>
-                  <CartesianGrid strokeDasharray="3 3" stroke="#1e293b" />
-                  <XAxis dataKey="date" stroke="#64748b" />
-                  <YAxis stroke="#64748b" />
-                  <Tooltip
-                    contentStyle={{
-                      backgroundColor: "#020617",
-                      borderColor: "#1e293b",
-                      borderRadius: 8,
-                    }}
-                  />
-                  <Legend />
-                  <Line
-                    type="monotone"
-                    dataKey="departures"
-                    name="Departures"
-                    stroke="#3b82f6"
-                    strokeWidth={2}
-                    dot={false}
-                  />
-                  <Line
-                    type="monotone"
-                    dataKey="arrivals"
-                    name="Arrivals"
-                    stroke="#22c55e"
-                    strokeWidth={2}
-                    dot={false}
-                  />
-                  <Line
-                    type="monotone"
-                    dataKey="completion"
-                    name="Completion %"
-                    stroke="#f97316"
-                    strokeWidth={2}
-                    dot={false}
-                    yAxisId={1}
-                  />
-                </LineChart>
-              </ResponsiveContainer>
+        {/* Fleet Tab */}
+        {activeTab === 'fleet' && (
+          <div className="space-y-4">
+            <div className="rounded-xl bg-card border border-border p-4">
+              <p className="text-xs font-mono font-semibold text-muted-foreground uppercase tracking-wider mb-3">MX / OOS Status</p>
+              {fleetStatusData.length === 0 ? (
+                <p className="text-xs text-muted-foreground text-center py-4">No MX data available</p>
+              ) : (
+                <ResponsiveContainer width="100%" height={200}>
+                  <PieChart>
+                    <Pie data={fleetStatusData} cx="50%" cy="50%" outerRadius={80} dataKey="value" nameKey="name">
+                      {fleetStatusData.map((_, i) => <Cell key={i} fill={COLORS[i % COLORS.length]} />)}
+                    </Pie>
+                    <Tooltip contentStyle={{ background: 'hsl(var(--card))', border: '1px solid hsl(var(--border))', borderRadius: 8 }} />
+                    <Legend wrapperStyle={{ fontSize: 11 }} />
+                  </PieChart>
+                </ResponsiveContainer>
+              )}
             </div>
-          </div>
 
-          {/* Delay reasons bar */}
-          <div className="rounded-xl border border-white/10 bg-white/5 p-4">
-            <SectionHeader
-              title="Delay Minutes by Cause"
-              description="Ops‑grade breakdown of where time is being lost."
-            />
-            <div className="h-64">
-              <ResponsiveContainer width="100%" height="100%">
-                <BarChart data={delayReasons}>
-                  <CartesianGrid strokeDasharray="3 3" stroke="#1e293b" />
-                  <XAxis dataKey="label" stroke="#64748b" />
-                  <YAxis stroke="#64748b" />
-                  <Tooltip
-                    contentStyle={{
-                      backgroundColor: "#020617",
-                      borderColor: "#1e293b",
-                      borderRadius: 8,
-                    }}
-                  />
-                  <Bar
-                    dataKey="minutes"
-                    name="Delay Minutes"
-                    fill="#e11d48"
-                    radius={[4, 4, 0, 0]}
-                  />
-                </BarChart>
-              </ResponsiveContainer>
-            </div>
+            {/* OOS table */}
+            {oos.length > 0 && (
+              <div className="rounded-xl bg-card border border-border overflow-hidden">
+                <div className="px-4 py-2 bg-secondary/60 border-b border-border">
+                  <p className="text-xs font-mono font-semibold text-muted-foreground uppercase tracking-wider">Active OOS Entries</p>
+                </div>
+                <div className="divide-y divide-border/30 max-h-64 overflow-y-auto">
+                  {oos.filter(o => o.status !== 'released').map(o => (
+                    <div key={o.id} className="flex items-center justify-between px-4 py-2.5">
+                      <div>
+                        <p className="text-xs font-mono font-bold text-foreground">{o.tail_number}</p>
+                        <p className="text-xs text-muted-foreground truncate max-w-[180px]">{o.work_description}</p>
+                      </div>
+                      <span className={cn('text-xs font-bold px-2 py-0.5 rounded-full',
+                        o.status === 'in_work' ? 'bg-orange-500/15 text-orange-400' :
+                        o.status === 'waiting_on_parts' ? 'bg-destructive/15 text-destructive' :
+                        'bg-muted text-muted-foreground'
+                      )}>{o.status?.replace('_', ' ')}</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
           </div>
-        </div>
-      )}
-
-      {activeTab === "utilization" && (
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-          {/* Utilization bar */}
-          <div className="rounded-xl border border-white/10 bg-white/5 p-4">
-            <SectionHeader
-              title="Fleet Utilization"
-              description="Average daily block hours by fleet family."
-            />
-            <div className="h-64">
-              <ResponsiveContainer width="100%" height="100%">
-                <BarChart data={utilization}>
-                  <CartesianGrid strokeDasharray="3 3" stroke="#1e293b" />
-                  <XAxis dataKey="fleet" stroke="#64748b" />
-                  <YAxis stroke="#64748b" />
-                  <Tooltip
-                    contentStyle={{
-                      backgroundColor: "#020617",
-                      borderColor: "#1e293b",
-                      borderRadius: 8,
-                    }}
-                  />
-                  <Bar
-                    dataKey="avgDailyHours"
-                    name="Avg Daily Hours"
-                    fill="#0ea5e9"
-                    radius={[4, 4, 0, 0]}
-                  />
-                </BarChart>
-              </ResponsiveContainer>
-            </div>
-          </div>
-
-          {/* Textual insights */}
-          <div className="rounded-xl border border-white/10 bg-white/5 p-4 flex flex-col gap-3">
-            <SectionHeader
-              title="Ops Insights"
-              description="Quick read‑outs you'd give to VP Ops or Chief Pilot."
-            />
-            <ul className="text-xs text-gray-300 space-y-2">
-              <li>
-                <span className="text-gray-500">•</span>{" "}
-                737 / A320 families should sit at{" "}
-                <span className="font-bold text-white">
-                  10–12 block hours
-                </span>{" "}
-                per day for healthy utilization.
-              </li>
-              <li>
-                <span className="text-gray-500">•</span>{" "}
-                Regional fleets (E‑Jets, CRJ) typically run{" "}
-                <span className="font-bold text-white">
-                  8–10 block hours
-                </span>{" "}
-                with higher cycle counts.
-              </li>
-              <li>
-                <span className="text-gray-500">•</span>{" "}
-                Sustained low utilization on any fleet is a signal for{" "}
-                capacity planning, maintenance routing, or schedule design.
-              </li>
-              <li>
-                <span className="text-gray-500">•</span>{" "}
-                Pair this view with your OOS / TechOps dashboards to see{" "}
-                whether maintenance is constraining capacity.
-              </li>
-            </ul>
-          </div>
-        </div>
-      )}
+        )}
+      </div>
     </div>
   );
-};
-
-export default React.memo(AnalyticsPage);
+}
