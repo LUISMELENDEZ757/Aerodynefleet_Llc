@@ -24,7 +24,7 @@ const TECH_PRIMARY_TABS = [
   { key: 'fleet',   icon: Activity,      label: 'Fleet',   path: '/FleetDashboard' },
   { key: 'logbook', icon: BookOpen,      label: 'Logbook', path: '/TechOpsLogbook' },
   { key: 'tooling', icon: Cog,           label: 'Tooling', path: '/ToolingManagement' },
-  { key: 'oos',     icon: ClipboardCheck,label: 'OOS',     path: '/OOSDashboard' },
+  { key: 'oos',     icon: ClipboardCheck,label: 'Tech',    path: '/OOSDashboard' },
 ];
 
 const MORE_ITEMS = [
