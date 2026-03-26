@@ -63,6 +63,7 @@ const TechOpsLogbook        = lazy(() => import('@/pages/TechOpsLogbook'));
 const CabinDiscrepancy      = lazy(() => import('@/pages/CabinDiscrepancy'));
 const ToolingManagement       = lazy(() => import('@/pages/ToolingManagement'));
 const EngineeringDashboard    = lazy(() => import('@/pages/EngineeringDashboard'));
+const MaintenanceControl      = lazy(() => import('@/pages/MaintenanceControl'));
 
 function PageFallback() {
   return (
@@ -179,6 +180,7 @@ const AuthenticatedApp = () => {
         <Route path="/CabinDiscrepancy" element={<CabinDiscrepancy />} />
         <Route path="/ToolingManagement" element={<ToolingManagement />} />
         <Route path="/EngineeringDashboard" element={<EngineeringDashboard />} />
+        <Route path="/MaintenanceControl" element={<MaintenanceControl />} />
         <Route path="/Settings" element={<SettingsPage />} />
       </Route>
       <Route path="*" element={<PageNotFound />} />
