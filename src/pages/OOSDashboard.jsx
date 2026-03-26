@@ -523,7 +523,7 @@ function OxygenServiceModal({ onClose }) {
               <Wind className="w-4 h-4 text-cyan-400" />
               <p className="text-xs font-extrabold text-cyan-400 uppercase tracking-widest">Oxygen Pressure / Quantity</p>
             </div>
-            <div className="grid grid-cols-3 gap-3">
+            <div className="grid grid-cols-3 gap-3 items-end">
               <Field label="Initial Pressure">
                 <div className="relative">
                   <input type="number" value={form.initial_pressure} onChange={e => set('initial_pressure', e.target.value)}
