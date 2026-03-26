@@ -105,79 +105,7 @@ export default function BottomTabBar() {
         </div>
       </nav>
 
-      {/* ── MORE DRAWER ── */}
-      <AnimatePresence>
-        {drawerOpen && (
-          <>
-            {/* Backdrop */}
-            <motion.div
-              className="lg:hidden fixed inset-0 z-[60] bg-black/55 backdrop-blur-sm"
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              transition={{ duration: 0.18 }}
-              onClick={() => setDrawerOpen(false)}
-            />
 
-            {/* Sheet */}
-            <motion.div
-              className="lg:hidden fixed bottom-0 left-0 right-0 z-[61] bg-card rounded-t-2xl border-t border-border"
-              style={{ paddingBottom: 'env(safe-area-inset-bottom, 0px)' }}
-              initial={{ y: '100%' }}
-              animate={{ y: 0 }}
-              exit={{ y: '100%' }}
-              transition={{ type: 'spring', damping: 30, stiffness: 320 }}
-              drag="y"
-              dragConstraints={{ top: 0, bottom: 0 }}
-              dragElastic={{ top: 0, bottom: 0.4 }}
-              onDragEnd={(_, info) => { if (info.offset.y > 80) setDrawerOpen(false); }}
-            >
-              {/* Drag handle */}
-              <div className="flex justify-center pt-2.5 pb-1">
-                <div className="w-9 h-1 rounded-full bg-border" />
-              </div>
-
-              {/* Header */}
-              <div className="flex items-center justify-between px-5 pt-1 pb-3 border-b border-border">
-                <div className="flex items-center gap-2">
-                  <div className="w-7 h-7 rounded-lg bg-primary/20 flex items-center justify-center">
-                    <Plane className="w-3.5 h-3.5 text-primary" />
-                  </div>
-                  <span className="text-sm font-bold text-foreground">All Modules</span>
-                </div>
-                <button
-                  onClick={() => setDrawerOpen(false)}
-                  className="w-8 h-8 rounded-full bg-secondary flex items-center justify-center text-muted-foreground"
-                >
-                  <X className="w-4 h-4" />
-                </button>
-              </div>
-
-              {/* Grid */}
-              <div className="p-3 grid grid-cols-3 gap-2 max-h-[58vh] overflow-y-auto">
-                {MORE_ITEMS.map(({ icon: Icon, label, path }) => {
-                  const isActive = location.pathname === path;
-                  return (
-                    <button
-                      key={path}
-                      onClick={() => { navigate(path); setDrawerOpen(false); }}
-                      className={cn(
-                        'flex flex-col items-center justify-center gap-1.5 py-3.5 px-2 rounded-2xl transition-all text-center',
-                        isActive
-                          ? 'bg-primary/20 text-primary'
-                          : 'bg-secondary/50 text-muted-foreground active:bg-secondary'
-                      )}
-                    >
-                      <Icon className="w-5 h-5 flex-shrink-0" strokeWidth={isActive ? 2.2 : 1.8} />
-                      <span className="text-[11px] font-semibold leading-tight">{label}</span>
-                    </button>
-                  );
-                })}
-              </div>
-            </motion.div>
-          </>
-        )}
-      </AnimatePresence>
     </>
   );
 }
