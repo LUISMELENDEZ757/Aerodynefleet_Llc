@@ -24,7 +24,7 @@ const ALL_NAV_ITEMS = [
   { label: 'E-LOGBOOK', path: '/TechOpsLogbook' },
   { label: 'MEL', path: '/MEL' },
   { label: 'MCC', path: '/MaintenanceControl' },
-  { label: 'OOS', path: '/OOSDashboard' },
+  { label: 'TECHNICIAN MODE', path: '/OOSDashboard' },
   { label: 'TOOLING', path: '/ToolingManagement' },
   { label: 'TRAINING', path: '/Training' },
   { label: 'DOCUMENTS', path: '/Documents' },
