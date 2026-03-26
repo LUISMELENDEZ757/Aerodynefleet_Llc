@@ -451,14 +451,6 @@ function OilServiceModal({ onClose }) {
 
           {/* Fluid & Gas Servicing Panel */}
           <div className="bg-[#071e2a] border border-cyan-700/50 rounded-2xl p-4 space-y-4">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-2">
-                <Droplets className="w-4 h-4 text-cyan-400" />
-                <p className="text-xs font-extrabold text-cyan-400 uppercase tracking-widest">Fluid &amp; Gas Servicing — Tracking</p>
-              </div>
-              <p className="text-[10px] text-gray-500 italic">Leave blank if not serviced this entry</p>
-            </div>
-
             {/* Engine Oil sub-panel */}
             <div className="bg-[#0a1e2a] border border-cyan-800/40 rounded-xl p-4 space-y-3">
               <div className="flex items-center gap-2">
