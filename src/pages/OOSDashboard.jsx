@@ -568,15 +568,6 @@ function OxygenServiceModal({ onClose }) {
                     </div>
                     <span className="text-[10px] font-bold text-amber-400 w-16 text-right">{initial > 0 ? `${initial} PSI` : '—'}</span>
                   </div>
-                  {/* Final */}
-                  <div className="flex items-center gap-3">
-                    <span className="text-[10px] font-bold text-green-400 uppercase tracking-widest w-16 flex-shrink-0">Final</span>
-                    <div className="flex-1 bg-white/10 rounded-full h-3 overflow-hidden">
-                      <div className="h-full rounded-full bg-gradient-to-r from-green-600 to-green-400 transition-all duration-500"
-                        style={{ width: hasData ? `${finalPct}%` : '0%' }} />
-                    </div>
-                    <span className="text-[10px] font-bold text-green-400 w-16 text-right">{final > 0 ? `${final} PSI` : '—'}</span>
-                  </div>
                   {/* Added */}
                   <div className="flex items-center gap-3">
                     <span className="text-[10px] font-bold text-emerald-400 uppercase tracking-widest w-16 flex-shrink-0">Added</span>
@@ -585,6 +576,15 @@ function OxygenServiceModal({ onClose }) {
                         style={{ width: hasData && added > 0 ? `${addedPct}%` : '0%' }} />
                     </div>
                     <span className="text-[10px] font-bold text-emerald-400 w-16 text-right">{added > 0 ? `+${added} PSI` : '—'}</span>
+                  </div>
+                  {/* Final */}
+                  <div className="flex items-center gap-3">
+                    <span className="text-[10px] font-bold text-green-400 uppercase tracking-widest w-16 flex-shrink-0">Final</span>
+                    <div className="flex-1 bg-white/10 rounded-full h-3 overflow-hidden">
+                      <div className="h-full rounded-full bg-gradient-to-r from-green-600 to-green-400 transition-all duration-500"
+                        style={{ width: hasData ? `${finalPct}%` : '0%' }} />
+                    </div>
+                    <span className="text-[10px] font-bold text-green-400 w-16 text-right">{final > 0 ? `${final} PSI` : '—'}</span>
                   </div>
                 </div>
               );
