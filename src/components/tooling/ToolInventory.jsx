@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { base44 } from '@/api/base44Client';
-import { Search, MapPin, Calendar, Wrench, Zap, Microscope, LayoutGrid, List, QrCode, User, CheckCircle, Clock, AlertTriangle, X } from 'lucide-react';
+import { Search, MapPin, Calendar, Wrench, Zap, Microscope, LayoutGrid, List, QrCode, Radio, Wifi, Plus, User, CheckCircle, Clock, AlertTriangle, X } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 const STATUS_CFG = {
@@ -219,7 +219,7 @@ function ToolCard({ tool, onAction }) {
   );
 }
 
-export default function ToolInventory({ tools, transactions, onRefresh }) {
+export default function ToolInventory({ tools, transactions, onRefresh, onScan, onAddTool }) {
   const [search, setSearch] = useState('');
   const [catFilter, setCatFilter] = useState('');
   const [statusFilter, setStatusFilter] = useState('');
@@ -244,19 +244,37 @@ export default function ToolInventory({ tools, transactions, onRefresh }) {
 
   return (
     <div>
-      {/* Filters */}
+      {/* Search bar */}
+      <div className="flex items-center gap-2 bg-[#141922] border border-white/10 rounded-xl px-4 py-2.5 mb-3">
+        <Search className="w-4 h-4 text-gray-500 flex-shrink-0" />
+        <input
+          type="text"
+          placeholder="Search tools by name, number, or manufacturer…"
+          value={search}
+          onChange={e => setSearch(e.target.value)}
+          className="flex-1 bg-transparent text-sm text-white placeholder-gray-500 outline-none"
+        />
+      </div>
+
+      {/* Action buttons */}
+      <div className="flex flex-wrap gap-2 mb-4">
+        <button onClick={() => onScan?.('qr')} className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-blue-600 hover:bg-blue-500 text-white text-sm font-bold transition-colors">
+          <QrCode className="w-4 h-4" /> Scan QR
+        </button>
+        <button onClick={() => onScan?.('rfid')} className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-purple-600 hover:bg-purple-500 text-white text-sm font-bold transition-colors">
+          <Radio className="w-4 h-4" /> RFID
+        </button>
+        <button onClick={() => onScan?.('nfc')} className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-teal-600 hover:bg-teal-500 text-white text-sm font-bold transition-colors">
+          <Wifi className="w-4 h-4" /> NFC
+        </button>
+        <button onClick={() => onAddTool?.()} className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-orange-500 hover:bg-orange-400 text-white text-sm font-bold transition-colors">
+          <Plus className="w-4 h-4" /> Add Tool
+        </button>
+      </div>
+
+      {/* Category & Status Filters */}
       <div className="flex flex-col sm:flex-row gap-3 mb-4">
-        <div className="flex-1 flex items-center gap-2 bg-[#141922] border border-white/10 rounded-xl px-4 py-2.5">
-          <Search className="w-4 h-4 text-gray-500 flex-shrink-0" />
-          <input
-            type="text"
-            placeholder="Search tools by name, number, or manufacturer…"
-            value={search}
-            onChange={e => setSearch(e.target.value)}
-            className="flex-1 bg-transparent text-sm text-white placeholder-gray-500 outline-none"
-          />
-        </div>
-        <select value={catFilter} onChange={e => setCatFilter(e.target.value)} className="bg-[#141922] border border-white/10 rounded-xl px-4 py-2.5 text-sm text-white outline-none">
+        <select value={catFilter} onChange={e => setCatFilter(e.target.value)} className="bg-[#141922] border border-white/10 rounded-xl px-4 py-2.5 text-sm text-white outline-none flex-1">
           <option value="">All Categories</option>
           <option value="torque">Torque</option>
           <option value="pneumatic">Pneumatic</option>
@@ -267,7 +285,7 @@ export default function ToolInventory({ tools, transactions, onRefresh }) {
           <option value="cutting">Cutting</option>
           <option value="other">Other</option>
         </select>
-        <select value={statusFilter} onChange={e => setStatusFilter(e.target.value)} className="bg-[#141922] border border-white/10 rounded-xl px-4 py-2.5 text-sm text-white outline-none">
+        <select value={statusFilter} onChange={e => setStatusFilter(e.target.value)} className="bg-[#141922] border border-white/10 rounded-xl px-4 py-2.5 text-sm text-white outline-none flex-1">
           <option value="">All Status</option>
           <option value="available">Available</option>
           <option value="checked_out">Checked Out</option>

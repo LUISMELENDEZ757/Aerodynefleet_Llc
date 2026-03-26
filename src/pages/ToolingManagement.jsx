@@ -100,34 +100,7 @@ export default function ToolingManagement() {
             </div>
           </div>
 
-          <div className="flex flex-col gap-2">
-            <div className="flex gap-2">
-              <button
-                onClick={() => handleScan('qr')}
-                className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-blue-600 hover:bg-blue-500 text-white text-sm font-bold transition-colors"
-              >
-                <QrCode className="w-4 h-4" /> Scan QR
-              </button>
-              <button
-                onClick={() => handleScan('rfid')}
-                className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-purple-600 hover:bg-purple-500 text-white text-sm font-bold transition-colors"
-              >
-                <Radio className="w-4 h-4" /> RFID
-              </button>
-              <button
-                onClick={() => handleScan('nfc')}
-                className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-teal-600 hover:bg-teal-500 text-white text-sm font-bold transition-colors"
-              >
-                <Wifi className="w-4 h-4" /> NFC
-              </button>
-            </div>
-            <button
-              onClick={() => setShowAddTool(true)}
-              className="flex items-center justify-center gap-2 px-5 py-2.5 rounded-xl bg-orange-500 hover:bg-orange-400 text-white text-sm font-bold transition-colors"
-            >
-              <Plus className="w-4 h-4" /> Add Tool
-            </button>
-          </div>
+
         </div>
 
         {/* Stats Grid */}
@@ -175,7 +148,7 @@ export default function ToolingManagement() {
 
       {/* Tab Content */}
       <div className="px-5">
-        {activeTab === 'inventory'    && <ToolInventory tools={tools} transactions={transactions} onRefresh={() => queryClient.invalidateQueries({ queryKey: ['tools', 'tool-transactions'] })} />}
+        {activeTab === 'inventory'    && <ToolInventory tools={tools} transactions={transactions} onRefresh={() => queryClient.invalidateQueries({ queryKey: ['tools', 'tool-transactions'] })} onScan={handleScan} onAddTool={() => setShowAddTool(true)} />}
         {activeTab === 'transactions' && <ToolTransactions transactions={transactions} />}
         {activeTab === 'calibration'  && <ToolCalibration tools={tools} onRefresh={() => queryClient.invalidateQueries({ queryKey: ['tools'] })} />}
         {activeTab === 'analytics'    && <ToolAnalytics tools={tools} transactions={transactions} />}
