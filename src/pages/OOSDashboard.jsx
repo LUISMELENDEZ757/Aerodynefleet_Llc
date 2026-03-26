@@ -449,7 +449,12 @@ function OxygenServiceModal({ onClose }) {
         `Date: ${form.date}  Time (UTC): ${form.time_utc}  Station: ${form.station}`,
         `Service Method: ${form.service_method}`,
         `Initial Pressure: ${form.initial_pressure || '—'} PSI  Final Pressure: ${form.final_pressure || '—'} PSI  Added: ${pressureAdded != null ? pressureAdded : '—'} PSI`,
-        form.bottle_replaced ? 'Oxygen bottle was replaced during this service.' : '',
+        form.bottle_replaced ? [
+          `Oxygen bottle REPLACED during this service.`,
+          `  REMOVED — P/N: ${form.removed_pn || '—'}  S/N: ${form.removed_sn || '—'}`,
+          `  INSTALLED — P/N: ${form.installed_pn || '—'}  S/N: ${form.installed_sn || '—'}`,
+          form.parts_notes ? `  Notes: ${form.parts_notes}` : '',
+        ].filter(Boolean).join('\n') : '',
       ].filter(Boolean).join('\n'),
       technician_name: form.technician_name,
       technician_id: form.ap_cert,
