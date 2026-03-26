@@ -26,44 +26,44 @@ export default function MaintenanceControl() {
 
   const { data: aircraft = [] } = useQuery({
     queryKey: ['mcc-aircraft'],
-    queryFn: () => base44.entities.Aircraft.list('tail_number', 200),
-    refetchInterval: 30000,
+    queryFn: () => base44.entities.Aircraft.list('tail_number', 1000),
+    refetchInterval: 60000,
   });
 
   const { data: oosEntries = [] } = useQuery({
     queryKey: ['mcc-oos'],
-    queryFn: () => base44.entities.OOSEntry.list('-created_date', 200),
-    refetchInterval: 30000,
+    queryFn: () => base44.entities.OOSEntry.list('-created_date', 500),
+    refetchInterval: 60000,
   });
 
   const { data: melItems = [] } = useQuery({
     queryKey: ['mcc-mel'],
-    queryFn: () => base44.entities.MELItem.list('-created_date', 200),
-    refetchInterval: 30000,
+    queryFn: () => base44.entities.MELItem.list('-created_date', 500),
+    refetchInterval: 60000,
   });
 
   const { data: faults = [] } = useQuery({
     queryKey: ['mcc-faults'],
-    queryFn: () => base44.entities.FaultMessage.list('-created_date', 300),
-    refetchInterval: 30000,
+    queryFn: () => base44.entities.FaultMessage.list('-created_date', 1000),
+    refetchInterval: 60000,
   });
 
   const { data: parts = [] } = useQuery({
     queryKey: ['mcc-parts'],
-    queryFn: () => base44.entities.Part.list('-created_date', 200),
-    refetchInterval: 30000,
+    queryFn: () => base44.entities.Part.list('-created_date', 500),
+    refetchInterval: 60000,
   });
 
   const { data: tools = [] } = useQuery({
     queryKey: ['mcc-tools'],
-    queryFn: () => base44.entities.Tool.list('-created_date', 200),
+    queryFn: () => base44.entities.Tool.list('-created_date', 500),
     refetchInterval: 60000,
   });
 
   const { data: logbookEntries = [] } = useQuery({
     queryKey: ['mcc-logbook'],
-    queryFn: () => base44.entities.LogbookEntry.list('-created_date', 300),
-    refetchInterval: 30000,
+    queryFn: () => base44.entities.LogbookEntry.list('-created_date', 1000),
+    refetchInterval: 60000,
   });
 
   return (
