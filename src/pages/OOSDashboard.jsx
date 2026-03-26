@@ -4,7 +4,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { base44 } from '@/api/base44Client';
 import {
   Plus, CheckCircle, List, BookOpen, Droplets, Wind, Search, RotateCcw,
-  ChevronLeft, X, Send, Wrench, AlertTriangle
+  ChevronLeft, X, Send, Wrench, AlertTriangle, Printer
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
@@ -435,7 +435,65 @@ function OxygenServiceModal({ onClose }) {
     : null;
 
   // Generate a pseudo log page number
-  const logPage = `LP#${String(Math.floor(Math.random() * 9000) + 1000)}`;
+  const [logPage] = useState(`LP#${String(Math.floor(Math.random() * 9000) + 1000)}`);
+
+  const handlePrint = () => {
+    const partsSection = form.bottle_replaced ? `
+      <tr><td colspan="2" style="padding:6px 0;font-weight:bold;color:#7c3aed;border-top:1px solid #e5e7eb;">🔩 Parts Removal / Installation</td></tr>
+      <tr><td>Part Removed — P/N</td><td>${form.removed_pn || '—'}</td></tr>
+      <tr><td>Part Removed — S/N</td><td>${form.removed_sn || '—'}</td></tr>
+      <tr><td>Part Installed — P/N</td><td>${form.installed_pn || '—'}</td></tr>
+      <tr><td>Part Installed — S/N</td><td>${form.installed_sn || '—'}</td></tr>
+      ${form.parts_notes ? `<tr><td>Parts Notes</td><td>${form.parts_notes}</td></tr>` : ''}
+    ` : '';
+
+    const win = window.open('', '_blank');
+    win.document.write(`
+      <html><head><title>Oxygen Service — ${logPage}</title>
+      <style>
+        body { font-family: Arial, sans-serif; font-size: 13px; color: #111; margin: 40px; }
+        h2 { margin: 0 0 4px; font-size: 18px; }
+        .sub { color: #555; font-size: 12px; margin-bottom: 20px; }
+        table { width: 100%; border-collapse: collapse; margin-top: 12px; }
+        td { padding: 6px 10px; border-bottom: 1px solid #eee; vertical-align: top; }
+        td:first-child { font-weight: bold; width: 40%; color: #444; }
+        .section { font-weight: bold; color: #0e7490; padding: 10px 0 4px; font-size: 12px; text-transform: uppercase; letter-spacing: 1px; border-top: 2px solid #0e7490; margin-top: 8px; }
+        .footer { margin-top: 40px; font-size: 11px; color: #888; border-top: 1px solid #ccc; padding-top: 10px; }
+        .sig-line { margin-top: 40px; display: flex; gap: 40px; }
+        .sig-block { flex: 1; border-top: 1px solid #000; padding-top: 4px; font-size: 12px; color: #444; }
+      </style>
+      </head><body>
+      <h2>OXYGEN SERVICE — ${logPage}</h2>
+      <div class="sub">ATA 35 — Oxygen System Servicing &nbsp;|&nbsp; Aerodyne Fleet LLC</div>
+      <table>
+        <tr><td class="section" colspan="2">Service Information</td></tr>
+        <tr><td>Aircraft Tail</td><td>${form.aircraft_tail || '—'}</td></tr>
+        <tr><td>Date</td><td>${form.date}</td></tr>
+        <tr><td>Time (UTC)</td><td>${form.time_utc}</td></tr>
+        <tr><td>Station</td><td>${form.station || '—'}</td></tr>
+        <tr><td>Service Method</td><td>${form.service_method}</td></tr>
+        <tr><td class="section" colspan="2">Pressure Data</td></tr>
+        <tr><td>Initial Pressure</td><td>${form.initial_pressure || '—'} PSI</td></tr>
+        <tr><td>Final Pressure</td><td>${form.final_pressure || '—'} PSI</td></tr>
+        <tr><td>Pressure Added</td><td>${pressureAdded != null ? pressureAdded : '—'} PSI</td></tr>
+        <tr><td>Bottle Replaced</td><td>${form.bottle_replaced ? 'YES' : 'NO'}</td></tr>
+        ${partsSection}
+        <tr><td class="section" colspan="2">Technician</td></tr>
+        <tr><td>Name</td><td>${form.technician_name || '—'}</td></tr>
+        <tr><td>A&P Cert # / Emp #</td><td>${form.ap_cert || '—'}</td></tr>
+      </table>
+      <div class="sig-line">
+        <div class="sig-block">Technician Signature &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</div>
+        <div class="sig-block">Date &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</div>
+      </div>
+      <div class="footer">Printed: ${new Date().toLocaleString()} &nbsp;|&nbsp; Log Page: ${logPage} &nbsp;|&nbsp; ATA 35</div>
+      </body></html>
+    `);
+    win.document.close();
+    win.focus();
+    win.print();
+    win.close();
+  };
 
   const mutation = useMutation({
     mutationFn: () => base44.entities.LogbookEntry.create({
@@ -483,6 +541,9 @@ function OxygenServiceModal({ onClose }) {
                 ✈ {form.aircraft_tail}
               </span>
             )}
+            <button onClick={handlePrint} title="Print / Save PDF" className="w-8 h-8 rounded-lg bg-white/10 flex items-center justify-center hover:bg-cyan-500/40 transition-colors">
+              <Printer className="w-4 h-4 text-cyan-300" />
+            </button>
             <button onClick={onClose} className="w-8 h-8 rounded-lg bg-white/10 flex items-center justify-center hover:bg-white/20">
               <X className="w-4 h-4 text-white" />
             </button>
