@@ -107,43 +107,43 @@ export default function LeftRail() {
           onClick={() => switchMode('flight')}
           title="Flight Ops"
           className={cn(
-            'flex items-center justify-center gap-1.5 rounded-lg transition-all text-xs font-bold glass-light glass-hover',
-            expanded ? 'flex-1 h-7 px-2' : 'w-full h-7',
+            'relative flex items-center justify-center gap-2 rounded-lg transition-all text-xs font-bold glass-light glass-hover overflow-hidden',
+            expanded ? 'flex-1 h-8 px-2' : 'w-full h-8',
             mode === 'flight'
               ? 'bg-primary/40 text-primary-foreground border border-primary/40'
               : 'text-gray-400 hover:text-white'
           )}
         >
-          <Plane className="w-3.5 h-3.5 flex-shrink-0" />
-          {expanded && <span>FltOps</span>}
+          <Plane className="w-3.5 h-3.5 flex-shrink-0 relative z-10" />
+          <span className={cn('relative z-10 transition-all duration-200', !expanded && 'w-0 opacity-0 overflow-hidden')}>FltOps</span>
         </button>
         <button
           onClick={() => switchMode('tech')}
           title="TechOps"
           className={cn(
-            'flex items-center justify-center gap-1.5 rounded-lg transition-all text-xs font-bold glass-light glass-hover',
-            expanded ? 'flex-1 h-7 px-2' : 'w-full h-7',
+            'relative flex items-center justify-center gap-2 rounded-lg transition-all text-xs font-bold glass-light glass-hover overflow-hidden',
+            expanded ? 'flex-1 h-8 px-2' : 'w-full h-8',
             mode === 'tech'
               ? 'bg-orange-500/40 text-white border border-orange-500/40'
               : 'text-gray-400 hover:text-white'
           )}
         >
-          <Wrench className="w-3.5 h-3.5 flex-shrink-0" />
-          {expanded && <span>TechOps</span>}
+          <Wrench className="w-3.5 h-3.5 flex-shrink-0 relative z-10" />
+          <span className={cn('relative z-10 transition-all duration-200', !expanded && 'w-0 opacity-0 overflow-hidden')}>TechOps</span>
         </button>
         <button
           onClick={() => { switchMode('aocs'); }}
           title="AOCS"
           className={cn(
-            'flex items-center justify-center gap-1.5 rounded-lg transition-all text-xs font-bold glass-light glass-hover',
-            expanded ? 'flex-1 h-7 px-2' : 'w-full h-7',
+            'relative flex items-center justify-center gap-2 rounded-lg transition-all text-xs font-bold glass-light glass-hover overflow-hidden',
+            expanded ? 'flex-1 h-8 px-2' : 'w-full h-8',
             mode === 'aocs'
               ? 'bg-sky-600/40 text-white border border-sky-600/40'
               : 'text-gray-400 hover:text-white'
           )}
         >
-          <Globe className="w-3.5 h-3.5 flex-shrink-0" />
-          {expanded && <span>AOCS</span>}
+          <Globe className="w-3.5 h-3.5 flex-shrink-0 relative z-10" />
+          <span className={cn('relative z-10 transition-all duration-200', !expanded && 'w-0 opacity-0 overflow-hidden')}>AOCS</span>
         </button>
       </div>
 
@@ -172,10 +172,10 @@ export default function LeftRail() {
               {isActive && (
                 <span className={cn('absolute left-0 top-1/2 -translate-y-1/2 w-1 h-6 rounded-r-full', mode === 'tech' ? 'bg-orange-500' : 'bg-primary')} />
               )}
-              <Icon className="w-5 h-5 flex-shrink-0" />
-              {expanded && (
-                <span className="text-sm font-medium whitespace-nowrap">{label}</span>
-              )}
+              <Icon className="w-5 h-5 flex-shrink-0 relative z-10" />
+              <span className={cn('text-sm font-medium whitespace-nowrap transition-all duration-200 relative z-10', !expanded && 'w-0 opacity-0 overflow-hidden')}>
+                {label}
+              </span>
             </>
           );
           return isHome ? (
@@ -195,16 +195,16 @@ export default function LeftRail() {
         <Link
           to="/Settings"
           className={cn(
-            'flex items-center gap-3 px-2.5 rounded-xl transition-all w-full min-h-[44px] glass-light glass-hover',
+            'relative flex items-center gap-3 px-2.5 rounded-xl transition-all w-full min-h-[44px] glass-light glass-hover overflow-hidden',
             location.pathname === '/Settings'
               ? 'bg-primary/30 text-primary border border-primary/30'
               : 'text-gray-400'
           )}
         >
-          <Settings className="w-5 h-5 flex-shrink-0" />
-          {expanded && (
-            <span className="text-sm font-medium whitespace-nowrap">Settings</span>
-          )}
+          <Settings className="w-5 h-5 flex-shrink-0 relative z-10" />
+          <span className={cn('text-sm font-medium whitespace-nowrap transition-all duration-200 relative z-10', !expanded && 'w-0 opacity-0 overflow-hidden')}>
+            Settings
+          </span>
         </Link>
       </div>
     </aside>
