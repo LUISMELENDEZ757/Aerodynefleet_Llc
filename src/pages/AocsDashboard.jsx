@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import { base44 } from '@/api/base44Client';
@@ -174,8 +174,13 @@ export default function AocsDashboard() {
     })
     .slice(0, 8);
 
-  const now = new Date();
-  const utcTime = now.toUTCString().slice(17, 22);
+  const [utcTime, setUtcTime] = useState('');
+  useEffect(() => {
+    const update = () => setUtcTime(new Date().toUTCString().slice(17, 22));
+    update();
+    const t = setInterval(update, 1000);
+    return () => clearInterval(t);
+  }, []);
 
   return (
     <div className="min-h-screen bg-[#0d1117] text-white pb-24">
