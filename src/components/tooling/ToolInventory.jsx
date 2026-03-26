@@ -3,6 +3,7 @@ import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { base44 } from '@/api/base44Client';
 import { Search, MapPin, Calendar, Wrench, Zap, Microscope, LayoutGrid, List, QrCode, Radio, Wifi, Plus, User, CheckCircle, Clock, AlertTriangle, X } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { QRCodeSVG } from 'qrcode.react';
 
 const STATUS_CFG = {
   available:       { label: 'Avail',    color: 'bg-green-500 text-white',  icon: CheckCircle },
@@ -18,11 +19,10 @@ const CAT_ICONS = {
   cutting: Wrench, other: Wrench,
 };
 
-// Simple QR-like SVG placeholder
 function QRBlock({ text }) {
   return (
-    <div className="w-16 h-16 bg-white rounded-lg flex items-center justify-center flex-shrink-0">
-      <QrCode className="w-10 h-10 text-black" />
+    <div className="w-16 h-16 bg-white rounded-lg flex items-center justify-center flex-shrink-0 p-1">
+      <QRCodeSVG value={text || 'TOOL'} size={56} bgColor="#ffffff" fgColor="#000000" level="M" />
     </div>
   );
 }
