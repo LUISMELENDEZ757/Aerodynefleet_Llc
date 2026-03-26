@@ -1,197 +1,250 @@
 import { useState } from 'react';
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { base44 } from '@/api/base44Client';
 import { Link } from 'react-router-dom';
-import {
-  Fuel, TrendingUp, TrendingDown, DollarSign, AlertTriangle,
-  RefreshCw, CheckCircle, BarChart3, Plus, Plane
-} from 'lucide-react';
+import { useQuery } from '@tanstack/react-query';
+import { base44 } from '@/api/base44Client';
+import { Fuel, TrendingUp, AlertTriangle, CheckCircle, DollarSign, Plane, RefreshCw } from 'lucide-react';
 import { cn } from '@/lib/utils';
-import {
-  BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer,
-  LineChart, Line, CartesianGrid, Legend
-} from 'recharts';
-import FuelVarianceTable from '@/components/fuel/FuelVarianceTable';
-import TankeringAdvisor from '@/components/fuel/TankeringAdvisor';
-import NewFuelRecordModal from '@/components/fuel/NewFuelRecordModal';
+import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid, LineChart, Line } from 'recharts';
 
-const TODAY = new Date().toISOString().split('T')[0];
+const COLORS = {
+  green: '#22c55e',
+  amber: '#f59e0b',
+  red: '#ef4444',
+  blue: '#3b82f6',
+};
 
-function StatTile({ icon: Icon, label, value, sub, color }) {
+function StatCard({ icon: Icon, label, value, sub, color }) {
   return (
-    <div className="rounded-xl bg-card border border-border px-4 py-3 flex items-center gap-3">
-      <div className="w-9 h-9 rounded-lg bg-secondary flex items-center justify-center flex-shrink-0">
-        <Icon className={cn('w-4 h-4', color)} />
+    <div className={cn('rounded-xl border p-4 space-y-1', color)}>
+      <div className="flex items-center gap-2">
+        <Icon className="w-4 h-4" />
+        <p className="text-2xl font-extrabold font-mono">{value}</p>
       </div>
-      <div>
-        <p className={cn('text-xl font-extrabold font-mono', color)}>{value}</p>
-        <p className="text-xs text-muted-foreground">{label}</p>
-        {sub && <p className={cn('text-xs font-semibold', color)}>{sub}</p>}
-      </div>
+      <p className="text-xs opacity-70">{label}</p>
+      {sub && <p className="text-[10px] font-bold opacity-80">{sub}</p>}
     </div>
   );
 }
 
-const TABS = [
-  { key: 'overview',   label: 'Overview' },
-  { key: 'variance',   label: 'Variance' },
-  { key: 'tankering',  label: 'Tankering' },
-];
-
 export default function FuelManagement() {
   const [activeTab, setActiveTab] = useState('overview');
-  const [showNew, setShowNew] = useState(false);
-  const queryClient = useQueryClient();
 
-  const { data: records = [], isLoading, refetch } = useQuery({
+  const { data: records = [], refetch, isLoading } = useQuery({
     queryKey: ['fuel-records'],
-    queryFn: () => base44.entities.FuelRecord.list('-flight_date', 100),
-    refetchInterval: 60000,
+    queryFn: () => base44.entities.FuelRecord.list('-flight_date', 200),
+    refetchInterval: 30000,
   });
 
   const { data: flights = [] } = useQuery({
-    queryKey: ['fuel-flights', TODAY],
-    queryFn: () => base44.entities.Flight.filter({ flight_date: TODAY }),
+    queryKey: ['fuel-flights'],
+    queryFn: () => base44.entities.Flight.list('-flight_date', 100),
+    refetchInterval: 30000,
   });
 
-  const createMutation = useMutation({
-    mutationFn: (data) => base44.entities.FuelRecord.create(data),
-    onSuccess: () => { queryClient.invalidateQueries({ queryKey: ['fuel-records'] }); setShowNew(false); },
-  });
+  const totalRecords = records.length;
+  const flaggedRecords = records.filter(r => Math.abs(r.variance_percent || 0) > 5).length;
+  const avgVariance = records.length > 0 
+    ? (records.reduce((sum, r) => sum + Math.abs(r.variance_percent || 0), 0) / records.length).toFixed(1) 
+    : 0;
+  const totalTankeringSavings = records.reduce((sum, r) => sum + (r.tankering_savings || 0), 0);
 
-  // Aggregates
-  const withVariance = records.filter(r => r.variance_lbs != null);
-  const avgVariance = withVariance.length
-    ? (withVariance.reduce((s, r) => s + (r.variance_percent || 0), 0) / withVariance.length).toFixed(1)
-    : '0.0';
-  const flagged = records.filter(r => r.release_status === 'variance_flagged').length;
-  const tankeringRecords = records.filter(r => r.tankering_decision !== 'none');
-  const totalSavings = tankeringRecords.reduce((s, r) => s + (r.tankering_savings || 0), 0);
+  const varianceData = records.slice(0, 10).map(r => ({
+    flight: r.flight_number,
+    variance: Math.abs(r.variance_percent || 0),
+    planned: r.planned_fuel || 0,
+    actual: r.actual_uplift || 0,
+  }));
 
-  // Chart data - last 14 days variance by flight
-  const chartData = records.slice(0, 14).map(r => ({
-    flight: r.flight_number || '—',
-    planned: r.trip_fuel_planned || 0,
-    actual: r.trip_fuel_actual || 0,
-    variance: r.variance_lbs || 0,
-  })).reverse();
-
-  const now = new Date();
-  const timeStr = now.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: false });
+  const trendData = (() => {
+    const map = {};
+    records.forEach(r => {
+      const d = new Date(r.flight_date);
+      const key = `${d.getMonth() + 1}/${d.getDate()}`;
+      if (!map[key]) map[key] = { day: key, variance: 0, count: 0 };
+      map[key].variance += Math.abs(r.variance_percent || 0);
+      map[key].count++;
+    });
+    return Object.values(map).map(d => ({
+      day: d.day,
+      avgVariance: (d.variance / d.count).toFixed(1),
+    })).slice(-7);
+  })();
 
   return (
-    <div className="min-h-screen bg-background">
-      <div className="border-b border-border bg-card px-5 pt-5 pb-4">
-        <div className="flex items-start justify-between gap-4">
-          <div className="flex items-center gap-3">
-            <Link to="/Home" className="w-10 h-10 rounded-xl bg-primary/20 flex items-center justify-center flex-shrink-0 hover:bg-primary/30 transition-colors">
-              <Fuel className="w-5 h-5 text-primary" />
-            </Link>
-            <div>
-              <h1 className="text-lg font-extrabold text-foreground tracking-wide">FUEL MANAGEMENT</h1>
-              <p className="text-xs font-mono text-primary tracking-widest uppercase">Uplift · Variance · Tankering · Cost</p>
-            </div>
-          </div>
-          <div className="flex flex-col items-end gap-1">
-            <p className="text-lg font-mono font-bold text-foreground">{timeStr} Z</p>
-            <button onClick={refetch} className="flex items-center gap-1 text-xs text-muted-foreground hover:text-foreground transition-colors">
-              <RefreshCw className="w-3 h-3" /> Sync
-            </button>
+    <div className="min-h-screen bg-[#0d1117] text-white pb-24">
+      {/* Header */}
+      <div className="flex items-center justify-between px-5 py-4 border-b border-white/10 bg-[#0a0e18]">
+        <div className="flex items-center gap-3">
+          <Link to="/Home" className="w-9 h-9 rounded-lg bg-white/10 flex items-center justify-center hover:bg-white/20">
+            <Fuel className="w-5 h-5" />
+          </Link>
+          <div>
+            <p className="text-base font-extrabold">FUEL MANAGEMENT</p>
+            <p className="text-[10px] text-amber-400 tracking-widest uppercase">Variance Tracking · Tankering Analysis</p>
           </div>
         </div>
+        <button onClick={refetch} className="flex items-center gap-2 text-xs font-bold bg-white/5 border border-white/10 rounded-xl px-3 py-2 hover:bg-white/10">
+          <RefreshCw className="w-3.5 h-3.5" /> Refresh
+        </button>
       </div>
 
-      <div className="p-4 space-y-4">
-        {/* Stats */}
-        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-          <StatTile icon={Fuel}         label="Records"         value={records.length}     color="text-primary" />
-          <StatTile icon={TrendingUp}   label="Avg Variance"    value={`${avgVariance}%`}  color={Math.abs(avgVariance) > 3 ? 'text-orange-400' : 'text-green-400'}
-            sub={Math.abs(avgVariance) > 3 ? 'Above threshold' : 'Within limits'} />
-          <StatTile icon={AlertTriangle} label="Flagged"         value={flagged}            color={flagged > 0 ? 'text-destructive' : 'text-muted-foreground'} />
-          <StatTile icon={DollarSign}   label="Tankering Savings" value={`$${(totalSavings/1000).toFixed(0)}K`} color="text-green-400" />
-        </div>
+      {/* KPI Grid */}
+      <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 px-5 pt-5">
+        <StatCard 
+          icon={Plane} 
+          label="Fuel Records" 
+          value={totalRecords} 
+          color="bg-blue-600/15 border-blue-600/30 text-blue-400" 
+        />
+        <StatCard 
+          icon={AlertTriangle} 
+          label="Flagged (>5%)" 
+          value={flaggedRecords} 
+          sub={`${((flaggedRecords / Math.max(totalRecords, 1)) * 100).toFixed(0)}% of total`}
+          color={flaggedRecords > 0 ? "bg-amber-600/15 border-amber-600/30 text-amber-400" : "bg-green-600/15 border-green-600/30 text-green-400"} 
+        />
+        <StatCard 
+          icon={TrendingUp} 
+          label="Avg Variance" 
+          value={`${avgVariance}%`} 
+          color={parseFloat(avgVariance) > 5 ? "bg-red-600/15 border-red-600/30 text-red-400" : "bg-green-600/15 border-green-600/30 text-green-400"} 
+        />
+        <StatCard 
+          icon={DollarSign} 
+          label="Tankering Savings" 
+          value={totalTankeringSavings >= 1000 ? `$${(totalTankeringSavings / 1000).toFixed(1)}K` : `$${totalTankeringSavings}`} 
+          color="bg-green-600/15 border-green-600/30 text-green-400" 
+        />
+      </div>
 
-        {/* Tabs */}
-        <div className="flex items-center justify-between">
-          <div className="flex gap-1 bg-secondary rounded-xl p-1">
-            {TABS.map(t => (
-              <button
-                key={t.key}
-                onClick={() => setActiveTab(t.key)}
-                className={cn('px-3 py-1.5 text-xs font-semibold rounded-lg transition-all',
-                  activeTab === t.key ? 'bg-primary text-primary-foreground' : 'text-muted-foreground hover:text-foreground'
-                )}
-              >{t.label}</button>
-            ))}
-          </div>
+      {/* Tabs */}
+      <div className="flex gap-2 px-5 mt-5">
+        {['overview', 'records', 'trends'].map(tab => (
           <button
-            onClick={() => setShowNew(true)}
-            className="flex items-center gap-1.5 text-xs font-bold px-3 py-2 rounded-xl bg-primary text-primary-foreground hover:bg-primary/90 transition-colors"
-          >
-            <Plus className="w-3.5 h-3.5" /> Log Fuel
-          </button>
-        </div>
-
-        {/* Overview Tab */}
-        {activeTab === 'overview' && (
-          <div className="space-y-4">
-            {chartData.length > 0 && (
-              <>
-                <div className="rounded-xl bg-card border border-border p-4">
-                  <p className="text-xs font-mono font-semibold text-muted-foreground uppercase tracking-wider mb-3">
-                    Fuel Burn — Planned vs Actual (lbs)
-                  </p>
-                  <ResponsiveContainer width="100%" height={200}>
-                    <BarChart data={chartData} margin={{ top: 0, right: 0, left: -20, bottom: 0 }}>
-                      <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
-                      <XAxis dataKey="flight" tick={{ fontSize: 10, fill: 'hsl(var(--muted-foreground))' }} />
-                      <YAxis tick={{ fontSize: 10, fill: 'hsl(var(--muted-foreground))' }} />
-                      <Tooltip
-                        contentStyle={{ background: 'hsl(var(--card))', border: '1px solid hsl(var(--border))', borderRadius: 8 }}
-                        labelStyle={{ color: 'hsl(var(--foreground))' }}
-                      />
-                      <Bar dataKey="planned" fill="hsl(var(--muted))" name="Planned" radius={[3, 3, 0, 0]} />
-                      <Bar dataKey="actual"  fill="hsl(var(--primary))" name="Actual" radius={[3, 3, 0, 0]} />
-                    </BarChart>
-                  </ResponsiveContainer>
-                </div>
-
-                <div className="rounded-xl bg-card border border-border p-4">
-                  <p className="text-xs font-mono font-semibold text-muted-foreground uppercase tracking-wider mb-3">
-                    Variance Trend (lbs)
-                  </p>
-                  <ResponsiveContainer width="100%" height={160}>
-                    <LineChart data={chartData} margin={{ top: 0, right: 0, left: -20, bottom: 0 }}>
-                      <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
-                      <XAxis dataKey="flight" tick={{ fontSize: 10, fill: 'hsl(var(--muted-foreground))' }} />
-                      <YAxis tick={{ fontSize: 10, fill: 'hsl(var(--muted-foreground))' }} />
-                      <Tooltip contentStyle={{ background: 'hsl(var(--card))', border: '1px solid hsl(var(--border))', borderRadius: 8 }} />
-                      <Line type="monotone" dataKey="variance" stroke="hsl(var(--destructive))" strokeWidth={2} dot={false} name="Variance" />
-                    </LineChart>
-                  </ResponsiveContainer>
-                </div>
-              </>
+            key={tab}
+            onClick={() => setActiveTab(tab)}
+            className={cn(
+              'px-4 py-2 rounded-xl text-sm font-bold capitalize',
+              activeTab === tab 
+                ? 'bg-amber-500 text-white' 
+                : 'bg-[#141922] border border-white/10 text-gray-400 hover:text-white'
             )}
+          >
+            {tab}
+          </button>
+        ))}
+      </div>
 
-            {records.length === 0 && !isLoading && (
-              <div className="rounded-xl bg-card border border-border px-4 py-10 text-center text-sm text-muted-foreground">
-                No fuel records yet. Log your first fuel record.
+      {/* Content */}
+      <div className="px-5 mt-5 space-y-5">
+        {activeTab === 'overview' && (
+          <>
+            {/* Variance Chart */}
+            <div className="bg-[#141922] border border-white/10 rounded-2xl p-5">
+              <p className="text-sm font-extrabold mb-4">Recent Fuel Variance (%)</p>
+              {varianceData.length === 0 ? (
+                <p className="text-gray-600 text-sm text-center py-8">No data available</p>
+              ) : (
+                <ResponsiveContainer width="100%" height={200}>
+                  <BarChart data={varianceData}>
+                    <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.05)" />
+                    <XAxis dataKey="flight" tick={{ fill: '#6b7280', fontSize: 10 }} />
+                    <YAxis tick={{ fill: '#6b7280', fontSize: 10 }} />
+                    <Tooltip contentStyle={{ background: '#141922', border: '1px solid rgba(255,255,255,0.1)', borderRadius: 8 }} />
+                    <Bar dataKey="variance" fill="#f59e0b" radius={[4, 4, 0, 0]} />
+                  </BarChart>
+                </ResponsiveContainer>
+              )}
+            </div>
+
+            {/* Recent Records */}
+            <div className="bg-[#141922] border border-white/10 rounded-2xl overflow-hidden">
+              <div className="px-5 py-4 border-b border-white/10">
+                <p className="text-sm font-extrabold">Recent Fuel Records</p>
+              </div>
+              {isLoading ? (
+                <p className="text-gray-600 text-sm text-center py-8">Loading...</p>
+              ) : records.length === 0 ? (
+                <p className="text-gray-600 text-sm text-center py-8">No fuel records</p>
+              ) : (
+                <div className="divide-y divide-white/5 max-h-80 overflow-y-auto">
+                  {records.slice(0, 8).map(r => (
+                    <div key={r.id} className="flex items-center justify-between px-5 py-3">
+                      <div>
+                        <p className="text-sm font-mono font-bold">{r.flight_number}</p>
+                        <p className="text-xs text-gray-400">{r.station} · {new Date(r.flight_date).toLocaleDateString()}</p>
+                      </div>
+                      <div className="text-right">
+                        <p className={cn('text-sm font-mono font-bold', Math.abs(r.variance_percent || 0) > 5 ? 'text-red-400' : 'text-green-400')}>
+                          {r.variance_percent > 0 ? '+' : ''}{r.variance_percent?.toFixed(1)}%
+                        </p>
+                        <p className="text-xs text-gray-500">variance</p>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          </>
+        )}
+
+        {activeTab === 'records' && (
+          <div className="bg-[#141922] border border-white/10 rounded-2xl overflow-hidden">
+            <div className="px-5 py-4 border-b border-white/10">
+              <p className="text-sm font-extrabold">All Fuel Records</p>
+            </div>
+            {records.length === 0 ? (
+              <p className="text-gray-600 text-sm text-center py-8">No records available</p>
+            ) : (
+              <div className="divide-y divide-white/5 max-h-[60vh] overflow-y-auto">
+                {records.map(r => (
+                  <div key={r.id} className="px-5 py-3 flex items-center justify-between">
+                    <div>
+                      <p className="text-sm font-mono font-bold">{r.flight_number}</p>
+                      <p className="text-xs text-gray-400">{r.aircraft_tail} · {r.station}</p>
+                    </div>
+                    <div className="flex gap-4 text-sm">
+                      <div className="text-right">
+                        <p className="font-mono">{r.planned_fuel?.toLocaleString()} lbs</p>
+                        <p className="text-xs text-gray-500">planned</p>
+                      </div>
+                      <div className="text-right">
+                        <p className="font-mono">{r.actual_uplift?.toLocaleString()} lbs</p>
+                        <p className="text-xs text-gray-500">actual</p>
+                      </div>
+                      <div className="text-right w-20">
+                        <p className={cn('font-mono font-bold', Math.abs(r.variance_percent || 0) > 5 ? 'text-red-400' : 'text-green-400')}>
+                          {r.variance_percent > 0 ? '+' : ''}{r.variance_percent?.toFixed(1)}%
+                        </p>
+                        <p className="text-xs text-gray-500">variance</p>
+                      </div>
+                    </div>
+                  </div>
+                ))}
               </div>
             )}
           </div>
         )}
 
-        {activeTab === 'variance' && <FuelVarianceTable records={records} />}
-        {activeTab === 'tankering' && <TankeringAdvisor records={records} flights={flights} />}
+        {activeTab === 'trends' && (
+          <div className="bg-[#141922] border border-white/10 rounded-2xl p-5">
+            <p className="text-sm font-extrabold mb-4">7-Day Variance Trend</p>
+            {trendData.length === 0 ? (
+              <p className="text-gray-600 text-sm text-center py-8">No trend data</p>
+            ) : (
+              <ResponsiveContainer width="100%" height={300}>
+                <LineChart data={trendData}>
+                  <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.05)" />
+                  <XAxis dataKey="day" tick={{ fill: '#6b7280', fontSize: 10 }} />
+                  <YAxis tick={{ fill: '#6b7280', fontSize: 10 }} />
+                  <Tooltip contentStyle={{ background: '#141922', border: '1px solid rgba(255,255,255,0.1)', borderRadius: 8 }} />
+                  <Line type="monotone" dataKey="avgVariance" stroke="#3b82f6" strokeWidth={2} dot={{ fill: '#3b82f6', r: 4 }} />
+                </LineChart>
+              </ResponsiveContainer>
+            )}
+          </div>
+        )}
       </div>
-
-      {showNew && (
-        <NewFuelRecordModal
-          flights={flights}
-          onClose={() => setShowNew(false)}
-          onCreate={(data) => createMutation.mutate(data)}
-        />
-      )}
     </div>
   );
 }
