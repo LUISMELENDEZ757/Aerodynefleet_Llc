@@ -31,7 +31,11 @@ const FlightTimesPanel      = lazy(() => import('@/components/flightcrew/FlightT
 const TODAY = new Date().toISOString().split('T')[0];
 
 function TabLoading() {
-  return <div className="text-muted-foreground p-4">Loading...</div>;
+  return (
+    <div className="flex items-center justify-center py-12">
+      <div className="w-6 h-6 border-2 border-muted-foreground border-t-primary rounded-full animate-spin" />
+    </div>
+  );
 }
 
 const TABS = [
@@ -331,17 +335,17 @@ export default function EFB() {
   const dateStr = now.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric', year: 'numeric' });
 
   return (
-    <div className="bg-background flex flex-col" style={{ minHeight: '100vh' }}>
+    <div className="min-h-screen bg-background flex flex-col">
       {/* EFB Header */}
-      <div className="border-b border-border bg-card px-5 pt-5 pb-4">
+      <div className="border-b border-border bg-card px-5 pt-5 pb-4 sticky top-0 z-20">
         <div className="flex items-start justify-between gap-4">
           <div className="flex items-center gap-3">
-            <Link to="/Home" aria-label="Go to Home" className="w-10 h-10 rounded-xl bg-primary/20 flex items-center justify-center flex-shrink-0 hover:bg-primary/30 transition-colors">
+            <Link to="/Home" aria-label="Go to Home" className="w-10 h-10 rounded-xl bg-primary/20 flex items-center justify-center flex-shrink-0 hover:bg-primary/30 transition-colors focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-1">
               <BookOpen className="w-5 h-5 text-primary" />
             </Link>
             <div>
               <h1 className="text-lg font-extrabold text-foreground tracking-wide">EFB</h1>
-              <p className="text-xs font-mono text-primary tracking-widest uppercase">Electronic Flight Bag · Enterprise Suite</p>
+              <p className="text-xs font-mono text-primary tracking-widest uppercase">Electronic Flight Bag</p>
             </div>
           </div>
           <div className="flex flex-col items-end gap-1">
@@ -354,7 +358,7 @@ export default function EFB() {
           aria-label="Sync EFB data from server"
           className="mt-3 flex items-center gap-1.5 text-xs text-muted-foreground hover:text-foreground transition-colors focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-1 rounded px-2 py-1"
         >
-           <RefreshCw className="w-3 h-3" aria-hidden="true" /> Sync data
+           <RefreshCw className="w-3 h-3" aria-hidden="true" /> Sync
          </button>
       </div>
 
@@ -365,7 +369,7 @@ export default function EFB() {
           items={TABS}
           ariaLabel="EFB module navigation with keyboard support"
           role="tablist"
-          className="w-44 flex-shrink-0 bg-card border-r border-border flex flex-col py-2 overflow-y-auto scrollbar-hide"
+          className="w-48 flex-shrink-0 glass-strong border-r border-border flex flex-col py-3 overflow-y-auto scrollbar-hide"
           renderItem={({ key, label, icon: Icon }, index, { focusedIndex, handleKeyDown, getTabIndex, registerRef }) => (
             <button
               key={key}
@@ -377,37 +381,34 @@ export default function EFB() {
               aria-selected={activeTab === key}
               aria-label={`${label}${activeTab === key ? ' - currently selected' : ''}`}
               className={cn(
-                'flex items-center gap-2.5 px-3 py-2.5 mx-2 rounded-lg text-xs font-semibold transition-all text-left relative focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2',
-                activeTab === key ? 'bg-primary/20 text-primary' : 'text-muted-foreground hover:bg-secondary hover:text-foreground',
+                'flex items-center gap-2.5 px-3 py-2.5 mx-2 rounded-lg text-xs font-semibold transition-all text-left focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2',
+                activeTab === key ? 'bg-primary text-primary-foreground' : 'text-muted-foreground hover:text-foreground hover:bg-secondary/50',
                 focusedIndex === index && 'ring-2 ring-primary ring-offset-2'
               )}
             >
-              {activeTab === key && (
-                <span className="absolute left-0 top-1/2 -translate-y-1/2 w-1 h-5 bg-primary rounded-r-full" aria-hidden="true" />
-              )}
-              <Icon className="w-3.5 h-3.5 flex-shrink-0" aria-hidden="true" />
+              <Icon className="w-4 h-4 flex-shrink-0" aria-hidden="true" />
               <span className="leading-tight">{label}</span>
             </button>
           )}
         />
 
         {/* Content area — scrolls independently so tab clicks don't jump to top */}
-        <div className="flex-1 p-4 space-y-3 overflow-y-auto scrollbar-hide">
-          {activeTab === 'qrscan'     && <Suspense fallback={<div className="text-muted-foreground">Loading...</div>}><QRScanPanel /></Suspense>}
-          {activeTab === 'brief'      && <FlightBrief flights={flights} releases={releases} crew={crew} />}
-          {activeTab === 'release'    && <Suspense fallback={<div className="text-muted-foreground">Loading...</div>}><FlightReleaseSignOff /></Suspense>}
-          {activeTab === 'map'        && <Suspense fallback={<div className="text-muted-foreground">Loading...</div>}><LiveMap flights={flights} /></Suspense>}
-          {activeTab === 'airport'    && <Suspense fallback={<div className="text-muted-foreground">Loading...</div>}><AirportBriefing flights={flights} /></Suspense>}
-          {activeTab === 'etops'      && <Suspense fallback={<div className="text-muted-foreground">Loading...</div>}><ETOPSDriftDown /></Suspense>}
-          {activeTab === 'wb'         && <Suspense fallback={<div className="text-muted-foreground">Loading...</div>}><WeightBalance flightData={flights} /></Suspense>}
-          {activeTab === 'perf'       && <PerformanceCalc flightData={flights} />}
-          {activeTab === 'fuel'       && <Suspense fallback={<div className="text-muted-foreground">Loading...</div>}><FuelPlanning flightData={flights} /></Suspense>}
-          {activeTab === 'runway'     && <Suspense fallback={<div className="text-muted-foreground">Loading...</div>}><RunwayAnalysis flightData={flights} /></Suspense>}
-          {activeTab === 'wx'         && <Suspense fallback={<div className="text-muted-foreground">Loading...</div>}><WeatherPanel flights={flights} /></Suspense>}
-          {activeTab === 'notams'     && <Suspense fallback={<div className="text-muted-foreground">Loading...</div>}><NotamViewer /></Suspense>}
-          {activeTab === 'crew'       && <Suspense fallback={<div className="text-muted-foreground">Loading...</div>}><CrewLegality /></Suspense>}
-          {activeTab === 'acars'      && <Suspense fallback={<div className="text-muted-foreground">Loading...</div>}><AcarsMessaging /></Suspense>}
-          {activeTab === 'postflight' && <Suspense fallback={<div className="text-muted-foreground">Loading...</div>}><PostflightReport /></Suspense>}
+        <div className="flex-1 p-5 space-y-4 overflow-y-auto scrollbar-hide">
+          {activeTab === 'qrscan'     && <Suspense fallback={<TabLoading />}><QRScanPanel /></Suspense>}
+           {activeTab === 'brief'      && <FlightBrief flights={flights} releases={releases} crew={crew} />}
+           {activeTab === 'release'    && <Suspense fallback={<TabLoading />}><FlightReleaseSignOff /></Suspense>}
+           {activeTab === 'map'        && <Suspense fallback={<TabLoading />}><LiveMap flights={flights} /></Suspense>}
+           {activeTab === 'airport'    && <Suspense fallback={<TabLoading />}><AirportBriefing flights={flights} /></Suspense>}
+           {activeTab === 'etops'      && <Suspense fallback={<TabLoading />}><ETOPSDriftDown /></Suspense>}
+           {activeTab === 'wb'         && <Suspense fallback={<TabLoading />}><WeightBalance flightData={flights} /></Suspense>}
+           {activeTab === 'perf'       && <PerformanceCalc flightData={flights} />}
+           {activeTab === 'fuel'       && <Suspense fallback={<TabLoading />}><FuelPlanning flightData={flights} /></Suspense>}
+           {activeTab === 'runway'     && <Suspense fallback={<TabLoading />}><RunwayAnalysis flightData={flights} /></Suspense>}
+           {activeTab === 'wx'         && <Suspense fallback={<TabLoading />}><WeatherPanel flights={flights} /></Suspense>}
+           {activeTab === 'notams'     && <Suspense fallback={<TabLoading />}><NotamViewer /></Suspense>}
+           {activeTab === 'crew'       && <Suspense fallback={<TabLoading />}><CrewLegality /></Suspense>}
+           {activeTab === 'acars'      && <Suspense fallback={<TabLoading />}><AcarsMessaging /></Suspense>}
+           {activeTab === 'postflight' && <Suspense fallback={<TabLoading />}><PostflightReport /></Suspense>}
         </div>
       </div>
     </div>
