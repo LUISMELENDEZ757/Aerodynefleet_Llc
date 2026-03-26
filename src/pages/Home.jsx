@@ -1,7 +1,8 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { Users, Plane, Radio, BookOpen, CalendarDays, Zap, Globe, Shield, Cloud, BookMarked, LayoutDashboard, AlertTriangle, Fuel, FileText, BarChart3, Weight, Navigation2, DollarSign, CalendarCheck, Wrench, GraduationCap, Satellite, MessageSquare, Truck, UserCheck, MonitorPlay, PieChart, UserCog, Activity } from 'lucide-react';
+import { Users, Plane, Radio, BookOpen, CalendarDays, Zap, Globe, Shield, Cloud, BookMarked, LayoutDashboard, AlertTriangle, Fuel, FileText, BarChart3, Weight, Navigation2, DollarSign, CalendarCheck, Wrench, GraduationCap, Satellite, MessageSquare, Truck, UserCheck, MonitorPlay, PieChart, UserCog, Activity, Layers } from 'lucide-react';
+import { FleetBadge } from '@/components/fleet/FleetSwitcher';
 
 import useTieredPreload from '@/hooks/useTieredPreload';
 import { useRail } from '@/lib/RailContext';
@@ -53,6 +54,7 @@ const TIER3 = [
   { icon: PieChart,      iconBg: 'bg-rose-700',   iconColor: 'text-white',              title: 'COST REPORTING',subtitle: 'P&L · Delay · Fuel ROI',  borderColor: 'border-rose-700/30',   path: '/CostReporting' },
   { icon: UserCog,       iconBg: 'bg-slate-600',  iconColor: 'text-white',              title: 'USER MGMT',     subtitle: 'Roles · Invitations',     borderColor: 'border-slate-600/30',  path: '/UserManagement' },
   { icon: Activity,      iconBg: 'bg-emerald-700',iconColor: 'text-white',              title: 'ENGINEERING',   subtitle: 'Trend Analysis · Engine Health', borderColor: 'border-emerald-700/30', path: '/EngineeringDashboard' },
+  { icon: Layers,        iconBg: 'bg-sky-600',    iconColor: 'text-white',              title: 'FLEET REGISTRY',subtitle: 'Multi-Fleet · Operators',        borderColor: 'border-sky-600/30',    path: '/FleetRegistry' },
 ];
 
 // Stagger config per tier
@@ -128,6 +130,9 @@ export default function Home() {
         </div>
         <h1 className="text-3xl font-extrabold text-white tracking-wide">Operations Hub</h1>
         <p className="text-sm text-gray-500 mt-1">Airline-grade flight operations platform</p>
+        <div className="mt-2 flex justify-center">
+          <FleetBadge />
+        </div>
       </motion.div>
 
       {/* Tier 1 — Critical (loads first, ~0ms) */}

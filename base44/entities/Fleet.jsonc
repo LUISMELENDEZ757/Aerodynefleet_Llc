@@ -1,0 +1,75 @@
+{
+  "name": "Fleet",
+  "type": "object",
+  "description": "Multi-fleet operator registry \u2014 defines each airline/operator sub-fleet within Aerodyne Fleet LLC",
+  "properties": {
+    "name": {
+      "type": "string",
+      "description": "Fleet / airline name e.g. Aerodyne Express"
+    },
+    "icao_code": {
+      "type": "string",
+      "description": "IATA or ICAO operator code e.g. AEX"
+    },
+    "iata_code": {
+      "type": "string",
+      "description": "IATA 2-letter code e.g. AX"
+    },
+    "callsign": {
+      "type": "string",
+      "description": "Radio telephony callsign e.g. AERODYNE"
+    },
+    "hub_station": {
+      "type": "string",
+      "description": "Primary hub ICAO e.g. KEWR"
+    },
+    "fleet_type": {
+      "type": "string",
+      "enum": [
+        "mainline",
+        "regional",
+        "cargo",
+        "charter",
+        "private",
+        "wet_lease"
+      ],
+      "default": "mainline",
+      "description": "Fleet category"
+    },
+    "aircraft_types": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "Aircraft types operated by this fleet"
+    },
+    "color": {
+      "type": "string",
+      "description": "Brand color hex e.g. #3b82f6"
+    },
+    "logo_url": {
+      "type": "string",
+      "description": "Fleet logo image URL"
+    },
+    "total_aircraft": {
+      "type": "number",
+      "description": "Total aircraft count in this fleet"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "active",
+        "inactive",
+        "suspended"
+      ],
+      "default": "active"
+    },
+    "notes": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "name",
+    "icao_code"
+  ]
+}

@@ -2,6 +2,8 @@ import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import { base44 } from '@/api/base44Client';
+import { useFleet } from '@/lib/FleetContext';
+import FleetSwitcher, { FleetBadge } from '@/components/fleet/FleetSwitcher';
 import { ChevronLeft, Globe, Plane, Users, Wrench, Fuel, AlertTriangle, BarChart3, Shield, Radio, Clock, CheckCircle, TrendingUp, ExternalLink, Satellite, Network } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { BarChart, Bar, LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid } from 'recharts';
@@ -47,14 +49,20 @@ const TABS = [
 
 export default function AocsDashboard() {
   const [activeTab, setActiveTab] = useState('overview');
+  const { activeFleet, activeFleetId } = useFleet();
+
   const { data: flights = [] } = useQuery({
-    queryKey: ['aocs-flights'],
-    queryFn: () => base44.entities.Flight.list('-created_date', 200),
+    queryKey: ['aocs-flights', activeFleetId],
+    queryFn: () => activeFleet
+      ? base44.entities.Flight.filter({ airline: activeFleet.name })
+      : base44.entities.Flight.list('-created_date', 200),
     refetchInterval: 30000,
   });
   const { data: aircraft = [] } = useQuery({
-    queryKey: ['aocs-aircraft'],
-    queryFn: () => base44.entities.Aircraft.list('tail_number', 200),
+    queryKey: ['aocs-aircraft', activeFleetId],
+    queryFn: () => activeFleet
+      ? base44.entities.Aircraft.filter({ airline: activeFleet.name })
+      : base44.entities.Aircraft.list('tail_number', 200),
     refetchInterval: 30000,
   });
   const { data: crew = [] } = useQuery({
@@ -178,6 +186,7 @@ export default function AocsDashboard() {
           </div>
         </div>
         <div className="flex items-center gap-3">
+          <FleetSwitcher expanded={false} />
           {criticalAlerts > 0 && (
             <div className="flex items-center gap-2 bg-red-600/30 border border-red-500/50 rounded-xl px-3 py-1.5">
               <AlertTriangle className="w-3.5 h-3.5 text-red-400" />

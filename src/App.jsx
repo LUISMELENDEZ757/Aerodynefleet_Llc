@@ -5,6 +5,7 @@ import { queryClientInstance } from '@/lib/query-client'
 import { BrowserRouter as Router, Route, Routes } from 'react-router-dom';
 import PageNotFound from './lib/PageNotFound';
 import { AuthProvider, useAuth } from '@/lib/AuthContext';
+import { FleetProvider } from '@/lib/FleetContext';
 import UserNotRegisteredError from '@/components/UserNotRegisteredError';
 import { Navigate } from 'react-router-dom';
 import { lazy, Suspense, useState, useEffect } from 'react';
@@ -65,6 +66,7 @@ const ToolingManagement       = lazy(() => import('@/pages/ToolingManagement'));
 const EngineeringDashboard    = lazy(() => import('@/pages/EngineeringDashboard'));
 const MaintenanceControl      = lazy(() => import('@/pages/MaintenanceControl'));
 const AocsDashboard           = lazy(() => import('@/pages/AocsDashboard'));
+const FleetRegistry           = lazy(() => import('@/pages/FleetRegistry'));
 
 function PageFallback() {
   return (
@@ -183,6 +185,7 @@ const AuthenticatedApp = () => {
         <Route path="/EngineeringDashboard" element={<EngineeringDashboard />} />
         <Route path="/MaintenanceControl" element={<MaintenanceControl />} />
         <Route path="/AocsDashboard" element={<AocsDashboard />} />
+        <Route path="/FleetRegistry" element={<FleetRegistry />} />
         <Route path="/Settings" element={<SettingsPage />} />
       </Route>
       <Route path="*" element={<PageNotFound />} />
@@ -199,12 +202,14 @@ function App() {
   return (
     <AuthProvider>
       <QueryClientProvider client={queryClientInstance}>
+        <FleetProvider>
         {showSplash && <SplashScreen onComplete={() => setShowSplash(false)} />}
         <Router>
           <AuthenticatedApp />
         </Router>
         <OfflineBadge />
         <Toaster />
+        </FleetProvider>
       </QueryClientProvider>
     </AuthProvider>
   )

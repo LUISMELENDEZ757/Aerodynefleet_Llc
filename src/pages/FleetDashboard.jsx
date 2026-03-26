@@ -2,6 +2,8 @@ import { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { base44 } from '@/api/base44Client';
 import { Link } from 'react-router-dom';
+import { useFleet } from '@/lib/FleetContext';
+import FleetSwitcher, { FleetBadge } from '@/components/fleet/FleetSwitcher';
 import {
   Plane, Search, LayoutGrid, List, Wrench, CheckCircle, Globe, Shield,
   BookOpen, MapPin, Cpu, X, AlertTriangle, UserCheck, Plus, Clock, ChevronDown
@@ -408,9 +410,13 @@ export default function FleetDashboard() {
   const [viewMode, setViewMode] = useState('grid');
   const [selectedAircraft, setSelectedAircraft] = useState(null);
 
+  const { activeFleet, activeFleetId } = useFleet();
+
   const { data: aircraft = [], isLoading } = useQuery({
-    queryKey: ['fleet-aircraft'],
-    queryFn: () => base44.entities.Aircraft.list(),
+    queryKey: ['fleet-aircraft', activeFleetId],
+    queryFn: () => activeFleet
+      ? base44.entities.Aircraft.filter({ airline: activeFleet.name })
+      : base44.entities.Aircraft.list(),
     refetchInterval: 60000,
   });
 
@@ -431,10 +437,11 @@ export default function FleetDashboard() {
         <div className="w-9 h-9 rounded-lg bg-orange-500/20 flex items-center justify-center">
           <Wrench className="w-5 h-5 text-orange-400" />
         </div>
-        <div>
+        <div className="flex-1">
           <h1 className="text-xl font-extrabold text-white tracking-wide">Fleet Dashboard</h1>
           <p className="text-xs font-mono text-orange-400 tracking-widest uppercase">TechOps · Aircraft Status</p>
         </div>
+        <FleetBadge />
       </div>
 
       {/* Search + Filter + View Toggle */}

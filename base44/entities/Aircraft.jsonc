@@ -1,0 +1,95 @@
+{
+  "name": "Aircraft",
+  "type": "object",
+  "description": "Aerodyne Fleet LLC \u2014 Aircraft registry. Multi-fleet resource. Each aircraft belongs to a specific fleet/operator via fleet_id and airline fields.",
+  "properties": {
+    "tail_number": {
+      "type": "string",
+      "description": "Aircraft tail/registration number e.g. N455GJ"
+    },
+    "fleet_id": {
+      "type": "string",
+      "description": "Reference to Fleet entity ID \u2014 identifies which sub-fleet this aircraft belongs to"
+    },
+    "airline": {
+      "type": "string",
+      "description": "Operating airline/operator name \u2014 denormalized from Fleet for fast queries"
+    },
+    "msn": {
+      "type": "string",
+      "description": "Manufacturer serial number (primary identifier for multifleet platforms)"
+    },
+    "operator_number": {
+      "type": "string",
+      "description": "Optional operator-specific aircraft identifier or fleet number"
+    },
+    "aircraft_type": {
+      "type": "string",
+      "enum": [
+        "B737-700",
+        "B737-800",
+        "B737-900",
+        "B737 MAX 8",
+        "B737 MAX 9",
+        "B757",
+        "B767",
+        "B777",
+        "B787",
+        "A320",
+        "A321",
+        "A350",
+        "E190",
+        "E175",
+        "CRJ700",
+        "CRJ900"
+      ],
+      "description": "Aircraft type"
+    },
+    "performance_profile": {
+      "type": "string",
+      "enum": [
+        "B737_profile",
+        "B757_profile",
+        "B767_profile",
+        "B777_profile",
+        "B787_profile",
+        "A320_profile",
+        "A350_profile",
+        "E190_profile",
+        "CRJ700_profile"
+      ],
+      "description": "Performance profile for takeoff/landing/drift-down calculations"
+    },
+    "base_station": {
+      "type": "string",
+      "description": "Home base station ICAO code e.g. KEWR"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "active",
+        "oos",
+        "maintenance",
+        "retired"
+      ],
+      "default": "active",
+      "description": "Current operational status of the aircraft"
+    },
+    "line_number": {
+      "type": "string",
+      "description": "Boeing/Airbus/Embraer production line number"
+    },
+    "engine_type": {
+      "type": "string",
+      "description": "Engine type e.g. CFM56-7B27, LEAP-1B, GE9X, PW1000G"
+    },
+    "notes": {
+      "type": "string",
+      "description": "Additional operational notes"
+    }
+  },
+  "required": [
+    "tail_number",
+    "aircraft_type"
+  ]
+}

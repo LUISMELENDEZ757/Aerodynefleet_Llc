@@ -7,10 +7,11 @@ import {
   Wrench, GraduationCap, MessageSquare, Satellite,
   Truck, UserCheck, MonitorPlay, Gauge, ClipboardList,
   Package, FileText, Activity, Sofa, ClipboardCheck, Cog,
-  LayoutDashboard
+  LayoutDashboard, Layers
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useRail } from '@/lib/RailContext';
+import FleetSwitcher from '@/components/fleet/FleetSwitcher';
 
 const FLIGHT_OPS = [
   { icon: Home,          label: 'Home',           path: '/Home' },
@@ -77,6 +78,7 @@ export default function LeftRail() {
     { icon: Users,          label: 'Crew Directory',    path: '/CrewDirectory' },
     { icon: Shield,         label: 'Supervisor',        path: '/Supervisor' },
     { icon: MessageSquare,  label: 'Comms',             path: '/CommCenter' },
+    { icon: Layers,         label: 'Fleet Registry',    path: '/FleetRegistry' },
   ];
 
   const NAV_ITEMS = mode === 'flight' ? FLIGHT_OPS : mode === 'aocs' ? AOCS_OPS : TECH_OPS;
@@ -145,6 +147,12 @@ export default function LeftRail() {
         </button>
       </div>
 
+      <div className="h-px bg-border mb-2 mx-3 w-[calc(100%-1.5rem)]" />
+
+      {/* Fleet Switcher */}
+      <div className="px-2 mb-2 w-full">
+        <FleetSwitcher expanded={expanded} />
+      </div>
       <div className="h-px bg-border mb-2 mx-3 w-[calc(100%-1.5rem)]" />
 
       <nav className="flex flex-col gap-1 flex-1 w-full px-2 overflow-y-auto">
