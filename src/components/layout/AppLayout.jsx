@@ -1,11 +1,9 @@
 import React, { useEffect, useState, useRef } from 'react';
 import { Outlet, useLocation } from 'react-router-dom';
-import LeftRail from './LeftRail';
 import BottomTabBar from './BottomTabBar';
 import OpsAlertsPanel from './OpsAlertsPanel';
 import StarlinkIndicator from './StarlinkIndicator';
 import WifiIndicator from './WifiIndicator';
-import { RailProvider, useRail } from '@/lib/RailContext';
 import { TabHistoryProvider, useTabHistory } from '@/lib/TabHistoryContext';
 import PageTransition from '@/components/ui/PageTransition';
 
@@ -20,7 +18,6 @@ function LocationSync() {
 }
 
 function AppContent() {
-  const { expanded } = useRail();
   const [hidden, setHidden] = useState(false);
   const lastScrollY = useRef(0);
 
@@ -39,8 +36,7 @@ function AppContent() {
   return (
     <div className="min-h-screen bg-background flex">
       <LocationSync />
-      <LeftRail />
-      <div className={`flex-1 min-h-screen transition-all duration-300 ${expanded ? 'lg:ml-44' : 'lg:ml-16'}`}>
+      <div className="flex-1 min-h-screen">
         <main className="pb-safe-bottom">
           <PageTransition>
             <Outlet />
@@ -66,10 +62,8 @@ function AppContent() {
 
 export default function AppLayout() {
   return (
-    <RailProvider>
-      <TabHistoryProvider>
-        <AppContent />
-      </TabHistoryProvider>
-    </RailProvider>
+    <TabHistoryProvider>
+      <AppContent />
+    </TabHistoryProvider>
   );
 }
