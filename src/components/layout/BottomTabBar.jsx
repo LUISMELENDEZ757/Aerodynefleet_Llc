@@ -4,18 +4,27 @@ import {
   Home, Plane, BookOpen, Zap, MoreHorizontal, X,
   Users, Radio, CalendarDays, Globe, Shield, Cloud, GraduationCap, Settings,
   AlertTriangle, Fuel, BarChart3, FileText, LayoutDashboard,
-  Weight, Navigation2, DollarSign, CalendarCheck, Wrench, BookMarked
+  Weight, Navigation2, DollarSign, CalendarCheck, Wrench, BookMarked,
+  Activity, ClipboardCheck, Cog
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useTabHistory, TAB_ROOTS } from '@/lib/TabHistoryContext';
 import { AnimatePresence, motion } from 'framer-motion';
+import { useRail } from '@/lib/RailContext';
 
-const PRIMARY_TABS = [
-  { key: 'home', icon: Home,           label: 'Home',  path: '/Home' },
-  { key: 'ops',  icon: Plane,          label: 'Ops',   path: '/Dashboard' },
-  { key: 'efb',  icon: BookOpen,       label: 'EFB',   path: '/EFB' },
-  { key: 'crew', icon: Zap,            label: 'Crew',  path: '/CrewControl' },
-  { key: 'more', icon: MoreHorizontal, label: 'More',  path: null },
+const FLIGHT_PRIMARY_TABS = [
+  { key: 'home', icon: Home,     label: 'Home',  path: '/Home' },
+  { key: 'ops',  icon: Plane,    label: 'Ops',   path: '/Dashboard' },
+  { key: 'efb',  icon: BookOpen, label: 'EFB',   path: '/EFB' },
+  { key: 'crew', icon: Zap,      label: 'Crew',  path: '/CrewControl' },
+];
+
+const TECH_PRIMARY_TABS = [
+  { key: 'home',    icon: Home,          label: 'Home',    path: '/Home' },
+  { key: 'fleet',   icon: Activity,      label: 'Fleet',   path: '/FleetDashboard' },
+  { key: 'logbook', icon: BookOpen,      label: 'Logbook', path: '/TechOpsLogbook' },
+  { key: 'tooling', icon: Cog,           label: 'Tooling', path: '/ToolingManagement' },
+  { key: 'oos',     icon: ClipboardCheck,label: 'OOS',     path: '/OOSDashboard' },
 ];
 
 const MORE_ITEMS = [
@@ -50,62 +59,48 @@ export default function BottomTabBar() {
   const location = useLocation();
   const navigate = useNavigate();
   const { activeTab, navigateToTab } = useTabHistory();
-  const [drawerOpen, setDrawerOpen] = useState(false);
+  const { mode } = useRail();
 
-  // Close drawer on route change
-  useEffect(() => { setDrawerOpen(false); }, [location.pathname]);
-
-  const isMoreActive = MORE_PATHS.has(location.pathname);
+  const isTech = mode === 'tech';
+  const PRIMARY_TABS = isTech ? TECH_PRIMARY_TABS : FLIGHT_PRIMARY_TABS;
+  const activeColor = isTech ? 'text-orange-400' : 'text-primary';
+  const activeBg = isTech ? 'bg-orange-400' : 'bg-primary';
 
   const handleTabPress = (tabKey, path) => {
-    if (tabKey === 'more') {
-      setDrawerOpen(v => !v);
-      return;
-    }
-    setDrawerOpen(false);
-    navigateToTab(tabKey);
+    if (path) navigate(path);
   };
 
   return (
-    <>
-      {/* ── BOTTOM TAB BAR ── */}
-      <nav
-        className="lg:hidden fixed bottom-0 left-0 right-0 z-50 bg-card/96 backdrop-blur-xl border-t border-border"
-        style={{ paddingBottom: 'env(safe-area-inset-bottom, 0px)' }}
-      >
-        <div className="flex items-stretch h-14">
-          {PRIMARY_TABS.map(({ key, icon: Icon, label, path }) => {
-            const isMore = key === 'more';
-            const isActive = isMore
-              ? isMoreActive || drawerOpen
-              : activeTab === key;
+    <nav
+      className="lg:hidden fixed bottom-0 left-0 right-0 z-50 bg-card/96 backdrop-blur-xl border-t border-border"
+      style={{ paddingBottom: 'env(safe-area-inset-bottom, 0px)' }}
+    >
+      <div className="flex items-stretch h-14">
+        {PRIMARY_TABS.map(({ key, icon: Icon, label, path }) => {
+          const isActive = location.pathname === path;
 
-            return (
-              <button
-                key={key}
-                onClick={() => handleTabPress(key, path)}
-                className={cn(
-                  'flex-1 flex flex-col items-center justify-center gap-0.5 transition-colors relative',
-                  isActive ? 'text-primary' : 'text-muted-foreground'
-                )}
-              >
-                {/* Active pill indicator */}
-                {isActive && (
-                  <motion.span
-                    layoutId="tab-indicator"
-                    className="absolute top-0 left-1/2 -translate-x-1/2 w-8 h-0.5 rounded-full bg-primary"
-                    transition={{ type: 'spring', stiffness: 400, damping: 30 }}
-                  />
-                )}
-                <Icon className="w-[22px] h-[22px]" strokeWidth={isActive ? 2.2 : 1.8} />
-                <span className="text-[10px] font-semibold tracking-wide">{label}</span>
-              </button>
-            );
-          })}
-        </div>
-      </nav>
-
-
-    </>
+          return (
+            <button
+              key={key}
+              onClick={() => handleTabPress(key, path)}
+              className={cn(
+                'flex-1 flex flex-col items-center justify-center gap-0.5 transition-colors relative',
+                isActive ? activeColor : 'text-muted-foreground'
+              )}
+            >
+              {isActive && (
+                <motion.span
+                  layoutId="tab-indicator"
+                  className={cn('absolute top-0 left-1/2 -translate-x-1/2 w-8 h-0.5 rounded-full', activeBg)}
+                  transition={{ type: 'spring', stiffness: 400, damping: 30 }}
+                />
+              )}
+              <Icon className="w-[22px] h-[22px]" strokeWidth={isActive ? 2.2 : 1.8} />
+              <span className="text-[10px] font-semibold tracking-wide">{label}</span>
+            </button>
+          );
+        })}
+      </div>
+    </nav>
   );
 }
