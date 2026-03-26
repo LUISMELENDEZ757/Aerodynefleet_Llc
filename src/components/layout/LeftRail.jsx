@@ -44,7 +44,7 @@ const TECH_OPS = [
   { icon: Users,         label: 'Manpower & Staff',  path: '/CrewDirectory' },
   { icon: Sofa,          label: 'Cabin Mode (FA)',   path: '/CabinDiscrepancy' },
   { icon: ClipboardCheck,label: 'Technician Mode',   path: '/OOSDashboard' },
-  { icon: Cog,           label: 'Tooling Mgmt',      path: '/GroundOps' },
+  { icon: Cog,           label: 'Tooling Mgmt',      path: '/ToolingManagement' },
   { icon: Gauge,         label: 'OOS Dashboard',     path: '/OOSDashboard' },
   { icon: Truck,         label: 'Ground Ops',        path: '/GroundOps' },
   { icon: ClipboardList, label: 'Safety & QA',       path: '/SafetyQA' },
