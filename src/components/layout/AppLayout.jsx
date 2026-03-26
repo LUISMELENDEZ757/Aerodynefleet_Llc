@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useState, useRef } from 'react';
 import { Outlet, useLocation } from 'react-router-dom';
 import LeftRail from './LeftRail';
 import BottomTabBar from './BottomTabBar';
@@ -21,6 +21,21 @@ function LocationSync() {
 
 function AppContent() {
   const { expanded } = useRail();
+  const [hidden, setHidden] = useState(false);
+  const lastScrollY = useRef(0);
+
+  useEffect(() => {
+    const root = document.getElementById('root');
+    if (!root) return;
+    const handleScroll = () => {
+      const currentY = root.scrollTop;
+      setHidden(currentY > lastScrollY.current && currentY > 60);
+      lastScrollY.current = currentY;
+    };
+    root.addEventListener('scroll', handleScroll, { passive: true });
+    return () => root.removeEventListener('scroll', handleScroll);
+  }, []);
+
   return (
     <div className="min-h-screen bg-background flex">
       <LocationSync />
@@ -33,8 +48,14 @@ function AppContent() {
         </main>
       </div>
       <BottomTabBar />
-      {/* Global indicators — fixed top-right */}
-      <div className="fixed top-3 right-48 z-[60] flex items-center gap-2" style={{ top: 'calc(env(safe-area-inset-top, 0px) + 12px)' }}>
+      {/* Global indicators — fixed top-right, hide on scroll down */}
+      <div
+        className="fixed right-4 z-[60] flex items-center gap-2 transition-transform duration-300"
+        style={{
+          top: 'calc(env(safe-area-inset-top, 0px) + 12px)',
+          transform: hidden ? 'translateY(calc(-100% - 20px))' : 'translateY(0)',
+        }}
+      >
         <WifiIndicator />
         <StarlinkIndicator />
         <OpsAlertsPanel />
