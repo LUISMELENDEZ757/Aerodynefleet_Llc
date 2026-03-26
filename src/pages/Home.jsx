@@ -90,9 +90,9 @@ function TierSection({ label, modules, delayStart = 0 }) {
           <motion.div key={title} variants={cardVariants}>
             <Link
               to={path}
-              className={`relative rounded-2xl border ${borderColor} bg-[#161b27] p-4 flex flex-col items-center text-center active:scale-[0.96] transition-all duration-150 hover:bg-[#1e2436] hover:shadow-lg hover:shadow-black/40 block`}
+              className={`relative rounded-2xl border ${borderColor} glass p-4 flex flex-col items-center text-center active:scale-[0.96] transition-all duration-150 glass-hover hover:shadow-xl hover:shadow-black/50 block liquid-glow`}
             >
-              <div className={`w-12 h-12 rounded-xl ${iconBg} flex items-center justify-center shadow-md mb-3 flex-shrink-0`}>
+              <div className={`w-12 h-12 rounded-xl ${iconBg} flex items-center justify-center shadow-lg mb-3 flex-shrink-0 glass-light`}>
                 <Icon className={`w-6 h-6 ${iconColor}`} />
               </div>
               <p className="text-xs font-extrabold text-white tracking-widest leading-tight mb-1">{title}</p>
@@ -114,7 +114,7 @@ export default function Home() {
   }
 
   return (
-    <div className="min-h-screen bg-[#0d1117] px-4 pt-6 pb-24 flex flex-col items-center gap-6">
+    <div className="min-h-screen bg-gradient-to-br from-[#0a0e1a] via-[#0d1117] to-[#0f1420] px-4 pt-6 pb-24 flex flex-col items-center gap-6 liquid-gradient">
       {/* Header */}
       <motion.div
         className="mb-2 text-center w-full max-w-lg"

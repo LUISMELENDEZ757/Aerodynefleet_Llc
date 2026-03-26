@@ -31,8 +31,8 @@ function KpiCard({ label, value, sublabel, valueColor, icon: Icon, iconColor, on
     <div
       onClick={onClick}
       className={cn(
-        "bg-[#1a1f2e] rounded-2xl p-6 flex flex-col gap-2 border border-white/5 transition-all",
-        onClick && "cursor-pointer hover:bg-[#1e2538] hover:border-primary/30 active:scale-[0.98]"
+        "glass rounded-2xl p-6 flex flex-col gap-2 border transition-all liquid-glow",
+        onClick && "cursor-pointer glass-hover hover:border-primary/40 active:scale-[0.98]"
       )}
     >
       <div className="flex items-start justify-between">
@@ -253,7 +253,7 @@ function AircraftCard({ aircraft, onSelect }) {
   const StatusIcon = status.icon;
   return (
     <div onClick={() => onSelect(aircraft)}
-      className="rounded-2xl border border-white/8 bg-[#1a1f2e] p-5 flex flex-col gap-3 hover:border-primary/40 hover:bg-[#1e2538] transition-all cursor-pointer active:scale-[0.97]">
+      className="glass rounded-2xl border p-5 flex flex-col gap-3 glass-hover hover:border-primary/40 transition-all cursor-pointer active:scale-[0.97] liquid-glow">
       <div className="flex items-start justify-between">
         <div>
           <p className="text-xl font-extrabold text-primary tracking-wide font-mono">{aircraft.tail_number}</p>
@@ -281,7 +281,7 @@ function AircraftRow({ aircraft, onSelect }) {
   const StatusIcon = status.icon;
   return (
     <div onClick={() => onSelect(aircraft)}
-      className="flex items-center justify-between px-5 py-3 rounded-xl border border-white/8 bg-[#1a1f2e] hover:border-primary/30 hover:bg-[#1e2538] transition-all cursor-pointer">
+      className="flex items-center justify-between px-5 py-3 rounded-xl glass border glass-hover hover:border-primary/30 transition-all cursor-pointer">
       <div className="flex items-center gap-5">
         <p className="text-sm font-extrabold text-primary font-mono w-24">{aircraft.tail_number}</p>
         <p className="text-xs text-gray-400 w-24">{aircraft.aircraft_type}</p>
@@ -348,13 +348,15 @@ export default function FleetDashboard() {
     : 'Boeing 737 Aircraft';
 
   return (
-    <div className="min-h-screen bg-[#0d1117] pb-24">
+    <div className="min-h-screen bg-gradient-to-br from-[#0a0e1a] via-[#0d1117] to-[#0f1420] pb-24 liquid-gradient">
 
       {/* ── HEADER ── */}
       <div className="px-6 pt-7 pb-4">
-        <div className="flex items-center gap-3 mb-6">
-          <Plane className="w-7 h-7 text-primary flex-shrink-0" />
-          <h1 className="text-2xl sm:text-3xl font-black text-primary tracking-widest uppercase">
+        <div className="flex items-center gap-3 mb-6 glass p-4 rounded-2xl liquid-glow">
+          <div className="w-10 h-10 rounded-xl bg-primary/20 flex items-center justify-center glass-light">
+            <Plane className="w-6 h-6 text-primary" />
+          </div>
+          <h1 className="text-2xl sm:text-3xl font-black text-primary tracking-widest uppercase liquid-shimmer">
             Aerodyne Fleet Management
           </h1>
           <div className="ml-auto">
@@ -447,25 +449,25 @@ export default function FleetDashboard() {
         <div className="px-6">
           {/* Search + Filters */}
           <div className="flex flex-col sm:flex-row gap-3 mb-4">
-            <div className="flex-1 flex items-center gap-2 bg-[#1a1f2e] border border-white/8 rounded-xl px-4 py-2.5">
-              <Search className="w-4 h-4 text-gray-500 flex-shrink-0" />
+            <div className="flex-1 flex items-center gap-2 glass border rounded-xl px-4 py-2.5 liquid-shimmer">
+              <Search className="w-4 h-4 text-gray-400 flex-shrink-0" />
               <input type="text" placeholder="Search tail, type, base..." value={search}
                 onChange={e => setSearch(e.target.value)}
-                className="flex-1 bg-transparent text-sm text-white placeholder-gray-600 outline-none" />
+                className="flex-1 bg-transparent text-sm text-white placeholder-gray-500 outline-none" />
             </div>
             <select value={statusFilter} onChange={e => setStatusFilter(e.target.value)}
-              className="bg-[#1a1f2e] border border-white/8 rounded-xl px-4 py-2.5 text-sm text-white outline-none">
+              className="glass border rounded-xl px-4 py-2.5 text-sm text-white outline-none glass-hover">
               {STATUS_OPTIONS.map(s => (
                 <option key={s} value={s}>{s === 'All Status' ? s : s.charAt(0).toUpperCase() + s.slice(1)}</option>
               ))}
             </select>
-            <div className="flex rounded-xl overflow-hidden border border-white/8">
+            <div className="flex rounded-xl overflow-hidden glass border">
               <button onClick={() => setViewMode('grid')}
-                className={cn('px-3 py-2.5 flex items-center justify-center transition-all', viewMode === 'grid' ? 'bg-primary text-primary-foreground' : 'bg-[#1a1f2e] text-gray-500 hover:text-white')}>
+                className={cn('px-3 py-2.5 flex items-center justify-center transition-all glass-hover', viewMode === 'grid' ? 'bg-primary text-primary-foreground' : 'text-gray-400 hover:text-white')}>
                 <LayoutGrid className="w-4 h-4" />
               </button>
               <button onClick={() => setViewMode('list')}
-                className={cn('px-3 py-2.5 flex items-center justify-center transition-all', viewMode === 'list' ? 'bg-primary text-primary-foreground' : 'bg-[#1a1f2e] text-gray-500 hover:text-white')}>
+                className={cn('px-3 py-2.5 flex items-center justify-center transition-all glass-hover', viewMode === 'list' ? 'bg-primary text-primary-foreground' : 'text-gray-400 hover:text-white')}>
                 <List className="w-4 h-4" />
               </button>
             </div>

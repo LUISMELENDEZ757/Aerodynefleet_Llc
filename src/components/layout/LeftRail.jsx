@@ -97,7 +97,7 @@ export default function LeftRail() {
   return (
     <aside
       className={cn(
-        'hidden lg:flex fixed left-0 top-0 h-full bg-card border-r border-border flex-col items-start py-4 z-50 transition-all duration-300 overflow-hidden',
+        'hidden lg:flex fixed left-0 top-0 h-full glass-strong border-r border-border flex-col items-start py-4 z-50 transition-all duration-300 overflow-hidden liquid-glow',
         expanded ? 'w-44' : 'w-16'
       )}
     >
@@ -107,11 +107,11 @@ export default function LeftRail() {
           onClick={() => switchMode('flight')}
           title="Flight Ops"
           className={cn(
-            'flex items-center justify-center gap-1.5 rounded-lg transition-all text-xs font-bold',
+            'flex items-center justify-center gap-1.5 rounded-lg transition-all text-xs font-bold glass-light glass-hover',
             expanded ? 'flex-1 h-7 px-2' : 'w-full h-7',
             mode === 'flight'
-              ? 'bg-primary text-primary-foreground'
-              : 'bg-secondary text-muted-foreground hover:text-foreground'
+              ? 'bg-primary/40 text-primary-foreground border border-primary/40'
+              : 'text-gray-400 hover:text-white'
           )}
         >
           <Plane className="w-3.5 h-3.5 flex-shrink-0" />
@@ -121,11 +121,11 @@ export default function LeftRail() {
           onClick={() => switchMode('tech')}
           title="TechOps"
           className={cn(
-            'flex items-center justify-center gap-1.5 rounded-lg transition-all text-xs font-bold',
+            'flex items-center justify-center gap-1.5 rounded-lg transition-all text-xs font-bold glass-light glass-hover',
             expanded ? 'flex-1 h-7 px-2' : 'w-full h-7',
             mode === 'tech'
-              ? 'bg-orange-500 text-white'
-              : 'bg-secondary text-muted-foreground hover:text-foreground'
+              ? 'bg-orange-500/40 text-white border border-orange-500/40'
+              : 'text-gray-400 hover:text-white'
           )}
         >
           <Wrench className="w-3.5 h-3.5 flex-shrink-0" />
@@ -135,11 +135,11 @@ export default function LeftRail() {
           onClick={() => { switchMode('aocs'); }}
           title="AOCS"
           className={cn(
-            'flex items-center justify-center gap-1.5 rounded-lg transition-all text-xs font-bold',
+            'flex items-center justify-center gap-1.5 rounded-lg transition-all text-xs font-bold glass-light glass-hover',
             expanded ? 'flex-1 h-7 px-2' : 'w-full h-7',
             mode === 'aocs'
-              ? 'bg-sky-600 text-white'
-              : 'bg-secondary text-muted-foreground hover:text-foreground'
+              ? 'bg-sky-600/40 text-white border border-sky-600/40'
+              : 'text-gray-400 hover:text-white'
           )}
         >
           <Globe className="w-3.5 h-3.5 flex-shrink-0" />
@@ -160,12 +160,12 @@ export default function LeftRail() {
           const isActive = location.pathname === path;
           const isHome = path === '/Home';
           const sharedClass = cn(
-            'relative flex items-center gap-3 px-2.5 h-10 rounded-xl transition-all flex-shrink-0 w-full',
+            'relative flex items-center gap-3 px-2.5 h-10 rounded-xl transition-all flex-shrink-0 w-full glass-light glass-hover',
             isActive
               ? mode === 'tech'
-                ? 'bg-orange-500/20 text-orange-400'
-                : 'bg-primary/20 text-primary'
-              : 'text-muted-foreground hover:bg-secondary hover:text-foreground'
+                ? 'bg-orange-500/30 text-orange-300 border border-orange-500/30'
+                : 'bg-primary/30 text-primary border border-primary/30 liquid-shimmer'
+              : 'text-gray-400'
           );
           const inner = (
             <>
@@ -195,10 +195,10 @@ export default function LeftRail() {
         <Link
           to="/Settings"
           className={cn(
-            'flex items-center gap-3 px-2.5 rounded-xl transition-all w-full min-h-[44px]',
+            'flex items-center gap-3 px-2.5 rounded-xl transition-all w-full min-h-[44px] glass-light glass-hover',
             location.pathname === '/Settings'
-              ? 'bg-primary/20 text-primary'
-              : 'text-muted-foreground hover:bg-secondary hover:text-foreground'
+              ? 'bg-primary/30 text-primary border border-primary/30'
+              : 'text-gray-400'
           )}
         >
           <Settings className="w-5 h-5 flex-shrink-0" />

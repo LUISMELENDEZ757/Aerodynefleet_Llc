@@ -9,39 +9,45 @@
     --font-inter: 'Inter', sans-serif;
     --font-mono: 'JetBrains Mono', monospace;
 
-    --background: 222 20% 10%;
-    --foreground: 210 20% 92%;
-    --card: 222 18% 14%;
-    --card-foreground: 210 20% 92%;
-    --popover: 222 18% 14%;
-    --popover-foreground: 210 20% 92%;
-    --primary: 45 100% 51%;
-    --primary-foreground: 222 20% 10%;
-    --secondary: 222 14% 20%;
-    --secondary-foreground: 210 20% 80%;
-    --muted: 222 14% 18%;
-    --muted-foreground: 210 10% 55%;
-    --accent: 45 100% 51%;
-    --accent-foreground: 222 20% 10%;
-    --destructive: 0 72% 51%;
+    /* Liquid Glass Theme - Deep space with frosted glass */
+    --background: 222 30% 8%;
+    --foreground: 210 40% 96%;
+    --card: 222 30% 12%;
+    --card-foreground: 210 40% 96%;
+    --popover: 222 30% 12%;
+    --popover-foreground: 210 40% 96%;
+    --primary: 45 100% 55%;
+    --primary-foreground: 222 30% 8%;
+    --secondary: 222 20% 18%;
+    --secondary-foreground: 210 40% 90%;
+    --muted: 222 20% 16%;
+    --muted-foreground: 210 15% 65%;
+    --accent: 45 100% 55%;
+    --accent-foreground: 222 30% 8%;
+    --destructive: 0 75% 55%;
     --destructive-foreground: 0 0% 98%;
-    --border: 222 14% 22%;
-    --input: 222 14% 22%;
-    --ring: 45 100% 51%;
-    --chart-1: 45 100% 51%;
-    --chart-2: 173 58% 39%;
-    --chart-3: 197 37% 24%;
-    --chart-4: 43 74% 66%;
-    --chart-5: 27 87% 67%;
-    --radius: 0.5rem;
-    --sidebar-background: 222 18% 12%;
-    --sidebar-foreground: 210 20% 92%;
-    --sidebar-primary: 45 100% 51%;
-    --sidebar-primary-foreground: 222 20% 10%;
-    --sidebar-accent: 222 14% 20%;
-    --sidebar-accent-foreground: 210 20% 92%;
-    --sidebar-border: 222 14% 22%;
-    --sidebar-ring: 45 100% 51%;
+    --border: 222 20% 25%;
+    --input: 222 20% 20%;
+    --ring: 45 100% 55%;
+    --chart-1: 45 100% 55%;
+    --chart-2: 173 60% 45%;
+    --chart-3: 197 40% 30%;
+    --chart-4: 43 75% 70%;
+    --chart-5: 27 90% 70%;
+    --radius: 1rem;
+    --sidebar-background: 222 30% 10%;
+    --sidebar-foreground: 210 40% 96%;
+    --sidebar-primary: 45 100% 55%;
+    --sidebar-primary-foreground: 222 30% 8%;
+    --sidebar-accent: 222 20% 18%;
+    --sidebar-accent-foreground: 210 40% 96%;
+    --sidebar-border: 222 20% 25%;
+    --sidebar-ring: 45 100% 55%;
+
+    /* Glass morphism utilities */
+    --glass-bg: rgba(30, 41, 59, 0.4);
+    --glass-border: rgba(255, 255, 255, 0.08);
+    --glass-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
 
     /* Safe area insets */
     --safe-bottom: env(safe-area-inset-bottom, 0px);
@@ -51,38 +57,38 @@
   }
 
   .dark {
-    --background: 222 20% 10%;
-    --foreground: 210 20% 92%;
-    --card: 222 18% 14%;
-    --card-foreground: 210 20% 92%;
-    --popover: 222 18% 14%;
-    --popover-foreground: 210 20% 92%;
-    --primary: 45 100% 51%;
-    --primary-foreground: 222 20% 10%;
-    --secondary: 222 14% 20%;
-    --secondary-foreground: 210 20% 80%;
-    --muted: 222 14% 18%;
-    --muted-foreground: 210 10% 55%;
-    --accent: 45 100% 51%;
-    --accent-foreground: 222 20% 10%;
-    --destructive: 0 72% 51%;
+    --background: 222 30% 8%;
+    --foreground: 210 40% 96%;
+    --card: 222 30% 12%;
+    --card-foreground: 210 40% 96%;
+    --popover: 222 30% 12%;
+    --popover-foreground: 210 40% 96%;
+    --primary: 45 100% 55%;
+    --primary-foreground: 222 30% 8%;
+    --secondary: 222 20% 18%;
+    --secondary-foreground: 210 40% 90%;
+    --muted: 222 20% 16%;
+    --muted-foreground: 210 15% 65%;
+    --accent: 45 100% 55%;
+    --accent-foreground: 222 30% 8%;
+    --destructive: 0 75% 55%;
     --destructive-foreground: 0 0% 98%;
-    --border: 222 14% 22%;
-    --input: 222 14% 22%;
-    --ring: 45 100% 51%;
-    --chart-1: 45 100% 51%;
-    --chart-2: 173 58% 39%;
-    --chart-3: 197 37% 24%;
-    --chart-4: 43 74% 66%;
-    --chart-5: 27 87% 67%;
-    --sidebar-background: 222 18% 12%;
-    --sidebar-foreground: 210 20% 92%;
-    --sidebar-primary: 45 100% 51%;
-    --sidebar-primary-foreground: 222 20% 10%;
-    --sidebar-accent: 222 14% 20%;
-    --sidebar-accent-foreground: 210 20% 92%;
-    --sidebar-border: 222 14% 22%;
-    --sidebar-ring: 45 100% 51%;
+    --border: 222 20% 25%;
+    --input: 222 20% 20%;
+    --ring: 45 100% 55%;
+    --chart-1: 45 100% 55%;
+    --chart-2: 173 60% 45%;
+    --chart-3: 197 40% 30%;
+    --chart-4: 43 75% 70%;
+    --chart-5: 27 90% 70%;
+    --sidebar-background: 222 30% 10%;
+    --sidebar-foreground: 210 40% 96%;
+    --sidebar-primary: 45 100% 55%;
+    --sidebar-primary-foreground: 222 30% 8%;
+    --sidebar-accent: 222 20% 18%;
+    --sidebar-accent-foreground: 210 40% 96%;
+    --sidebar-border: 222 20% 25%;
+    --sidebar-ring: 45 100% 55%;
   }
 }
 
@@ -169,6 +175,86 @@ nav.fixed.bottom-0 {
   display: none;
 }
 
+/* ─── Liquid Glass Effects ───────────────────────────────────── */
+.glass {
+  background: var(--glass-bg);
+  backdrop-filter: blur(16px) saturate(180%);
+  -webkit-backdrop-filter: blur(16px) saturate(180%);
+  border: 1px solid var(--glass-border);
+  box-shadow: var(--glass-shadow);
+}
+
+.glass-light {
+  background: rgba(255, 255, 255, 0.05);
+  backdrop-filter: blur(12px) saturate(150%);
+  -webkit-backdrop-filter: blur(12px) saturate(150%);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+.glass-strong {
+  background: rgba(30, 41, 59, 0.7);
+  backdrop-filter: blur(20px) saturate(200%);
+  -webkit-backdrop-filter: blur(20px) saturate(200%);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  box-shadow: 0 12px 48px 0 rgba(0, 0, 0, 0.5);
+}
+
+.glass-hover:hover {
+  background: rgba(30, 41, 59, 0.6);
+  border-color: rgba(255, 255, 255, 0.12);
+}
+
+/* Liquid gradient backgrounds */
+.liquid-gradient {
+  background: linear-gradient(135deg, 
+    rgba(59, 130, 246, 0.15) 0%, 
+    rgba(147, 51, 234, 0.1) 50%, 
+    rgba(236, 72, 153, 0.1) 100%);
+}
+
+.liquid-glow {
+  box-shadow: 
+    0 0 40px rgba(59, 130, 246, 0.1),
+    0 0 80px rgba(147, 51, 234, 0.05),
+    inset 0 0 40px rgba(255, 255, 255, 0.02);
+}
+
+/* Frosted card effect */
+.frosted-card {
+  background: rgba(30, 41, 59, 0.5);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: var(--radius);
+  box-shadow: 
+    0 8px 32px rgba(0, 0, 0, 0.3),
+    inset 0 1px 0 rgba(255, 255, 255, 0.05);
+}
+
+/* Animated liquid shimmer */
+@keyframes liquid-shimmer {
+  0% {
+    background-position: 0% 50%;
+  }
+  50% {
+    background-position: 100% 50%;
+  }
+  100% {
+    background-position: 0% 50%;
+  }
+}
+
+.liquid-shimmer {
+  background: linear-gradient(
+    90deg,
+    rgba(255, 255, 255, 0.03) 0%,
+    rgba(255, 255, 255, 0.08) 50%,
+    rgba(255, 255, 255, 0.03) 100%
+  );
+  background-size: 200% 100%;
+  animation: liquid-shimmer 3s ease-in-out infinite;
+}
+
 /* ─── Tap animation feedback ─────────────────────────────────────── */
 @media (hover: none) {
   button:active, a:active, [role="button"]:active {
@@ -182,10 +268,10 @@ nav.fixed.bottom-0 {
 /* Ensure critical text meets WCAG AA minimum 4.5:1 contrast ratio */
 .dark {
   /* Increase muted-foreground contrast for data labels */
-  --muted-foreground: 210 10% 70%;
+  --muted-foreground: 210 15% 65%;
   
   /* Ensure stat card values are highly readable */
-  --text-stat-value: 210 20% 95%;
+  --text-stat-value: 210 40% 96%;
 }
 
 /* Disabled state styling with proper contrast */
