@@ -8,7 +8,7 @@ import ToolTransactions from '@/components/tooling/ToolTransactions';
 import ToolCalibration from '@/components/tooling/ToolCalibration';
 import ToolAnalytics from '@/components/tooling/ToolAnalytics';
 import AddToolModal from '@/components/tooling/AddToolModal';
-import QRScanModal from '@/components/tooling/QRScanModal';
+import QRScanModal from '@/components/tooling/QRScanModal.jsx';
 import ToolQRSetup from '@/components/tooling/ToolQRSetup';
 
 const TABS = [
