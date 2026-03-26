@@ -4,6 +4,7 @@ import { cn } from '@/lib/utils';
 
 const NAV_ITEMS = [
   { label: 'HOME', path: '/Home' },
+  { label: 'AOCS', path: '/AocsDashboard' },
   { label: 'FLIGHT OPS', path: '/Dashboard' },
   { label: 'DISPATCH', path: '/Dispatch' },
   { label: 'CABIN CREW', path: '/FlightAttendant' },
