@@ -554,7 +554,7 @@ function OxygenServiceModal({ onClose }) {
               const final = Number(form.final_pressure) || 0;
               const added = pressureAdded != null ? pressureAdded : 0;
               const initPct = Math.min(100, (initial / maxPSI) * 100);
-              const finalPct = Math.min(100, (final / maxPSI) * 100);
+              const finalPct = final >= 1850 ? 100 : Math.min(100, (final / maxPSI) * 100);
               const addedPct = Math.min(100, (added / maxPSI) * 100);
               const hasData = initial > 0 || final > 0;
               return (
