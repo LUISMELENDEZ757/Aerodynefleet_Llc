@@ -315,7 +315,7 @@ export default function FleetDashboard() {
   const { data: aircraft = [], isLoading } = useQuery({
     queryKey: ['fleet-aircraft', activeFleetId],
     queryFn: () => activeFleet
-      ? base44.entities.Aircraft.filter({ airline: activeFleet.name })
+      ? base44.entities.Aircraft.filter({ airline: activeFleet.name }, '-created_date', 1000)
       : base44.entities.Aircraft.list('-created_date', 1000),
     refetchInterval: 60000,
   });
