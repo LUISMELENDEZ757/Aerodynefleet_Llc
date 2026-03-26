@@ -41,7 +41,7 @@ const TECH_OPS_ITEMS = [
   { label: 'E-LOGBOOK', path: '/TechOpsLogbook' },
   { label: 'MEL', path: '/MEL' },
   { label: 'MCC', path: '/MaintenanceControl' },
-  { label: 'OOS', path: '/OOSDashboard' },
+  { label: 'Tech-mode', path: '/OOSDashboard' },
   { label: 'TOOLING', path: '/ToolingManagement' },
   { label: 'ENGINEERING', path: '/EngineeringDashboard' },
   { label: 'TRAINING', path: '/Training' },
