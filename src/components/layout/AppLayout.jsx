@@ -2,6 +2,9 @@ import React, { useEffect, useState, useRef } from 'react';
 import { Outlet, useLocation } from 'react-router-dom';
 import LeftRail from './LeftRail';
 import BottomTabBar from './BottomTabBar';
+import WifiIndicator from './WifiIndicator';
+import StarlinkIndicator from './StarlinkIndicator';
+import NotificationsBell from './NotificationsBell';
 import { TabHistoryProvider, useTabHistory } from '@/lib/TabHistoryContext';
 import PageTransition from '@/components/ui/PageTransition';
 
@@ -36,6 +39,12 @@ function AppContent() {
       <LocationSync />
       <LeftRail />
       <div className="flex-1 min-h-screen ml-48">
+        {/* Top indicators bar */}
+        <div className="sticky top-0 z-50 bg-card/95 backdrop-blur-md border-b border-border px-4 h-12 flex items-center justify-end gap-2">
+          <WifiIndicator />
+          <StarlinkIndicator />
+          <NotificationsBell />
+        </div>
         <main className="pb-safe-bottom">
           <PageTransition>
             <Outlet />
