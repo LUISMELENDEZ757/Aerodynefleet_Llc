@@ -6,6 +6,7 @@ const NAV_ITEMS = [
   { label: 'HOME', path: '/Home' },
   { label: 'AOCS', path: '/AocsDashboard' },
   { label: 'FLIGHT OPS', path: '/Dashboard' },
+  { label: 'TECH OPS', path: '/OOSDashboard' },
   { label: 'DISPATCH', path: '/Dispatch' },
   { label: 'CABIN CREW', path: '/FlightAttendant' },
   { label: 'FLIGHT CREW', path: '/FlightCrew' },
