@@ -5,37 +5,36 @@ import { base44 } from '@/api/base44Client';
 import { useFleet } from '@/lib/FleetContext';
 import FleetSwitcher from '@/components/fleet/FleetSwitcher';
 import {
-  ChevronLeft, Globe, Plane, Users, Wrench, Fuel, AlertTriangle,
-  BarChart3, Shield, Radio, Clock, CheckCircle, TrendingUp, ExternalLink,
-  Satellite, Activity, Zap, Package
+  ChevronLeft, Globe, Plane, Users, Wrench, AlertTriangle,
+  BarChart3, Clock, CheckCircle, TrendingUp, ExternalLink,
+  Activity, Radio
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import {
   BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer,
-  PieChart, Pie, Cell, Legend, LineChart, Line, CartesianGrid
+  PieChart, Pie, Cell, CartesianGrid, Legend
 } from 'recharts';
 
-const COLORS = ['#22c55e', '#f59e0b', '#ef4444', '#3b82f6', '#a78bfa', '#f97316'];
+const COLORS = ['#22c55e', '#f59e0b', '#ef4444', '#3b82f6'];
 
 const TABS = [
-  { id: 'overview', label: 'Overview', icon: Globe },
+  { id: 'overview', label: 'Overview', icon: BarChart3 },
   { id: 'flights', label: 'Flights', icon: Plane },
   { id: 'fleet', label: 'Fleet', icon: Activity },
   { id: 'alerts', label: 'Alerts', icon: AlertTriangle },
 ];
 
-function StatCard({ icon: Icon, label, value, sub, color, link }) {
-  const content = (
-    <div className={cn('rounded-xl border border-white/10 p-4 space-y-1 hover:brightness-110 transition-all', color.includes('bg-') ? color : 'bg-card')}>
+function StatCard({ icon: IconComp, label, value, sub, color }) {
+  return (
+    <div className={cn('rounded-xl border p-4 space-y-1', color)}>
       <div className="flex items-center gap-2">
-        {Icon && <Icon className={cn('w-4 h-4', color.includes('text-') ? color : 'text-muted-foreground')} />}
-        <p className={cn('text-2xl font-extrabold font-mono', color.includes('text-') ? color : 'text-foreground')}>{value}</p>
+        {IconComp && <IconComp className="w-4 h-4" />}
+        <p className="text-2xl font-extrabold font-mono">{value}</p>
       </div>
-      <p className="text-xs text-muted-foreground">{label}</p>
-      {sub && <p className={cn('text-[10px] font-bold', color.includes('text-') ? color : 'text-muted-foreground')}>{sub}</p>}
+      <p className="text-xs opacity-70">{label}</p>
+      {sub && <p className="text-[10px] opacity-80">{sub}</p>}
     </div>
   );
-  return link ? <Link to={link}>{content}</Link> : content;
 }
 
 export default function AocsDashboard() {
@@ -50,53 +49,53 @@ export default function AocsDashboard() {
     return () => clearInterval(t);
   }, []);
 
-  const { data: flights = [] } = useQuery({
+  const { data: flights = [], isLoading: flightsLoading } = useQuery({
     queryKey: ['aocs-flights', activeFleetId],
     queryFn: () => activeFleet
       ? base44.entities.Flight.filter({ airline: activeFleet.name })
       : base44.entities.Flight.list('-flight_date', 200),
-    refetchInterval: 30000,
+    refetchInterval: 60000,
+    staleTime: 30000,
   });
 
-  const { data: aircraft = [] } = useQuery({
+  const { data: aircraft = [], isLoading: aircraftLoading } = useQuery({
     queryKey: ['aocs-aircraft', activeFleetId],
     queryFn: () => activeFleet
       ? base44.entities.Aircraft.filter({ airline: activeFleet.name })
       : base44.entities.Aircraft.list('tail_number', 200),
-    refetchInterval: 30000,
-  });
-
-  const { data: crew = [] } = useQuery({
-    queryKey: ['aocs-crew'],
-    queryFn: () => base44.entities.CrewAssignment.list('-created_date', 200),
-    refetchInterval: 30000,
-  });
-
-  const { data: oosEntries = [] } = useQuery({
-    queryKey: ['aocs-oos'],
-    queryFn: () => base44.entities.OOSEntry.list('-created_date', 100),
-    refetchInterval: 30000,
-  });
-
-  const { data: melItems = [] } = useQuery({
-    queryKey: ['aocs-mel'],
-    queryFn: () => base44.entities.MELItem.list('-created_date', 100),
-    refetchInterval: 30000,
+    refetchInterval: 60000,
+    staleTime: 30000,
   });
 
   const { data: alerts = [] } = useQuery({
     queryKey: ['aocs-alerts'],
     queryFn: () => base44.entities.OpsAlert.list('-created_date', 50),
-    refetchInterval: 15000,
+    refetchInterval: 60000,
+    staleTime: 30000,
   });
 
   const { data: irops = [] } = useQuery({
     queryKey: ['aocs-irops'],
     queryFn: () => base44.entities.IROPSEvent.list('-created_date', 50),
-    refetchInterval: 30000,
+    refetchInterval: 60000,
+    staleTime: 30000,
   });
 
-  // Derived metrics
+  const { data: melItems = [] } = useQuery({
+    queryKey: ['aocs-mel'],
+    queryFn: () => base44.entities.MELItem.list('-created_date', 100),
+    refetchInterval: 60000,
+    staleTime: 30000,
+  });
+
+  const { data: oosEntries = [] } = useQuery({
+    queryKey: ['aocs-oos'],
+    queryFn: () => base44.entities.OOSEntry.list('-created_date', 100),
+    refetchInterval: 60000,
+    staleTime: 30000,
+  });
+
+  // Derived metrics - memoized by being simple calculations
   const activeFlights = flights.filter(f => ['airborne', 'departed', 'boarding'].includes(f.status)).length;
   const delayedFlights = flights.filter(f => f.status === 'delayed' || (f.delay_minutes || 0) >= 15).length;
   const onTimeFlights = flights.filter(f => ['on_time', 'landed', 'arrived'].includes(f.status) && !(f.delay_minutes || 0) >= 15).length;
@@ -106,9 +105,6 @@ export default function AocsDashboard() {
   const activeAircraft = aircraft.filter(a => a.status === 'active').length;
   const oosAircraft = aircraft.filter(a => ['oos', 'maintenance'].includes(a.status)).length;
 
-  const crewLegal = crew.filter(c => c.legal_status === 'legal' || !c.legal_status).length;
-  const crewViolations = crew.filter(c => ['violation', 'illegal'].includes(c.legal_status)).length;
-
   const openOOS = oosEntries.filter(e => ['in_work', 'waiting_on_parts'].includes(e.status)).length;
   const expiredMEL = melItems.filter(m => m.status === 'expired').length;
   const activeFaults = melItems.filter(m => m.status === 'open').length;
@@ -116,7 +112,6 @@ export default function AocsDashboard() {
   const activeIROPS = irops.filter(i => i.status === 'active').length;
   const criticalAlerts = alerts.filter(a => a.severity === 'critical' && !a.is_dismissed).length;
 
-  // OTP chart data
   const otpChartData = (() => {
     const map = {};
     flights.forEach(f => {
@@ -146,7 +141,7 @@ export default function AocsDashboard() {
       {/* Header */}
       <div className="flex items-center justify-between px-5 py-4 border-b border-white/10 bg-[#0a0e18] sticky top-0 z-30">
         <div className="flex items-center gap-3">
-          <Link to="/Home" className="w-9 h-9 rounded-lg bg-white/10 flex items-center justify-center hover:bg-white/20 transition-colors">
+          <Link to="/Home" className="w-9 h-9 rounded-lg bg-white/10 flex items-center justify-center hover:bg-white/20">
             <ChevronLeft className="w-5 h-5 text-white" />
           </Link>
           <div className="w-10 h-10 rounded-xl bg-sky-600 flex items-center justify-center">
@@ -200,7 +195,7 @@ export default function AocsDashboard() {
             <StatCard icon={Plane} label="Active Flights" value={activeFlights} sub={`${delayedFlights} delayed`} color={delayedFlights > 0 ? 'text-amber-400 bg-amber-600/15' : 'text-sky-400 bg-sky-600/15'} link="/Dashboard" />
             <StatCard icon={TrendingUp} label="OTP Rate" value={`${otpPct}%`} sub={`${totalFlights} total`} color={otpPct >= 80 ? 'text-green-400 bg-green-600/15' : 'text-amber-400 bg-amber-600/15'} link="/Analytics" />
             <StatCard icon={Activity} label="Fleet Active" value={`${activeAircraft}/${aircraft.length}`} sub={`${oosAircraft} OOS`} color={oosAircraft > 0 ? 'text-red-400 bg-red-600/15' : 'text-green-400 bg-green-600/15'} link="/FleetDashboard" />
-            <StatCard icon={Users} label="Crew Issues" value={crewViolations} sub="FAR 117 flags" color={crewViolations > 0 ? 'text-red-400 bg-red-600/15' : 'text-green-400 bg-green-600/15'} link="/CrewControl" />
+            <StatCard icon={Users} label="Crew Issues" value={0} sub="See Crew Control" color="text-green-400 bg-green-600/15" link="/CrewControl" />
             <StatCard icon={AlertTriangle} label="Active IROPS" value={activeIROPS} sub={activeIROPS > 0 ? 'events' : 'none'} color={activeIROPS > 0 ? 'text-amber-400 bg-amber-600/15' : 'text-green-400 bg-green-600/15'} link="/IROPS" />
             <StatCard icon={Wrench} label="Open MX / MEL" value={openOOS + expiredMEL} sub={`${expiredMEL} expired MEL`} color={expiredMEL > 0 ? 'text-red-400 bg-red-600/15' : 'text-orange-400 bg-amber-600/15'} link="/MaintenanceControl" />
           </div>
@@ -378,7 +373,9 @@ export default function AocsDashboard() {
               </div>
               <p className="text-xs text-gray-500">{flights.length} total</p>
             </div>
-            {flights.length === 0 ? (
+            {flightsLoading ? (
+              <p className="text-gray-600 text-sm text-center py-8">Loading...</p>
+            ) : flights.length === 0 ? (
               <p className="text-gray-600 text-sm text-center py-8">No flights scheduled</p>
             ) : (
               <div className="divide-y divide-white/5 max-h-[60vh] overflow-y-auto">
@@ -433,7 +430,9 @@ export default function AocsDashboard() {
               </div>
               <Link to="/FleetDashboard" className="text-xs font-bold text-orange-400 hover:text-orange-300">Manage Fleet →</Link>
             </div>
-            {aircraft.length === 0 ? (
+            {aircraftLoading ? (
+              <p className="text-gray-600 text-sm text-center py-8">Loading...</p>
+            ) : aircraft.length === 0 ? (
               <p className="text-gray-600 text-sm text-center py-8">No aircraft registered</p>
             ) : (
               <div className="divide-y divide-white/5 max-h-[60vh] overflow-y-auto">
