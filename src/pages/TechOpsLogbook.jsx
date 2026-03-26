@@ -107,6 +107,79 @@ export default function TechOpsLogbook() {
   const nextLogPage = `LP#${String(entries.length + 1).padStart(4, '0')}`;
   const statusCfg = STATUS_STYLES[selectedAc?.status] || STATUS_STYLES.active;
 
+  const handlePrint = () => {
+    const entriesHtml = entries.length === 0
+      ? '<tr><td colspan="5" style="text-align:center;color:#888;padding:16px;">No log entries</td></tr>'
+      : entries.map(e => {
+          const style = ENTRY_STYLES[e.entry_type] || ENTRY_STYLES.discrepancy;
+          const date = new Date(e.created_date);
+          return `<tr>
+            <td>${e.log_page || '—'}</td>
+            <td><strong style="color:${style.color.replace('text-','')}">${style.label}</strong></td>
+            <td>ATA ${e.ata_chapter || '—'}</td>
+            <td>${e.description || '—'}${e.corrective_action ? `<br/><span style="color:green">✓ ${e.corrective_action}</span>` : ''}${e.is_deferred && !e.is_cleared ? `<br/><span style="color:orange">MEL ${e.mel_category} — ${e.mel_reference || ''}</span>` : ''}${e.is_cleared ? '<br/><span style="color:green">✓ CLEARED</span>' : ''}</td>
+            <td>${e.technician_name || '—'}<br/><small>${date.toLocaleDateString()} ${date.toLocaleTimeString('en-US',{hour:'2-digit',minute:'2-digit',hour12:false})}</small></td>
+          </tr>`;
+        }).join('');
+
+    const faultsHtml = activeFaults.length === 0
+      ? '<tr><td colspan="4" style="text-align:center;color:#888;padding:12px;">No active faults</td></tr>'
+      : activeFaults.map(f => `<tr>
+          <td><strong>${f.fault_code}</strong></td>
+          <td>${f.severity?.toUpperCase() || '—'}</td>
+          <td>ATA ${f.ata_chapter || '—'}</td>
+          <td>${f.description || '—'}</td>
+        </tr>`).join('');
+
+    const win = window.open('', '_blank');
+    win.document.write(`
+      <html><head><title>E-Logbook — ${selectedAc?.tail_number || ''}</title>
+      <style>
+        body { font-family: Arial, sans-serif; font-size: 12px; color: #111; margin: 32px; }
+        h1 { font-size: 20px; margin: 0 0 2px; }
+        .sub { color: #555; font-size: 11px; margin-bottom: 20px; }
+        .info-grid { display: grid; grid-template-columns: repeat(4,1fr); gap: 12px; margin-bottom: 24px; }
+        .info-box { border: 1px solid #ddd; border-radius: 8px; padding: 10px; }
+        .info-box label { font-size: 10px; color: #888; text-transform: uppercase; letter-spacing: 1px; display: block; margin-bottom: 4px; }
+        .info-box span { font-size: 18px; font-weight: 900; }
+        h2 { font-size: 13px; text-transform: uppercase; letter-spacing: 1px; border-bottom: 2px solid #111; padding-bottom: 4px; margin: 20px 0 8px; }
+        table { width: 100%; border-collapse: collapse; font-size: 11px; }
+        th { background: #f3f4f6; text-align: left; padding: 6px 8px; font-size: 10px; text-transform: uppercase; letter-spacing: 0.5px; }
+        td { padding: 6px 8px; border-bottom: 1px solid #eee; vertical-align: top; }
+        .footer { margin-top: 32px; font-size: 10px; color: #aaa; border-top: 1px solid #ddd; padding-top: 8px; }
+      </style>
+      </head><body>
+      <h1>E-LOGBOOK — ${selectedAc?.tail_number || '—'}</h1>
+      <div class="sub">Aerodyne Fleet LLC &nbsp;|&nbsp; ${selectedAc?.aircraft_type || '—'} &nbsp;|&nbsp; Station: ${selectedAc?.base_station || '—'} &nbsp;|&nbsp; Status: ${statusCfg.label}</div>
+
+      <div class="info-grid">
+        <div class="info-box"><label>Log Entries</label><span>${entries.length}</span></div>
+        <div class="info-box"><label>Open Items</label><span>${openItems}</span></div>
+        <div class="info-box"><label>Active Faults</label><span>${activeFaults.length}</span></div>
+        <div class="info-box"><label>Next Log Page</label><span>${nextLogPage}</span></div>
+      </div>
+
+      <h2>Active Fault Messages (EICAS/BITE)</h2>
+      <table>
+        <thead><tr><th>Code</th><th>Severity</th><th>ATA</th><th>Description</th></tr></thead>
+        <tbody>${faultsHtml}</tbody>
+      </table>
+
+      <h2>Log Entries</h2>
+      <table>
+        <thead><tr><th>Log Page</th><th>Type</th><th>ATA</th><th>Description</th><th>Technician / Date</th></tr></thead>
+        <tbody>${entriesHtml}</tbody>
+      </table>
+
+      <div class="footer">Printed: ${new Date().toLocaleString()} &nbsp;|&nbsp; ${selectedAc?.tail_number || ''} &nbsp;|&nbsp; Aerodyne Fleet LLC E-Logbook</div>
+      </body></html>
+    `);
+    win.document.close();
+    win.focus();
+    win.print();
+    win.close();
+  };
+
   return (
     <div className="min-h-screen bg-[#0d1117] text-white">
       {/* Header */}
@@ -156,8 +229,8 @@ export default function TechOpsLogbook() {
               </div>
             )}
           </div>
-          <button className="w-9 h-9 bg-[#1a1f2e] border border-white/10 rounded-xl flex items-center justify-center hover:bg-white/5 transition-colors">
-            <Printer className="w-4 h-4 text-gray-400" />
+          <button onClick={handlePrint} title="Print Logbook" className="w-9 h-9 bg-[#1a1f2e] border border-white/10 rounded-xl flex items-center justify-center hover:bg-primary/20 transition-colors">
+            <Printer className="w-4 h-4 text-primary" />
           </button>
         </div>
       </div>
