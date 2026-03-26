@@ -492,7 +492,7 @@ function OilServiceModal({ onClose }) {
               {/* Visual bars */}
               <div className="space-y-2 pt-1">
                 {[
-                  { label: 'ENG 1', val: form.eng1_oil, color: 'bg-amber-400', textColor: 'text-amber-400' },
+                  { label: 'ENG 1', val: form.eng1_oil, color: 'bg-green-400', textColor: 'text-green-400' },
                   { label: 'ENG 2', val: form.eng2_oil, color: 'bg-green-400',  textColor: 'text-green-400' },
                   { label: 'APU',   val: form.apu_oil,  color: 'bg-green-400',  textColor: 'text-green-400' },
                 ].map(({ label, val, color, textColor }) => {
