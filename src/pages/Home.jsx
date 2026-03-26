@@ -1,7 +1,7 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { Users, Plane, Radio, BookOpen, CalendarDays, Zap, Globe, Shield, Cloud, BookMarked, LayoutDashboard, AlertTriangle, Fuel, FileText, BarChart3, Weight, Navigation2, DollarSign, CalendarCheck, Wrench, GraduationCap, Satellite, MessageSquare, Truck, UserCheck, MonitorPlay, PieChart, UserCog } from 'lucide-react';
+import { Users, Plane, Radio, BookOpen, CalendarDays, Zap, Globe, Shield, Cloud, BookMarked, LayoutDashboard, AlertTriangle, Fuel, FileText, BarChart3, Weight, Navigation2, DollarSign, CalendarCheck, Wrench, GraduationCap, Satellite, MessageSquare, Truck, UserCheck, MonitorPlay, PieChart, UserCog, Activity } from 'lucide-react';
 
 import useTieredPreload from '@/hooks/useTieredPreload';
 import { useRail } from '@/lib/RailContext';
@@ -52,6 +52,7 @@ const TIER3 = [
   { icon: Wrench,        iconBg: 'bg-stone-600',  iconColor: 'text-white',              title: 'OOS DASHBOARD', subtitle: 'Fleet MX · Status',       borderColor: 'border-stone-600/30',  path: '/OOSDashboard' },
   { icon: PieChart,      iconBg: 'bg-rose-700',   iconColor: 'text-white',              title: 'COST REPORTING',subtitle: 'P&L · Delay · Fuel ROI',  borderColor: 'border-rose-700/30',   path: '/CostReporting' },
   { icon: UserCog,       iconBg: 'bg-slate-600',  iconColor: 'text-white',              title: 'USER MGMT',     subtitle: 'Roles · Invitations',     borderColor: 'border-slate-600/30',  path: '/UserManagement' },
+  { icon: Activity,      iconBg: 'bg-emerald-700',iconColor: 'text-white',              title: 'ENGINEERING',   subtitle: 'Trend Analysis · Engine Health', borderColor: 'border-emerald-700/30', path: '/EngineeringDashboard' },
 ];
 
 // Stagger config per tier
