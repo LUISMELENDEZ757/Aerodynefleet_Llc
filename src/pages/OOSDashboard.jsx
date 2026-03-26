@@ -350,57 +350,195 @@ function OilServiceModal({ onClose }) {
     queryKey: ['tech-aircraft'],
     queryFn: () => base44.entities.Aircraft.list('tail_number', 200),
   });
-  const [form, setForm] = useState({ aircraft_tail: '', station: '', technician_name: '', notes: '' });
+
+  const now = new Date();
+  const todayDate = now.toLocaleDateString('en-US', { month: '2-digit', day: '2-digit', year: 'numeric' });
+  const utcTime = now.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', timeZone: 'UTC', hour12: true });
+
+  const [form, setForm] = useState({
+    aircraft_tail: '',
+    date: todayDate,
+    time_utc: utcTime,
+    station: '',
+    technician_name: '',
+    ap_cert: '',
+    eng1_oil: '',
+    eng2_oil: '',
+    apu_oil: '',
+    oil_grade: 'MIL-PRF-7808',
+  });
   const set = (k, v) => setForm(p => ({ ...p, [k]: v }));
 
+  const MAX_OIL_QT = 12;
+
   const mutation = useMutation({
-    mutationFn: (data) => base44.entities.LogbookEntry.create({
-      aircraft_tail: data.aircraft_tail,
-      station: data.station,
+    mutationFn: () => base44.entities.LogbookEntry.create({
+      aircraft_tail: form.aircraft_tail,
+      station: form.station,
+      ata_chapter: '79',
       entry_type: 'info',
-      description: `[OIL SERVICE] ${data.notes || 'Oil service performed.'}`,
-      technician_name: data.technician_name,
+      description: [
+        `[OIL SERVICE] ATA 79 — Engine Oil Servicing`,
+        `Date: ${form.date}  Time (UTC): ${form.time_utc}  Station: ${form.station}`,
+        `Engine 1: ${form.eng1_oil || '0'} qt  Engine 2: ${form.eng2_oil || '0'} qt  APU: ${form.apu_oil || '0'} qt`,
+        `Oil Grade/Spec: ${form.oil_grade}`,
+      ].filter(Boolean).join('\n'),
+      technician_name: form.technician_name,
+      technician_id: form.ap_cert,
     }),
     onSuccess: () => { queryClient.invalidateQueries({ queryKey: ['logbook-entries'] }); onClose(); },
   });
 
-  const handleSubmit = (e) => {
-    e.preventDefault();
-    if (!form.aircraft_tail) return;
-    mutation.mutate(form);
-  };
-
   return (
-    <Modal title="Oil Service" onClose={onClose}>
-      <form onSubmit={handleSubmit} className="p-5 space-y-4">
-        <div className="grid grid-cols-2 gap-3">
+    <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-black/80 p-4">
+      <div className="w-full max-w-lg bg-[#0d1a24] border border-cyan-900/60 rounded-2xl overflow-hidden shadow-2xl">
+
+        {/* Header */}
+        <div className="flex items-center justify-between px-5 py-4 border-b border-white/10">
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 rounded-xl bg-violet-700/60 flex items-center justify-center">
+              <Droplets className="w-5 h-5 text-violet-300" />
+            </div>
+            <div>
+              <p className="font-extrabold text-violet-300 text-sm tracking-wide">OIL SERVICE — ATA 79</p>
+              <p className="text-xs text-gray-400">Engine & APU Oil Servicing</p>
+            </div>
+          </div>
+          <div className="flex items-center gap-2">
+            {form.aircraft_tail && (
+              <span className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl border border-primary text-primary text-xs font-extrabold tracking-wide">
+                ✈ {form.aircraft_tail}
+              </span>
+            )}
+            <button onClick={onClose} className="w-8 h-8 rounded-lg bg-white/10 flex items-center justify-center hover:bg-white/20">
+              <X className="w-4 h-4 text-white" />
+            </button>
+          </div>
+        </div>
+
+        <div className="overflow-y-auto max-h-[75vh] p-5 space-y-4">
+
+          {/* Aircraft Tail */}
           <Field label="Aircraft Tail *">
             <select value={form.aircraft_tail} onChange={e => set('aircraft_tail', e.target.value)} required className={inputCls}>
               <option value="">Select tail…</option>
               {aircraft.map(a => <option key={a.id} value={a.tail_number}>{a.tail_number}</option>)}
             </select>
           </Field>
-          <Field label="Station">
-            <input value={form.station} onChange={e => set('station', e.target.value.toUpperCase())} placeholder="KEWR" className={inputCls} />
-          </Field>
+
+          {/* Date / Time / Station */}
+          <div className="grid grid-cols-3 gap-3">
+            <Field label="Date">
+              <input value={form.date} onChange={e => set('date', e.target.value)} className={inputCls} />
+            </Field>
+            <Field label="Time (UTC)">
+              <input value={form.time_utc} onChange={e => set('time_utc', e.target.value)} placeholder="HH:MM" className={inputCls} />
+            </Field>
+            <Field label="Station">
+              <input value={form.station} onChange={e => set('station', e.target.value.toUpperCase())} placeholder="KDEN" className={inputCls} />
+            </Field>
+          </div>
+
+          {/* Technician */}
+          <div className="grid grid-cols-2 gap-3">
+            <Field label="Technician Name *">
+              <input value={form.technician_name} onChange={e => set('technician_name', e.target.value)} placeholder="First Last" className={inputCls} />
+            </Field>
+            <Field label="A&P Cert # / Emp #">
+              <input value={form.ap_cert} onChange={e => set('ap_cert', e.target.value)} placeholder="AMT-XXXXX" className={inputCls} />
+            </Field>
+          </div>
+
+          {/* Fluid & Gas Servicing Panel */}
+          <div className="bg-[#071e2a] border border-cyan-700/50 rounded-2xl p-4 space-y-4">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <Droplets className="w-4 h-4 text-cyan-400" />
+                <p className="text-xs font-extrabold text-cyan-400 uppercase tracking-widest">Fluid &amp; Gas Servicing — Tracking</p>
+              </div>
+              <p className="text-[10px] text-gray-500 italic">Leave blank if not serviced this entry</p>
+            </div>
+
+            {/* Engine Oil sub-panel */}
+            <div className="bg-[#0a1e2a] border border-cyan-800/40 rounded-xl p-4 space-y-3">
+              <div className="flex items-center gap-2">
+                <Droplets className="w-3.5 h-3.5 text-cyan-400" />
+                <p className="text-xs font-extrabold text-cyan-300 uppercase tracking-widest">Engine Oil Added (Quarts) — ATA 79</p>
+              </div>
+
+              <div className="grid grid-cols-4 gap-3 items-end">
+                <Field label="Engine 1 (QT)">
+                  <div className="relative">
+                    <input type="number" min="0" max={MAX_OIL_QT} value={form.eng1_oil}
+                      onChange={e => set('eng1_oil', e.target.value)}
+                      placeholder="0" className={inputCls + " pr-8"} />
+                    <span className="absolute right-3 top-1/2 -translate-y-1/2 text-xs text-gray-500 font-bold">qt</span>
+                  </div>
+                </Field>
+                <Field label="Engine 2 (QT)">
+                  <div className="relative">
+                    <input type="number" min="0" max={MAX_OIL_QT} value={form.eng2_oil}
+                      onChange={e => set('eng2_oil', e.target.value)}
+                      placeholder="0" className={inputCls + " pr-8"} />
+                    <span className="absolute right-3 top-1/2 -translate-y-1/2 text-xs text-gray-500 font-bold">qt</span>
+                  </div>
+                </Field>
+                <Field label="APU Oil (QT)">
+                  <div className="relative">
+                    <input type="number" min="0" max={MAX_OIL_QT} value={form.apu_oil}
+                      onChange={e => set('apu_oil', e.target.value)}
+                      placeholder="0" className={inputCls + " pr-8 border-cyan-500/50 focus:border-cyan-400"} />
+                    <span className="absolute right-3 top-1/2 -translate-y-1/2 text-xs text-gray-500 font-bold">qt</span>
+                  </div>
+                </Field>
+                <Field label="Oil Grade / Spec">
+                  <input value={form.oil_grade} onChange={e => set('oil_grade', e.target.value)}
+                    placeholder="MIL-PRF-7808" className={inputCls} />
+                </Field>
+              </div>
+
+              {/* Visual bars */}
+              <div className="space-y-2 pt-1">
+                {[
+                  { label: 'ENG 1', val: form.eng1_oil, color: 'bg-amber-400', textColor: 'text-amber-400' },
+                  { label: 'ENG 2', val: form.eng2_oil, color: 'bg-green-400',  textColor: 'text-green-400' },
+                  { label: 'APU',   val: form.apu_oil,  color: 'bg-green-400',  textColor: 'text-green-400' },
+                ].map(({ label, val, color, textColor }) => {
+                  const pct = Math.min(100, ((Number(val) || 0) / MAX_OIL_QT) * 100);
+                  return (
+                    <div key={label} className="flex items-center gap-3">
+                      <span className="text-[10px] font-bold text-gray-400 w-10 flex-shrink-0">{label}</span>
+                      <div className="flex-1 bg-white/10 rounded-full h-2.5 overflow-hidden">
+                        <div className={cn('h-full rounded-full transition-all duration-500', color)}
+                          style={{ width: `${pct}%` }} />
+                      </div>
+                      <span className={cn('text-xs font-bold w-12 text-right', val ? textColor : 'text-gray-600')}>
+                        {val ? `${val} qt` : '—'}
+                      </span>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          </div>
+
+          {/* Actions */}
+          <div className="flex gap-3 pt-1">
+            <button type="button" onClick={onClose}
+              className="flex-1 py-3 rounded-xl border border-white/10 text-sm font-bold text-gray-400 hover:bg-white/5">
+              Cancel
+            </button>
+            <button
+              disabled={mutation.isPending || !form.aircraft_tail || !form.technician_name}
+              onClick={() => mutation.mutate()}
+              className="flex-1 py-3 rounded-xl bg-primary hover:bg-primary/90 text-primary-foreground text-sm font-bold disabled:opacity-50 flex items-center justify-center gap-2 transition-colors"
+            >
+              <Send className="w-4 h-4" /> {mutation.isPending ? 'Saving…' : 'Save Entry'}
+            </button>
+          </div>
         </div>
-        <Field label="Technician Name">
-          <input value={form.technician_name} onChange={e => set('technician_name', e.target.value)} placeholder="Name / License #" className={inputCls} />
-        </Field>
-        <Field label="Notes">
-          <textarea rows={3} value={form.notes} onChange={e => set('notes', e.target.value)}
-            placeholder="e.g. Added 2 qts to #1 engine"
-            className={inputCls + " resize-none"} />
-        </Field>
-        <div className="flex gap-3 pt-1">
-          <button type="button" onClick={onClose} className="flex-1 py-2.5 rounded-xl border border-white/10 text-sm font-bold text-gray-400 hover:bg-white/5">Cancel</button>
-          <button type="submit" disabled={mutation.isPending || !form.aircraft_tail}
-            className="flex-1 py-2.5 rounded-xl bg-violet-600 hover:bg-violet-500 text-white text-sm font-bold disabled:opacity-50 flex items-center justify-center gap-2">
-            <Send className="w-4 h-4" /> {mutation.isPending ? 'Saving…' : 'Log Oil Service'}
-          </button>
-        </div>
-      </form>
-    </Modal>
+      </div>
+    </div>
   );
 }
 
