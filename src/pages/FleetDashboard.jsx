@@ -9,6 +9,7 @@ import {
   BookOpen, MapPin, Cpu, X, AlertTriangle, UserCheck, Plus, Clock,
   ChevronDown, Radio, Activity, Zap, Package, Brain, Settings2
 } from 'lucide-react';
+import AiMaintenanceInsights from '@/components/fleet/AiMaintenanceInsights';
 import { cn } from '@/lib/utils';
 import { motion, AnimatePresence } from 'framer-motion';
 import AddTimelineEventModal from '@/components/fleet/AddTimelineEventModal';
@@ -499,13 +500,8 @@ export default function FleetDashboard() {
       )}
 
       {activeTab === 'insights' && (
-        <div className="px-6 flex flex-col items-center justify-center py-20 gap-3">
-          <Brain className="w-14 h-14 text-gray-700" />
-          <p className="text-gray-400 font-extrabold text-lg">AI Fleet Insights</p>
-          <p className="text-gray-600 text-sm text-center max-w-sm">Predictive maintenance, engine trend analysis, and fleet health AI engine powered by historical fault data.</p>
-          <Link to="/EngineeringDashboard" className="mt-2 px-5 py-2.5 rounded-xl bg-primary text-primary-foreground text-sm font-bold hover:bg-primary/90 transition-colors">
-            Engineering Dashboard →
-          </Link>
+        <div className="px-6">
+          <AiMaintenanceInsights aircraft={aircraft} />
         </div>
       )}
 
