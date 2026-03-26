@@ -26,9 +26,15 @@ const STATUS_STYLES = {
 };
 
 // ── KPI Card ─────────────────────────────────────────────────────────────────
-function KpiCard({ label, value, sublabel, valueColor, icon: Icon, iconColor }) {
+function KpiCard({ label, value, sublabel, valueColor, icon: Icon, iconColor, onClick }) {
   return (
-    <div className="bg-[#1a1f2e] rounded-2xl p-6 flex flex-col gap-2 border border-white/5">
+    <div
+      onClick={onClick}
+      className={cn(
+        "bg-[#1a1f2e] rounded-2xl p-6 flex flex-col gap-2 border border-white/5 transition-all",
+        onClick && "cursor-pointer hover:bg-[#1e2538] hover:border-primary/30 active:scale-[0.98]"
+      )}
+    >
       <div className="flex items-start justify-between">
         <p className="text-xs font-extrabold text-gray-400 uppercase tracking-widest">{label}</p>
         <Icon className={cn('w-5 h-5', iconColor)} />
@@ -309,6 +315,7 @@ export default function FleetDashboard() {
   const [statusFilter, setStatusFilter] = useState('All Status');
   const [viewMode, setViewMode] = useState('grid');
   const [selectedAircraft, setSelectedAircraft] = useState(null);
+  const [kpiFilter, setKpiFilter] = useState(null);
 
   const { activeFleet, activeFleetId } = useFleet();
 
@@ -332,7 +339,8 @@ export default function FleetDashboard() {
       a.base_station?.toLowerCase().includes(search.toLowerCase()) ||
       a.aircraft_type?.toLowerCase().includes(search.toLowerCase());
     const matchesStatus = statusFilter === 'All Status' || a.status === statusFilter;
-    return matchesSearch && matchesStatus;
+    const matchesKpi = !kpiFilter || a.status === kpiFilter;
+    return matchesSearch && matchesStatus && matchesKpi;
   });
 
   const acTypeLabel = activeFleet
@@ -402,6 +410,7 @@ export default function FleetDashboard() {
             valueColor="text-white"
             icon={Plane}
             iconColor="text-primary"
+            onClick={() => setKpiFilter(kpiFilter === null ? null : null)}
           />
           <KpiCard
             label="In Service"
@@ -410,6 +419,7 @@ export default function FleetDashboard() {
             valueColor="text-green-400"
             icon={CheckCircle}
             iconColor="text-green-400"
+            onClick={() => setKpiFilter(kpiFilter === 'active' ? null : 'active')}
           />
           <KpiCard
             label="In Work"
@@ -418,6 +428,7 @@ export default function FleetDashboard() {
             valueColor="text-primary"
             icon={Wrench}
             iconColor="text-primary"
+            onClick={() => setKpiFilter(kpiFilter === 'maintenance' ? null : 'maintenance')}
           />
           <KpiCard
             label="Out of Service"
@@ -426,6 +437,7 @@ export default function FleetDashboard() {
             valueColor={outOfSvc > 0 ? 'text-orange-400' : 'text-gray-600'}
             icon={Clock}
             iconColor={outOfSvc > 0 ? 'text-orange-400' : 'text-gray-600'}
+            onClick={() => setKpiFilter(kpiFilter === 'oos' ? null : 'oos')}
           />
         </div>
       </div>
@@ -459,7 +471,17 @@ export default function FleetDashboard() {
             </div>
           </div>
 
-          <p className="text-xs text-gray-600 mb-4">Showing {filtered.length.toLocaleString()} of {total.toLocaleString()} aircraft</p>
+          <div className="flex items-center justify-between mb-4">
+            <p className="text-xs text-gray-600">Showing {filtered.length.toLocaleString()} of {total.toLocaleString()} aircraft</p>
+            {kpiFilter && (
+              <button
+                onClick={() => setKpiFilter(null)}
+                className="text-xs font-bold text-primary hover:text-primary/80 flex items-center gap-1"
+              >
+                <X className="w-3 h-3" /> Clear filter
+              </button>
+            )}
+          </div>
 
           {isLoading ? (
             <div className="text-center text-gray-600 py-20">Loading fleet data…</div>
