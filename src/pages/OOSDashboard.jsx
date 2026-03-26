@@ -546,6 +546,49 @@ function OxygenServiceModal({ onClose }) {
                 </div>
               </Field>
             </div>
+
+            {/* Pressure visual gauge */}
+            {(() => {
+              const maxPSI = 3000;
+              const initial = Number(form.initial_pressure) || 0;
+              const final = Number(form.final_pressure) || 0;
+              const added = pressureAdded != null ? pressureAdded : 0;
+              const initPct = Math.min(100, (initial / maxPSI) * 100);
+              const finalPct = Math.min(100, (final / maxPSI) * 100);
+              const addedPct = Math.min(100, (added / maxPSI) * 100);
+              const hasData = initial > 0 || final > 0;
+              return (
+                <div className="mt-3 space-y-2">
+                  {/* Initial */}
+                  <div className="flex items-center gap-3">
+                    <span className="text-[10px] font-bold text-amber-400 uppercase tracking-widest w-16 flex-shrink-0">Initial</span>
+                    <div className="flex-1 bg-white/10 rounded-full h-3 overflow-hidden">
+                      <div className="h-full rounded-full bg-gradient-to-r from-red-600 to-amber-500 transition-all duration-500"
+                        style={{ width: hasData ? `${initPct}%` : '0%' }} />
+                    </div>
+                    <span className="text-[10px] font-bold text-amber-400 w-16 text-right">{initial > 0 ? `${initial} PSI` : '—'}</span>
+                  </div>
+                  {/* Final */}
+                  <div className="flex items-center gap-3">
+                    <span className="text-[10px] font-bold text-green-400 uppercase tracking-widest w-16 flex-shrink-0">Final</span>
+                    <div className="flex-1 bg-white/10 rounded-full h-3 overflow-hidden">
+                      <div className="h-full rounded-full bg-gradient-to-r from-green-600 to-green-400 transition-all duration-500"
+                        style={{ width: hasData ? `${finalPct}%` : '0%' }} />
+                    </div>
+                    <span className="text-[10px] font-bold text-green-400 w-16 text-right">{final > 0 ? `${final} PSI` : '—'}</span>
+                  </div>
+                  {/* Added */}
+                  <div className="flex items-center gap-3">
+                    <span className="text-[10px] font-bold text-emerald-400 uppercase tracking-widest w-16 flex-shrink-0">Added</span>
+                    <div className="flex-1 bg-white/10 rounded-full h-3 overflow-hidden">
+                      <div className="h-full rounded-full bg-gradient-to-r from-emerald-500 to-cyan-400 transition-all duration-500"
+                        style={{ width: hasData && added > 0 ? `${addedPct}%` : '0%' }} />
+                    </div>
+                    <span className="text-[10px] font-bold text-emerald-400 w-16 text-right">{added > 0 ? `+${added} PSI` : '—'}</span>
+                  </div>
+                </div>
+              );
+            })()}
           </div>
 
           {/* Bottle replaced checkbox */}
