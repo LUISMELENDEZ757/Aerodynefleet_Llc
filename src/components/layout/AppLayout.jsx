@@ -1,5 +1,6 @@
 import React, { useEffect, useState, useRef } from 'react';
 import { Outlet, useLocation } from 'react-router-dom';
+import LeftRail from './LeftRail';
 import BottomTabBar from './BottomTabBar';
 import OpsAlertsPanel from './OpsAlertsPanel';
 import StarlinkIndicator from './StarlinkIndicator';
@@ -36,7 +37,8 @@ function AppContent() {
   return (
     <div className="min-h-screen bg-background flex">
       <LocationSync />
-      <div className="flex-1 min-h-screen">
+      <LeftRail />
+      <div className="flex-1 min-h-screen ml-16">
         <main className="pb-safe-bottom">
           <PageTransition>
             <Outlet />
