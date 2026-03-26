@@ -1,8 +1,9 @@
 import React from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { cn } from '@/lib/utils';
+import { useRail } from '@/lib/RailContext';
 
-const NAV_ITEMS = [
+const ALL_NAV_ITEMS = [
   { label: 'HOME', path: '/Home' },
   { label: 'AOCS', path: '/AocsDashboard' },
   { label: 'FLIGHT OPS', path: '/Dashboard' },
@@ -32,13 +33,34 @@ const NAV_ITEMS = [
   { label: 'SETTINGS', path: '/Settings' },
 ];
 
+const TECH_OPS_ITEMS = [
+  { label: 'HOME', path: '/Home' },
+  { label: 'AOCS', path: '/AocsDashboard' },
+  { label: 'TECH OPS', path: '/TechOps' },
+  { label: 'FLEET DASHBOARD', path: '/FleetDashboard' },
+  { label: 'E-LOGBOOK', path: '/TechOpsLogbook' },
+  { label: 'MEL', path: '/MEL' },
+  { label: 'MCC', path: '/MaintenanceControl' },
+  { label: 'OOS', path: '/OOSDashboard' },
+  { label: 'TOOLING', path: '/ToolingManagement' },
+  { label: 'ENGINEERING', path: '/EngineeringDashboard' },
+  { label: 'TRAINING', path: '/Training' },
+  { label: 'DOCUMENTS', path: '/Documents' },
+  { label: 'GROUND OPS', path: '/GroundOps' },
+  { label: 'NOTAMs', path: '/NOTAMs' },
+  { label: 'SETTINGS', path: '/Settings' },
+];
+
 export default function LeftRail() {
   const location = useLocation();
+  const { mode } = useRail();
+  
+  const navItems = mode === 'tech' ? TECH_OPS_ITEMS : ALL_NAV_ITEMS;
 
   return (
     <aside className="fixed left-0 top-0 h-full w-48 glass-strong border-r border-border flex flex-col py-4 z-50 liquid-glow">
       <nav className="flex flex-col gap-1 flex-1 w-full px-3 overflow-y-auto scrollbar-hide">
-        {NAV_ITEMS.map(({ label, path }) => {
+        {navItems.map(({ label, path }) => {
           const isActive = location.pathname === path;
           return (
             <Link
