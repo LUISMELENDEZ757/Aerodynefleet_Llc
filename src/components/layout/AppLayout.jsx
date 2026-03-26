@@ -38,7 +38,7 @@ function AppContent() {
     <div className="min-h-screen bg-background flex">
       <LocationSync />
       <LeftRail />
-      <div className="flex-1 min-h-screen ml-16">
+      <div className="flex-1 min-h-screen ml-48">
         <main className="pb-safe-bottom">
           <PageTransition>
             <Outlet />

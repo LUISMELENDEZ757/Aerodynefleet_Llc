@@ -34,8 +34,8 @@ export default function LeftRail() {
   const location = useLocation();
 
   return (
-    <aside className="fixed left-0 top-0 h-full w-16 glass-strong border-r border-border flex flex-col items-center py-4 z-50 liquid-glow">
-      <nav className="flex flex-col gap-1 flex-1 w-full px-2 overflow-y-auto scrollbar-hide">
+    <aside className="fixed left-0 top-0 h-full w-48 glass-strong border-r border-border flex flex-col py-4 z-50 liquid-glow">
+      <nav className="flex flex-col gap-1 flex-1 w-full px-3 overflow-y-auto scrollbar-hide">
         {NAV_ITEMS.map(({ label, path }) => {
           const isActive = location.pathname === path;
           return (
@@ -43,13 +43,13 @@ export default function LeftRail() {
               key={path}
               to={path}
               className={cn(
-                'relative group flex items-center justify-center h-10 rounded-xl transition-all text-[9px] font-extrabold tracking-wider',
+                'relative group flex items-center h-10 px-3 rounded-xl transition-all text-xs font-extrabold tracking-wide whitespace-nowrap',
                 isActive
                   ? 'bg-primary/30 text-primary border border-primary/30'
                   : 'text-gray-500 hover:text-gray-300'
               )}
             >
-              <span className="transform -rotate-90 whitespace-nowrap">{label}</span>
+              {label}
             </Link>
           );
         })}
