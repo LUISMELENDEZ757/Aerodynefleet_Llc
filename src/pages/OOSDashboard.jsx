@@ -609,6 +609,36 @@ function OxygenServiceModal({ onClose }) {
             </div>
           </button>
 
+          {/* Parts Removal / Installation — shown only when bottle replaced */}
+          {form.bottle_replaced && (
+            <div className="bg-violet-950/40 border border-violet-500/30 rounded-2xl p-4 space-y-3">
+              <p className="text-xs font-extrabold text-violet-300 uppercase tracking-widest">🔩 Parts Removal / Installation</p>
+              <div className="grid grid-cols-2 gap-3">
+                <Field label="Part Removed — P/N">
+                  <input value={form.removed_pn || ''} onChange={e => set('removed_pn', e.target.value)}
+                    placeholder="e.g. 65B27040-1" className={inputCls} />
+                </Field>
+                <Field label="Part Removed — S/N">
+                  <input value={form.removed_sn || ''} onChange={e => set('removed_sn', e.target.value)}
+                    placeholder="e.g. SN-001234" className={inputCls} />
+                </Field>
+                <Field label="Part Installed — P/N">
+                  <input value={form.installed_pn || ''} onChange={e => set('installed_pn', e.target.value)}
+                    placeholder="e.g. 65B27040-1" className={inputCls} />
+                </Field>
+                <Field label="Part Installed — S/N">
+                  <input value={form.installed_sn || ''} onChange={e => set('installed_sn', e.target.value)}
+                    placeholder="e.g. SN-005678" className={inputCls} />
+                </Field>
+              </div>
+              <Field label="Removal / Installation Notes">
+                <textarea rows={2} value={form.parts_notes || ''} onChange={e => set('parts_notes', e.target.value)}
+                  placeholder="e.g. Removed expired O2 bottle, installed new unit per AMM 35-10-01"
+                  className={inputCls + " resize-none"} />
+              </Field>
+            </div>
+          )}
+
           {/* Technician info */}
           <div className="grid grid-cols-2 gap-3">
             <Field label="Technician Name *">
