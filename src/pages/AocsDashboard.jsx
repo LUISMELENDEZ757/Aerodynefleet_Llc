@@ -2,9 +2,10 @@ import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import { base44 } from '@/api/base44Client';
-import { ChevronLeft, Globe, Plane, Users, Wrench, Fuel, AlertTriangle, BarChart3, Shield, Radio, Clock, CheckCircle, TrendingUp, ExternalLink } from 'lucide-react';
+import { ChevronLeft, Globe, Plane, Users, Wrench, Fuel, AlertTriangle, BarChart3, Shield, Radio, Clock, CheckCircle, TrendingUp, ExternalLink, Satellite, Network } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { BarChart, Bar, LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid } from 'recharts';
+import StarlinkNetworkMap from '@/components/aocs/StarlinkNetworkMap';
 
 const tooltipStyle = {
   contentStyle: { background: '#141922', border: '1px solid rgba(255,255,255,0.1)', borderRadius: 12, color: '#fff', fontSize: 12 },
@@ -39,7 +40,13 @@ function SectionHeader({ icon: Icon, title, color, link, linkLabel }) {
   );
 }
 
+const TABS = [
+  { id: 'overview', label: 'Overview',       icon: Globe },
+  { id: 'network',  label: 'Starlink Network', icon: Satellite },
+];
+
 export default function AocsDashboard() {
+  const [activeTab, setActiveTab] = useState('overview');
   const { data: flights = [] } = useQuery({
     queryKey: ['aocs-flights'],
     queryFn: () => base44.entities.Flight.list('-created_date', 200),
@@ -184,6 +191,34 @@ export default function AocsDashboard() {
           </div>
         </div>
       </div>
+
+      {/* ── TAB BAR ──────────────────────────────────────────────────────── */}
+      <div className="flex gap-2 px-5 pt-4 border-b border-white/10 pb-0 bg-[#0a0e18]">
+        {TABS.map(({ id, label, icon: Icon }) => (
+          <button
+            key={id}
+            onClick={() => setActiveTab(id)}
+            className={cn(
+              'flex items-center gap-2 px-5 py-2.5 text-sm font-bold rounded-t-xl transition-all border-b-2 -mb-px',
+              activeTab === id
+                ? 'text-sky-400 border-sky-400 bg-sky-400/10'
+                : 'text-gray-500 border-transparent hover:text-gray-300'
+            )}
+          >
+            <Icon className="w-4 h-4" />
+            {label}
+          </button>
+        ))}
+      </div>
+
+      {/* ── NETWORK TAB ──────────────────────────────────────────────────── */}
+      {activeTab === 'network' && (
+        <div className="flex-1" style={{ minHeight: 'calc(100vh - 130px)' }}>
+          <StarlinkNetworkMap />
+        </div>
+      )}
+
+      {activeTab === 'overview' && <>
 
       {/* ── MASTER KPI GRID ─────────────────────────────────────────────── */}
       <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3 px-5 pt-5">
@@ -371,6 +406,8 @@ export default function AocsDashboard() {
           </div>
         </div>
       </div>
+
+      </>}
     </div>
   );
 }
