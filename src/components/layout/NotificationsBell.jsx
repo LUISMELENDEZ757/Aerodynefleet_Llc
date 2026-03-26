@@ -10,8 +10,7 @@ export default function NotificationsBell() {
   const { data: alerts = [] } = useQuery({
     queryKey: ['notifications-alerts'],
     queryFn: () => base44.entities.OpsAlert.filter({ is_dismissed: false }),
-    refetchInterval: 30000,
-    staleTime: 25000,
+    refetchInterval: false,
   });
 
   const unreadCount = alerts.length;
