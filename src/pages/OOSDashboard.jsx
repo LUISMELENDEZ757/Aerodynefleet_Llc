@@ -343,8 +343,8 @@ function CloseTaskModal({ onClose }) {
   );
 }
 
-// ── 4. Quick Service Modal (Oil / Oxygen) ───────────────────────────────────
-function ServiceModal({ serviceType, onClose }) {
+// ── 4a. Oil Service Modal ────────────────────────────────────────────────────
+function OilServiceModal({ onClose }) {
   const queryClient = useQueryClient();
   const { data: aircraft = [] } = useQuery({
     queryKey: ['tech-aircraft'],
@@ -353,16 +353,12 @@ function ServiceModal({ serviceType, onClose }) {
   const [form, setForm] = useState({ aircraft_tail: '', station: '', technician_name: '', notes: '' });
   const set = (k, v) => setForm(p => ({ ...p, [k]: v }));
 
-  const isOil = serviceType === 'oil';
-  const label = isOil ? 'Oil Service' : 'Oxygen Service';
-  const color = isOil ? 'bg-violet-600 hover:bg-violet-500' : 'bg-cyan-600 hover:bg-cyan-500';
-
   const mutation = useMutation({
     mutationFn: (data) => base44.entities.LogbookEntry.create({
       aircraft_tail: data.aircraft_tail,
       station: data.station,
       entry_type: 'info',
-      description: `[${label.toUpperCase()}] ${data.notes || label + ' performed.'}`,
+      description: `[OIL SERVICE] ${data.notes || 'Oil service performed.'}`,
       technician_name: data.technician_name,
     }),
     onSuccess: () => { queryClient.invalidateQueries({ queryKey: ['logbook-entries'] }); onClose(); },
@@ -375,7 +371,7 @@ function ServiceModal({ serviceType, onClose }) {
   };
 
   return (
-    <Modal title={label} onClose={onClose}>
+    <Modal title="Oil Service" onClose={onClose}>
       <form onSubmit={handleSubmit} className="p-5 space-y-4">
         <div className="grid grid-cols-2 gap-3">
           <Field label="Aircraft Tail *">
@@ -393,18 +389,222 @@ function ServiceModal({ serviceType, onClose }) {
         </Field>
         <Field label="Notes">
           <textarea rows={3} value={form.notes} onChange={e => set('notes', e.target.value)}
-            placeholder={`e.g. Added 2 qts to ${isOil ? '#1 engine' : 'O2 cylinder recharged'}`}
+            placeholder="e.g. Added 2 qts to #1 engine"
             className={inputCls + " resize-none"} />
         </Field>
         <div className="flex gap-3 pt-1">
           <button type="button" onClick={onClose} className="flex-1 py-2.5 rounded-xl border border-white/10 text-sm font-bold text-gray-400 hover:bg-white/5">Cancel</button>
           <button type="submit" disabled={mutation.isPending || !form.aircraft_tail}
-            className={`flex-1 py-2.5 rounded-xl text-white text-sm font-bold disabled:opacity-50 flex items-center justify-center gap-2 ${color}`}>
-            <Send className="w-4 h-4" /> {mutation.isPending ? 'Saving…' : `Log ${label}`}
+            className="flex-1 py-2.5 rounded-xl bg-violet-600 hover:bg-violet-500 text-white text-sm font-bold disabled:opacity-50 flex items-center justify-center gap-2">
+            <Send className="w-4 h-4" /> {mutation.isPending ? 'Saving…' : 'Log Oil Service'}
           </button>
         </div>
       </form>
     </Modal>
+  );
+}
+
+// ── 4b. Oxygen Service Modal ─────────────────────────────────────────────────
+function OxygenServiceModal({ onClose }) {
+  const queryClient = useQueryClient();
+  const { data: aircraft = [] } = useQuery({
+    queryKey: ['tech-aircraft'],
+    queryFn: () => base44.entities.Aircraft.list('tail_number', 200),
+  });
+
+  const now = new Date();
+  const todayDate = now.toLocaleDateString('en-US', { month: '2-digit', day: '2-digit', year: 'numeric' });
+  const utcTime = now.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', timeZone: 'UTC', hour12: true });
+
+  const [form, setForm] = useState({
+    aircraft_tail: '',
+    date: todayDate,
+    time_utc: utcTime,
+    station: '',
+    service_method: 'Cascade',
+    initial_pressure: '',
+    final_pressure: '',
+    bottle_replaced: false,
+    technician_name: '',
+    ap_cert: '',
+  });
+  const set = (k, v) => setForm(p => ({ ...p, [k]: v }));
+
+  const pressureAdded = form.initial_pressure && form.final_pressure
+    ? Math.max(0, Number(form.final_pressure) - Number(form.initial_pressure))
+    : null;
+
+  // Generate a pseudo log page number
+  const logPage = `LP#${String(Math.floor(Math.random() * 9000) + 1000)}`;
+
+  const mutation = useMutation({
+    mutationFn: () => base44.entities.LogbookEntry.create({
+      aircraft_tail: form.aircraft_tail,
+      station: form.station,
+      ata_chapter: '35',
+      entry_type: 'info',
+      log_page: logPage,
+      description: [
+        `[OXYGEN SERVICE] ATA 35 — Oxygen System Servicing`,
+        `Date: ${form.date}  Time (UTC): ${form.time_utc}  Station: ${form.station}`,
+        `Service Method: ${form.service_method}`,
+        `Initial Pressure: ${form.initial_pressure || '—'} PSI  Final Pressure: ${form.final_pressure || '—'} PSI  Added: ${pressureAdded != null ? pressureAdded : '—'} PSI`,
+        form.bottle_replaced ? 'Oxygen bottle was replaced during this service.' : '',
+      ].filter(Boolean).join('\n'),
+      technician_name: form.technician_name,
+      technician_id: form.ap_cert,
+    }),
+    onSuccess: () => { queryClient.invalidateQueries({ queryKey: ['logbook-entries'] }); onClose(); },
+  });
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-black/80 p-4">
+      <div className="w-full max-w-lg bg-[#0d1a24] border border-cyan-900/60 rounded-2xl overflow-hidden shadow-2xl">
+
+        {/* Header */}
+        <div className="flex items-center justify-between px-5 py-4 border-b border-white/10">
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 rounded-xl bg-teal-700/60 flex items-center justify-center">
+              <Wind className="w-5 h-5 text-cyan-300" />
+            </div>
+            <div>
+              <p className="font-extrabold text-cyan-400 text-sm tracking-wide">OXYGEN SERVICE — {logPage}</p>
+              <p className="text-xs text-gray-400">ATA 35 — Oxygen System Servicing</p>
+            </div>
+          </div>
+          <div className="flex items-center gap-2">
+            {form.aircraft_tail && (
+              <span className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl border border-primary text-primary text-xs font-extrabold tracking-wide">
+                ✈ {form.aircraft_tail}
+              </span>
+            )}
+            <button onClick={onClose} className="w-8 h-8 rounded-lg bg-white/10 flex items-center justify-center hover:bg-white/20">
+              <X className="w-4 h-4 text-white" />
+            </button>
+          </div>
+        </div>
+
+        <div className="overflow-y-auto max-h-[75vh] p-5 space-y-5">
+          {/* Row 1: Date / Time / Station / Method */}
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+            <Field label="Date">
+              <input value={form.date} onChange={e => set('date', e.target.value)}
+                className={inputCls} />
+            </Field>
+            <Field label="Time (UTC)">
+              <input value={form.time_utc} onChange={e => set('time_utc', e.target.value)}
+                placeholder="HH:MM" className={inputCls} />
+            </Field>
+            <Field label="Station">
+              <input value={form.station} onChange={e => set('station', e.target.value.toUpperCase())}
+                placeholder="KDEN" className={inputCls} />
+            </Field>
+            <Field label="Service Method">
+              <select value={form.service_method} onChange={e => set('service_method', e.target.value)} className={inputCls}>
+                <option>Cascade</option>
+                <option>Cylinder</option>
+                <option>Cart</option>
+                <option>Other</option>
+              </select>
+            </Field>
+          </div>
+
+          {/* Aircraft Tail */}
+          <Field label="Aircraft Tail *">
+            <select value={form.aircraft_tail} onChange={e => set('aircraft_tail', e.target.value)} required className={inputCls}>
+              <option value="">Select tail…</option>
+              {aircraft.map(a => <option key={a.id} value={a.tail_number}>{a.tail_number}</option>)}
+            </select>
+          </Field>
+
+          {/* Oxygen Pressure / Quantity */}
+          <div className="bg-[#0a1e2a] border border-cyan-800/40 rounded-2xl p-4 space-y-3">
+            <div className="flex items-center gap-2 mb-1">
+              <Wind className="w-4 h-4 text-cyan-400" />
+              <p className="text-xs font-extrabold text-cyan-400 uppercase tracking-widest">Oxygen Pressure / Quantity</p>
+            </div>
+            <div className="grid grid-cols-3 gap-3">
+              <Field label="Initial Pressure">
+                <div className="relative">
+                  <input type="number" value={form.initial_pressure} onChange={e => set('initial_pressure', e.target.value)}
+                    placeholder="1650" className={inputCls + " pr-10"} />
+                  <span className="absolute right-3 top-1/2 -translate-y-1/2 text-xs text-gray-500 font-bold">PSI</span>
+                </div>
+              </Field>
+              <Field label="Final Pressure">
+                <div className="relative">
+                  <input type="number" value={form.final_pressure} onChange={e => set('final_pressure', e.target.value)}
+                    placeholder="1850" className={inputCls + " pr-10"} />
+                  <span className="absolute right-3 top-1/2 -translate-y-1/2 text-xs text-gray-500 font-bold">PSI</span>
+                </div>
+              </Field>
+              <Field label="Pressure Added (Auto)">
+                <div className="relative">
+                  <input readOnly value={pressureAdded != null ? pressureAdded : ''}
+                    placeholder="Auto-calculated" className={inputCls + " pr-10 opacity-60 cursor-not-allowed"} />
+                  <span className="absolute right-3 top-1/2 -translate-y-1/2 text-xs text-gray-500 font-bold">PSI</span>
+                </div>
+              </Field>
+            </div>
+          </div>
+
+          {/* Bottle replaced checkbox */}
+          <button
+            type="button"
+            onClick={() => set('bottle_replaced', !form.bottle_replaced)}
+            className="w-full flex items-center gap-3 bg-[#1a1f2e] border border-white/10 rounded-2xl px-4 py-4 text-left hover:border-violet-500/40 transition-colors"
+          >
+            <div className={cn(
+              'w-6 h-6 rounded border-2 flex items-center justify-center flex-shrink-0 transition-all',
+              form.bottle_replaced ? 'bg-violet-500 border-violet-500' : 'border-gray-600'
+            )}>
+              {form.bottle_replaced && <CheckCircle className="w-4 h-4 text-white" />}
+            </div>
+            <div>
+              <p className="text-sm font-bold text-violet-300">Oxygen Bottle Replaced</p>
+              <p className="text-xs text-gray-500">Check if the oxygen bottle was replaced during this service</p>
+            </div>
+          </button>
+
+          {/* Technician info */}
+          <div className="grid grid-cols-2 gap-3">
+            <Field label="Technician Name *">
+              <input value={form.technician_name} onChange={e => set('technician_name', e.target.value)}
+                placeholder="First Last" className={inputCls} />
+            </Field>
+            <Field label="A&P Cert # / Emp #">
+              <input value={form.ap_cert} onChange={e => set('ap_cert', e.target.value)}
+                placeholder="AMT-XXXXX" className={inputCls} />
+            </Field>
+          </div>
+
+          {/* FAA Compliance Notice */}
+          <div className="bg-blue-950/60 border border-blue-600/30 rounded-2xl px-4 py-4 flex items-start gap-3">
+            <div className="w-9 h-9 rounded-xl bg-blue-700/40 flex items-center justify-center flex-shrink-0">
+              <Send className="w-4 h-4 text-blue-300" />
+            </div>
+            <div>
+              <p className="text-xs font-extrabold text-blue-300 uppercase tracking-widest mb-1">📋 E-Logbook Entry — FAA Compliance Notice</p>
+              <p className="text-xs text-blue-400/80 leading-relaxed">
+                Upon signing and submitting this form, an <span className="font-bold text-blue-300">official E-Logbook entry</span> will be automatically created under ATA 35 for this aircraft.
+              </p>
+            </div>
+          </div>
+
+          {/* Actions */}
+          <div className="flex gap-3 pt-1">
+            <button type="button" onClick={onClose} className="flex-1 py-3 rounded-xl border border-white/10 text-sm font-bold text-gray-400 hover:bg-white/5">Cancel</button>
+            <button
+              disabled={mutation.isPending || !form.aircraft_tail || !form.technician_name}
+              onClick={() => mutation.mutate()}
+              className="flex-1 py-3 rounded-xl bg-cyan-600 hover:bg-cyan-500 text-white text-sm font-bold disabled:opacity-50 flex items-center justify-center gap-2 transition-colors"
+            >
+              <Send className="w-4 h-4" /> {mutation.isPending ? 'Saving…' : 'Sign & Submit'}
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
   );
 }
 
@@ -461,8 +661,8 @@ export default function OOSDashboard() {
       {modal === 'new'           && <NewEntryModal           onClose={() => setModal(null)} />}
       {modal === 'discrepancies' && <OpenDiscrepanciesModal  onClose={() => setModal(null)} />}
       {modal === 'close'         && <CloseTaskModal          onClose={() => setModal(null)} />}
-      {modal === 'oil'           && <ServiceModal serviceType="oil"    onClose={() => setModal(null)} />}
-      {modal === 'oxygen'        && <ServiceModal serviceType="oxygen" onClose={() => setModal(null)} />}
+      {modal === 'oil'           && <OilServiceModal    onClose={() => setModal(null)} />}
+      {modal === 'oxygen'        && <OxygenServiceModal onClose={() => setModal(null)} />}
     </div>
   );
 }
