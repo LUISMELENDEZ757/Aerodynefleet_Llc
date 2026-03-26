@@ -9,6 +9,7 @@ import ToolCalibration from '@/components/tooling/ToolCalibration';
 import ToolAnalytics from '@/components/tooling/ToolAnalytics';
 import AddToolModal from '@/components/tooling/AddToolModal';
 import QRScanModal from '@/components/tooling/QRScanModal';
+import ToolQRSetup from '@/components/tooling/ToolQRSetup';
 
 const TABS = [
   { id: 'inventory',     label: 'Inventory',     icon: Package },
@@ -41,6 +42,7 @@ export default function ToolingManagement() {
   const [showAddTool, setShowAddTool] = useState(false);
   const [showQR, setShowQR] = useState(false);
   const [scanMode, setScanMode] = useState('qr');
+  const [newTool, setNewTool] = useState(null);
   const queryClient = useQueryClient();
 
   const { data: tools = [] } = useQuery({
@@ -154,7 +156,8 @@ export default function ToolingManagement() {
         {activeTab === 'analytics'    && <ToolAnalytics tools={tools} transactions={transactions} />}
       </div>
 
-      {showAddTool && <AddToolModal onClose={() => setShowAddTool(false)} onSuccess={() => { queryClient.invalidateQueries({ queryKey: ['tools'] }); setShowAddTool(false); }} />}
+      {showAddTool && <AddToolModal onClose={() => setShowAddTool(false)} onSuccess={(tool) => { queryClient.invalidateQueries({ queryKey: ['tools'] }); setShowAddTool(false); setNewTool(tool); }} />}
+      {newTool && <ToolQRSetup tool={newTool} onClose={() => setNewTool(null)} />}
       {showQR      && <QRScanModal mode={scanMode} onClose={() => setShowQR(false)} onSuccess={() => { queryClient.invalidateQueries({ queryKey: ['tools', 'tool-transactions'] }); setShowQR(false); }} />}
     </div>
   );

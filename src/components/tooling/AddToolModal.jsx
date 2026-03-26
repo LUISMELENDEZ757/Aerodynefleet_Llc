@@ -21,7 +21,7 @@ export default function AddToolModal({ onClose, onSuccess }) {
       usage_count: 0,
       qr_code: form.tool_number,
     }),
-    onSuccess,
+    onSuccess: (data) => onSuccess(data),
   });
 
   return (
