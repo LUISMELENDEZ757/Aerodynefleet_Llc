@@ -62,9 +62,10 @@ export default function BottomTabBar() {
   const { mode } = useRail();
 
   const isTech = mode === 'tech';
+  const isAocs = mode === 'aocs';
   const PRIMARY_TABS = isTech ? TECH_PRIMARY_TABS : FLIGHT_PRIMARY_TABS;
-  const activeColor = isTech ? 'text-orange-400' : 'text-primary';
-  const activeBg = isTech ? 'bg-orange-400' : 'bg-primary';
+  const activeColor = isTech ? 'text-orange-400' : isAocs ? 'text-sky-400' : 'text-primary';
+  const activeBg = isTech ? 'bg-orange-400' : isAocs ? 'bg-sky-400' : 'bg-primary';
 
   const handleTabPress = (tabKey, path) => {
     if (path) navigate(path);

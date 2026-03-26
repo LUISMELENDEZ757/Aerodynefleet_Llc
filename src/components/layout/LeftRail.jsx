@@ -6,7 +6,8 @@ import {
   AlertTriangle, Fuel, Weight, Navigation2, DollarSign,
   Wrench, GraduationCap, MessageSquare, Satellite,
   Truck, UserCheck, MonitorPlay, Gauge, ClipboardList,
-  Package, FileText, Activity, Sofa, ClipboardCheck, Cog
+  Package, FileText, Activity, Sofa, ClipboardCheck, Cog,
+  LayoutDashboard
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useRail } from '@/lib/RailContext';
@@ -60,7 +61,25 @@ export default function LeftRail() {
   const navigate = useNavigate();
   const { expanded, toggle, setExpanded, mode, switchMode } = useRail();
 
-  const NAV_ITEMS = mode === 'flight' ? FLIGHT_OPS : TECH_OPS;
+  const AOCS_OPS = [
+    { icon: Home,           label: 'Home',              path: '/Home' },
+    { icon: LayoutDashboard,label: 'AOCS Overview',     path: '/AocsDashboard' },
+    { icon: Plane,          label: 'Flight Ops',        path: '/Dashboard' },
+    { icon: Radio,          label: 'Dispatch',          path: '/Dispatch' },
+    { icon: Zap,            label: 'Crew Control',      path: '/CrewControl' },
+    { icon: Wrench,         label: 'Maint. Control',    path: '/MaintenanceControl' },
+    { icon: AlertTriangle,  label: 'IROPS',             path: '/IROPS' },
+    { icon: Fuel,           label: 'Fuel Mgmt',         path: '/Fuel' },
+    { icon: Shield,         label: 'Safety & QA',       path: '/SafetyQA' },
+    { icon: BarChart3,      label: 'Analytics',         path: '/Analytics' },
+    { icon: Globe,          label: 'Weather',           path: '/Weather' },
+    { icon: Activity,       label: 'Fleet Dashboard',   path: '/FleetDashboard' },
+    { icon: Users,          label: 'Crew Directory',    path: '/CrewDirectory' },
+    { icon: Shield,         label: 'Supervisor',        path: '/Supervisor' },
+    { icon: MessageSquare,  label: 'Comms',             path: '/CommCenter' },
+  ];
+
+  const NAV_ITEMS = mode === 'flight' ? FLIGHT_OPS : mode === 'aocs' ? AOCS_OPS : TECH_OPS;
 
   const handleHomeClick = (e) => {
     e.preventDefault();
@@ -109,6 +128,20 @@ export default function LeftRail() {
         >
           <Wrench className="w-3.5 h-3.5 flex-shrink-0" />
           {expanded && <span>TechOps</span>}
+        </button>
+        <button
+          onClick={() => { switchMode('aocs'); }}
+          title="AOCS"
+          className={cn(
+            'flex items-center justify-center gap-1.5 rounded-lg transition-all text-xs font-bold',
+            expanded ? 'flex-1 h-7 px-2' : 'w-full h-7',
+            mode === 'aocs'
+              ? 'bg-sky-600 text-white'
+              : 'bg-secondary text-muted-foreground hover:text-foreground'
+          )}
+        >
+          <Globe className="w-3.5 h-3.5 flex-shrink-0" />
+          {expanded && <span>AOCS</span>}
         </button>
       </div>
 
