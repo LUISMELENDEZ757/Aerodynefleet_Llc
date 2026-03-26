@@ -2,10 +2,11 @@ import React, { useState } from 'react';
 import { lazy, Suspense } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { base44 } from '@/api/base44Client';
-import { Plane, RefreshCw, Wrench } from 'lucide-react';
+import { Plane, RefreshCw, Wrench, Brain } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import OpsStatBar from '@/components/flightops/OpsStatBar';
 import { useRail } from '@/lib/RailContext';
+import AiDelayPredictor from '@/components/ai/AiDelayPredictor';
 const FlightStatusBoard = lazy(() => import('@/components/flightops/FlightStatusBoard'));
 const CrewBoard = lazy(() => import('@/components/flightops/CrewBoard'));
 const DispatchBoard = lazy(() => import('@/components/flightops/DispatchBoard'));
@@ -96,6 +97,9 @@ export default function Dashboard() {
       </div>
 
       <div className="p-4 space-y-4">
+        {/* AI Delay Predictor */}
+        <AiDelayPredictor />
+        
         {/* Stat bar */}
         <OpsStatBar flights={flights} crew={crew} releases={releases} />
 

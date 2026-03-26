@@ -9,6 +9,7 @@ import CrewStatusBoard from '@/components/crew/CrewStatusBoard';
 import RovingTabindexList from '@/components/accessibility/RovingTabindexList';
 import FatiguePredictor from '@/components/crew/FatiguePredictor';
 import OpsPipeline from '@/components/crew/OpsPipeline';
+import AiCrewFatigueCard from '@/components/ai/AiCrewFatigueCard';
 
 const TODAY = new Date().toISOString().split('T')[0];
 
@@ -137,7 +138,10 @@ export default function CrewControl() {
         />
       </div>
 
-      <div className="p-4" role="main" aria-label="Crew Control operations content">
+      <div className="p-4 space-y-4" role="main" aria-label="Crew Control operations content">
+        {/* AI Fatigue Analysis */}
+        <AiCrewFatigueCard />
+        
         {activeTab === 'pipeline' && <OpsPipeline crew={crew} flights={flights} releases={releases} oosEntries={oosEntries} />}
         {activeTab === 'board'    && <CrewStatusBoard crew={crew} flights={flights} isLoading={isLoading} />}
         {activeTab === 'fatigue'  && <FatiguePredictor crew={crew} flights={flights} />}

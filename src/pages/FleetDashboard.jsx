@@ -10,6 +10,7 @@ import {
   ChevronDown, Radio, Activity, Zap, Package, Brain, Settings2
 } from 'lucide-react';
 import AiMaintenanceInsights from '@/components/fleet/AiMaintenanceInsights';
+import AiMaintenanceCard from '@/components/ai/AiMaintenanceCard';
 import { cn } from '@/lib/utils';
 import { motion, AnimatePresence } from 'framer-motion';
 import AddTimelineEventModal from '@/components/fleet/AddTimelineEventModal';
@@ -524,7 +525,8 @@ export default function FleetDashboard() {
       )}
 
       {activeTab === 'insights' && (
-        <div className="px-6">
+        <div className="px-6 space-y-4">
+          <AiMaintenanceCard aircraftTail={selectedAircraft?.tail_number || aircraft[0]?.tail_number} />
           <AiMaintenanceInsights aircraft={aircraft} />
         </div>
       )}
