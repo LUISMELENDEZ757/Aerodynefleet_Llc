@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { Link } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import { base44 } from '@/api/base44Client';
@@ -49,6 +49,7 @@ const TABS = [
 export default function AocsDashboard() {
   const [activeTab, setActiveTab] = useState('overview');
   const { activeFleet, activeFleetId } = useFleet();
+  const TODAY = useMemo(() => new Date().toISOString().split('T')[0], []);
 
   const { data: flights = [] } = useQuery({
     queryKey: ['aocs-flights', activeFleetId],
