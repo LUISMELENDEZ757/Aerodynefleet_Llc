@@ -155,11 +155,11 @@ function NetworkCanvas({ aircraft, starlinkTerminals, selectedAc, onSelectAc }) 
       {/* ── Department nodes ── */}
       {DEPARTMENTS.map(dep => (
         <g key={dep.id} transform={`translate(${px(dep.x)},${py(dep.y)})`}>
-          <circle r="22" fill={dep.bg} stroke={dep.color} strokeWidth="1.5" opacity="0.95" filter="url(#glow)" />
-          <text y="-6" textAnchor="middle" fontSize="7.5" fontWeight="900" fill={dep.color} letterSpacing="1">{dep.label}</text>
-          <text y="4" textAnchor="middle" fontSize="5.5" fill="#94a3b8">{dep.sublabel}</text>
+          <circle r="28" fill={dep.bg} stroke={dep.color} strokeWidth="1.5" opacity="0.95" filter="url(#glow)" />
+          <text y="-5" textAnchor="middle" dominantBaseline="middle" fontSize="7" fontWeight="900" fill={dep.color} letterSpacing="0.5">{dep.label}</text>
+          <text y="6" textAnchor="middle" dominantBaseline="middle" fontSize="5" fill="#94a3b8">{dep.sublabel}</text>
           {/* blinking status dot */}
-          <circle cx="14" cy="-14" r="4" fill={dep.color}>
+          <circle cx="20" cy="-20" r="4" fill={dep.color}>
             <animate attributeName="opacity" values="1;0.3;1" dur="2.4s" repeatCount="indefinite" />
           </circle>
         </g>
