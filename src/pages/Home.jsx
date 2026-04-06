@@ -1,152 +1,170 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { Users, Plane, Radio, BookOpen, CalendarDays, Zap, Globe, Shield, Cloud, BookMarked, LayoutDashboard, AlertTriangle, Fuel, FileText, BarChart3, Weight, Navigation2, DollarSign, CalendarCheck, Wrench, GraduationCap, Satellite, MessageSquare, Truck, UserCheck, MonitorPlay, PieChart, UserCog, Activity, Layers } from 'lucide-react';
+import { useQuery } from '@tanstack/react-query';
+import { base44 } from '@/api/base44Client';
+import {
+  Plane, LayoutGrid, Activity, RefreshCw, Bell,
+  ChevronDown, Clock, Settings
+} from 'lucide-react';
+import { cn } from '@/lib/utils';
 import { FleetBadge } from '@/components/fleet/FleetSwitcher';
-
-import useTieredPreload from '@/hooks/useTieredPreload';
 import { useRail } from '@/lib/RailContext';
 import TechOpsDashboard from '@/components/techops/TechOpsDashboard';
+import useTieredPreload from '@/hooks/useTieredPreload';
 
-// ── Tier 1: Critical modules ──────────────────────────────────────────────────
-const TIER1 = [
-  { icon: Plane,         iconBg: 'bg-primary',    iconColor: 'text-primary-foreground', title: 'FLIGHT OPS',    subtitle: 'Operations Center',       borderColor: 'border-primary/30',    path: '/Dashboard' },
-  { icon: BookOpen,      iconBg: 'bg-yellow-500', iconColor: 'text-white',              title: 'EFB',           subtitle: 'Electronic Flight Bag',   borderColor: 'border-yellow-500/30', path: '/EFB' },
-  { icon: Radio,         iconBg: 'bg-blue-500',   iconColor: 'text-white',              title: 'FLIGHT CREW',   subtitle: 'Cockpit Operations',      borderColor: 'border-blue-500/30',   path: '/FlightCrew' },
-  { icon: Users,         iconBg: 'bg-purple-500', iconColor: 'text-white',              title: 'CABIN CREW',    subtitle: 'FA Dashboard',            borderColor: 'border-purple-500/30', path: '/FlightAttendant' },
-  { icon: Zap,           iconBg: 'bg-red-500',    iconColor: 'text-white',              title: 'CREW CONTROL',  subtitle: 'FAR 117 · AI Assist',     borderColor: 'border-red-500/30',    path: '/CrewControl' },
-  { icon: Cloud,         iconBg: 'bg-cyan-500',   iconColor: 'text-white',              title: 'WEATHER',       subtitle: 'METAR · TAF · SIGMET',    borderColor: 'border-cyan-500/30',   path: '/Weather' },
+import FlightMovementPanel  from '@/components/opshub/FlightMovementPanel';
+import FleetHealthPanel     from '@/components/opshub/FleetHealthPanel';
+import CrewStatusPanel      from '@/components/opshub/CrewStatusPanel';
+import WeatherAtcPanel      from '@/components/opshub/WeatherAtcPanel';
+import StationPerformancePanel from '@/components/opshub/StationPerformancePanel';
+import OpsAlertsPanel       from '@/components/opshub/OpsAlertsPanel';
+import PredictiveAiPanel    from '@/components/opshub/PredictiveAiPanel';
+
+// ── Module launcher (kept for quick-access) ──────────────────────────────────
+const QUICK_LINKS = [
+  { label: 'Flight Ops',      path: '/Dashboard',             bg: 'bg-primary/20',      color: 'text-primary'    },
+  { label: 'Dispatch',        path: '/Dispatch',              bg: 'bg-blue-500/20',      color: 'text-blue-400'   },
+  { label: 'EFB',             path: '/EFB',                   bg: 'bg-yellow-500/20',    color: 'text-yellow-400' },
+  { label: 'MEL',             path: '/MEL',                   bg: 'bg-orange-500/20',    color: 'text-orange-400' },
+  { label: 'IROPS',           path: '/IROPS',                 bg: 'bg-red-600/20',       color: 'text-red-400'    },
+  { label: 'Fleet',           path: '/FleetDashboard',        bg: 'bg-emerald-500/20',   color: 'text-emerald-400'},
+  { label: 'Crew',            path: '/CrewControl',           bg: 'bg-purple-500/20',    color: 'text-purple-400' },
+  { label: 'Weather',         path: '/Weather',               bg: 'bg-cyan-500/20',      color: 'text-cyan-400'   },
+  { label: 'Ground Ops',      path: '/GroundOps',             bg: 'bg-zinc-500/20',      color: 'text-zinc-400'   },
+  { label: 'Analytics',       path: '/Analytics',             bg: 'bg-lime-600/20',      color: 'text-lime-400'   },
+  { label: 'Engine Health',   path: '/EngineHealthAnalytics', bg: 'bg-emerald-700/20',   color: 'text-emerald-400'},
+  { label: 'Telemetry',       path: '/TelemetryHub',          bg: 'bg-sky-600/20',       color: 'text-sky-400'    },
 ];
 
-// ── Tier 2: Operational modules ───────────────────────────────────────────────
-const TIER2 = [
-  { icon: CalendarDays,  iconBg: 'bg-sky-500',    iconColor: 'text-white',              title: 'SCHEDULING',    subtitle: 'Pairings · Bidlines',     borderColor: 'border-sky-500/30',    path: '/Scheduling' },
-  { icon: CalendarDays,  iconBg: 'bg-indigo-500', iconColor: 'text-white',              title: 'CREW CALENDAR', subtitle: 'Assignments · Duty',      borderColor: 'border-indigo-500/30', path: '/CrewCalendar' },
-  { icon: Globe,         iconBg: 'bg-teal-500',   iconColor: 'text-white',              title: 'WORLD CLOCK',   subtitle: 'Aviation Hubs · UTC',     borderColor: 'border-teal-500/30',   path: '/WorldClock' },
-  { icon: Shield,        iconBg: 'bg-orange-500', iconColor: 'text-white',              title: 'SAFETY & QA',   subtitle: 'ASAP · Incidents',        borderColor: 'border-orange-500/30', path: '/SafetyQA' },
-  { icon: AlertTriangle, iconBg: 'bg-red-600',    iconColor: 'text-white',              title: 'IROPS',         subtitle: 'Recovery · AI Assist',    borderColor: 'border-red-600/30',    path: '/IROPS' },
-  { icon: Fuel,          iconBg: 'bg-amber-500',  iconColor: 'text-white',              title: 'FUEL MGMT',     subtitle: 'Variance · Tankering',    borderColor: 'border-amber-500/30',  path: '/Fuel' },
-  { icon: Weight,        iconBg: 'bg-cyan-600',   iconColor: 'text-white',              title: 'LOAD CONTROL',  subtitle: 'PAX Manifest · W&B',      borderColor: 'border-cyan-600/30',   path: '/LoadControl' },
-  { icon: Navigation2,   iconBg: 'bg-blue-600',   iconColor: 'text-white',              title: 'FLIGHT PLANS',  subtitle: 'IFR · Clearances',        borderColor: 'border-blue-600/30',   path: '/FlightPlanner' },
-  { icon: BookOpen,      iconBg: 'bg-emerald-500',iconColor: 'text-white',              title: 'LEARNING CENTER',subtitle: 'App Guide · Tutorials',   borderColor: 'border-emerald-500/30',path: '/Learning' },
-];
-
-// ── Tier 3: Enterprise modules ────────────────────────────────────────────────
-const TIER3 = [
-  { icon: LayoutDashboard,iconBg: 'bg-rose-500',  iconColor: 'text-white',              title: 'OPS CENTER',    subtitle: 'Unified Command View',    borderColor: 'border-rose-500/30',   path: '/OpsCenter' },
-  { icon: BookMarked,    iconBg: 'bg-violet-500', iconColor: 'text-white',              title: 'LOGBOOK',       subtitle: 'Hours · Approaches · Currency', borderColor: 'border-violet-500/30', path: '/Logbook' },
-  { icon: BarChart3,     iconBg: 'bg-lime-600',   iconColor: 'text-white',              title: 'ANALYTICS',     subtitle: 'OTP · Delays · Fleet',    borderColor: 'border-lime-600/30',   path: '/Analytics' },
-  { icon: FileText,      iconBg: 'bg-slate-500',  iconColor: 'text-white',              title: 'AUDIT LOG',     subtitle: 'FAA Compliance Trail',    borderColor: 'border-slate-500/30',  path: '/AuditLog' },
-  { icon: DollarSign,    iconBg: 'bg-red-700',    iconColor: 'text-white',              title: 'DELAY COSTS',   subtitle: 'Cost Tracker',            borderColor: 'border-red-700/30',    path: '/DelayCost' },
-  { icon: CalendarCheck, iconBg: 'bg-indigo-600', iconColor: 'text-white',              title: 'CREW BIDDING',  subtitle: 'Monthly Pairings',        borderColor: 'border-indigo-600/30', path: '/CrewBidding' },
-  { icon: Wrench,        iconBg: 'bg-orange-600', iconColor: 'text-white',              title: 'MEL DASHBOARD', subtitle: 'Deferrals · Expiring',      borderColor: 'border-orange-600/30', path: '/MEL' },
-  { icon: BookMarked,    iconBg: 'bg-teal-600',   iconColor: 'text-white',              title: 'DOCUMENTS',     subtitle: 'FARs · SOPs · CBAs',      borderColor: 'border-teal-600/30',   path: '/Documents' },
-  { icon: GraduationCap, iconBg: 'bg-green-600',  iconColor: 'text-white',              title: 'TRAINING',      subtitle: 'Records · Currency',      borderColor: 'border-green-600/30',  path: '/Training' },
-  { icon: Fuel,          iconBg: 'bg-yellow-600', iconColor: 'text-white',              title: 'FUEL CONTRACTS',subtitle: 'Suppliers · Invoices',     borderColor: 'border-yellow-600/30', path: '/FuelContracts' },
-  { icon: Users,         iconBg: 'bg-pink-600',   iconColor: 'text-white',              title: 'PAX REACCOM',   subtitle: 'IROPS Rebooking',         borderColor: 'border-pink-600/30',   path: '/PaxReaccom' },
-  { icon: Satellite,     iconBg: 'bg-sky-700',    iconColor: 'text-white',              title: 'STARLINK',      subtitle: 'Aviation Connectivity',   borderColor: 'border-sky-700/30',    path: '/Starlink' },
-  { icon: MessageSquare, iconBg: 'bg-emerald-700',iconColor: 'text-white',              title: 'COMM CENTER',   subtitle: 'Channels · ACARS · Broadcast', borderColor: 'border-emerald-700/30',path: '/CommCenter' },
-  { icon: Truck,         iconBg: 'bg-zinc-600',   iconColor: 'text-white',              title: 'GROUND OPS',    subtitle: 'Turnaround · Pushback',   borderColor: 'border-zinc-600/30',   path: '/GroundOps' },
-  { icon: AlertTriangle, iconBg: 'bg-red-800',    iconColor: 'text-white',              title: 'NOTAMs',        subtitle: 'Notices · Field Alerts',  borderColor: 'border-red-800/30',    path: '/NOTAMs' },
-  { icon: UserCheck,     iconBg: 'bg-violet-700', iconColor: 'text-white',              title: 'CREW DIRECTORY',subtitle: 'Roster · FAR 117 Status', borderColor: 'border-violet-700/30', path: '/CrewDirectory' },
-  { icon: MonitorPlay,   iconBg: 'bg-cyan-800',   iconColor: 'text-white',              title: 'FLIGHT BOARD',  subtitle: 'Live FIDS · Departures',  borderColor: 'border-cyan-800/30',   path: '/FlightBoard' },
-  { icon: Wrench,        iconBg: 'bg-stone-600',  iconColor: 'text-white',              title: 'OOS DASHBOARD', subtitle: 'Fleet MX · Status',       borderColor: 'border-stone-600/30',  path: '/OOSDashboard' },
-  { icon: PieChart,      iconBg: 'bg-rose-700',   iconColor: 'text-white',              title: 'COST REPORTING',subtitle: 'P&L · Delay · Fuel ROI',  borderColor: 'border-rose-700/30',   path: '/CostReporting' },
-  { icon: UserCog,       iconBg: 'bg-slate-600',  iconColor: 'text-white',              title: 'USER MGMT',     subtitle: 'Roles · Invitations',     borderColor: 'border-slate-600/30',  path: '/UserManagement' },
-  { icon: Activity,      iconBg: 'bg-emerald-700',iconColor: 'text-white',              title: 'ENGINEERING',   subtitle: 'Trend Analysis · Engine Health', borderColor: 'border-emerald-700/30', path: '/EngineeringDashboard' },
-  { icon: Layers,        iconBg: 'bg-sky-600',    iconColor: 'text-white',              title: 'FLEET REGISTRY',subtitle: 'Multi-Fleet · Operators',        borderColor: 'border-sky-600/30',    path: '/FleetRegistry' },
-  { icon: Activity,      iconBg: 'bg-emerald-500',iconColor: 'text-white',              title: 'ENGINE HEALTH', subtitle: 'EGT · LLP Life · Shop Visits',   borderColor: 'border-emerald-500/30',path: '/EngineHealthAnalytics' },
-];
-
-// Stagger config per tier
-const tierVariants = {
-  hidden: {},
-  show: { transition: { staggerChildren: 0.05 } },
-};
-
-const cardVariants = {
-  hidden: { opacity: 0, y: 16, scale: 0.96 },
-  show:   { opacity: 1, y: 0,  scale: 1, transition: { type: 'spring', stiffness: 260, damping: 22 } },
-};
-
-function TierSection({ label, modules, delayStart = 0 }) {
+function ZuluClock() {
+  const [time, setTime] = React.useState(new Date());
+  React.useEffect(() => {
+    const t = setInterval(() => setTime(new Date()), 1000);
+    return () => clearInterval(t);
+  }, []);
+  const h = String(time.getUTCHours()).padStart(2, '0');
+  const m = String(time.getUTCMinutes()).padStart(2, '0');
+  const s = String(time.getUTCSeconds()).padStart(2, '0');
   return (
-    <div className="w-full max-w-lg">
-      <motion.p
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        transition={{ delay: delayStart, duration: 0.3 }}
-        className="text-[10px] font-mono font-bold text-gray-600 tracking-widest uppercase mb-2 px-1"
-      >
-        {label}
-      </motion.p>
-      <motion.div
-        className="grid grid-cols-2 sm:grid-cols-3 gap-3"
-        variants={tierVariants}
-        initial="hidden"
-        animate="show"
-        transition={{ delayChildren: delayStart }}
-      >
-        {modules.map(({ icon: Icon, iconBg, iconColor, title, subtitle, path }) => (
-          <motion.div key={title} variants={cardVariants}>
-            <Link
-              to={path}
-              className="relative rounded-2xl border border-white/10 bg-[#161b27] p-4 flex flex-col items-center text-center active:scale-[0.96] transition-all duration-150 hover:bg-[#1e2436] hover:shadow-lg hover:shadow-black/40 block"
-            >
-              <div className={`w-12 h-12 rounded-xl ${iconBg} flex items-center justify-center shadow-md mb-3 flex-shrink-0`}>
-                <Icon className={`w-6 h-6 ${iconColor}`} />
-              </div>
-              <p className="text-xs font-extrabold text-white tracking-widest leading-tight mb-1">{title}</p>
-              <p className="text-[11px] text-gray-400 leading-snug">{subtitle}</p>
-            </Link>
-          </motion.div>
-        ))}
-      </motion.div>
-    </div>
+    <span className="font-mono text-sm font-extrabold text-primary tracking-widest">
+      {h}:{m}:{s} Z
+    </span>
   );
 }
 
 export default function Home() {
   useTieredPreload();
   const { mode } = useRail();
+  const [showModules, setShowModules] = useState(false);
 
-  if (mode === 'tech') {
-    return <TechOpsDashboard />;
-  }
+  const { data: flights = [],    refetch: refetchFlights }    = useQuery({ queryKey: ['opshub-flights'],    queryFn: () => base44.entities.Flight.list('-flight_date', 200),           refetchInterval: 30000 });
+  const { data: aircraft = [],   refetch: refetchAircraft }   = useQuery({ queryKey: ['opshub-aircraft'],   queryFn: () => base44.entities.Aircraft.list('tail_number', 500),          refetchInterval: 60000 });
+  const { data: crew = [],       refetch: refetchCrew }       = useQuery({ queryKey: ['opshub-crew'],       queryFn: () => base44.entities.CrewAssignment.list('-flight_date', 200),   refetchInterval: 30000 });
+  const { data: melItems = [],   refetch: refetchMel }        = useQuery({ queryKey: ['opshub-mel'],        queryFn: () => base44.entities.MELItem.list('-deferred_date', 200),        refetchInterval: 60000 });
+  const { data: alerts = [],     refetch: refetchAlerts }     = useQuery({ queryKey: ['opshub-alerts'],     queryFn: () => base44.entities.OpsAlert.filter({ is_dismissed: false }),   refetchInterval: 20000 });
+  const { data: groundOps = [],  refetch: refetchGroundOps }  = useQuery({ queryKey: ['opshub-groundops'],  queryFn: () => base44.entities.GroundOps.list('-flight_date', 100),         refetchInterval: 30000 });
+  const { data: releases = [] }                               = useQuery({ queryKey: ['opshub-releases'],   queryFn: () => base44.entities.DispatchRelease.list('-flight_date', 100),  refetchInterval: 60000 });
+
+  const refetchAll = () => {
+    refetchFlights(); refetchAircraft(); refetchCrew();
+    refetchMel(); refetchAlerts(); refetchGroundOps();
+  };
+
+  const criticalAlerts = alerts.filter(a => !a.is_dismissed && a.severity === 'critical').length;
+
+  if (mode === 'tech') return <TechOpsDashboard />;
 
   return (
-    <div className="min-h-screen bg-[#0d1117] px-4 pt-6 pb-24 flex flex-col items-center gap-6">
-      {/* Header */}
-      <motion.div
-        className="mb-2 text-center w-full max-w-lg"
-        initial={{ opacity: 0, y: -12 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.4 }}
-      >
-        <div className="flex items-center justify-center gap-2 mb-2">
-          <div className="w-8 h-8 rounded-lg bg-primary/20 flex items-center justify-center">
-            <Plane className="w-4 h-4 text-primary" />
+    <div className="min-h-screen bg-[#0d1117] pb-24">
+
+      {/* ── HEADER ── */}
+      <div className="sticky top-0 z-30 bg-[#0a0e18] border-b border-white/10 px-4 py-3 flex items-center justify-between gap-3">
+        <div className="flex items-center gap-3">
+          <div className="w-9 h-9 rounded-xl bg-primary/20 flex items-center justify-center flex-shrink-0">
+            <Plane className="w-5 h-5 text-primary" />
           </div>
-          <p className="text-xs font-mono font-bold text-primary tracking-widest uppercase">Aerodyne Fleet LLC</p>
-        </div>
-        <h1 className="text-3xl font-extrabold text-white tracking-wide">Operations Hub</h1>
-        <p className="text-sm text-gray-500 mt-1">Airline-grade flight operations platform</p>
-        <div className="mt-2 flex justify-center">
+          <div>
+            <p className="text-sm font-extrabold text-white tracking-widest uppercase leading-none">Operations Hub</p>
+            <p className="text-[10px] text-gray-500 font-mono">Aerodyne Fleet LLC</p>
+          </div>
           <FleetBadge />
         </div>
-      </motion.div>
+        <div className="flex items-center gap-3">
+          <ZuluClock />
+          {criticalAlerts > 0 && (
+            <span className="flex items-center gap-1 text-[10px] font-bold text-red-400 bg-red-500/15 border border-red-500/30 px-2 py-1 rounded-full animate-pulse">
+              <Bell className="w-3 h-3" /> {criticalAlerts}
+            </span>
+          )}
+          <button onClick={refetchAll} className="w-8 h-8 rounded-xl bg-white/5 border border-white/10 flex items-center justify-center hover:bg-white/10 transition-colors">
+            <RefreshCw className="w-3.5 h-3.5 text-gray-400" />
+          </button>
+          <button onClick={() => setShowModules(v => !v)}
+            className={cn('flex items-center gap-1 text-[10px] font-bold px-3 py-2 rounded-xl border transition-colors',
+              showModules ? 'bg-primary text-primary-foreground border-primary' : 'bg-white/5 border-white/10 text-gray-400 hover:bg-white/10'
+            )}>
+            <LayoutGrid className="w-3.5 h-3.5" />
+            <span className="hidden sm:inline">Modules</span>
+            <ChevronDown className={cn('w-3 h-3 transition-transform', showModules && 'rotate-180')} />
+          </button>
+        </div>
+      </div>
 
-      {/* Tier 1 — Critical (loads first, ~0ms) */}
-      <TierSection label="Core Systems" modules={TIER1} delayStart={0.05} />
+      {/* ── MODULE QUICK-ACCESS DRAWER ── */}
+      {showModules && (
+        <motion.div
+          initial={{ height: 0, opacity: 0 }}
+          animate={{ height: 'auto', opacity: 1 }}
+          exit={{ height: 0, opacity: 0 }}
+          transition={{ duration: 0.2 }}
+          className="bg-[#111620] border-b border-white/10 px-4 py-3"
+        >
+          <div className="flex flex-wrap gap-2">
+            {QUICK_LINKS.map(({ label, path, bg, color }) => (
+              <Link key={path} to={path} onClick={() => setShowModules(false)}
+                className={cn('text-xs font-bold px-3 py-1.5 rounded-xl border border-white/10 transition-all hover:border-white/20', bg, color)}>
+                {label}
+              </Link>
+            ))}
+          </div>
+        </motion.div>
+      )}
 
-      {/* Tier 2 — Operational (~staggered after tier 1) */}
-      <TierSection label="Operational" modules={TIER2} delayStart={0.45} />
+      {/* ── MAIN DASHBOARD GRID ── */}
+      <div className="p-4 space-y-4 max-w-7xl mx-auto">
 
-      {/* Tier 3 — Enterprise (loads last) */}
-      <TierSection label="More Tools" modules={TIER3} delayStart={0.85} />
+        {/* Row 1: Alerts (full width if critical) */}
+        {alerts.filter(a => !a.is_dismissed).length > 0 && (
+          <OpsAlertsPanel alerts={alerts} />
+        )}
 
-      {/* Footer */}
-      <p className="text-xs text-gray-600 font-mono">AERODYNE FLEET LLC · OPS v2.0</p>
+        {/* Row 2: Flight Movement (full width) */}
+        <FlightMovementPanel flights={flights} />
+
+        {/* Row 3: Fleet Health + Crew Status */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+          <FleetHealthPanel aircraft={aircraft} melItems={melItems} />
+          <CrewStatusPanel crew={crew} />
+        </div>
+
+        {/* Row 4: Weather/ATC + Station Performance */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+          <WeatherAtcPanel releases={releases} />
+          <StationPerformancePanel groundOps={groundOps} flights={flights} />
+        </div>
+
+        {/* Row 5: Predictive AI (full width) */}
+        <PredictiveAiPanel
+          flights={flights}
+          aircraft={aircraft}
+          crew={crew}
+          melItems={melItems}
+        />
+
+        {/* Footer */}
+        <p className="text-center text-xs text-gray-700 font-mono pt-2">AERODYNE FLEET LLC · OPS HUB v3.0</p>
+      </div>
     </div>
   );
 }
