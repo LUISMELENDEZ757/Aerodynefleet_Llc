@@ -30,6 +30,7 @@ const TECH_OPS_ITEMS = [
   { label: 'TECH OPS',       path: '/TechOps' },
   { label: 'LINE MX',        path: '/LineMaintenanceDashboard' },
   { label: 'HEAVY MX / MRO', path: '/HeavyMxMRO' },
+  { label: 'ENGINE REMOVAL / INST', path: '/EngineRemovalInstallation' },
   { label: 'FLEET DASHBOARD',path: '/FleetDashboard' },
   { label: 'E-LOGBOOK',      path: '/TechOpsLogbook' },
   { label: 'MEL',            path: '/MEL' },

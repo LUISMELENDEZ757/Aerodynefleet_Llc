@@ -74,6 +74,7 @@ const TelemetryHub            = lazy(() => import('@/pages/TelemetryHub'));
 const EngineHealthAnalytics   = lazy(() => import('@/pages/EngineHealthAnalytics'));
 const LineMaintenanceDashboard = lazy(() => import('@/pages/LineMaintenanceDashboard'));
 const HeavyMxMRO               = lazy(() => import('@/pages/HeavyMxMRO'));
+const EngineRemovalInstallation = lazy(() => import('@/pages/EngineRemovalInstallation'));
 
 function PageFallback() {
   return (
@@ -201,6 +202,7 @@ const AuthenticatedApp = () => {
         <Route path="/EngineHealthAnalytics" element={<EngineHealthAnalytics />} />
         <Route path="/LineMaintenanceDashboard" element={<LineMaintenanceDashboard />} />
         <Route path="/HeavyMxMRO" element={<HeavyMxMRO />} />
+        <Route path="/EngineRemovalInstallation" element={<EngineRemovalInstallation />} />
       </Route>
       <Route path="*" element={<PageNotFound />} />
     </Routes>
