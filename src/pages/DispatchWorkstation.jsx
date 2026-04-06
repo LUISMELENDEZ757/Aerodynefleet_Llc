@@ -5,7 +5,7 @@ import { useDynamicPolling } from '@/hooks/useDynamicPolling';
 import {
   Plane, AlertTriangle, Cloud, Users, Fuel, Wind,
   RefreshCw, Plus, Clock, Radio, FileText, Map,
-  Activity, TrendingDown, Settings
+  Activity, TrendingDown, Settings, Zap
 } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { cn } from '@/lib/utils';
@@ -16,12 +16,14 @@ const FlightMonitoringConsole = lazy(() => import('@/components/dispatch/FlightM
 const DispatcherAlerts = lazy(() => import('@/components/dispatch/DispatcherAlerts'));
 const DispatchWeatherPanel = lazy(() => import('@/components/dispatch/DispatchWeatherPanel'));
 const CrewLegalityBoard = lazy(() => import('@/components/dispatch/CrewLegalityBoard'));
+const EtopsMonitorPanel = lazy(() => import('@/components/dispatch/EtopsMonitorPanel'));
 
 const TODAY = new Date().toISOString().split('T')[0];
 
 const TABS = [
   { key: 'flights',  label: 'Active Flights',  icon: Plane },
   { key: 'release',  label: 'Release Builder', icon: FileText },
+  { key: 'etops',    label: 'ETOPS',           icon: Zap },
   { key: 'alerts',   label: 'Alerts',          icon: AlertTriangle },
   { key: 'weather',  label: 'Weather',         icon: Cloud },
   { key: 'crew',     label: 'Crew Legality',   icon: Users },
@@ -83,6 +85,8 @@ export default function DispatchWorkstation() {
   const delayed = flights.filter(f => f.delay_minutes > 0).length;
   const criticalAlerts = alerts.filter(a => a.severity === 'critical').length;
   const illegalCrew = crew.filter(c => c.legal_status === 'illegal').length;
+  const etopsFlights = releases.filter(r => r.etops_section?.is_etops === true).length;
+  const etopsPending = releases.filter(r => r.etops_section?.is_etops === true && !r.etops_section?.etops_approved).length;
 
   const now = new Date();
   const timeStr = now.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: false });
@@ -98,7 +102,7 @@ export default function DispatchWorkstation() {
             </Link>
             <div>
               <h1 className="text-lg font-extrabold text-foreground tracking-wide">DISPATCH WORKSTATION</h1>
-              <p className="text-xs font-mono text-primary tracking-widest uppercase">Flight Release · Monitoring · Crew Legality</p>
+              <p className="text-xs font-mono text-primary tracking-widest uppercase">Flight Release · ETOPS · Monitoring · Crew Legality</p>
             </div>
           </div>
           <div className="flex flex-col items-end gap-1">
@@ -124,9 +128,10 @@ export default function DispatchWorkstation() {
 
       {/* Stats grid */}
       <div className="p-4">
-        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-4">
+        <div className="grid grid-cols-2 sm:grid-cols-5 gap-3 mb-4">
           <StatTile icon={Plane} label="Airborne" value={airborne} color={airborne > 0 ? 'text-green-400' : 'text-muted-foreground'} onClick={() => setActiveTab('flights')} />
           <StatTile icon={AlertTriangle} label="Delays" value={delayed} color={delayed > 0 ? 'text-orange-400' : 'text-muted-foreground'} onClick={() => setActiveTab('flights')} />
+          <StatTile icon={Zap} label="ETOPS" value={etopsFlights} color={etopsPending > 0 ? 'text-orange-400' : etopsFlights > 0 ? 'text-blue-400' : 'text-muted-foreground'} onClick={() => setActiveTab('etops')} />
           <StatTile icon={Users} label="Illegal Crew" value={illegalCrew} color={illegalCrew > 0 ? 'text-destructive' : 'text-muted-foreground'} onClick={() => setActiveTab('crew')} />
           <StatTile icon={AlertTriangle} label="Critical" value={criticalAlerts} color={criticalAlerts > 0 ? 'text-destructive' : 'text-muted-foreground'} onClick={() => setActiveTab('alerts')} />
         </div>
@@ -180,6 +185,12 @@ export default function DispatchWorkstation() {
           {activeTab === 'alerts' && (
             <Suspense fallback={<div className="text-sm text-muted-foreground">Loading alerts…</div>}>
               <DispatcherAlerts alerts={alerts} flights={flights} />
+            </Suspense>
+          )}
+
+          {activeTab === 'etops' && (
+            <Suspense fallback={<div className="text-sm text-muted-foreground">Loading ETOPS…</div>}>
+              <EtopsMonitorPanel releases={releases} flights={flights} />
             </Suspense>
           )}
 
