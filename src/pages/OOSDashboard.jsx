@@ -890,7 +890,7 @@ export default function OOSDashboard() {
     { icon: Droplets,    label: 'Oil Service',          bg: 'bg-violet-600',   modal: 'oil' },
     { icon: Wind,        label: 'Oxygen Service',       bg: 'bg-cyan-600',     modal: 'oxygen' },
     { icon: Search,      label: 'MEL Lookup',           bg: 'bg-[#1a1f2e]',   link: '/MEL', border: true },
-    { icon: RotateCcw,   label: 'RTS Aircraft',         bg: 'bg-blue-600',     link: '/FleetDashboard' },
+    { icon: RotateCcw,   label: 'RTS / OOS Board',      bg: 'bg-blue-600',     link: '/OOSDashboard' },
   ];
 
   return (
@@ -901,6 +901,7 @@ export default function OOSDashboard() {
           <ChevronLeft className="w-5 h-5 text-white" />
         </Link>
         <h1 className="text-xl font-extrabold tracking-wide flex-1 text-center">Technician Mode</h1>
+        {/* Technician quick-action panel — accessible via /TechnicianMode */}
         <div className="w-9" />
       </div>
 
