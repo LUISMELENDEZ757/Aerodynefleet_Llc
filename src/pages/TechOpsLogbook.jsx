@@ -5,7 +5,7 @@ import { Link } from 'react-router-dom';
 import {
   BookOpen, Plane, AlertTriangle, ChevronDown, Plus,
   Printer, Clock, CheckCircle, XCircle, Wrench, Zap,
-  Radio, Flame, Wind, Settings, Shield, ChevronRight
+  Radio, Flame, Wind, Settings, Shield, ChevronRight, FilePlus
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import NewLogEntryModal from '@/components/techops/NewLogEntryModal';
@@ -99,6 +99,27 @@ export default function TechOpsLogbook() {
   const clearFaultMutation = useMutation({
     mutationFn: ({ id }) => base44.entities.FaultMessage.update(id, { status: 'cleared', cleared_at: new Date().toISOString() }),
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ['logbook-faults'] }),
+  });
+
+  const wireToLogbookMutation = useMutation({
+    mutationFn: ({ fault, ac }) => {
+      const nextPage = `LP#${String(entries.length + 1).padStart(4, '0')}`;
+      return base44.entities.LogbookEntry.create({
+        aircraft_tail: fault.aircraft_tail,
+        log_page: nextPage,
+        entry_type: 'discrepancy',
+        ata_chapter: fault.ata_chapter || '',
+        station: ac?.base_station || '',
+        description: `[FAULT → LOGBOOK] ${fault.fault_code}${fault.description ? ` — ${fault.description}` : ''}` +
+          `\nSeverity: ${fault.severity?.toUpperCase()} | System: ${fault.system?.toUpperCase()}` +
+          (fault.flight_phase ? ` | Phase: ${fault.flight_phase}` : '') +
+          `\nAircraft: ${ac?.aircraft_type || fault.aircraft_tail} | Engine: ${ac?.engine_type || '—'} | MSN: ${ac?.msn || '—'}`,
+        notes: `Auto-wired from FaultMessage ID: ${fault.id}. Detected: ${fault.detected_at ? new Date(fault.detected_at).toLocaleString() : '—'}`,
+      });
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['logbook-entries'] });
+    },
   });
 
   const openItems = entries.filter(e => e.is_deferred && !e.is_cleared).length;
@@ -358,12 +379,43 @@ export default function TechOpsLogbook() {
                       </div>
                     </div>
                     {fault.status === 'active' && (
-                      <button
-                        onClick={() => clearFaultMutation.mutate({ id: fault.id })}
-                        className="text-xs font-bold px-3 py-1.5 rounded-lg bg-green-800/50 text-green-400 border border-green-700 hover:bg-green-700/50 transition-colors flex-shrink-0"
-                      >
-                        CLEAR
-                      </button>
+                      <div className="flex flex-col gap-1.5 flex-shrink-0">
+                        <button
+                          onClick={() => {
+                            const alreadyLogged = entries.some(e =>
+                              e.description?.includes(`FaultMessage ID: ${fault.id}`) ||
+                              e.description?.includes(`[FAULT → LOGBOOK] ${fault.fault_code}`)
+                            );
+                            if (!alreadyLogged) {
+                              wireToLogbookMutation.mutate({ fault, ac: selectedAc });
+                            }
+                          }}
+                          disabled={
+                            wireToLogbookMutation.isPending ||
+                            entries.some(e =>
+                              e.description?.includes(`FaultMessage ID: ${fault.id}`) ||
+                              e.description?.includes(`[FAULT → LOGBOOK] ${fault.fault_code}`)
+                            )
+                          }
+                          title="Create logbook discrepancy entry from this fault"
+                          className={cn(
+                            'text-xs font-bold px-3 py-1.5 rounded-lg border transition-colors flex items-center gap-1',
+                            entries.some(e => e.description?.includes(`[FAULT → LOGBOOK] ${fault.fault_code}`))
+                              ? 'bg-primary/10 text-primary border-primary/30 cursor-default opacity-60'
+                              : 'bg-primary/20 text-primary border-primary/40 hover:bg-primary/30'
+                          )}
+                        >
+                          <FilePlus className="w-3 h-3" />
+                          {entries.some(e => e.description?.includes(`[FAULT → LOGBOOK] ${fault.fault_code}`))
+                            ? 'LOGGED' : 'LOG ENTRY'}
+                        </button>
+                        <button
+                          onClick={() => clearFaultMutation.mutate({ id: fault.id })}
+                          className="text-xs font-bold px-3 py-1.5 rounded-lg bg-green-800/50 text-green-400 border border-green-700 hover:bg-green-700/50 transition-colors"
+                        >
+                          CLEAR
+                        </button>
+                      </div>
                     )}
                     {fault.status === 'cleared' && (
                       <span className="flex items-center gap-1 text-xs text-green-400 flex-shrink-0">
