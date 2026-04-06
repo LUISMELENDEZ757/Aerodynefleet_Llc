@@ -34,7 +34,7 @@ const LearningCenter        = lazy(() => import('@/pages/LearningCenter'));
 const Logbook               = lazy(() => import('@/pages/Logbook/index'));
 const OpsCenter             = lazy(() => import('@/pages/OpsCenter/index'));
 const IROPS                 = lazy(() => import('@/pages/IROPS'));
-const FuelManagement        = lazy(() => import('@/pages/FuelManagement'));
+
 const AuditLogPage          = lazy(() => import('@/pages/AuditLog'));
 const Analytics             = lazy(() => import('@/pages/Analytics'));
 
@@ -164,7 +164,7 @@ const AuthenticatedApp = () => {
         <Route path="/Logbook" element={<Logbook />} />
         <Route path="/OpsCenter" element={<OpsCenter />} />
         <Route path="/IROPS" element={<IROPS />} />
-        <Route path="/Fuel" element={<FuelManagement />} />
+
         <Route path="/AuditLog" element={<AuditLogPage />} />
         <Route path="/Analytics" element={<Analytics />} />
 
