@@ -131,6 +131,12 @@ function NewEngineEventModal({ aircraft, onClose, onCreate }) {
                   <span className="text-primary font-bold">{aircraft.find(a => a.tail_number === form.aircraft_tail)?.airline || 'Fleet'}</span>
                   <span className="text-gray-500 mx-1">•</span>
                   <span className="text-gray-400">{aircraft.find(a => a.tail_number === form.aircraft_tail)?.aircraft_type}</span>
+                  {aircraft.find(a => a.tail_number === form.aircraft_tail)?.operator_number && (
+                    <>
+                      <span className="text-gray-500 mx-1">•</span>
+                      <span className="text-cyan-400">#{aircraft.find(a => a.tail_number === form.aircraft_tail)?.operator_number}</span>
+                    </>
+                  )}
                 </p>
               )}
             </div>
