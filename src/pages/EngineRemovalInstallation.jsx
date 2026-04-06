@@ -4,7 +4,7 @@ import { base44 } from '@/api/base44Client';
 import { Link } from 'react-router-dom';
 import {
   Settings, AlertTriangle, CheckCircle, Zap, Wrench, Shield,
-  ChevronLeft, Plus, Activity, X, Send, Clock, MapPin, User
+  ChevronLeft, Plus, Activity, X, Send, Clock, MapPin, User, ChevronDown
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { format } from 'date-fns';
@@ -275,7 +275,24 @@ function EventDetail({ event }) {
 export default function EngineRemovalInstallation() {
   const [showModal, setShowModal] = useState(false);
   const [selectedEvent, setSelectedEvent] = useState(null);
+  const [selectedFleetId, setSelectedFleetId] = useState(null);
+  const [showFleetMenu, setShowFleetMenu] = useState(false);
   const qc = useQueryClient();
+
+  const { data: fleets = [] } = useQuery({
+    queryKey: ['engine-fleets'],
+    queryFn: () => base44.entities.Fleet.list('name', 50),
+    refetchInterval: 60000,
+  });
+
+  // Auto-select first fleet
+  useEffect(() => {
+    if (!selectedFleetId && fleets.length > 0) {
+      setSelectedFleetId(fleets[0].id);
+    }
+  }, [fleets]);
+
+  const selectedFleet = fleets.find(f => f.id === selectedFleetId);
 
   const { data: events = [], isLoading } = useQuery({
     queryKey: ['engine-removal-events'],
@@ -284,8 +301,10 @@ export default function EngineRemovalInstallation() {
   });
 
   const { data: aircraft = [] } = useQuery({
-    queryKey: ['engine-aircraft'],
-    queryFn: () => base44.entities.Aircraft.list('tail_number', 200),
+    queryKey: ['engine-aircraft', selectedFleetId],
+    queryFn: () => selectedFleetId
+      ? base44.entities.Aircraft.filter({ fleet_id: selectedFleetId }, 'tail_number', 200)
+      : base44.entities.Aircraft.list('tail_number', 200),
     refetchInterval: 60000,
   });
 
@@ -298,12 +317,10 @@ export default function EngineRemovalInstallation() {
     },
   });
 
-  // Auto-select first event
+  // Auto-select first event & filter by fleet
   useEffect(() => {
-    if (!selectedEvent && events.length > 0) setSelectedEvent(events[0]);
-  }, [events]);
-
-  const engineEvents = events.filter(e => e.description?.includes('[ENGINE REMOVAL]'));
+    if (!selectedEvent && engineEvents.length > 0) setSelectedEvent(engineEvents[0]);
+  }, [engineEvents]);
   const activeCount    = engineEvents.filter(e => !e.notes?.includes('on_hold') && !e.notes?.includes('completed')).length;
   const onHoldCount    = engineEvents.filter(e => e.notes?.includes('on_hold')).length;
   const completedCount = engineEvents.filter(e => e.is_cleared).length;
@@ -323,11 +340,50 @@ export default function EngineRemovalInstallation() {
                 <Settings className="w-6 h-6 text-primary" />
                 <h1 className="text-xl sm:text-2xl font-black text-primary tracking-widest uppercase">Engine Removal & Installation Dashboard</h1>
               </div>
-              <p className="text-xs text-gray-500 mt-0.5">Boeing 737-700/800/MAX 8 Fleet • CFM56-7B & LEAP-1B Engines • Complete End-to-End Workflow</p>
+              <p className="text-xs text-gray-500 mt-0.5">
+                {selectedFleet ? selectedFleet.name : 'Multi-Fleet'} • 
+                {selectedFleet?.aircraft_types?.join(' • ') || 'All Aircraft'} • 
+                Complete End-to-End Workflow
+              </p>
               <p className="text-[10px] text-gray-600 mt-0.5">Timeline Tracking • Multi-Department Coordination • FAA Part 121.378 & Part 43 Compliant</p>
             </div>
           </div>
-          <LiveClock />
+          <div className="flex items-center gap-3">
+            {/* Fleet Selector */}
+            <div className="relative">
+              <button
+                onClick={() => setShowFleetMenu(!showFleetMenu)}
+                className="flex items-center gap-2 bg-[#141922] border border-white/10 rounded-xl px-4 py-2 hover:border-white/20 transition-colors"
+              >
+                <span className="text-xs font-bold text-white">{selectedFleet?.name || 'Select Fleet'}</span>
+                <ChevronDown className="w-4 h-4 text-gray-400" />
+              </button>
+              {showFleetMenu && (
+                <>
+                  <div className="fixed inset-0 z-30" onClick={() => setShowFleetMenu(false)} />
+                  <div className="absolute right-0 top-full mt-1 w-56 bg-[#141922] border border-white/10 rounded-xl overflow-hidden z-40 shadow-xl max-h-64 overflow-y-auto">
+                    {fleets.map(f => (
+                      <button
+                        key={f.id}
+                        onClick={() => {
+                          setSelectedFleetId(f.id);
+                          setShowFleetMenu(false);
+                        }}
+                        className={cn(
+                          'w-full text-left px-4 py-2.5 text-xs font-bold transition-colors',
+                          selectedFleetId === f.id ? 'bg-primary text-primary-foreground' : 'text-gray-400 hover:bg-white/5'
+                        )}
+                      >
+                        <p className="font-bold">{f.name}</p>
+                        <p className="text-[10px] text-gray-500 mt-0.5">{f.aircraft_types?.join(', ')}</p>
+                      </button>
+                    ))}
+                  </div>
+                </>
+              )}
+            </div>
+            <LiveClock />
+          </div>
         </div>
       </div>
 
