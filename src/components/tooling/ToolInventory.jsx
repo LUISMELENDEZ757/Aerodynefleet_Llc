@@ -27,8 +27,8 @@ function QRBlock({ text }) {
   );
 }
 
-function CheckOutModal({ tool, onClose, onSuccess }) {
-  const [form, setForm] = useState({ technician_name: '', technician_id: '', to_location: '' });
+function CheckOutModal({ tool, aircraft = [], onClose, onSuccess }) {
+  const [form, setForm] = useState({ technician_name: '', technician_id: '', to_location: '', aircraft_tail: '' });
   const queryClient = useQueryClient();
 
   const mutation = useMutation({
@@ -42,6 +42,7 @@ function CheckOutModal({ tool, onClose, onSuccess }) {
         technician_id: form.technician_id,
         from_location: tool.location,
         to_location: form.to_location,
+        aircraft_tail: form.aircraft_tail,
         timestamp: new Date().toISOString(),
         scan_method: 'manual',
       });
@@ -62,24 +63,35 @@ function CheckOutModal({ tool, onClose, onSuccess }) {
             <p className="text-sm font-bold text-white">{tool.name}</p>
           </div>
           {[
-            { key: 'technician_name', label: 'Technician Name *', placeholder: 'Full name' },
-            { key: 'technician_id',   label: 'Employee / Cert #', placeholder: 'ID number' },
-            { key: 'to_location',     label: 'Destination',       placeholder: 'e.g. Hangar 2 - Gate 5' },
-          ].map(({ key, label, placeholder }) => (
+            { key: 'technician_name', label: 'Technician Name *', placeholder: 'Full name', type: 'text' },
+            { key: 'technician_id',   label: 'Employee / Cert #', placeholder: 'ID number', type: 'text' },
+            { key: 'aircraft_tail',   label: 'Aircraft Number *', placeholder: 'e.g. N455GJ', type: 'select', options: aircraft.map(a => ({ value: a.tail_number, label: `${a.tail_number} — ${a.aircraft_type}` })) },
+            { key: 'to_location',     label: 'Destination',       placeholder: 'e.g. Hangar 2 - Gate 5', type: 'text' },
+          ].map(({ key, label, placeholder, type, options }) => (
             <div key={key}>
               <label className="text-[10px] font-bold text-gray-400 uppercase tracking-widest block mb-1">{label}</label>
-              <input
-                value={form[key]}
-                onChange={e => setForm(p => ({ ...p, [key]: e.target.value }))}
-                placeholder={placeholder}
-                className="w-full bg-[#1a1f2e] border border-white/10 rounded-xl px-4 py-2.5 text-sm text-white placeholder-gray-600 outline-none focus:border-blue-500"
-              />
+              {type === 'select' ? (
+                <select
+                  value={form[key]}
+                  onChange={e => setForm(p => ({ ...p, [key]: e.target.value }))}
+                  className="w-full bg-[#1a1f2e] border border-white/10 rounded-xl px-4 py-2.5 text-sm text-white outline-none focus:border-blue-500">
+                  <option value="">Select aircraft…</option>
+                  {options?.map(opt => <option key={opt.value} value={opt.value}>{opt.label}</option>)}
+                </select>
+              ) : (
+                <input
+                  value={form[key]}
+                  onChange={e => setForm(p => ({ ...p, [key]: e.target.value }))}
+                  placeholder={placeholder}
+                  className="w-full bg-[#1a1f2e] border border-white/10 rounded-xl px-4 py-2.5 text-sm text-white placeholder-gray-600 outline-none focus:border-blue-500"
+                />
+              )}
             </div>
           ))}
           <div className="flex gap-3 pt-1">
             <button onClick={onClose} className="flex-1 py-2.5 rounded-xl border border-white/10 text-sm font-bold text-gray-400 hover:bg-white/5">Cancel</button>
             <button
-              disabled={!form.technician_name || mutation.isPending}
+              disabled={!form.technician_name || !form.aircraft_tail || mutation.isPending}
               onClick={() => mutation.mutate()}
               className="flex-1 py-2.5 rounded-xl bg-blue-600 text-white text-sm font-bold hover:bg-blue-500 disabled:opacity-50"
             >
@@ -92,8 +104,8 @@ function CheckOutModal({ tool, onClose, onSuccess }) {
   );
 }
 
-function CheckInModal({ tool, onClose, onSuccess }) {
-  const [techName, setTechName] = useState('');
+function CheckInModal({ tool, aircraft = [], onClose, onSuccess }) {
+  const [form, setForm] = useState({ technician_name: '', aircraft_tail: '' });
   const queryClient = useQueryClient();
 
   const mutation = useMutation({
@@ -103,8 +115,9 @@ function CheckInModal({ tool, onClose, onSuccess }) {
         tool_number: tool.tool_number,
         tool_name: tool.name,
         transaction_type: 'checkin',
-        technician_name: techName,
+        technician_name: form.technician_name,
         from_location: tool.location,
+        aircraft_tail: form.aircraft_tail,
         timestamp: new Date().toISOString(),
         scan_method: 'manual',
       });
@@ -127,11 +140,18 @@ function CheckInModal({ tool, onClose, onSuccess }) {
           </div>
           <div>
             <label className="text-[10px] font-bold text-gray-400 uppercase tracking-widest block mb-1">Returning Technician *</label>
-            <input value={techName} onChange={e => setTechName(e.target.value)} placeholder="Full name" className="w-full bg-[#1a1f2e] border border-white/10 rounded-xl px-4 py-2.5 text-sm text-white placeholder-gray-600 outline-none focus:border-green-500" />
+            <input value={form.technician_name} onChange={e => setForm(p => ({ ...p, technician_name: e.target.value }))} placeholder="Full name" className="w-full bg-[#1a1f2e] border border-white/10 rounded-xl px-4 py-2.5 text-sm text-white placeholder-gray-600 outline-none focus:border-green-500" />
+          </div>
+          <div>
+            <label className="text-[10px] font-bold text-gray-400 uppercase tracking-widest block mb-1">Aircraft Number *</label>
+            <select value={form.aircraft_tail} onChange={e => setForm(p => ({ ...p, aircraft_tail: e.target.value }))} className="w-full bg-[#1a1f2e] border border-white/10 rounded-xl px-4 py-2.5 text-sm text-white outline-none focus:border-green-500">
+              <option value="">Select aircraft…</option>
+              {aircraft.map(a => <option key={a.id} value={a.tail_number}>{a.tail_number} — {a.aircraft_type}</option>)}
+            </select>
           </div>
           <div className="flex gap-3 pt-1">
             <button onClick={onClose} className="flex-1 py-2.5 rounded-xl border border-white/10 text-sm font-bold text-gray-400 hover:bg-white/5">Cancel</button>
-            <button disabled={!techName || mutation.isPending} onClick={() => mutation.mutate()} className="flex-1 py-2.5 rounded-xl bg-green-600 text-white text-sm font-bold hover:bg-green-500 disabled:opacity-50">
+            <button disabled={!form.technician_name || !form.aircraft_tail || mutation.isPending} onClick={() => mutation.mutate()} className="flex-1 py-2.5 rounded-xl bg-green-600 text-white text-sm font-bold hover:bg-green-500 disabled:opacity-50">
               {mutation.isPending ? 'Checking In…' : 'Check In'}
             </button>
           </div>
@@ -340,8 +360,8 @@ export default function ToolInventory({ tools, transactions, onRefresh, onScan, 
         </div>
       )}
 
-      {modal?.type === 'checkout' && <CheckOutModal tool={modal.tool} onClose={() => setModal(null)} onSuccess={() => { setModal(null); onRefresh(); }} />}
-      {modal?.type === 'checkin'  && <CheckInModal  tool={modal.tool} onClose={() => setModal(null)} onSuccess={() => { setModal(null); onRefresh(); }} />}
+      {modal?.type === 'checkout' && <CheckOutModal tool={modal.tool} aircraft={tools.map(t => ({ tail_number: t.tail_number, aircraft_type: t.aircraft_type }))} onClose={() => setModal(null)} onSuccess={() => { setModal(null); onRefresh(); }} />}
+      {modal?.type === 'checkin'  && <CheckInModal  tool={modal.tool} aircraft={tools.map(t => ({ id: t.id, tail_number: t.tail_number, aircraft_type: t.aircraft_type }))} onClose={() => setModal(null)} onSuccess={() => { setModal(null); onRefresh(); }} />}
     </div>
   );
 }

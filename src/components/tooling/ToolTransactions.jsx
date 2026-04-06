@@ -241,6 +241,13 @@ export default function ToolTransactions({ transactions }) {
                     </span>
                     {tx.technician_id && <span className="text-[10px] text-gray-600">#{tx.technician_id}</span>}
                   </div>
+                  {/* Aircraft */}
+                  {tx.aircraft_tail && (
+                    <div className="flex items-center gap-1.5 mt-0.5">
+                      <span className="w-2 h-2 rounded-full bg-cyan-500/60 flex-shrink-0" />
+                      <span className="text-[10px] font-mono text-cyan-400">Aircraft: {tx.aircraft_tail}</span>
+                    </div>
+                  )}
                   {/* Locations */}
                   {(tx.from_location || tx.to_location) && (
                     <p className="text-xs text-gray-500 mt-0.5">
