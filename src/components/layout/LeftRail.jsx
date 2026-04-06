@@ -58,7 +58,7 @@ const TECH_MODE_ITEMS = [
 function NavGroup({ title, items, location }) {
   return (
     <div className="w-full">
-      <p className="text-[9px] font-extrabold text-gray-600 uppercase tracking-widest px-3 pt-3 pb-1">{title}</p>
+      {title && <p className="text-[9px] font-extrabold text-gray-600 uppercase tracking-widest px-3 pt-3 pb-1">{title}</p>}
       {items.map(({ label, path }) => {
         const isActive = location.pathname === path;
         return (
@@ -108,7 +108,7 @@ export default function LeftRail() {
   return (
     <aside className="fixed left-0 top-0 h-full w-48 glass-strong border-r border-border flex flex-col py-2 z-50 liquid-glow">
       <nav className="flex flex-col gap-0 flex-1 w-full px-2 overflow-y-auto scrollbar-hide">
-        <NavGroup title="Flight Ops" items={FLIGHT_OPS_ITEMS} location={location} />
+        <NavGroup items={FLIGHT_OPS_ITEMS} location={location} />
         <div className="my-1 border-t border-white/8 mx-3" />
         <NavGroup title="Tech Ops" items={TECH_OPS_ITEMS} location={location} />
       </nav>
