@@ -219,10 +219,11 @@ const DetailDrawer = ({ flight, onClose }) => {
         ) : (
           <ReplanningWorkflow flight={flight} onClose={onClose} />
         )}
+        </div>
       </div>
     </div>
   );
-}
+};
 
 const DispatchWorkstation = () => {
   const [selectedFlight, setSelectedFlight] = useState(null);
