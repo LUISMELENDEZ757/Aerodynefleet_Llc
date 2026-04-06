@@ -99,9 +99,9 @@ class ChunkErrorBoundary extends React.Component {
     }
     return null;
   }
-  componentDidCatch() {
-    // Force a hard reload to pick up fresh chunks
-    window.location.reload();
+  componentDidCatch(error) {
+    // Log but don't reload—let fallback UI handle it
+    console.error('Chunk error:', error);
   }
   render() {
     if (this.state.hasError) {
