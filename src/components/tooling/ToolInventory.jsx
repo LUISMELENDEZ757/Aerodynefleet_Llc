@@ -228,7 +228,12 @@ export default function ToolInventory({ tools, transactions, onRefresh, onScan, 
 
   const filtered = tools.filter(t => {
     const q = search.toLowerCase();
-    const matchSearch = !search || t.name?.toLowerCase().includes(q) || t.tool_number?.toLowerCase().includes(q) || t.manufacturer?.toLowerCase().includes(q);
+    const matchSearch = !search ||
+      t.name?.toLowerCase().includes(q) ||
+      t.tool_number?.toLowerCase().includes(q) ||
+      t.manufacturer?.toLowerCase().includes(q) ||
+      t.assigned_to?.toLowerCase().includes(q) ||   // search by checked-out technician
+      t.location?.toLowerCase().includes(q);
     const matchCat = !catFilter || t.category === catFilter;
     const matchStatus = !statusFilter || t.status === statusFilter;
     return matchSearch && matchCat && matchStatus;
@@ -249,7 +254,7 @@ export default function ToolInventory({ tools, transactions, onRefresh, onScan, 
         <Search className="w-4 h-4 text-gray-500 flex-shrink-0" />
         <input
           type="text"
-          placeholder="Search tools by name, number, or manufacturer…"
+          placeholder="Search by name, number, manufacturer, or technician…"
           value={search}
           onChange={e => setSearch(e.target.value)}
           className="flex-1 bg-transparent text-sm text-white placeholder-gray-500 outline-none"
