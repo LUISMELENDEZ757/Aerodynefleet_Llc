@@ -4,7 +4,7 @@ import { useQuery } from '@tanstack/react-query';
 import { base44 } from '@/api/base44Client';
 import {
   ChevronLeft, Activity, Wrench, Droplets, TrendingUp,
-  BarChart3, AlertTriangle, CheckCircle, Clock, Zap, CalendarDays
+  BarChart3, AlertTriangle, CheckCircle, Clock, Zap, CalendarDays, Radio
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import EngineTrendAnalysis from '@/components/engineering/EngineTrendAnalysis';
@@ -17,6 +17,7 @@ const TABS = [
   { id: 'oil',      label: 'Oil Servicing Trends',   icon: Droplets },
   { id: 'apu',      label: 'APU Trends',             icon: Zap },
   { id: 'forecast', label: 'Maintenance Forecast',   icon: CalendarDays },
+  { id: 'telemetry', label: 'OEM Telemetry',         icon: Radio },
 ];
 
 export default function EngineeringDashboard() {
@@ -147,6 +148,16 @@ export default function EngineeringDashboard() {
         )}
         {activeTab === 'forecast' && (
           <MaintenanceForecastModule aircraft={aircraft} />
+        )}
+        {activeTab === 'telemetry' && (
+          <div className="rounded-2xl bg-card border border-border p-6 text-center space-y-3">
+            <Radio className="w-10 h-10 text-primary/40 mx-auto" />
+            <p className="text-foreground font-extrabold">OEM Telemetry Hub</p>
+            <p className="text-muted-foreground text-sm">Manage Boeing AHM, Airbus Skywise, GE, Honeywell, Safran, Embraer integrations and import telemetry data.</p>
+            <a href="/TelemetryHub" className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-primary text-primary-foreground text-sm font-bold hover:bg-primary/90 transition-colors">
+              Open Telemetry Hub →
+            </a>
+          </div>
         )}
       </div>
     </div>

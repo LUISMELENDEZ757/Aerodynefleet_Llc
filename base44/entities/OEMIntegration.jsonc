@@ -1,0 +1,95 @@
+{
+  "name": "OEMIntegration",
+  "type": "object",
+  "description": "OEM telemetry integration configuration \u2014 stores credentials, endpoints, and connection status for each manufacturer data platform.",
+  "properties": {
+    "oem_id": {
+      "type": "string",
+      "description": "Internal OEM identifier e.g. boeing_ahm, airbus_skywise"
+    },
+    "name": {
+      "type": "string",
+      "description": "Display name e.g. Boeing AHM"
+    },
+    "category": {
+      "type": "string",
+      "enum": [
+        "airframe",
+        "engine",
+        "avionics",
+        "apu",
+        "systems"
+      ],
+      "description": "Integration category"
+    },
+    "base_url": {
+      "type": "string",
+      "description": "API base URL provided by OEM"
+    },
+    "auth_type": {
+      "type": "string",
+      "enum": [
+        "api_key",
+        "oauth2",
+        "basic",
+        "certificate",
+        "acars"
+      ],
+      "default": "api_key"
+    },
+    "api_key_ref": {
+      "type": "string",
+      "description": "Secret name reference (actual key stored in env secrets)"
+    },
+    "client_id": {
+      "type": "string",
+      "description": "OAuth2 client ID if applicable"
+    },
+    "contract_reference": {
+      "type": "string",
+      "description": "Commercial contract / agreement number"
+    },
+    "contract_expiry": {
+      "type": "string",
+      "format": "date",
+      "description": "Contract expiry date"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "active",
+        "pending_credentials",
+        "pending_contract",
+        "inactive",
+        "error"
+      ],
+      "default": "pending_contract"
+    },
+    "last_sync": {
+      "type": "string",
+      "description": "ISO timestamp of last successful data sync"
+    },
+    "data_types": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "Data streams available e.g. flight_hours, cycle_counts, fault_codes, engine_health"
+    },
+    "applicable_aircraft_types": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "Aircraft types this integration applies to"
+    },
+    "notes": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "oem_id",
+    "name",
+    "category"
+  ]
+}

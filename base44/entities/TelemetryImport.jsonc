@@ -1,0 +1,84 @@
+{
+  "name": "TelemetryImport",
+  "type": "object",
+  "description": "Manual telemetry data import record \u2014 tracks CSV/Excel uploads from OEM export portals.",
+  "properties": {
+    "oem_id": {
+      "type": "string",
+      "description": "Source OEM identifier"
+    },
+    "oem_name": {
+      "type": "string",
+      "description": "Source OEM display name"
+    },
+    "aircraft_tail": {
+      "type": "string",
+      "description": "Aircraft tail number the data belongs to"
+    },
+    "data_type": {
+      "type": "string",
+      "enum": [
+        "flight_hours",
+        "engine_cycles",
+        "fault_codes",
+        "engine_health",
+        "apu_health",
+        "structural",
+        "avionics",
+        "fuel_burn",
+        "vibration",
+        "egt_margin"
+      ],
+      "description": "Type of telemetry data"
+    },
+    "file_url": {
+      "type": "string",
+      "description": "Uploaded file URL"
+    },
+    "file_name": {
+      "type": "string"
+    },
+    "record_count": {
+      "type": "number",
+      "description": "Number of data rows imported"
+    },
+    "period_start": {
+      "type": "string",
+      "format": "date",
+      "description": "Data period start date"
+    },
+    "period_end": {
+      "type": "string",
+      "format": "date",
+      "description": "Data period end date"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "pending",
+        "processing",
+        "imported",
+        "error"
+      ],
+      "default": "pending"
+    },
+    "imported_by": {
+      "type": "string"
+    },
+    "error_message": {
+      "type": "string"
+    },
+    "raw_summary": {
+      "type": "string",
+      "description": "JSON summary of key extracted metrics"
+    },
+    "notes": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "oem_id",
+    "data_type",
+    "file_name"
+  ]
+}
