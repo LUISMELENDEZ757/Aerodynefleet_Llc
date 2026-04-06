@@ -41,7 +41,7 @@ function UvIndex({ uv }) {
   return <span className={cn('font-bold', color)}>{uv} {label}</span>;
 }
 
-function DestinationCard({ dest, onSelect, selected }) {
+function DestinationCard({ dest, onSelect, selected, convertTemp }) {
   const cfg = CONDITION_CONFIG[dest.condition] || CONDITION_CONFIG.sunny;
   return (
     <motion.button
@@ -63,7 +63,7 @@ function DestinationCard({ dest, onSelect, selected }) {
           <p className="text-xs text-gray-400 mt-0.5">{dest.country}</p>
         </div>
         <div className="text-right">
-          <p className="text-2xl font-black text-white">{dest.temp}°</p>
+          <p className="text-2xl font-black text-white">{convertTemp(dest.temp)}°</p>
           <span className="text-lg">{dest.icon}</span>
         </div>
       </div>
@@ -77,7 +77,7 @@ function DestinationCard({ dest, onSelect, selected }) {
   );
 }
 
-function DetailPanel({ dest }) {
+function DetailPanel({ dest, convertTemp, unit }) {
   const cfg = CONDITION_CONFIG[dest.condition] || CONDITION_CONFIG.sunny;
 
   return (
@@ -96,8 +96,8 @@ function DetailPanel({ dest }) {
               <MapPin className="w-4 h-4 text-white/80" />
               <p className="text-sm font-bold text-white/90">{dest.name}, {dest.country} {dest.emoji}</p>
             </div>
-            <p className="text-5xl font-black text-white">{dest.temp}°C</p>
-            <p className="text-sm text-white/80 mt-1">Feels like {dest.feels}°C</p>
+            <p className="text-5xl font-black text-white">{convertTemp(dest.temp)}°{unit}</p>
+            <p className="text-sm text-white/80 mt-1">Feels like {convertTemp(dest.feels)}°{unit}</p>
             <p className="text-sm text-white mt-2 font-semibold">{dest.desc}</p>
           </div>
           <div className="text-6xl">{dest.icon}</div>
@@ -105,11 +105,11 @@ function DetailPanel({ dest }) {
         <div className="flex gap-3 mt-4">
           <div className="bg-black/20 rounded-xl px-3 py-2 text-center flex-1">
             <p className="text-xs text-white/70">High</p>
-            <p className="text-lg font-bold text-white">{dest.high}°</p>
+            <p className="text-lg font-bold text-white">{convertTemp(dest.high)}°{unit}</p>
           </div>
           <div className="bg-black/20 rounded-xl px-3 py-2 text-center flex-1">
             <p className="text-xs text-white/70">Low</p>
-            <p className="text-lg font-bold text-white">{dest.low}°</p>
+            <p className="text-lg font-bold text-white">{convertTemp(dest.low)}°{unit}</p>
           </div>
           <div className="bg-black/20 rounded-xl px-3 py-2 text-center flex-1">
             <p className="text-xs text-white/70">UV Index</p>
@@ -192,6 +192,9 @@ function DetailPanel({ dest }) {
 export default function TravelWeather() {
   const [selected, setSelected] = useState(DESTINATIONS[0]);
   const [search, setSearch] = useState('');
+  const [unit, setUnit] = useState('C');
+
+  const convertTemp = (celsius) => unit === 'F' ? Math.round((celsius * 9/5) + 32) : celsius;
 
   const filtered = DESTINATIONS.filter(d =>
     d.name.toLowerCase().includes(search.toLowerCase()) ||
@@ -225,14 +228,22 @@ export default function TravelWeather() {
         </div>
 
         {/* Hottest pick banner */}
-        <div className="mt-4 flex items-center gap-3 rounded-xl bg-gradient-to-r from-orange-500/20 to-yellow-500/10 border border-orange-500/20 px-4 py-3">
+        <div className="mt-4 flex items-center justify-between">
+        <div className="flex items-center gap-3 rounded-xl bg-gradient-to-r from-orange-500/20 to-yellow-500/10 border border-orange-500/20 px-4 py-3 flex-1">
           <span className="text-2xl">🔥</span>
           <div>
             <p className="text-xs font-bold text-orange-400 uppercase tracking-wider">Hottest Destination Today</p>
-            <p className="text-sm font-extrabold text-white">{sunniest.name}, {sunniest.country} — {sunniest.temp}°C {sunniest.icon}</p>
+            <p className="text-sm font-extrabold text-white">{sunniest.name}, {sunniest.country} — {convertTemp(sunniest.temp)}°{unit} {sunniest.icon}</p>
           </div>
         </div>
-      </div>
+        <button
+          onClick={() => setUnit(unit === 'C' ? 'F' : 'C')}
+          className="ml-3 px-4 py-2.5 rounded-lg bg-white/10 border border-white/20 text-white font-bold text-sm hover:bg-white/20 transition-colors"
+        >
+          °{unit === 'C' ? 'F' : 'C'}
+        </button>
+        </div>
+        </div>
 
       <div className="px-5 mt-5 flex flex-col lg:flex-row gap-5">
         {/* Left: destination list */}
@@ -257,6 +268,7 @@ export default function TravelWeather() {
                 dest={dest}
                 onSelect={setSelected}
                 selected={selected?.name === dest.name}
+                convertTemp={convertTemp}
               />
             ))}
             {filtered.length === 0 && (
@@ -267,7 +279,7 @@ export default function TravelWeather() {
 
         {/* Right: detail panel */}
         <div className="flex-1 min-w-0">
-          {selected && <DetailPanel dest={selected} />}
+          {selected && <DetailPanel dest={selected} convertTemp={convertTemp} unit={unit} />}
         </div>
       </div>
     </div>
