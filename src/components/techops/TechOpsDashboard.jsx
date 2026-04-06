@@ -61,7 +61,7 @@ export default function TechOpsDashboard() {
             <motion.div key={path} variants={cardVariants}>
               <Link
                 to={path}
-                className="relative rounded-2xl border border-orange-500/20 bg-[#161b27] p-4 flex flex-col items-center text-center active:scale-[0.96] transition-all duration-150 hover:bg-[#1e2436] hover:shadow-lg hover:shadow-black/40 block"
+                className="relative rounded-2xl border border-white/10 bg-[#161b27] p-4 flex flex-col items-center text-center active:scale-[0.96] transition-all duration-150 hover:bg-[#1e2436] hover:shadow-lg hover:shadow-black/40 block min-h-[120px] justify-center"
               >
                 <div className={`w-12 h-12 rounded-xl ${iconBg} flex items-center justify-center shadow-md mb-3 flex-shrink-0`}>
                   <Icon className="w-6 h-6 text-white" />
