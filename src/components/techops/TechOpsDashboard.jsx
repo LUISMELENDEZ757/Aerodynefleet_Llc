@@ -52,16 +52,16 @@ export default function TechOpsDashboard() {
 
       <div className="w-full max-w-lg">
         <motion.div
-          className="grid grid-cols-2 sm:grid-cols-3 gap-3"
+          className="grid grid-cols-2 sm:grid-cols-3 gap-3 auto-rows-fr"
           initial="hidden"
           animate="show"
           transition={{ staggerChildren: 0.05, delayChildren: 0.1 }}
         >
           {TECH_CARDS.map(({ icon: Icon, iconBg, title, subtitle, path }) => (
-            <motion.div key={path} variants={cardVariants}>
+            <motion.div key={path} variants={cardVariants} className="h-full">
               <Link
                 to={path}
-                className="relative rounded-2xl border border-white/10 bg-[#161b27] p-4 flex flex-col items-center text-center active:scale-[0.96] transition-all duration-150 hover:bg-[#1e2436] hover:shadow-lg hover:shadow-black/40 block min-h-[120px] justify-center"
+                className="relative rounded-2xl border border-white/10 bg-[#161b27] p-4 flex flex-col items-center text-center active:scale-[0.96] transition-all duration-150 hover:bg-[#1e2436] hover:shadow-lg hover:shadow-black/40 h-full"
               >
                 <div className={`w-12 h-12 rounded-xl ${iconBg} flex items-center justify-center shadow-md mb-3 flex-shrink-0`}>
                   <Icon className="w-6 h-6 text-white" />
