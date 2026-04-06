@@ -68,6 +68,7 @@ const MaintenanceControl      = lazy(() => import('@/pages/MaintenanceControl'))
 const AocsDashboard           = lazy(() => import('@/pages/AocsDashboard'));
 const FleetRegistry           = lazy(() => import('@/pages/FleetRegistry'));
 const TechOpsDashboard        = lazy(() => import('@/components/techops/TechOpsDashboard'));
+const TravelWeather           = lazy(() => import('@/pages/TravelWeather'));
 
 function PageFallback() {
   return (
@@ -189,6 +190,7 @@ const AuthenticatedApp = () => {
         <Route path="/FleetRegistry" element={<FleetRegistry />} />
         <Route path="/TechOps" element={<TechOpsDashboard />} />
         <Route path="/Settings" element={<SettingsPage />} />
+        <Route path="/TravelWeather" element={<TravelWeather />} />
       </Route>
       <Route path="*" element={<PageNotFound />} />
     </Routes>
