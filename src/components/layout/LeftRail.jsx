@@ -3,8 +3,6 @@ import { Link, useLocation } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { cn } from '@/lib/utils';
 import { useRail } from '@/lib/RailContext';
-import { useTheme } from '@/lib/ThemeContext';
-import { Moon, Sun } from 'lucide-react';
 
 // ── FLIGHT OPS GROUP ─────────────────────────────────────────────────────────
 const FLIGHT_OPS_ITEMS = [
@@ -101,20 +99,11 @@ function NavGroup({ title, items, location }) {
 export default function LeftRail() {
   const location = useLocation();
   const { mode } = useRail();
-  const { theme, toggleTheme } = useTheme();
 
   if (mode === 'tech') {
     return (
       <aside className="fixed left-0 top-0 h-full w-48 bg-[#0a0e18] border-r border-border flex flex-col py-4 z-50">
         <nav className="flex flex-col gap-0 flex-1 w-full px-2 overflow-y-auto scrollbar-hide">
-          <button
-            onClick={toggleTheme}
-            className="flex items-center gap-2 px-3 py-2 mb-2 rounded-xl text-xs font-bold text-gray-500 hover:text-gray-300 transition-colors"
-            title={`Switch to ${theme === 'dark' ? 'light' : 'dark'} mode`}
-          >
-            {theme === 'dark' ? <Sun className="w-4 h-4" /> : <Moon className="w-4 h-4" />}
-            <span>{theme === 'dark' ? 'Light' : 'Dark'}</span>
-          </button>
           {TECH_MODE_ITEMS.map(({ label, path }, idx) => {
             const isActive = location.pathname === path;
             return (
@@ -141,14 +130,6 @@ export default function LeftRail() {
 
   return (
     <aside className="fixed left-0 top-0 h-full w-48 bg-[#0a0e18] border-r border-border flex flex-col py-2 z-50">
-      <button
-        onClick={toggleTheme}
-        className="flex items-center gap-2 px-3 py-2 mx-2 mb-1 rounded-xl text-xs font-bold text-gray-500 hover:text-gray-300 transition-colors"
-        title={`Switch to ${theme === 'dark' ? 'light' : 'dark'} mode`}
-      >
-        {theme === 'dark' ? <Sun className="w-4 h-4" /> : <Moon className="w-4 h-4" />}
-        <span>{theme === 'dark' ? 'Light' : 'Dark'}</span>
-      </button>
       <motion.nav 
         className="flex flex-col gap-0 flex-1 w-full px-2 overflow-y-auto scrollbar-hide"
         initial={{ opacity: 0 }}
