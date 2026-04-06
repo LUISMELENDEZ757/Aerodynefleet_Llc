@@ -1,525 +1,225 @@
-import { useState, useEffect } from 'react';
-import { Link } from 'react-router-dom';
-import { useQuery } from '@tanstack/react-query';
-import { base44 } from '@/api/base44Client';
-import { useFleet } from '@/lib/FleetContext';
-import FleetSwitcher from '@/components/fleet/FleetSwitcher';
-import {
-  ChevronLeft, Globe, Plane, Users, Wrench, AlertTriangle,
-  BarChart3, Clock, CheckCircle, TrendingUp, ExternalLink,
-  Activity, Radio
-} from 'lucide-react';
-import { cn } from '@/lib/utils';
-import {
-  BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer,
-  PieChart, Pie, Cell, CartesianGrid, Legend
-} from 'recharts';
+import React from "react";
 
-const COLORS = ['#22c55e', '#f59e0b', '#ef4444', '#3b82f6']; // AOCS colors
-
-const TABS = [
-  { id: 'overview', label: 'Overview', icon: BarChart3 },
-  { id: 'flights', label: 'Flights', icon: Plane },
-  { id: 'fleet', label: 'Fleet', icon: Activity },
-  { id: 'alerts', label: 'Alerts', icon: AlertTriangle },
-];
-
-function StatCard({ icon: Icon, label, value, sub, color }) {
-  return (
-    <div className={cn('rounded-xl border p-4 space-y-1', color)}>
-      <div className="flex items-center gap-2">
-        {Icon && <Icon className="w-4 h-4" />}
-        <p className="text-2xl font-extrabold font-mono">{value}</p>
-      </div>
-      <p className="text-xs opacity-70">{label}</p>
-      {sub && <p className="text-[10px] opacity-80">{sub}</p>}
-    </div>
-  );
-}
-
-export default function AocsDashboard() {
-  const [activeTab, setActiveTab] = useState('overview');
-  const [utcTime, setUtcTime] = useState('');
-  const { activeFleet, activeFleetId } = useFleet();
-
-  useEffect(() => {
-    const update = () => setUtcTime(new Date().toUTCString().slice(17, 22));
-    update();
-    const t = setInterval(update, 1000);
-    return () => clearInterval(t);
-  }, []);
-
-  const { data: flights = [], isLoading: flightsLoading } = useQuery({
-    queryKey: ['aocs-flights', activeFleetId],
-    queryFn: () => activeFleet
-      ? base44.entities.Flight.filter({ airline: activeFleet.name })
-      : base44.entities.Flight.list('-flight_date', 200),
-    refetchInterval: 60000,
-    staleTime: 30000,
-  });
-
-  const { data: aircraft = [], isLoading: aircraftLoading } = useQuery({
-    queryKey: ['aocs-aircraft', activeFleetId],
-    queryFn: () => activeFleet
-      ? base44.entities.Aircraft.filter({ airline: activeFleet.name })
-      : base44.entities.Aircraft.list('tail_number', 200),
-    refetchInterval: 60000,
-    staleTime: 30000,
-  });
-
-  const { data: alerts = [] } = useQuery({
-    queryKey: ['aocs-alerts'],
-    queryFn: () => base44.entities.OpsAlert.list('-created_date', 50),
-    refetchInterval: 60000,
-    staleTime: 30000,
-  });
-
-  const { data: irops = [] } = useQuery({
-    queryKey: ['aocs-irops'],
-    queryFn: () => base44.entities.IROPSEvent.list('-created_date', 50),
-    refetchInterval: 60000,
-    staleTime: 30000,
-  });
-
-  const { data: melItems = [] } = useQuery({
-    queryKey: ['aocs-mel'],
-    queryFn: () => base44.entities.MELItem.list('-created_date', 100),
-    refetchInterval: 60000,
-    staleTime: 30000,
-  });
-
-  const { data: oosEntries = [] } = useQuery({
-    queryKey: ['aocs-oos'],
-    queryFn: () => base44.entities.OOSEntry.list('-created_date', 100),
-    refetchInterval: 60000,
-    staleTime: 30000,
-  });
-
-  // Derived metrics - memoized by being simple calculations
-  const activeFlights = flights.filter(f => ['airborne', 'departed', 'boarding'].includes(f.status)).length;
-  const delayedFlights = flights.filter(f => f.status === 'delayed' || (f.delay_minutes || 0) >= 15).length;
-  const onTimeFlights = flights.filter(f => ['on_time', 'landed', 'arrived'].includes(f.status) && !(f.delay_minutes || 0) >= 15).length;
-  const totalFlights = flights.length;
-  const otpPct = totalFlights > 0 ? Math.round((onTimeFlights / totalFlights) * 100) : 0;
-
-  const activeAircraft = aircraft.filter(a => a.status === 'active').length;
-  const oosAircraft = aircraft.filter(a => ['oos', 'maintenance'].includes(a.status)).length;
-
-  const openOOS = oosEntries.filter(e => ['in_work', 'waiting_on_parts'].includes(e.status)).length;
-  const expiredMEL = melItems.filter(m => m.status === 'expired').length;
-  const activeFaults = melItems.filter(m => m.status === 'open').length;
-
-  const activeIROPS = irops.filter(i => i.status === 'active').length;
-  const criticalAlerts = alerts.filter(a => a.severity === 'critical' && !a.is_dismissed).length;
-
-  const otpChartData = (() => {
-    const map = {};
-    flights.forEach(f => {
-      const d = new Date(f.flight_date || f.created_date);
-      const key = `${d.getMonth() + 1}/${d.getDate()}`;
-      if (!map[key]) map[key] = { day: key, onTime: 0, delayed: 0, cancelled: 0 };
-      if (['on_time', 'landed', 'arrived'].includes(f.status) && !(f.delay_minutes || 0) >= 15) map[key].onTime++;
-      else if (f.status === 'delayed' || (f.delay_minutes || 0) >= 15) map[key].delayed++;
-      else if (f.status === 'cancelled') map[key].cancelled++;
-    });
-    return Object.values(map).slice(-7);
-  })();
-
-  const recentAlerts = alerts
-    .filter(a => !a.is_dismissed)
-    .sort((a, b) => ({ critical: 0, warning: 1, info: 2 }[a.severity] ?? 3) - ({ critical: 0, warning: 1, info: 2 }[b.severity] ?? 3))
-    .slice(0, 8);
-
-  const fleetStatusData = [
-    { name: 'Active', value: activeAircraft, color: '#22c55e' },
-    { name: 'OOS', value: oosAircraft, color: '#ef4444' },
-    { name: 'Maintenance', value: aircraft.filter(a => a.status === 'maintenance').length, color: '#f59e0b' },
-  ].filter(d => d.value > 0);
+const StatCard = ({ label, value, sublabel, tone = "default" }) => {
+  const toneClasses = {
+    default: "bg-slate-800 border-slate-700",
+    good: "bg-emerald-900/40 border-emerald-700/60",
+    warn: "bg-amber-900/40 border-amber-700/60",
+    bad: "bg-rose-900/40 border-rose-700/60",
+  }[tone];
 
   return (
-    <div className="min-h-screen bg-[#0d1117] text-white pb-24">
-      {/* Header */}
-      <div className="flex items-center justify-between px-5 py-4 border-b border-white/10 bg-[#0a0e18] sticky top-0 z-30">
-        <div className="flex items-center gap-3">
-          <Link to="/Home" className="w-9 h-9 rounded-lg bg-white/10 flex items-center justify-center hover:bg-white/20">
-            <ChevronLeft className="w-5 h-5 text-white" />
-          </Link>
-          <div className="w-10 h-10 rounded-xl bg-sky-600 flex items-center justify-center">
-            <Globe className="w-5 h-5 text-white" />
-          </div>
-          <div>
-            <p className="text-base font-extrabold tracking-widest leading-none">AOCS</p>
-            <p className="text-[10px] text-sky-400 tracking-widest uppercase font-bold">Airline Operations Control System</p>
-          </div>
-        </div>
-        <div className="flex items-center gap-3">
-          <FleetSwitcher expanded={false} />
-          {criticalAlerts > 0 && (
-            <div className="flex items-center gap-2 bg-red-600/30 border border-red-500/50 rounded-xl px-3 py-1.5">
-              <AlertTriangle className="w-3.5 h-3.5 text-red-400" />
-              <span className="text-xs font-extrabold text-red-400">{criticalAlerts} CRITICAL</span>
-            </div>
-          )}
-          <div className="flex items-center gap-2 text-xs font-mono text-gray-400 bg-white/5 rounded-xl px-3 py-1.5">
-            <Clock className="w-3.5 h-3.5 text-sky-400" />
-            <span className="text-sky-400 font-bold">{utcTime}Z</span>
-            <span className="w-1.5 h-1.5 rounded-full bg-green-400 animate-pulse ml-1" />
-          </div>
-        </div>
+    <div className={`flex flex-col gap-1 rounded-xl border px-4 py-3 ${toneClasses}`}>
+      <div className="text-xs font-medium text-slate-300 uppercase tracking-wide">
+        {label}
       </div>
-
-      {/* Tab Bar */}
-      <div className="flex gap-2 px-5 pt-4 border-b border-white/10 pb-0 bg-[#0a0e18] overflow-x-auto scrollbar-hide">
-        {TABS.map(({ id, label, icon: Icon }) => (
-          <button
-            key={id}
-            onClick={() => setActiveTab(id)}
-            className={cn(
-              'flex items-center gap-2 px-5 py-2.5 text-sm font-bold rounded-t-xl transition-all border-b-2 -mb-px whitespace-nowrap',
-              activeTab === id
-                ? 'text-sky-400 border-sky-400 bg-sky-400/10'
-                : 'text-gray-500 border-transparent hover:text-gray-300'
-            )}
-          >
-            <Icon className="w-4 h-4" />
-            {label}
-          </button>
-        ))}
-      </div>
-
-      {/* Overview Tab */}
-      {activeTab === 'overview' && (
-        <div className="px-5 pt-5 space-y-5">
-          {/* Master KPI Grid */}
-          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
-            <StatCard icon={Plane} label="Active Flights" value={activeFlights} sub={`${delayedFlights} delayed`} color={delayedFlights > 0 ? 'text-amber-400 bg-amber-600/15' : 'text-sky-400 bg-sky-600/15'} />
-            <StatCard icon={TrendingUp} label="OTP Rate" value={`${otpPct}%`} sub={`${totalFlights} total`} color={otpPct >= 80 ? 'text-green-400 bg-green-600/15' : 'text-amber-400 bg-amber-600/15'} />
-            <StatCard icon={Activity} label="Fleet Active" value={`${activeAircraft}/${aircraft.length}`} sub={`${oosAircraft} OOS`} color={oosAircraft > 0 ? 'text-red-400 bg-red-600/15' : 'text-green-400 bg-green-600/15'} />
-            <StatCard icon={Users} label="Crew Issues" value={0} sub="See Crew Control" color="text-green-400 bg-green-600/15" />
-            <StatCard icon={AlertTriangle} label="Active IROPS" value={activeIROPS} sub={activeIROPS > 0 ? 'events' : 'none'} color={activeIROPS > 0 ? 'text-amber-400 bg-amber-600/15' : 'text-green-400 bg-green-600/15'} />
-            <StatCard icon={Wrench} label="Open MX / MEL" value={openOOS + expiredMEL} sub={`${expiredMEL} expired MEL`} color={expiredMEL > 0 ? 'text-red-400 bg-red-600/15' : 'text-orange-400 bg-amber-600/15'} />
-          </div>
-
-          {/* OTP Chart */}
-          <div className="bg-[#141922] border border-white/10 rounded-2xl p-5">
-            <div className="flex items-center justify-between mb-4">
-              <div className="flex items-center gap-2">
-                <TrendingUp className="w-4 h-4 text-green-400" />
-                <p className="text-sm font-extrabold text-white">On-Time Performance Trend</p>
-              </div>
-              <Link to="/Analytics" className="flex items-center gap-1 text-xs font-bold text-sky-400 hover:text-sky-300">
-                View Analytics <ExternalLink className="w-3 h-3" />
-              </Link>
-            </div>
-            {otpChartData.length === 0 ? (
-              <p className="text-gray-600 text-sm text-center py-8">No flight data available</p>
-            ) : (
-              <ResponsiveContainer width="100%" height={200}>
-                <BarChart data={otpChartData}>
-                  <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.05)" />
-                  <XAxis dataKey="day" tick={{ fill: '#6b7280', fontSize: 10 }} />
-                  <YAxis tick={{ fill: '#6b7280', fontSize: 10 }} />
-                  <Tooltip contentStyle={{ background: '#141922', border: '1px solid rgba(255,255,255,0.1)', borderRadius: 8, fontSize: 11 }} />
-                  <Legend wrapperStyle={{ fontSize: 11 }} />
-                  <Bar dataKey="onTime" fill="#22c55e" name="On Time" stackId="a" />
-                  <Bar dataKey="delayed" fill="#f59e0b" name="Delayed" stackId="a" />
-                  <Bar dataKey="cancelled" fill="#ef4444" name="Cancelled" stackId="a" />
-                </BarChart>
-              </ResponsiveContainer>
-            )}
-          </div>
-
-          {/* Two Column Layout */}
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
-            {/* Active IROPS */}
-            <div className="bg-[#141922] border border-white/10 rounded-2xl overflow-hidden">
-              <div className="px-5 py-4 border-b border-white/10">
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-2">
-                    <AlertTriangle className="w-4 h-4 text-red-400" />
-                    <p className="text-sm font-extrabold text-white">Active IROPS Events</p>
-                  </div>
-                  <Link to="/IROPS" className="text-xs font-bold text-red-400 hover:text-red-300">IROPS Center →</Link>
-                </div>
-              </div>
-              {irops.filter(i => i.status === 'active').length === 0 ? (
-                <div className="px-5 py-8 text-center">
-                  <CheckCircle className="w-8 h-8 text-green-400 mx-auto mb-2" />
-                  <p className="text-green-400 font-bold text-sm">No active IROPS events</p>
-                </div>
-              ) : (
-                <div className="divide-y divide-white/5 max-h-80 overflow-y-auto">
-                  {irops.filter(i => i.status === 'active').slice(0, 5).map(event => (
-                    <div key={event.id} className="flex items-start gap-3 px-5 py-3">
-                      <div className={cn('w-2 h-2 rounded-full mt-1.5 flex-shrink-0',
-                        event.severity === 'critical' ? 'bg-red-400' :
-                        event.severity === 'major' ? 'bg-orange-400' : 'bg-amber-400'
-                      )} />
-                      <div className="flex-1 min-w-0">
-                        <p className="text-sm font-bold text-white">{event.title}</p>
-                        <p className="text-xs text-gray-400 mt-0.5 truncate">{event.description}</p>
-                        <div className="flex gap-2 mt-1">
-                          {event.affected_station && <span className="text-[10px] text-gray-500">{event.affected_station}</span>}
-                          {event.affected_flights?.length > 0 && <span className="text-[10px] text-amber-400">{event.affected_flights.length} flights</span>}
-                        </div>
-                      </div>
-                      <span className={cn('text-[10px] font-bold px-2 py-1 rounded-lg flex-shrink-0',
-                        event.severity === 'critical' ? 'bg-red-500/20 text-red-400' :
-                        event.severity === 'major' ? 'bg-orange-500/20 text-orange-400' : 'bg-amber-500/20 text-amber-400'
-                      )}>{event.severity?.toUpperCase()}</span>
-                    </div>
-                  ))}
-                </div>
-              )}
-            </div>
-
-            {/* Live Alerts */}
-            <div className="bg-[#141922] border border-white/10 rounded-2xl overflow-hidden">
-              <div className="px-5 py-4 border-b border-white/10">
-                <div className="flex items-center gap-2">
-                  <Radio className="w-4 h-4 text-sky-400" />
-                  <p className="text-sm font-extrabold text-white">Live Alerts Feed</p>
-                </div>
-              </div>
-              {recentAlerts.length === 0 ? (
-                <div className="px-5 py-8 text-center">
-                  <CheckCircle className="w-8 h-8 text-green-400 mx-auto mb-2" />
-                  <p className="text-green-400 font-bold text-sm">No active alerts</p>
-                </div>
-              ) : (
-                <div className="divide-y divide-white/5 max-h-80 overflow-y-auto">
-                  {recentAlerts.map(alert => (
-                    <div key={alert.id} className="flex items-start gap-3 px-5 py-3">
-                      <div className={cn('w-2 h-2 rounded-full mt-1.5 flex-shrink-0',
-                        alert.severity === 'critical' ? 'bg-red-400' :
-                        alert.severity === 'warning' ? 'bg-amber-400' : 'bg-sky-400'
-                      )} />
-                      <div className="flex-1 min-w-0">
-                        <p className="text-xs font-bold text-white truncate">{alert.title}</p>
-                        <p className="text-[10px] text-gray-400 mt-0.5 line-clamp-2">{alert.message}</p>
-                        {alert.flight_number && <p className="text-[10px] text-sky-400 mt-0.5">FLT {alert.flight_number}</p>}
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              )}
-            </div>
-          </div>
-
-          {/* Fleet Status */}
-          <div className="bg-[#141922] border border-white/10 rounded-2xl overflow-hidden">
-            <div className="px-5 py-4 border-b border-white/10">
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-2">
-                  <Activity className="w-4 h-4 text-orange-400" />
-                  <p className="text-sm font-extrabold text-white">Fleet Status Overview</p>
-                </div>
-                <Link to="/FleetDashboard" className="text-xs font-bold text-orange-400 hover:text-orange-300">Fleet Dashboard →</Link>
-              </div>
-            </div>
-            {aircraft.length === 0 ? (
-              <p className="text-gray-600 text-sm text-center py-8">No aircraft data</p>
-            ) : (
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 p-5">
-                {fleetStatusData.length > 0 && (
-                  <div className="sm:col-span-1">
-                    <ResponsiveContainer width="100%" height={180}>
-                      <PieChart>
-                        <Pie data={fleetStatusData} cx="50%" cy="50%" outerRadius={60} dataKey="value" nameKey="name">
-                          {fleetStatusData.map((entry, i) => <Cell key={i} fill={entry.color} />)}
-                        </Pie>
-                        <Tooltip contentStyle={{ background: '#141922', border: '1px solid rgba(255,255,255,0.1)', borderRadius: 8, fontSize: 11 }} />
-                        <Legend wrapperStyle={{ fontSize: 10 }} />
-                      </PieChart>
-                    </ResponsiveContainer>
-                  </div>
-                )}
-                <div className={cn('grid gap-2', fleetStatusData.length > 0 ? 'sm:col-span-1 lg:col-span-2' : 'sm:col-span-2 lg:col-span-3')}>
-                  {aircraft.slice(0, 6).map(ac => {
-                    const acOOS = oosEntries.filter(e => e.tail_number === ac.tail_number && e.status !== 'released');
-                    const acMEL = melItems.filter(m => m.aircraft_tail === ac.tail_number && m.status !== 'cleared');
-                    const healthy = acOOS.length === 0 && acMEL.length === 0;
-                    return (
-                      <div key={ac.id} className="flex items-center gap-3 bg-[#0d1117] border border-white/5 rounded-xl px-3 py-2.5">
-                        <span className="font-mono font-extrabold text-white w-16 flex-shrink-0">{ac.tail_number}</span>
-                        <span className="text-xs text-gray-500 w-20 flex-shrink-0 hidden sm:block">{ac.aircraft_type}</span>
-                        <div className="flex gap-1.5 flex-1">
-                          {healthy && <span className="text-[10px] font-bold text-green-400 bg-green-500/10 px-2 py-0.5 rounded-lg flex items-center gap-1"><CheckCircle className="w-2.5 h-2.5" /> CLEAR</span>}
-                          {acOOS.length > 0 && <span className="text-[10px] font-bold text-red-400 bg-red-500/10 px-2 py-0.5 rounded-lg">{acOOS.length} OOS</span>}
-                          {acMEL.length > 0 && <span className="text-[10px] font-bold text-amber-400 bg-amber-500/10 px-2 py-0.5 rounded-lg">{acMEL.length} MEL</span>}
-                        </div>
-                        <span className={cn('text-[10px] font-bold px-2 py-1 rounded-full flex-shrink-0',
-                          ac.status === 'active' ? 'text-green-400 bg-green-500/15' :
-                          ac.status === 'oos' ? 'text-red-400 bg-red-500/15' : 'text-orange-400 bg-orange-500/15'
-                        )}>{ac.status?.toUpperCase()}</span>
-                      </div>
-                    );
-                  })}
-                </div>
-              </div>
-            )}
-          </div>
-        </div>
-      )}
-
-      {/* Flights Tab */}
-      {activeTab === 'flights' && (
-        <div className="px-5 pt-5">
-          <div className="bg-[#141922] border border-white/10 rounded-2xl overflow-hidden">
-            <div className="px-5 py-4 border-b border-white/10 flex items-center justify-between">
-              <div className="flex items-center gap-2">
-                <Plane className="w-4 h-4 text-sky-400" />
-                <p className="text-sm font-extrabold text-white">Today's Flights</p>
-              </div>
-              <p className="text-xs text-gray-500">{flights.length} total</p>
-            </div>
-            {flightsLoading ? (
-              <p className="text-gray-600 text-sm text-center py-8">Loading...</p>
-            ) : flights.length === 0 ? (
-              <p className="text-gray-600 text-sm text-center py-8">No flights scheduled</p>
-            ) : (
-              <div className="divide-y divide-white/5 max-h-[60vh] overflow-y-auto">
-                {flights.map(flight => (
-                  <div key={flight.id} className="flex items-center justify-between px-5 py-3 hover:bg-white/5 transition-colors">
-                    <div className="flex items-center gap-4">
-                      <div className="w-10 h-10 rounded-lg bg-sky-600/20 border border-sky-500/30 flex items-center justify-center">
-                        <Plane className="w-5 h-5 text-sky-400" />
-                      </div>
-                      <div>
-                        <p className="text-sm font-extrabold text-white font-mono">{flight.flight_number}</p>
-                        <p className="text-xs text-gray-400">{flight.origin} → {flight.destination}</p>
-                      </div>
-                    </div>
-                    <div className="flex items-center gap-4">
-                      <div className="text-right">
-                        <p className="text-xs font-mono text-gray-400">{flight.scheduled_departure || '—'}</p>
-                        <p className="text-[10px] text-gray-500">STD</p>
-                      </div>
-                      <span className={cn('text-xs font-bold px-3 py-1 rounded-full',
-                        flight.status === 'airborne' || flight.status === 'departed' ? 'bg-green-500/20 text-green-400' :
-                        flight.status === 'delayed' ? 'bg-amber-500/20 text-amber-400' :
-                        flight.status === 'cancelled' ? 'bg-red-500/20 text-red-400' :
-                        'bg-sky-500/20 text-sky-400'
-                      )}>{flight.status?.toUpperCase()}</span>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            )}
-          </div>
-        </div>
-      )}
-
-      {/* Fleet Tab */}
-      {activeTab === 'fleet' && (
-        <div className="px-5 pt-5 space-y-5">
-          {/* Fleet KPIs */}
-          <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-            <StatCard icon={Activity} label="Total Aircraft" value={aircraft.length} color="text-sky-400 bg-sky-600/15" />
-            <StatCard icon={CheckCircle} label="Active" value={activeAircraft} color={activeAircraft > 0 ? 'text-green-400 bg-green-600/15' : 'text-gray-400 bg-gray-600/15'} />
-            <StatCard icon={Wrench} label="OOS" value={oosAircraft} color={oosAircraft > 0 ? 'text-red-400 bg-red-600/15' : 'text-gray-400 bg-gray-600/15'} />
-            <StatCard icon={AlertTriangle} label="Open MEL" value={activeFaults} color={activeFaults > 0 ? 'text-amber-400 bg-amber-600/15' : 'text-gray-400 bg-gray-600/15'} />
-          </div>
-
-          {/* Aircraft List */}
-          <div className="bg-[#141922] border border-white/10 rounded-2xl overflow-hidden">
-            <div className="px-5 py-4 border-b border-white/10 flex items-center justify-between">
-              <div className="flex items-center gap-2">
-                <Plane className="w-4 h-4 text-orange-400" />
-                <p className="text-sm font-extrabold text-white">Aircraft Registry</p>
-              </div>
-              <Link to="/FleetDashboard" className="text-xs font-bold text-orange-400 hover:text-orange-300">Manage Fleet →</Link>
-            </div>
-            {aircraftLoading ? (
-              <p className="text-gray-600 text-sm text-center py-8">Loading...</p>
-            ) : aircraft.length === 0 ? (
-              <p className="text-gray-600 text-sm text-center py-8">No aircraft registered</p>
-            ) : (
-              <div className="divide-y divide-white/5 max-h-[60vh] overflow-y-auto">
-                {aircraft.map(ac => {
-                  const acOOS = oosEntries.filter(e => e.tail_number === ac.tail_number);
-                  const acMEL = melItems.filter(m => m.aircraft_tail === ac.tail_number);
-                  return (
-                    <div key={ac.id} className="flex items-center justify-between px-5 py-3 hover:bg-white/5">
-                      <div className="flex items-center gap-4">
-                        <div className="w-10 h-10 rounded-lg bg-orange-600/20 border border-orange-500/30 flex items-center justify-center">
-                          <Plane className="w-5 h-5 text-orange-400" />
-                        </div>
-                        <div>
-                          <p className="text-sm font-extrabold text-white font-mono">{ac.tail_number}</p>
-                          <p className="text-xs text-gray-400">{ac.aircraft_type} · {ac.base_station || '—'}</p>
-                        </div>
-                      </div>
-                      <div className="flex items-center gap-3">
-                        {(acOOS.length > 0 || acMEL.length > 0) && (
-                          <div className="flex gap-1.5">
-                            {acOOS.length > 0 && <span className="text-[10px] font-bold text-red-400 bg-red-500/10 px-2 py-0.5 rounded-lg">{acOOS.length} OOS</span>}
-                            {acMEL.length > 0 && <span className="text-[10px] font-bold text-amber-400 bg-amber-500/10 px-2 py-0.5 rounded-lg">{acMEL.length} MEL</span>}
-                          </div>
-                        )}
-                        <span className={cn('text-xs font-bold px-3 py-1 rounded-full',
-                          ac.status === 'active' ? 'bg-green-500/20 text-green-400' :
-                          ac.status === 'oos' ? 'bg-red-500/20 text-red-400' :
-                          ac.status === 'maintenance' ? 'bg-amber-500/20 text-amber-400' :
-                          'bg-gray-500/20 text-gray-400'
-                        )}>{ac.status?.toUpperCase()}</span>
-                      </div>
-                    </div>
-                  );
-                })}
-              </div>
-            )}
-          </div>
-        </div>
-      )}
-
-      {/* Alerts Tab */}
-      {activeTab === 'alerts' && (
-        <div className="px-5 pt-5">
-          <div className="bg-[#141922] border border-white/10 rounded-2xl overflow-hidden">
-            <div className="px-5 py-4 border-b border-white/10 flex items-center justify-between">
-              <div className="flex items-center gap-2">
-                <AlertTriangle className="w-4 h-4 text-red-400" />
-                <p className="text-sm font-extrabold text-white">All Active Alerts</p>
-              </div>
-              <p className="text-xs text-gray-500">{alerts.filter(a => !a.is_dismissed).length} total</p>
-            </div>
-            {alerts.filter(a => !a.is_dismissed).length === 0 ? (
-              <div className="px-5 py-8 text-center">
-                <CheckCircle className="w-8 h-8 text-green-400 mx-auto mb-2" />
-                <p className="text-green-400 font-bold text-sm">No active alerts</p>
-              </div>
-            ) : (
-              <div className="divide-y divide-white/5 max-h-[60vh] overflow-y-auto">
-                {alerts.filter(a => !a.is_dismissed).map(alert => (
-                  <div key={alert.id} className="flex items-start gap-4 px-5 py-4 hover:bg-white/5">
-                    <div className={cn('w-3 h-3 rounded-full mt-1 flex-shrink-0',
-                      alert.severity === 'critical' ? 'bg-red-400 animate-pulse' :
-                      alert.severity === 'warning' ? 'bg-amber-400' : 'bg-sky-400'
-                    )} />
-                    <div className="flex-1">
-                      <div className="flex items-center justify-between mb-1">
-                        <p className="text-sm font-bold text-white">{alert.title}</p>
-                        <span className={cn('text-[10px] font-bold px-2 py-0.5 rounded',
-                          alert.severity === 'critical' ? 'bg-red-500/20 text-red-400' :
-                          alert.severity === 'warning' ? 'bg-amber-500/20 text-amber-400' : 'bg-sky-500/20 text-sky-400'
-                        )}>{alert.severity?.toUpperCase()}</span>
-                      </div>
-                      <p className="text-sm text-gray-300 mb-2">{alert.message}</p>
-                      <div className="flex gap-3 text-xs">
-                        {alert.flight_number && <span className="text-sky-400">FLT {alert.flight_number}</span>}
-                        {alert.aircraft_tail && <span className="text-gray-400">{alert.aircraft_tail}</span>}
-                        {alert.target_roles?.length > 0 && <span className="text-gray-500">{alert.target_roles.join(', ')}</span>}
-                        <span className="text-gray-600">{new Date(alert.created_date).toLocaleString()}</span>
-                      </div>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            )}
-          </div>
+      <div className="text-2xl font-semibold text-slate-50">{value}</div>
+      {sublabel && (
+        <div className="text-xs text-slate-400">
+          {sublabel}
         </div>
       )}
     </div>
   );
-}
+};
+
+const SectionHeader = ({ title, subtitle }) => (
+  <div className="flex items-baseline justify-between">
+    <h2 className="text-sm font-semibold text-slate-100 tracking-wide uppercase">
+      {title}
+    </h2>
+    {subtitle && (
+      <span className="text-xs text-slate-400">
+        {subtitle}
+      </span>
+    )}
+  </div>
+);
+
+const AocsDashboard = () => {
+  // 🔧 Replace these with real data hooks later
+  const opsSummary = {
+    totalFlights: 128,
+    onTime: 112,
+    delayed: 13,
+    cancelled: 3,
+  };
+
+  const fleetHealth = {
+    active: 46,
+    oos: 3,
+    etopsReady: 18,
+    cat3Ready: 22,
+  };
+
+  const delayDrivers = [
+    { label: "Weather", minutes: 184 },
+    { label: "Maintenance", minutes: 96 },
+    { label: "Crew", minutes: 72 },
+    { label: "ATC", minutes: 51 },
+  ];
+
+  const hotspots = [
+    { station: "EWR", issue: "Deicing program", risk: "Medium" },
+    { station: "ORD", issue: "Gate congestion", risk: "High" },
+    { station: "IAH", issue: "Crew connections", risk: "Medium" },
+  ];
+
+  return (
+    <div className="flex min-h-screen flex-col gap-4 bg-slate-950 px-4 py-4 text-slate-50">
+      {/* Top bar */}
+      <header className="flex items-center justify-between gap-4">
+        <div>
+          <div className="text-xs font-semibold uppercase tracking-[0.2em] text-slate-500">
+            Aerodyne Fleet
+          </div>
+          <h1 className="text-xl font-semibold text-slate-50">
+            AOCS Operations Hub
+          </h1>
+          <p className="text-xs text-slate-400">
+            System‑wide view of today's operation, fleet health, and risk.
+          </p>
+        </div>
+        <div className="flex items-center gap-2 text-xs text-slate-400">
+          <span className="h-2 w-2 rounded-full bg-emerald-400" />
+          Live feed
+        </div>
+      </header>
+
+      {/* Main grid */}
+      <main className="grid gap-4 md:grid-cols-3">
+        {/* Column 1: Ops summary */}
+        <section className="flex flex-col gap-3 rounded-2xl border border-slate-800 bg-slate-900/40 p-4 md:col-span-1">
+          <SectionHeader
+            title="Today's operation"
+            subtitle="System‑wide movement"
+          />
+          <div className="grid grid-cols-2 gap-3">
+            <StatCard
+              label="Total flights"
+              value={opsSummary.totalFlights}
+              sublabel="All fleets / all stations"
+            />
+            <StatCard
+              label="On‑time"
+              value={`${opsSummary.onTime} (${Math.round(
+                (opsSummary.onTime / opsSummary.totalFlights) * 100
+              )}% )`}
+              tone="good"
+              sublabel="D0 / A14 performance"
+            />
+            <StatCard
+              label="Delayed"
+              value={opsSummary.delayed}
+              tone="warn"
+              sublabel="15+ minutes"
+            />
+            <StatCard
+              label="Cancelled"
+              value={opsSummary.cancelled}
+              tone="bad"
+              sublabel="System‑wide"
+            />
+          </div>
+        </section>
+
+        {/* Column 2: Fleet health */}
+        <section className="flex flex-col gap-3 rounded-2xl border border-slate-800 bg-slate-900/40 p-4 md:col-span-1">
+          <SectionHeader
+            title="Fleet health"
+            subtitle="Airworthiness & capability"
+          />
+          <div className="grid grid-cols-2 gap-3">
+            <StatCard
+              label="Active aircraft"
+              value={fleetHealth.active}
+              sublabel="Released for service"
+            />
+            <StatCard
+              label="OOS / AOG"
+              value={fleetHealth.oos}
+              tone="bad"
+              sublabel="Out of service"
+            />
+            <StatCard
+              label="ETOPS ready"
+              value={fleetHealth.etopsReady}
+              tone="good"
+              sublabel="Meets current ETOPS program"
+            />
+            <StatCard
+              label="CAT III capable"
+              value={fleetHealth.cat3Ready}
+              tone="good"
+              sublabel="Approved & available"
+            />
+          </div>
+        </section>
+
+        {/* Column 3: Hotspots */}
+        <section className="flex flex-col gap-3 rounded-2xl border border-slate-800 bg-slate-900/40 p-4 md:col-span-1">
+          <SectionHeader
+            title="Operational hotspots"
+            subtitle="Stations needing attention"
+          />
+          <div className="flex flex-col gap-2">
+            {hotspots.map((h) => (
+              <div
+                key={h.station}
+                className="flex items-center justify-between rounded-xl border border-slate-800 bg-slate-900/60 px-3 py-2"
+              >
+                <div>
+                  <div className="text-sm font-medium text-slate-100">
+                    {h.station}
+                  </div>
+                  <div className="text-xs text-slate-400">{h.issue}</div>
+                </div>
+                <span
+                  className={`rounded-full px-2 py-0.5 text-xs font-medium ${
+                    h.risk === "High"
+                      ? "bg-rose-900/60 text-rose-200"
+                      : "bg-amber-900/60 text-amber-200"
+                  }`}
+                >
+                  {h.risk} risk
+                </span>
+              </div>
+            ))}
+          </div>
+        </section>
+
+        {/* Bottom: Delay drivers */}
+        <section className="md:col-span-2 flex flex-col gap-3 rounded-2xl border border-slate-800 bg-slate-900/40 p-4">
+          <SectionHeader
+            title="Delay drivers today"
+            subtitle="Cumulative minutes by root cause"
+          />
+          <div className="flex flex-col gap-2">
+            {delayDrivers.map((d) => {
+              const totalMinutes = delayDrivers.reduce((sum, dd) => sum + dd.minutes, 0);
+              const percent = Math.round((d.minutes / totalMinutes) * 100);
+              return (
+                <div key={d.label} className="flex items-center gap-3">
+                  <div className="flex-1">
+                    <div className="flex items-center justify-between mb-1">
+                      <span className="text-xs font-medium text-slate-300">{d.label}</span>
+                      <span className="text-xs text-slate-500">{d.minutes} min ({percent}%)</span>
+                    </div>
+                    <div className="h-2 rounded-full bg-slate-800 overflow-hidden">
+                      <div
+                        className="h-full bg-slate-400"
+                        style={{ width: `${percent}%` }}
+                      />
+                    </div>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        </section>
+      </main>
+    </div>
+  );
+};
+
+export default AocsDashboard;
