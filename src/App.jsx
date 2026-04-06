@@ -72,6 +72,7 @@ const TechOpsDashboard        = lazy(() => import('@/components/techops/TechOpsD
 const TravelWeather           = lazy(() => import('@/pages/TravelWeather'));
 const TelemetryHub            = lazy(() => import('@/pages/TelemetryHub'));
 const EngineHealthAnalytics   = lazy(() => import('@/pages/EngineHealthAnalytics'));
+const LineMaintenanceDashboard = lazy(() => import('@/pages/LineMaintenanceDashboard'));
 
 function PageFallback() {
   return (
@@ -197,6 +198,7 @@ const AuthenticatedApp = () => {
         <Route path="/TravelWeather" element={<TravelWeather />} />
         <Route path="/TelemetryHub" element={<TelemetryHub />} />
         <Route path="/EngineHealthAnalytics" element={<EngineHealthAnalytics />} />
+        <Route path="/LineMaintenanceDashboard" element={<LineMaintenanceDashboard />} />
       </Route>
       <Route path="*" element={<PageNotFound />} />
     </Routes>

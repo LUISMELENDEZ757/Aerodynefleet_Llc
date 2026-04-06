@@ -28,6 +28,7 @@ const FLIGHT_OPS_ITEMS = [
 // ── TECH OPS GROUP ───────────────────────────────────────────────────────────
 const TECH_OPS_ITEMS = [
   { label: 'TECH OPS',       path: '/TechOps' },
+  { label: 'LINE MX',        path: '/LineMaintenanceDashboard' },
   { label: 'FLEET DASHBOARD',path: '/FleetDashboard' },
   { label: 'E-LOGBOOK',      path: '/TechOpsLogbook' },
   { label: 'MEL',            path: '/MEL' },
@@ -48,6 +49,7 @@ const TECH_OPS_ITEMS = [
 const TECH_MODE_ITEMS = [
   { label: 'HOME',           path: '/Home' },
   { label: 'AOCS',           path: '/AocsDashboard' },
+  { label: 'LINE MX',        path: '/LineMaintenanceDashboard' },
   ...TECH_OPS_ITEMS,
   { label: 'SETTINGS',       path: '/Settings' },
 ];
