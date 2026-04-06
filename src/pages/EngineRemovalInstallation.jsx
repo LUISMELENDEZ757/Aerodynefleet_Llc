@@ -112,7 +112,7 @@ function NewEngineEventModal({ aircraft, onClose, onCreate }) {
                 <p className="text-xs text-gray-300 mt-1">Before creating an engine removal event, verify that a discrepancy entry was made in the E-Logbook for this issue. All engine removals must be traceable to a documented discrepancy per 14 CFR Part 121.378.</p>
               </div>
             </div>
-            <a href="/TechOpsLogbook" target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-orange-600 hover:bg-orange-500 text-white text-sm font-bold transition-colors">
+            <a href={`/TechOpsLogbook?tail=${form.aircraft_tail}`} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-orange-600 hover:bg-orange-500 text-white text-sm font-bold transition-colors disabled:opacity-50" disabled={!form.aircraft_tail}>
               <BookOpen className="w-4 h-4" /> Open E-Logbook
             </a>
           </div>
