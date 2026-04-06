@@ -62,6 +62,7 @@ const inputCls = 'w-full bg-[#0d1117] border border-white/10 rounded-xl px-3 py-
 function NewEngineEventModal({ aircraft, onClose, onCreate }) {
   const [form, setForm] = useState({
     aircraft_tail: '',
+    operator_number: '',
     engine_position: '#1 (Left)',
     removed_sn: '',
     replacement_sn: '',
@@ -131,22 +132,22 @@ function NewEngineEventModal({ aircraft, onClose, onCreate }) {
                   <span className="text-primary font-bold">{aircraft.find(a => a.tail_number === form.aircraft_tail)?.airline || 'Fleet'}</span>
                   <span className="text-gray-500 mx-1">•</span>
                   <span className="text-gray-400">{aircraft.find(a => a.tail_number === form.aircraft_tail)?.aircraft_type}</span>
-                  {aircraft.find(a => a.tail_number === form.aircraft_tail)?.operator_number && (
-                    <>
-                      <span className="text-gray-500 mx-1">•</span>
-                      <span className="text-cyan-400">#{aircraft.find(a => a.tail_number === form.aircraft_tail)?.operator_number}</span>
-                    </>
-                  )}
                 </p>
               )}
-            </div>
-            <div>
+              </div>
+              <div>
+              <label className="text-[10px] font-bold text-gray-400 uppercase tracking-widest block mb-1">Operator Number</label>
+              <input value={form.operator_number} onChange={e => set('operator_number', e.target.value)} placeholder={aircraft.find(a => a.tail_number === form.aircraft_tail)?.operator_number || 'e.g. #001'} className={inputCls} />
+              </div>
+              </div>
+
+              {/* Engine Position */}
+              <div>
               <label className="text-[10px] font-bold text-gray-400 uppercase tracking-widest block mb-1">Engine Position *</label>
               <select value={form.engine_position} onChange={e => set('engine_position', e.target.value)} className={inputCls}>
-                {ENGINE_POSITIONS.map(p => <option key={p}>{p}</option>)}
+              {ENGINE_POSITIONS.map(p => <option key={p}>{p}</option>)}
               </select>
-            </div>
-          </div>
+              </div>
 
           {/* Serial numbers */}
           <div className="grid grid-cols-2 gap-3">
