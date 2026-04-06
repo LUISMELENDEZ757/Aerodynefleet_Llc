@@ -20,6 +20,7 @@ export default function PlaceOOSModal({ aircraft, onClose, onSubmit, isPending }
     // Step 1: Technician
     tech_name: '',
     tech_cert: '',
+    tech_phone: '',
     role: '',
     // Step 2: Discrepancy
     ata_chapter: '',
@@ -144,6 +145,16 @@ export default function PlaceOOSModal({ aircraft, onClose, onSubmit, isPending }
                 />
               </div>
               <div>
+                <label className="text-xs font-bold text-gray-400 uppercase tracking-widest block mb-2">Contact Phone Number</label>
+                <input
+                  type="tel"
+                  value={form.tech_phone}
+                  onChange={(e) => set('tech_phone', e.target.value)}
+                  placeholder="e.g. +1 (555) 000-0000"
+                  className="w-full bg-[#1a1f2e] border border-white/10 rounded-xl px-4 py-3 text-white placeholder-gray-600 text-sm outline-none focus:border-primary transition-colors"
+                />
+              </div>
+              <div>
                 <label className="text-xs font-bold text-gray-400 uppercase tracking-widest block mb-2">Role / Position *</label>
                 <select
                   value={form.role}
@@ -259,7 +270,7 @@ export default function PlaceOOSModal({ aircraft, onClose, onSubmit, isPending }
                   </div>
                   <div className="col-span-2">
                     <p className="text-xs font-bold text-gray-500 uppercase tracking-wider mb-1">Technician</p>
-                    <p className="text-base font-bold text-white">{form.tech_name} ({form.tech_cert})</p>
+                    <p className="text-base font-bold text-white">{form.tech_name} ({form.tech_cert}){form.tech_phone ? ` · ${form.tech_phone}` : ''}</p>
                   </div>
                   <div className="col-span-2">
                     <p className="text-xs font-bold text-gray-500 uppercase tracking-wider mb-1">Discrepancy</p>
