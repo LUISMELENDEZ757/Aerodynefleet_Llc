@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { useMutation, useQueryClient } from '@tanstack/react-query';
+import { useMutation, useQueryClient, useQuery } from '@tanstack/react-query';
 import { base44 } from '@/api/base44Client';
 import { Search, MapPin, Calendar, Wrench, Zap, Microscope, LayoutGrid, List, QrCode, Radio, Wifi, Plus, User, CheckCircle, Clock, AlertTriangle, X } from 'lucide-react';
 import { cn } from '@/lib/utils';
@@ -246,6 +246,11 @@ export default function ToolInventory({ tools, transactions, onRefresh, onScan, 
   const [view, setView] = useState('grid');
   const [modal, setModal] = useState(null); // { type: 'checkout'|'checkin', tool }
 
+  const { data: aircraft = [] } = useQuery({
+    queryKey: ['tooling-aircraft'],
+    queryFn: () => base44.entities.Aircraft.list('tail_number', 200),
+  });
+
   const filtered = tools.filter(t => {
     const q = search.toLowerCase();
     const matchSearch = !search ||
@@ -360,8 +365,8 @@ export default function ToolInventory({ tools, transactions, onRefresh, onScan, 
         </div>
       )}
 
-      {modal?.type === 'checkout' && <CheckOutModal tool={modal.tool} aircraft={tools.map(t => ({ tail_number: t.tail_number, aircraft_type: t.aircraft_type }))} onClose={() => setModal(null)} onSuccess={() => { setModal(null); onRefresh(); }} />}
-      {modal?.type === 'checkin'  && <CheckInModal  tool={modal.tool} aircraft={tools.map(t => ({ id: t.id, tail_number: t.tail_number, aircraft_type: t.aircraft_type }))} onClose={() => setModal(null)} onSuccess={() => { setModal(null); onRefresh(); }} />}
+      {modal?.type === 'checkout' && <CheckOutModal tool={modal.tool} aircraft={aircraft} onClose={() => setModal(null)} onSuccess={() => { setModal(null); onRefresh(); }} />}
+      {modal?.type === 'checkin'  && <CheckInModal  tool={modal.tool} aircraft={aircraft} onClose={() => setModal(null)} onSuccess={() => { setModal(null); onRefresh(); }} />}
     </div>
   );
 }
