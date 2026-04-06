@@ -317,14 +317,22 @@ export default function EngineRemovalInstallation() {
     },
   });
 
-  // Auto-select first event & filter by fleet
-  useEffect(() => {
-    if (!selectedEvent && engineEvents.length > 0) setSelectedEvent(engineEvents[0]);
-  }, [engineEvents]);
+  // Filter events by fleet
+  const engineEvents = events.filter(e => {
+    if (!e.description?.includes('[ENGINE REMOVAL]')) return false;
+    if (!selectedFleetId) return true;
+    return aircraft.some(a => a.tail_number === e.aircraft_tail);
+  });
+
   const activeCount    = engineEvents.filter(e => !e.notes?.includes('on_hold') && !e.notes?.includes('completed')).length;
   const onHoldCount    = engineEvents.filter(e => e.notes?.includes('on_hold')).length;
   const completedCount = engineEvents.filter(e => e.is_cleared).length;
   const enginesReady   = aircraft.filter(a => a.status === 'active' && a.engine_type).length;
+
+  // Auto-select first event
+  useEffect(() => {
+    if (!selectedEvent && engineEvents.length > 0) setSelectedEvent(engineEvents[0]);
+  }, [engineEvents, selectedEvent]);
 
   return (
     <div className="min-h-screen bg-[#0d1117] text-white pb-24">
