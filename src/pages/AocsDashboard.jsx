@@ -192,12 +192,12 @@ export default function AocsDashboard() {
         <div className="px-5 pt-5 space-y-5">
           {/* Master KPI Grid */}
           <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
-            <StatCard icon={Plane} label="Active Flights" value={activeFlights} sub={`${delayedFlights} delayed`} color={delayedFlights > 0 ? 'text-amber-400 bg-amber-600/15' : 'text-sky-400 bg-sky-600/15'} link="/Dashboard" />
-            <StatCard icon={TrendingUp} label="OTP Rate" value={`${otpPct}%`} sub={`${totalFlights} total`} color={otpPct >= 80 ? 'text-green-400 bg-green-600/15' : 'text-amber-400 bg-amber-600/15'} link="/Analytics" />
-            <StatCard icon={Activity} label="Fleet Active" value={`${activeAircraft}/${aircraft.length}`} sub={`${oosAircraft} OOS`} color={oosAircraft > 0 ? 'text-red-400 bg-red-600/15' : 'text-green-400 bg-green-600/15'} link="/FleetDashboard" />
-            <StatCard icon={Users} label="Crew Issues" value={0} sub="See Crew Control" color="text-green-400 bg-green-600/15" link="/CrewControl" />
-            <StatCard icon={AlertTriangle} label="Active IROPS" value={activeIROPS} sub={activeIROPS > 0 ? 'events' : 'none'} color={activeIROPS > 0 ? 'text-amber-400 bg-amber-600/15' : 'text-green-400 bg-green-600/15'} link="/IROPS" />
-            <StatCard icon={Wrench} label="Open MX / MEL" value={openOOS + expiredMEL} sub={`${expiredMEL} expired MEL`} color={expiredMEL > 0 ? 'text-red-400 bg-red-600/15' : 'text-orange-400 bg-amber-600/15'} link="/MaintenanceControl" />
+            <StatCard icon={Plane} label="Active Flights" value={activeFlights} sub={`${delayedFlights} delayed`} color={delayedFlights > 0 ? 'text-amber-400 bg-amber-600/15' : 'text-sky-400 bg-sky-600/15'} />
+            <StatCard icon={TrendingUp} label="OTP Rate" value={`${otpPct}%`} sub={`${totalFlights} total`} color={otpPct >= 80 ? 'text-green-400 bg-green-600/15' : 'text-amber-400 bg-amber-600/15'} />
+            <StatCard icon={Activity} label="Fleet Active" value={`${activeAircraft}/${aircraft.length}`} sub={`${oosAircraft} OOS`} color={oosAircraft > 0 ? 'text-red-400 bg-red-600/15' : 'text-green-400 bg-green-600/15'} />
+            <StatCard icon={Users} label="Crew Issues" value={0} sub="See Crew Control" color="text-green-400 bg-green-600/15" />
+            <StatCard icon={AlertTriangle} label="Active IROPS" value={activeIROPS} sub={activeIROPS > 0 ? 'events' : 'none'} color={activeIROPS > 0 ? 'text-amber-400 bg-amber-600/15' : 'text-green-400 bg-green-600/15'} />
+            <StatCard icon={Wrench} label="Open MX / MEL" value={openOOS + expiredMEL} sub={`${expiredMEL} expired MEL`} color={expiredMEL > 0 ? 'text-red-400 bg-red-600/15' : 'text-orange-400 bg-amber-600/15'} />
           </div>
 
           {/* OTP Chart */}
