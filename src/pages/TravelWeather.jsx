@@ -193,16 +193,52 @@ export default function TravelWeather() {
   const [selected, setSelected] = useState(DESTINATIONS[0]);
   const [search, setSearch] = useState('');
   const [unit, setUnit] = useState('C');
+  const [customDest, setCustomDest] = useState('');
+  const [destinations, setDestinations] = useState(DESTINATIONS);
 
   const convertTemp = (celsius) => unit === 'F' ? Math.round((celsius * 9/5) + 32) : celsius;
 
-  const filtered = DESTINATIONS.filter(d =>
+  const addCustomDestination = () => {
+    if (!customDest.trim()) return;
+    const [city, country] = customDest.split(',').map(s => s.trim());
+    if (!city) return;
+    
+    const newDest = {
+      name: city,
+      country: country || 'Unknown',
+      emoji: '🌍',
+      lat: 0,
+      lon: 0,
+      vibe: 'Custom Destination',
+      temp: 25,
+      feels: 27,
+      humidity: 60,
+      wind: 10,
+      uv: 7,
+      vis: 15,
+      pressure: 1013,
+      condition: 'partly_cloudy',
+      high: 28,
+      low: 20,
+      sunrise: '6:00 AM',
+      sunset: '6:30 PM',
+      icon: '⛅',
+      desc: 'Search your custom destination online for live weather.',
+      activities: ['Explore', 'Discover', 'Adventure']
+    };
+    
+    setDestinations([...destinations, newDest]);
+    setSelected(newDest);
+    setCustomDest('');
+  };
+
+  const filtered = destinations.filter(d =>
     d.name.toLowerCase().includes(search.toLowerCase()) ||
     d.country.toLowerCase().includes(search.toLowerCase()) ||
     d.vibe.toLowerCase().includes(search.toLowerCase())
   );
 
-  const sunniest = [...DESTINATIONS].sort((a, b) => b.temp - a.temp)[0];
+  const sunniest = [...destinations].sort((a, b) => b.temp - a.temp)[0];
 
   return (
     <div className="min-h-screen bg-[#0d1117] pb-24">
@@ -224,7 +260,7 @@ export default function TravelWeather() {
           <div className="flex items-center gap-3">
             <div className="flex items-center gap-2 text-xs font-bold bg-amber-500/20 text-amber-400 px-3 py-1.5 rounded-full border border-amber-500/30">
               <Waves className="w-3.5 h-3.5" />
-              {DESTINATIONS.filter(d => d.condition === 'sunny').length} sunny destinations
+              {destinations.filter(d => d.condition === 'sunny').length} sunny destinations
             </div>
             <button
               onClick={() => setUnit(unit === 'C' ? 'F' : 'C')}
@@ -259,6 +295,27 @@ export default function TravelWeather() {
               placeholder="Search destinations…"
               className="w-full bg-[#141922] border border-white/10 rounded-xl pl-9 pr-4 py-2.5 text-sm text-white placeholder-gray-600 focus:outline-none focus:ring-1 focus:ring-primary"
             />
+          </div>
+
+          {/* Custom Destination Input */}
+          <div className="space-y-2 p-3 bg-[#141922] rounded-xl border border-white/10">
+            <div className="flex gap-2">
+              <input
+                type="text"
+                value={customDest}
+                onChange={e => setCustomDest(e.target.value)}
+                onKeyPress={e => e.key === 'Enter' && addCustomDestination()}
+                placeholder="City, Country"
+                className="flex-1 bg-[#0d1117] border border-white/10 rounded-lg px-3 py-2 text-sm text-white placeholder-gray-600 focus:outline-none focus:ring-1 focus:ring-primary"
+              />
+              <button
+                onClick={addCustomDestination}
+                className="px-3 py-2 bg-primary/20 text-primary rounded-lg font-bold text-xs hover:bg-primary/30 transition-colors"
+              >
+                Add
+              </button>
+            </div>
+            <p className="text-xs text-gray-500">Add any city worldwide (e.g., "Tokyo, Japan")</p>
           </div>
 
           {/* Cards */}
