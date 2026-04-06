@@ -15,7 +15,7 @@ import {
   PieChart, Pie, Cell, CartesianGrid, Legend
 } from 'recharts';
 
-const COLORS = ['#22c55e', '#f59e0b', '#ef4444', '#3b82f6'];
+const COLORS = ['#22c55e', '#f59e0b', '#ef4444', '#3b82f6']; // AOCS colors
 
 const TABS = [
   { id: 'overview', label: 'Overview', icon: BarChart3 },
