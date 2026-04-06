@@ -80,7 +80,26 @@ function AircraftDetailOverlay({ aircraft: initialAircraft, onClose }) {
   const catOptions = getMaxCatOptions(aircraft.aircraft_type);
   const defaultCat = catOptions[0];
   const [catStatus, setCatStatus] = useState(defaultCat);
-  const [etopsStatus, setEtopsStatus] = useState('NON-ETOPS');
+  // Derive max ETOPS capability from aircraft type
+  // ETOPS-370: B777, B787, A350 (ultra long-range twins)
+  // ETOPS-180: B737 MAX, A320, A321, B767
+  // ETOPS-120: B737-800/900, B757
+  // NON-ETOPS: CRJ, E-jets, B737-700 and below
+  const getEtopsOptions = (acType = '') => {
+    if (['B777', 'B787', 'A350'].some(t => acType.includes(t))) {
+      return ['ETOPS-370', 'ETOPS-330', 'ETOPS-207', 'ETOPS-180', 'ETOPS-120', 'NON-ETOPS'];
+    }
+    if (['B737 MAX', 'A320', 'A321', 'B767'].some(t => acType.includes(t))) {
+      return ['ETOPS-180', 'ETOPS-138', 'ETOPS-120', 'NON-ETOPS'];
+    }
+    if (['B737-800', 'B737-900', 'B757'].some(t => acType.includes(t))) {
+      return ['ETOPS-120', 'ETOPS-90', 'NON-ETOPS'];
+    }
+    return ['NON-ETOPS'];
+  };
+
+  const etopsOptions = getEtopsOptions(aircraft.aircraft_type);
+  const [etopsStatus, setEtopsStatus] = useState(etopsOptions[0]);
   const [showCatDropdown, setShowCatDropdown] = useState(false);
   const [showEtopsDropdown, setShowEtopsDropdown] = useState(false);
   const [showAddEventModal, setShowAddEventModal] = useState(false);
@@ -217,23 +236,51 @@ function AircraftDetailOverlay({ aircraft: initialAircraft, onClose }) {
             "rounded-xl border px-4 py-3 relative",
             etopsStatus === 'NON-ETOPS'
               ? 'border-red-600/40 bg-red-900/20'
+              : etopsStatus === 'ETOPS-370' || etopsStatus === 'ETOPS-330'
+              ? 'border-cyan-600/40 bg-cyan-900/20'
               : 'border-green-600/40 bg-green-900/20'
           )}>
-            <div className="flex items-center justify-between">
+            <div className="flex items-center justify-between mb-2">
               <div className="flex items-center gap-2">
-                <Globe className={cn('w-4 h-4', etopsStatus === 'NON-ETOPS' ? 'text-red-400' : 'text-green-400')} />
-                <p className={cn('text-[10px] font-bold uppercase tracking-widest', etopsStatus === 'NON-ETOPS' ? 'text-red-400' : 'text-green-400')}>ETOPS STATUS</p>
+                <Globe className={cn('w-4 h-4',
+                  etopsStatus === 'NON-ETOPS' ? 'text-red-400' :
+                  etopsStatus === 'ETOPS-370' || etopsStatus === 'ETOPS-330' ? 'text-cyan-400' :
+                  'text-green-400'
+                )} />
+                <p className={cn('text-[10px] font-bold uppercase tracking-widest',
+                  etopsStatus === 'NON-ETOPS' ? 'text-red-400' :
+                  etopsStatus === 'ETOPS-370' || etopsStatus === 'ETOPS-330' ? 'text-cyan-400' :
+                  'text-green-400'
+                )}>ETOPS STATUS</p>
               </div>
               <button onClick={() => setShowEtopsDropdown(v => !v)}
                 className="flex items-center gap-1 px-3 py-1.5 rounded-lg border border-white/20 bg-[#141922] text-xs font-bold text-white hover:bg-white/10">
                 {etopsStatus} <ChevronDown className="w-3 h-3" />
               </button>
             </div>
+            <p className={cn('text-[10px]',
+              etopsStatus === 'NON-ETOPS' ? 'text-red-400' :
+              etopsStatus === 'ETOPS-370' || etopsStatus === 'ETOPS-330' ? 'text-cyan-400' :
+              'text-green-400'
+            )}>
+              Max certified: <span className="font-bold">{etopsOptions[0]}</span>
+              {etopsOptions[0] === 'ETOPS-370' && ' · 370 min · Polar / Pacific'}
+              {etopsOptions[0] === 'ETOPS-180' && ' · 180 min · Extended ops'}
+              {etopsOptions[0] === 'ETOPS-120' && ' · 120 min · Overwater ops'}
+              {etopsOptions[0] === 'NON-ETOPS' && ' · Domestic / short-haul only'}
+            </p>
             {showEtopsDropdown && (
-              <div className="absolute right-3 top-full mt-1 bg-[#1a1f2e] border border-white/10 rounded-xl overflow-hidden z-20 shadow-xl">
-                {['NON-ETOPS', 'ETOPS-120', 'ETOPS-180', 'ETOPS-207'].map(opt => (
+              <div className="absolute right-3 top-full mt-1 bg-[#1a1f2e] border border-white/10 rounded-xl overflow-hidden z-20 shadow-xl min-w-[160px]">
+                {etopsOptions.map(opt => (
                   <button key={opt} onClick={() => { setEtopsStatus(opt); setShowEtopsDropdown(false); }}
-                    className="block w-full text-left px-4 py-2.5 text-xs font-bold text-white hover:bg-white/10">{opt}</button>
+                    className={cn(
+                      'block w-full text-left px-4 py-2.5 text-xs font-bold hover:bg-white/10',
+                      opt === 'NON-ETOPS' ? 'text-red-400' :
+                      opt === 'ETOPS-370' ? 'text-cyan-300' :
+                      opt === 'ETOPS-330' ? 'text-blue-300' :
+                      opt === 'ETOPS-207' ? 'text-violet-300' :
+                      'text-green-300'
+                    )}>{opt}</button>
                 ))}
               </div>
             )}
