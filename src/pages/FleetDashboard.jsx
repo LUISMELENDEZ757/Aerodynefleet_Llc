@@ -167,11 +167,16 @@ function AircraftDetailOverlay({ aircraft: initialAircraft, onClose }) {
           </div>
 
           {/* ETOPS Selector */}
-          <div className="rounded-xl border border-white/10 bg-[#1a1f2e] px-4 py-3 relative">
+          <div className={cn(
+            "rounded-xl border px-4 py-3 relative",
+            etopsStatus === 'NON-ETOPS'
+              ? 'border-red-600/40 bg-red-900/20'
+              : 'border-green-600/40 bg-green-900/20'
+          )}>
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2">
-                <Globe className="w-4 h-4 text-gray-400" />
-                <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">ETOPS STATUS</p>
+                <Globe className={cn('w-4 h-4', etopsStatus === 'NON-ETOPS' ? 'text-red-400' : 'text-green-400')} />
+                <p className={cn('text-[10px] font-bold uppercase tracking-widest', etopsStatus === 'NON-ETOPS' ? 'text-red-400' : 'text-green-400')}>ETOPS STATUS</p>
               </div>
               <button onClick={() => setShowEtopsDropdown(v => !v)}
                 className="flex items-center gap-1 px-3 py-1.5 rounded-lg border border-white/20 bg-[#141922] text-xs font-bold text-white hover:bg-white/10">
