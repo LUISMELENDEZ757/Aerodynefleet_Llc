@@ -1,12 +1,22 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import { base44 } from '@/api/base44Client';
 import {
   ChevronLeft, CheckCircle2, AlertTriangle, Users, TrendingUp,
-  Download, Clipboard, Eye, BarChart3, Shield, Activity
+  Download, Clipboard, Eye, BarChart3, Shield, Activity, Filter,
+  Clock, Zap, ChevronRight, Search
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
+
+const TOP_TABS = [
+  { id: 'dashboard', label: 'QC/RII Dashboard' },
+  { id: 'fleet_sync', label: 'Fleet Sync' },
+  { id: 'qa_env', label: 'QA Environment' },
+  { id: 'qc_inspection', label: 'QC Inspection' },
+  { id: 'qa_workflow', label: 'QC/QA Workflow' },
+  { id: 'webrtc', label: 'WebRTC Dept-Link' },
+];
 
 const TABS = [
   { id: 'overview',   label: 'Overview',      icon: Eye },
@@ -16,15 +26,37 @@ const TABS = [
   { id: 'audit_trail', label: 'Audit Trail',  icon: Activity },
 ];
 
-function KpiCard({ icon: Icon, label, value, sublabel }) {
+const MODULES = [
+  { id: 'fleet_health', label: 'Fleet Health Dashboard', icon: TrendingUp, desc: 'Real-time fleet health monitoring and analytics' },
+  { id: 'audit_schedule', label: 'QA Audit Schedule', icon: Clipboard, desc: 'Quality audit planning and tracking' },
+];
+
+function LiveClock() {
+  const [time, setTime] = useState(new Date());
+  useEffect(() => {
+    const interval = setInterval(() => setTime(new Date()), 1000);
+    return () => clearInterval(interval);
+  }, []);
+  const h = String(time.getHours()).padStart(2, '0');
+  const m = String(time.getMinutes()).padStart(2, '0');
+  const s = String(time.getSeconds()).padStart(2, '0');
   return (
-    <div className="bg-card rounded-2xl border border-border p-5 space-y-2">
+    <div className="text-right">
+      <p className="text-3xl font-black font-mono text-primary">{h}:{m}:{s}</p>
+      <p className="text-xs text-muted-foreground">{time.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric', year: 'numeric' })}</p>
+    </div>
+  );
+}
+
+function KpiCard({ icon: Icon, label, value, sublabel, dotColor }) {
+  return (
+    <div className="bg-card/50 border border-border rounded-xl p-3 space-y-1">
       <div className="flex items-center gap-2">
-        <Icon className="w-4 h-4 text-primary" />
-        <p className="text-xs text-muted-foreground">{label}</p>
+        <Icon className="w-3 h-3 text-muted-foreground" />
+        {dotColor && <span className={cn('w-2 h-2 rounded-full', dotColor)} />}
       </div>
-      <p className="text-3xl font-extrabold text-foreground">{value}</p>
-      {sublabel && <p className="text-xs text-muted-foreground">{sublabel}</p>}
+      <p className="text-2xl font-extrabold text-foreground">{value}</p>
+      <p className="text-xs text-muted-foreground">{label}</p>
     </div>
   );
 }
@@ -101,9 +133,160 @@ function OverviewTab() {
 
 export default function QAQCDashboard() {
   const [activeTab, setActiveTab] = useState('overview');
+  const [activeTopTab, setActiveTopTab] = useState('qa_env');
+  const [selectedModule, setSelectedModule] = useState('fleet_health');
+
+  if (activeTopTab === 'qa_env') {
+    return (
+      <div className="min-h-screen bg-background pb-24">
+        {/* Top Navigation Tabs */}
+        <div className="border-b border-border bg-secondary/40 px-5 py-3 flex gap-2 overflow-x-auto scrollbar-hide">
+          {TOP_TABS.map(({ id, label }) => (
+            <button
+              key={id}
+              onClick={() => setActiveTopTab(id)}
+              className={cn(
+                'px-3 py-2 rounded-lg text-xs font-bold whitespace-nowrap transition-all flex-shrink-0',
+                activeTopTab === id ? 'bg-primary text-primary-foreground' : 'text-muted-foreground hover:text-foreground'
+              )}
+            >
+              {label}
+            </button>
+          ))}
+        </div>
+
+        {/* QA Environment Header */}
+        <div className="bg-gradient-to-r from-yellow-600 to-yellow-700 px-5 py-4 text-white">
+          <div className="flex items-center justify-between gap-4">
+            <div className="flex items-start gap-3">
+              <div className="w-10 h-10 rounded-xl bg-white/20 flex items-center justify-center">
+                <Shield className="w-6 h-6" />
+              </div>
+              <div>
+                <h1 className="text-2xl font-extrabold tracking-wide">QUALITY ASSURANCE ENVIRONMENT</h1>
+                <p className="text-sm opacity-90">Comprehensive QA Oversight & Compliance Management System</p>
+              </div>
+            </div>
+            <LiveClock />
+          </div>
+        </div>
+
+        {/* KPI Cards */}
+        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-2 px-5 py-4 bg-background/50">
+          <KpiCard icon={Zap} label="Fleet Aircraft" value="0" dotColor="bg-blue-500" />
+          <KpiCard icon={TrendingUp} label="Fleet Health" value="87%" dotColor="bg-green-500" />
+          <KpiCard icon={Clock} label="Active Audits" value="2" dotColor="bg-yellow-500" />
+          <KpiCard icon={AlertTriangle} label="Open NCs" value="3" dotColor="bg-orange-500" />
+          <KpiCard icon={Clipboard} label="Pending RII" value="5" dotColor="bg-red-500" />
+          <KpiCard icon={AlertTriangle} label="Safety Reports" value="2" dotColor="bg-pink-500" />
+        </div>
+
+        {/* Main Content with Sidebar */}
+        <div className="flex gap-0">
+          {/* Left Sidebar */}
+          <div className="w-64 border-r border-border bg-secondary/20 p-4 flex flex-col gap-4 max-h-[calc(100vh-300px)] overflow-y-auto">
+            <div className="relative">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+              <input type="text" placeholder="Search modules..." className="w-full pl-9 pr-3 py-2 bg-background border border-border rounded-lg text-xs outline-none focus:ring-1 focus:ring-primary" />
+            </div>
+
+            <div className="space-y-2">
+              <p className="text-xs font-extrabold text-muted-foreground uppercase tracking-widest">FLEET OVERSIGHT</p>
+              {MODULES.map(({ id, label, icon: Icon, desc }) => (
+                <button
+                  key={id}
+                  onClick={() => setSelectedModule(id)}
+                  className={cn(
+                    'w-full text-left p-3 rounded-xl border transition-all',
+                    selectedModule === id
+                      ? 'bg-yellow-600/30 border-yellow-500/50 text-yellow-600'
+                      : 'border-border hover:border-border/80'
+                  )}
+                >
+                  <div className="flex items-start gap-2">
+                    <Icon className="w-4 h-4 mt-0.5 flex-shrink-0" />
+                    <div>
+                      <p className="text-xs font-bold">{label}</p>
+                      <p className="text-[10px] text-muted-foreground mt-0.5">{desc}</p>
+                    </div>
+                  </div>
+                </button>
+              ))}
+            </div>
+          </div>
+
+          {/* Right Content Area */}
+          <div className="flex-1 p-5">
+            {selectedModule === 'fleet_health' && (
+              <div className="space-y-4">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <h2 className="text-xl font-extrabold text-foreground">Fleet Health Dashboard</h2>
+                    <p className="text-xs text-muted-foreground mt-0.5">Fleet Oversight • Real-time fleet health monitoring and analytics</p>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <button className="flex items-center gap-1.5 bg-secondary text-muted-foreground hover:text-foreground text-xs font-bold px-3 py-2 rounded-lg transition-colors">
+                      <Filter className="w-3.5 h-3.5" /> Filter
+                    </button>
+                    <button className="flex items-center gap-1.5 bg-primary text-primary-foreground text-xs font-bold px-3 py-2 rounded-lg hover:bg-primary/90">
+                      <Download className="w-3.5 h-3.5" /> Export
+                    </button>
+                  </div>
+                </div>
+
+                <div className="bg-card/50 border border-border rounded-2xl p-6">
+                  <h3 className="text-lg font-extrabold text-foreground mb-2 flex items-center gap-2">
+                    <span className="text-xl">📊</span> FLEET HEALTH & COMPLIANCE OVERVIEW
+                  </h3>
+                  <p className="text-xs text-muted-foreground mb-4">Comprehensive fleet-wide health monitoring and compliance tracking</p>
+                  
+                  <div className="flex gap-2 flex-wrap">
+                    {[
+                      { label: 'All Aircraft', icon: '✈️', color: 'bg-pink-500/20 text-pink-600' },
+                      { label: 'High Risk', icon: '⚠️', color: 'bg-orange-500/20 text-orange-600' },
+                      { label: 'Deferred Items', icon: '⏸️', color: 'bg-blue-500/20 text-blue-600' },
+                      { label: 'Repeat Issues', icon: '🔄', color: 'bg-purple-500/20 text-purple-600' },
+                      { label: 'High Impact', icon: '💥', color: 'bg-red-500/20 text-red-600' },
+                    ].map(({ label, icon, color }) => (
+                      <button key={label} className={cn('px-4 py-2 rounded-lg text-xs font-bold', color)}>
+                        {icon} {label}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {selectedModule === 'audit_schedule' && (
+              <div className="text-muted-foreground py-12 text-center">
+                <Clipboard className="w-12 h-12 mx-auto mb-4 opacity-50" />
+                <p className="text-sm">Audit schedule management coming soon</p>
+              </div>
+            )}
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-background pb-24">
+      {/* Top Navigation Tabs */}
+      <div className="border-b border-border bg-secondary/40 px-5 py-3 flex gap-2 overflow-x-auto scrollbar-hide">
+        {TOP_TABS.map(({ id, label }) => (
+          <button
+            key={id}
+            onClick={() => setActiveTopTab(id)}
+            className={cn(
+              'px-3 py-2 rounded-lg text-xs font-bold whitespace-nowrap transition-all flex-shrink-0',
+              activeTopTab === id ? 'bg-primary text-primary-foreground' : 'text-muted-foreground hover:text-foreground'
+            )}
+          >
+            {label}
+          </button>
+        ))}
+      </div>
+
       <div className="border-b border-border bg-card px-5 pt-5 pb-4">
         <div className="flex items-start justify-between gap-4 mb-4">
           <div className="flex items-center gap-3">
@@ -140,6 +323,7 @@ export default function QAQCDashboard() {
       </div>
 
       <div className="p-4 max-w-7xl mx-auto">
+        {/* Only show tabs content if not in QA Environment */}
         {activeTab === 'overview' && <OverviewTab />}
 
         {activeTab === 'rii_items' && (
