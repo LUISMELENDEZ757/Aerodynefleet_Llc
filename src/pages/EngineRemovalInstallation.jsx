@@ -136,8 +136,21 @@ function NewEngineEventModal({ aircraft, onClose, onCreate }) {
               )}
               </div>
               <div>
-              <label className="text-[10px] font-bold text-gray-400 uppercase tracking-widest block mb-1">Operator Number</label>
-              <input value={form.operator_number} onChange={e => set('operator_number', e.target.value)} placeholder={aircraft.find(a => a.tail_number === form.aircraft_tail)?.operator_number || 'e.g. #001'} className={inputCls} />
+                <label className="text-[10px] font-bold text-gray-400 uppercase tracking-widest block mb-1">Operator Number</label>
+                {form.aircraft_tail && (() => {
+                  const ac = aircraft.find(a => a.tail_number === form.aircraft_tail);
+                  const suggested = ac?.operator_number || `${(ac?.airline || 'AER').substring(0, 3).toUpperCase()}-${(ac?.aircraft_type || '').replace(/[^A-Z0-9]/g, '').substring(0, 3)}`;
+                  return (
+                    <input
+                      value={form.operator_number}
+                      onChange={e => set('operator_number', e.target.value)}
+                      placeholder={suggested}
+                      title={`Suggested: ${suggested}`}
+                      className={inputCls}
+                    />
+                  );
+                })()}
+                {!form.aircraft_tail && <input disabled placeholder="Select aircraft first" className={inputCls + ' opacity-50'} />}
               </div>
               </div>
 
