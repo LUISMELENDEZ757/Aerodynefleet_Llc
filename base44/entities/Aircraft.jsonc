@@ -1,27 +1,23 @@
 {
   "name": "Aircraft",
   "type": "object",
-  "description": "Aerodyne Fleet LLC \u2014 Aircraft registry. Multi-fleet resource. Each aircraft belongs to a specific fleet/operator via fleet_id and airline fields.",
+  "description": "Aerodyne Fleet LLC \u2014 Aircraft registry. Multi-fleet resource. Each tail is linked to a fleet, operator, and aircraft type for full capability resolution.",
   "properties": {
     "tail_number": {
       "type": "string",
-      "description": "Aircraft tail/registration number e.g. N455GJ"
+      "description": "Aircraft registration / tail number e.g. N455GJ"
     },
     "fleet_id": {
       "type": "string",
-      "description": "Reference to Fleet entity ID \u2014 identifies which sub-fleet this aircraft belongs to"
+      "description": "Reference to Fleet entity ID"
     },
     "airline": {
       "type": "string",
       "description": "Operating airline/operator name \u2014 denormalized from Fleet for fast queries"
     },
-    "msn": {
+    "aircraft_type_id": {
       "type": "string",
-      "description": "Manufacturer serial number (primary identifier for multifleet platforms)"
-    },
-    "operator_number": {
-      "type": "string",
-      "description": "Optional operator-specific aircraft identifier or fleet number"
+      "description": "Reference to AircraftType entity ID"
     },
     "aircraft_type": {
       "type": "string",
@@ -43,7 +39,97 @@
         "CRJ700",
         "CRJ900"
       ],
-      "description": "Aircraft type"
+      "description": "Aircraft type (denormalized for fast display)"
+    },
+    "msn": {
+      "type": "string",
+      "description": "Manufacturer serial number"
+    },
+    "line_number": {
+      "type": "string",
+      "description": "Production line number"
+    },
+    "operator_number": {
+      "type": "string",
+      "description": "Operator-specific fleet/aircraft number"
+    },
+    "base_station": {
+      "type": "string",
+      "description": "Home base station ICAO code e.g. KEWR"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "active",
+        "oos",
+        "maintenance",
+        "retired"
+      ],
+      "default": "active",
+      "description": "Current operational status"
+    },
+    "delivery_date": {
+      "type": "string",
+      "format": "date",
+      "description": "Date aircraft was delivered to operator"
+    },
+    "retirement_date": {
+      "type": "string",
+      "format": "date",
+      "description": "Planned or actual retirement date"
+    },
+    "engine_type": {
+      "type": "string",
+      "description": "Engine type installed e.g. CFM56-7B27, LEAP-1B, GE9X"
+    },
+    "engine_variant": {
+      "type": "string",
+      "description": "Specific engine sub-variant or thrust rating"
+    },
+    "mtow_variant": {
+      "type": "string",
+      "description": "MTOW variant / structural weight category e.g. 77.1t, 79.0t"
+    },
+    "etops_approval": {
+      "type": "number",
+      "description": "Tail-specific ETOPS approval in minutes e.g. 120, 180, 370"
+    },
+    "cat_approval": {
+      "type": "string",
+      "enum": [
+        "CAT I",
+        "CAT II",
+        "CAT IIIa",
+        "CAT IIIb",
+        "CAT IIIc"
+      ],
+      "description": "Tail-specific ILS CAT approval"
+    },
+    "rvsm_approved": {
+      "type": "boolean",
+      "default": true,
+      "description": "RVSM approval status"
+    },
+    "rnp_capability": {
+      "type": "string",
+      "enum": [
+        "None",
+        "RNP 1.0",
+        "RNP 0.3",
+        "RNP AR 0.3",
+        "RNP AR 0.1"
+      ],
+      "default": "RNP 0.3",
+      "description": "Required Navigation Performance capability"
+    },
+    "polar_approved": {
+      "type": "boolean",
+      "default": false,
+      "description": "Polar operations approved"
+    },
+    "cabin_config_ref": {
+      "type": "string",
+      "description": "Cabin configuration reference e.g. 28J/324Y, 8F/48C/152Y"
     },
     "performance_profile": {
       "type": "string",
@@ -59,29 +145,6 @@
         "CRJ700_profile"
       ],
       "description": "Performance profile for takeoff/landing/drift-down calculations"
-    },
-    "base_station": {
-      "type": "string",
-      "description": "Home base station ICAO code e.g. KEWR"
-    },
-    "status": {
-      "type": "string",
-      "enum": [
-        "active",
-        "oos",
-        "maintenance",
-        "retired"
-      ],
-      "default": "active",
-      "description": "Current operational status of the aircraft"
-    },
-    "line_number": {
-      "type": "string",
-      "description": "Boeing/Airbus/Embraer production line number"
-    },
-    "engine_type": {
-      "type": "string",
-      "description": "Engine type e.g. CFM56-7B27, LEAP-1B, GE9X, PW1000G"
     },
     "notes": {
       "type": "string",

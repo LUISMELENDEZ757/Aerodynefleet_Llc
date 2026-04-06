@@ -16,6 +16,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import AddTimelineEventModal from '@/components/fleet/AddTimelineEventModal';
 import TakingOwnershipModal from '@/components/fleet/TakingOwnershipModal';
 import PlaceOOSModal from '@/components/fleet/PlaceOOSModal';
+import AddAircraftWizard from '@/components/fleet/AddAircraftWizard';
 
 const STATUS_OPTIONS = ['All Status', 'active', 'oos', 'maintenance', 'retired'];
 
@@ -415,6 +416,7 @@ export default function FleetDashboard() {
   const [viewMode, setViewMode] = useState('grid');
   const [selectedAircraft, setSelectedAircraft] = useState(null);
   const [kpiFilter, setKpiFilter] = useState(null);
+  const [showAddWizard, setShowAddWizard] = useState(false);
 
   const { activeFleet, activeFleetId } = useFleet();
 
@@ -574,14 +576,22 @@ export default function FleetDashboard() {
 
           <div className="flex items-center justify-between mb-4">
             <p className="text-xs text-gray-600">Showing {filtered.length.toLocaleString()} of {total.toLocaleString()} aircraft</p>
-            {kpiFilter && (
+            <div className="flex items-center gap-2">
+              {kpiFilter && (
+                <button
+                  onClick={() => setKpiFilter(null)}
+                  className="text-xs font-bold text-primary hover:text-primary/80 flex items-center gap-1"
+                >
+                  <X className="w-3 h-3" /> Clear filter
+                </button>
+              )}
               <button
-                onClick={() => setKpiFilter(null)}
-                className="text-xs font-bold text-primary hover:text-primary/80 flex items-center gap-1"
+                onClick={() => setShowAddWizard(true)}
+                className="flex items-center gap-1.5 px-4 py-2 rounded-xl bg-primary text-primary-foreground text-xs font-extrabold hover:bg-primary/90 transition-colors"
               >
-                <X className="w-3 h-3" /> Clear filter
+                <Plus className="w-3.5 h-3.5" /> Add Aircraft
               </button>
-            )}
+            </div>
           </div>
 
           {isLoading ? (
@@ -634,6 +644,13 @@ export default function FleetDashboard() {
           <AircraftDetailOverlay aircraft={selectedAircraft} onClose={() => setSelectedAircraft(null)} />
         )}
       </AnimatePresence>
+
+      {showAddWizard && (
+        <AddAircraftWizard
+          onClose={() => setShowAddWizard(false)}
+          onSuccess={() => setShowAddWizard(false)}
+        />
+      )}
     </div>
   );
 }

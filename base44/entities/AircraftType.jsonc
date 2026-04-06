@@ -1,0 +1,91 @@
+{
+  "name": "AircraftType",
+  "type": "object",
+  "description": "Aircraft type registry \u2014 defines type-level capability ceilings for ETOPS, CAT, RNP, and performance profiles.",
+  "properties": {
+    "icao_type": {
+      "type": "string",
+      "description": "ICAO type designator e.g. B772, B77W, A359, B788"
+    },
+    "manufacturer": {
+      "type": "string",
+      "enum": [
+        "Boeing",
+        "Airbus",
+        "Embraer",
+        "Bombardier",
+        "ATR",
+        "Other"
+      ],
+      "description": "Aircraft manufacturer"
+    },
+    "model": {
+      "type": "string",
+      "description": "Full model name e.g. Boeing 777-200ER, Airbus A350-900"
+    },
+    "engine_type": {
+      "type": "string",
+      "description": "Engine type e.g. GE90-115B, GEnx-1B, Trent XWB-97"
+    },
+    "wake_category": {
+      "type": "string",
+      "enum": [
+        "L",
+        "M",
+        "H",
+        "J"
+      ],
+      "description": "ICAO wake turbulence category: L=Light, M=Medium, H=Heavy, J=Super"
+    },
+    "max_etops": {
+      "type": "number",
+      "description": "Maximum ETOPS certification in minutes e.g. 370, 180, 120"
+    },
+    "max_cat": {
+      "type": "string",
+      "enum": [
+        "CAT I",
+        "CAT II",
+        "CAT IIIa",
+        "CAT IIIb",
+        "CAT IIIc"
+      ],
+      "description": "Maximum ILS approach category certification"
+    },
+    "rvsm_capable": {
+      "type": "boolean",
+      "default": true,
+      "description": "RVSM (Reduced Vertical Separation Minima) capable"
+    },
+    "rnp_ar_capable": {
+      "type": "boolean",
+      "default": false,
+      "description": "RNP AR (Authorization Required) approach capable"
+    },
+    "polar_capable": {
+      "type": "boolean",
+      "default": false,
+      "description": "Polar operations certified"
+    },
+    "mtow_kg": {
+      "type": "number",
+      "description": "Maximum Takeoff Weight in kg (base variant)"
+    },
+    "range_nm": {
+      "type": "number",
+      "description": "Maximum range in nautical miles"
+    },
+    "is_active": {
+      "type": "boolean",
+      "default": true
+    },
+    "notes": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "icao_type",
+    "manufacturer",
+    "model"
+  ]
+}
