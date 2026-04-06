@@ -4,15 +4,17 @@ import { useQuery } from '@tanstack/react-query';
 import { base44 } from '@/api/base44Client';
 import {
   ChevronLeft, Activity, Wrench, Droplets, TrendingUp,
-  BarChart3, AlertTriangle, CheckCircle, Clock
+  BarChart3, AlertTriangle, CheckCircle, Clock, Zap
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import EngineTrendAnalysis from '@/components/engineering/EngineTrendAnalysis';
 import OilServiceTrends from '@/components/engineering/OilServiceTrends';
+import ApuTrendDashboard from '@/components/engineering/ApuTrendDashboard';
 
 const TABS = [
   { id: 'trends',   label: 'Engine Trend Analysis', icon: TrendingUp },
   { id: 'oil',      label: 'Oil Servicing Trends',   icon: Droplets },
+  { id: 'apu',      label: 'APU Trends',             icon: Zap },
 ];
 
 export default function EngineeringDashboard() {
@@ -130,6 +132,13 @@ export default function EngineeringDashboard() {
         {activeTab === 'oil' && (
           <OilServiceTrends
             logbookEntries={logbookEntries}
+            aircraft={aircraft}
+            selectedTail={selectedTail}
+          />
+        )}
+        {activeTab === 'apu' && (
+          <ApuTrendDashboard
+            faults={faults}
             aircraft={aircraft}
             selectedTail={selectedTail}
           />
