@@ -16,7 +16,7 @@ const FLIGHT_OPS_ITEMS = [
   { label: 'WEATHER',        path: '/Weather' },
   { label: 'FUN IN THE SUN', path: '/TravelWeather' },
   { label: 'IROPS',          path: '/IROPS' },
-  { label: 'FUEL MGMT',      path: '/Fuel' },
+
   { label: 'LOAD CONTROL',   path: '/LoadControl' },
   { label: 'FLIGHT PLANNER', path: '/FlightPlanner' },
   { label: 'SAFETY & QA',    path: '/SafetyQA' },
