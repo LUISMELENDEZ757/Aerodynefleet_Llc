@@ -2,6 +2,7 @@ import React, { useState } from "react";
 import EtopsMonitorPanel from "@/components/dispatch/EtopsMonitorPanel";
 import SituationalAwarenessMap from "@/components/dispatch/SituationalAwarenessMap";
 import ReplanningWorkflow from "@/components/dispatch/ReplanningWorkflow";
+import FlightProgressTimeline from "@/components/dispatch/FlightProgressTimeline";
 
 const Pill = ({ label, tone = "default" }) => {
   const toneClasses = {
@@ -186,6 +187,11 @@ const DetailDrawer = ({ flight, onClose }) => {
                   </div>
                 ))}
               </div>
+            </div>
+
+            {/* Flight Progress Timeline */}
+            <div className="mt-4">
+              <FlightProgressTimeline flight={flight} />
             </div>
 
             {/* MEL / ETOPS */}
