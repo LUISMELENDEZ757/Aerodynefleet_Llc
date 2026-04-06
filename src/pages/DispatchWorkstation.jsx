@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import EtopsMonitorPanel from "@/components/dispatch/EtopsMonitorPanel";
 import SituationalAwarenessMap from "@/components/dispatch/SituationalAwarenessMap";
+import ReplanningWorkflow from "@/components/dispatch/ReplanningWorkflow";
 
 const Pill = ({ label, tone = "default" }) => {
   const toneClasses = {
@@ -75,19 +76,34 @@ const FlightStrip = ({ flight, onSelect }) => {
 const DetailDrawer = ({ flight, onClose }) => {
   if (!flight) return null;
 
+  const [activeTab, setActiveTab] = useState("details");
+
   return (
     <div className="fixed inset-0 z-50 flex items-end bg-black/40 backdrop-blur-sm">
-      <div className="w-full max-h-[85vh] overflow-y-auto rounded-t-2xl bg-slate-900 border-t border-slate-700 p-4">
-        {/* Header */}
-        <div className="flex items-center justify-between">
-          <div>
-            <h2 className="text-lg font-semibold text-slate-100">
-              {flight.flightNumber} — {flight.origin} → {flight.destination}
-            </h2>
-            <p className="text-xs text-slate-400">
-              Tail {flight.tail} · ETOPS {flight.etops || "N/A"} · Dep{" "}
-              {flight.depTime}Z
-            </p>
+      <div className="w-full max-h-[85vh] overflow-y-auto rounded-t-2xl bg-slate-900 border-t border-slate-700">
+        {/* Drawer header with tabs */}
+        <div className="sticky top-0 bg-slate-900 border-b border-slate-700 px-4 py-3 flex items-center justify-between gap-2 z-10">
+          <div className="flex gap-1.5">
+            <button
+              onClick={() => setActiveTab("details")}
+              className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all ${
+                activeTab === "details"
+                  ? "bg-primary text-primary-foreground"
+                  : "bg-slate-800 text-slate-400 hover:text-slate-300"
+              }`}
+            >
+              Details
+            </button>
+            <button
+              onClick={() => setActiveTab("replan")}
+              className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all ${
+                activeTab === "replan"
+                  ? "bg-primary text-primary-foreground"
+                  : "bg-slate-800 text-slate-400 hover:text-slate-300"
+              }`}
+            >
+              Re-Plan
+            </button>
           </div>
           <button
             onClick={onClose}
@@ -97,97 +113,116 @@ const DetailDrawer = ({ flight, onClose }) => {
           </button>
         </div>
 
-        {/* Route */}
-        <div className="mt-4">
-          <SectionHeader title="Route" />
-          <div className="mt-2 rounded-xl border border-slate-800 bg-slate-900/60 p-3 text-xs text-slate-300">
-            {flight.route}
-          </div>
+        {/* Drawer content */}
+        <div className="p-4">
+        {/* Header */}
+        <div>
+          <h2 className="text-lg font-semibold text-slate-100">
+            {flight.flightNumber} — {flight.origin} → {flight.destination}
+          </h2>
+          <p className="text-xs text-slate-400">
+            Tail {flight.tail} · ETOPS {flight.etops || "N/A"} · Dep{" "}
+            {flight.depTime}Z
+          </p>
         </div>
 
-        {/* NOTAMs */}
-        <div className="mt-4">
-          <SectionHeader title="NOTAMs" />
-          <div className="mt-2 flex flex-col gap-2">
-            {flight.notams.map((n, idx) => (
-              <div
-                key={idx}
-                className="rounded-xl border border-slate-800 bg-slate-900/60 p-3 text-xs text-slate-300"
-              >
-                {n}
+        {activeTab === "details" ? (
+          <>
+            {/* Route */}
+            <div className="mt-4">
+              <SectionHeader title="Route" />
+              <div className="mt-2 rounded-xl border border-slate-800 bg-slate-900/60 p-3 text-xs text-slate-300">
+                {flight.route}
               </div>
-            ))}
-          </div>
-        </div>
+            </div>
 
-        {/* Weather */}
-        <div className="mt-4">
-          <SectionHeader title="Weather" />
-          <div className="mt-2 flex flex-col gap-2">
-            <div className="rounded-xl border border-slate-800 bg-slate-900/60 p-3 text-xs text-slate-300">
-              <span className="text-[10px] uppercase text-slate-500">DEP</span>
-              <div>{flight.wx.dep}</div>
+            {/* NOTAMs */}
+            <div className="mt-4">
+              <SectionHeader title="NOTAMs" />
+              <div className="mt-2 flex flex-col gap-2">
+                {flight.notams.map((n, idx) => (
+                  <div
+                    key={idx}
+                    className="rounded-xl border border-slate-800 bg-slate-900/60 p-3 text-xs text-slate-300"
+                  >
+                    {n}
+                  </div>
+                ))}
+              </div>
             </div>
-            <div className="rounded-xl border border-slate-800 bg-slate-900/60 p-3 text-xs text-slate-300">
-              <span className="text-[10px] uppercase text-slate-500">ARR</span>
-              <div>{flight.wx.arr}</div>
-            </div>
-            <div className="rounded-xl border border-slate-800 bg-slate-900/60 p-3 text-xs text-slate-300">
-              <span className="text-[10px] uppercase text-slate-500">ALT</span>
-              <div>{flight.wx.alt}</div>
-            </div>
-          </div>
-        </div>
 
-        {/* Fuel */}
-        <div className="mt-4">
-          <SectionHeader title="Fuel Breakdown" />
-          <div className="mt-2 grid grid-cols-2 gap-2 text-xs text-slate-300">
-            {Object.entries(flight.fuelBreakdown).map(([k, v]) => (
-              <div
-                key={k}
-                className="rounded-xl border border-slate-800 bg-slate-900/60 p-3"
-              >
-                <div className="text-[10px] uppercase text-slate-500">
-                  {k}
+            {/* Weather */}
+            <div className="mt-4">
+              <SectionHeader title="Weather" />
+              <div className="mt-2 flex flex-col gap-2">
+                <div className="rounded-xl border border-slate-800 bg-slate-900/60 p-3 text-xs text-slate-300">
+                  <span className="text-[10px] uppercase text-slate-500">DEP</span>
+                  <div>{flight.wx.dep}</div>
                 </div>
-                <div className="text-sm text-slate-100">{v}</div>
+                <div className="rounded-xl border border-slate-800 bg-slate-900/60 p-3 text-xs text-slate-300">
+                  <span className="text-[10px] uppercase text-slate-500">ARR</span>
+                  <div>{flight.wx.arr}</div>
+                </div>
+                <div className="rounded-xl border border-slate-800 bg-slate-900/60 p-3 text-xs text-slate-300">
+                  <span className="text-[10px] uppercase text-slate-500">ALT</span>
+                  <div>{flight.wx.alt}</div>
+                </div>
               </div>
-            ))}
-          </div>
-        </div>
+            </div>
 
-        {/* MEL / ETOPS */}
-        <div className="mt-4">
-          <SectionHeader title="MEL / ETOPS Impact" />
-          <div className="mt-2 flex flex-col gap-2 text-xs text-slate-300">
-            {flight.mel.map((m, idx) => (
-              <div
-                key={idx}
-                className="rounded-xl border border-slate-800 bg-slate-900/60 p-3"
-              >
-                {m}
+            {/* Fuel */}
+            <div className="mt-4">
+              <SectionHeader title="Fuel Breakdown" />
+              <div className="mt-2 grid grid-cols-2 gap-2 text-xs text-slate-300">
+                {Object.entries(flight.fuelBreakdown).map(([k, v]) => (
+                  <div
+                    key={k}
+                    className="rounded-xl border border-slate-800 bg-slate-900/60 p-3"
+                  >
+                    <div className="text-[10px] uppercase text-slate-500">
+                      {k}
+                    </div>
+                    <div className="text-sm text-slate-100">{v}</div>
+                  </div>
+                ))}
               </div>
-            ))}
-          </div>
-        </div>
+            </div>
 
-        {/* Actions */}
-        <div className="mt-6 flex gap-2">
-          <button className="flex-1 rounded-lg bg-sky-700 px-3 py-2 text-xs font-medium text-slate-50 hover:bg-sky-600">
-            Amend Release
-          </button>
-          <button className="flex-1 rounded-lg bg-amber-700 px-3 py-2 text-xs font-medium text-slate-50 hover:bg-amber-600">
-            Re‑Plan
-          </button>
-          <button className="flex-1 rounded-lg bg-rose-700 px-3 py-2 text-xs font-medium text-slate-50 hover:bg-rose-600">
-            Cancel Flight
-          </button>
-        </div>
+            {/* MEL / ETOPS */}
+            <div className="mt-4">
+              <SectionHeader title="MEL / ETOPS Impact" />
+              <div className="mt-2 flex flex-col gap-2 text-xs text-slate-300">
+                {flight.mel.map((m, idx) => (
+                  <div
+                    key={idx}
+                    className="rounded-xl border border-slate-800 bg-slate-900/60 p-3"
+                  >
+                    {m}
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* Actions */}
+            <div className="mt-6 flex gap-2">
+              <button className="flex-1 rounded-lg bg-sky-700 px-3 py-2 text-xs font-medium text-slate-50 hover:bg-sky-600">
+                Amend Release
+              </button>
+              <button onClick={() => setActiveTab("replan")} className="flex-1 rounded-lg bg-amber-700 px-3 py-2 text-xs font-medium text-slate-50 hover:bg-amber-600">
+                Re‑Plan
+              </button>
+              <button className="flex-1 rounded-lg bg-rose-700 px-3 py-2 text-xs font-medium text-slate-50 hover:bg-rose-600">
+                Cancel Flight
+              </button>
+            </div>
+          </>
+        ) : (
+          <ReplanningWorkflow flight={flight} onClose={onClose} />
+        )}
       </div>
     </div>
   );
-};
+}
 
 const DispatchWorkstation = () => {
   const [selectedFlight, setSelectedFlight] = useState(null);
