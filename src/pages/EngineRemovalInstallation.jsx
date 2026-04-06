@@ -4,7 +4,7 @@ import { base44 } from '@/api/base44Client';
 import { Link } from 'react-router-dom';
 import {
   Settings, AlertTriangle, CheckCircle, Zap, Wrench, Shield,
-  ChevronLeft, Plus, Activity, X, Send, Clock, MapPin, User, ChevronDown
+  ChevronLeft, Plus, Activity, X, Send, Clock, MapPin, User, ChevronDown, BookOpen
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { format } from 'date-fns';
@@ -102,6 +102,20 @@ function NewEngineEventModal({ aircraft, onClose, onCreate }) {
             <p className="font-extrabold text-white text-sm uppercase tracking-wide">New Engine Removal Event</p>
           </div>
           <button onClick={onClose} className="w-8 h-8 rounded-lg bg-white/10 flex items-center justify-center hover:bg-white/20"><X className="w-4 h-4 text-white" /></button>
+        </div>
+        <div className="px-5 pt-4 pb-2">
+          <div className="border border-orange-500/40 bg-orange-950/30 rounded-2xl p-4 space-y-3">
+            <div className="flex items-start gap-3">
+              <AlertTriangle className="w-5 h-5 text-orange-400 flex-shrink-0 mt-0.5" />
+              <div>
+                <p className="text-sm font-bold text-orange-400 uppercase tracking-widest">⚠ Elogbook Verification Required</p>
+                <p className="text-xs text-gray-300 mt-1">Before creating an engine removal event, verify that a discrepancy entry was made in the E-Logbook for this issue. All engine removals must be traceable to a documented discrepancy per 14 CFR Part 121.378.</p>
+              </div>
+            </div>
+            <a href="/TechOpsLogbook" target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-orange-600 hover:bg-orange-500 text-white text-sm font-bold transition-colors">
+              <BookOpen className="w-4 h-4" /> Open E-Logbook
+            </a>
+          </div>
         </div>
         <form onSubmit={handleSubmit} className="p-5 space-y-4 max-h-[80vh] overflow-y-auto">
           {/* Aircraft + Position */}
