@@ -7,7 +7,6 @@ import { useRail } from '@/lib/RailContext';
 const FLIGHT_OPS_ITEMS = [
   { label: 'HOME',           path: '/Home' },
   { label: 'AOCS',           path: '/AocsDashboard' },
-  { label: 'FLIGHT OPS',     path: '/Dashboard' },
   { label: 'DISPATCH',       path: '/Dispatch' },
   { label: 'EFB',            path: '/EFB' },
   { label: 'FLIGHT CREW',    path: '/FlightCrew' },
