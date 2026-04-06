@@ -1,212 +1,300 @@
-import { useState, Suspense, lazy } from 'react';
-import { useQuery } from '@tanstack/react-query';
-import { base44 } from '@/api/base44Client';
-import { useDynamicPolling } from '@/hooks/useDynamicPolling';
-import {
-  Plane, AlertTriangle, Cloud, Users, Fuel, Wind,
-  RefreshCw, Plus, Clock, Radio, FileText, Map,
-  Activity, TrendingDown, Settings, Zap
-} from 'lucide-react';
-import { Link } from 'react-router-dom';
-import { cn } from '@/lib/utils';
-import RovingTabindexList from '@/components/accessibility/RovingTabindexList';
+import React from "react";
 
-const DispatchReleaseBuilder = lazy(() => import('@/components/dispatch/DispatchReleaseBuilder'));
-const FlightMonitoringConsole = lazy(() => import('@/components/dispatch/FlightMonitoringConsole'));
-const DispatcherAlerts = lazy(() => import('@/components/dispatch/DispatcherAlerts'));
-const DispatchWeatherPanel = lazy(() => import('@/components/dispatch/DispatchWeatherPanel'));
-const CrewLegalityBoard = lazy(() => import('@/components/dispatch/CrewLegalityBoard'));
-const EtopsMonitorPanel = lazy(() => import('@/components/dispatch/EtopsMonitorPanel'));
+const Pill = ({ label, tone = "default" }) => {
+  const toneClasses = {
+    default: "bg-slate-800 text-slate-200",
+    good: "bg-emerald-900/60 text-emerald-100",
+    warn: "bg-amber-900/60 text-amber-100",
+    bad: "bg-rose-900/60 text-rose-100",
+    info: "bg-sky-900/60 text-sky-100",
+  }[tone];
 
-const TODAY = new Date().toISOString().split('T')[0];
-
-const TABS = [
-  { key: 'flights',  label: 'Active Flights',  icon: Plane },
-  { key: 'release',  label: 'Release Builder', icon: FileText },
-  { key: 'etops',    label: 'ETOPS',           icon: Zap },
-  { key: 'alerts',   label: 'Alerts',          icon: AlertTriangle },
-  { key: 'weather',  label: 'Weather',         icon: Cloud },
-  { key: 'crew',     label: 'Crew Legality',   icon: Users },
-];
-
-function StatTile({ icon: Icon, label, value, color, onClick }) {
   return (
-    <button
-      onClick={onClick}
-      className="rounded-xl bg-card border border-border px-4 py-3 flex items-center gap-3 hover:bg-secondary/40 transition-all text-left focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-1"
-    >
-      <div className={cn('w-9 h-9 rounded-lg bg-secondary flex items-center justify-center flex-shrink-0')}>
-        <Icon className={cn('w-4 h-4', color)} />
-      </div>
-      <div>
-        <p className={cn('text-lg font-extrabold font-mono', color)}>{value}</p>
-        <p className="text-xs text-muted-foreground">{label}</p>
-      </div>
-    </button>
+    <span className={`inline-flex items-center rounded-full px-2 py-0.5 text-[10px] font-medium ${toneClasses}`}>
+      {label}
+    </span>
   );
-}
+};
 
-export default function DispatchWorkstation() {
-  const [activeTab, setActiveTab] = useState('flights');
-  const pollingInterval = useDynamicPolling(10000, 60000); // 10s active, 60s hidden
+const SectionHeader = ({ title, subtitle }) => (
+  <div className="flex items-baseline justify-between">
+    <h2 className="text-xs font-semibold uppercase tracking-[0.18em] text-slate-300">
+      {title}
+    </h2>
+    {subtitle && (
+      <span className="text-[11px] text-slate-500">
+        {subtitle}
+      </span>
+    )}
+  </div>
+);
 
-  const { data: flights = [], refetch: refetchFlights, isLoading } = useQuery({
-    queryKey: ['dispatch-flights', TODAY],
-    queryFn: () => base44.entities.Flight.filter({ flight_date: TODAY }),
-    refetchInterval: pollingInterval,
-  });
-
-  const { data: monitoring = [] } = useQuery({
-    queryKey: ['dispatch-monitoring', TODAY],
-    queryFn: () => base44.entities.DispatchMonitoring.filter({ flight_date: TODAY }),
-    refetchInterval: pollingInterval,
-  });
-
-  const { data: releases = [] } = useQuery({
-    queryKey: ['dispatch-releases', TODAY],
-    queryFn: () => base44.entities.DispatchRelease.filter({ flight_date: TODAY }),
-    refetchInterval: pollingInterval,
-  });
-
-  const { data: alerts = [] } = useQuery({
-    queryKey: ['dispatch-alerts'],
-    queryFn: () => base44.entities.OpsAlert.filter({ is_dismissed: false }),
-    refetchInterval: pollingInterval,
-  });
-
-  const { data: crew = [] } = useQuery({
-    queryKey: ['dispatch-crew', TODAY],
-    queryFn: () => base44.entities.CrewAssignment.filter({ flight_date: TODAY }),
-    refetchInterval: pollingInterval,
-  });
-
-  // Compute stats
-  const airborne = monitoring.filter(m => m.flight_phase === 'cruise' || m.flight_phase === 'descent').length;
-  const delayed = flights.filter(f => f.delay_minutes > 0).length;
-  const criticalAlerts = alerts.filter(a => a.severity === 'critical').length;
-  const illegalCrew = crew.filter(c => c.legal_status === 'illegal').length;
-  const etopsFlights = releases.filter(r => r.etops_section?.is_etops === true).length;
-  const etopsPending = releases.filter(r => r.etops_section?.is_etops === true && !r.etops_section?.etops_approved).length;
-
-  const now = new Date();
-  const timeStr = now.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: false });
+const FlightStrip = ({ flight }) => {
+  const riskTone =
+    flight.risk === "HIGH" ? "bad" : flight.risk === "MED" ? "warn" : "good";
 
   return (
-    <div className="min-h-screen bg-background">
-      {/* Header */}
-      <div className="border-b border-border bg-card px-5 pt-5 pb-4">
-        <div className="flex items-start justify-between gap-4">
-          <div className="flex items-center gap-3">
-            <Link to="/Home" className="w-10 h-10 rounded-xl bg-primary/20 flex items-center justify-center flex-shrink-0 hover:bg-primary/30 transition-colors">
-              <Radio className="w-5 h-5 text-primary" />
-            </Link>
-            <div>
-              <h1 className="text-lg font-extrabold text-foreground tracking-wide">DISPATCH WORKSTATION</h1>
-              <p className="text-xs font-mono text-primary tracking-widest uppercase">Flight Release · ETOPS · Monitoring · Crew Legality</p>
-            </div>
-          </div>
-          <div className="flex flex-col items-end gap-1">
-            <p className="text-lg font-mono font-bold text-foreground">{timeStr} Z</p>
-            <button
-              onClick={() => { refetchFlights(); }}
-              aria-label="Sync all dispatch data"
-              className="flex items-center gap-1 text-xs text-muted-foreground hover:text-foreground transition-colors focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-1 rounded px-2 py-1"
-            >
-              <RefreshCw className="w-3 h-3" /> Sync
-            </button>
-          </div>
+    <div className="flex flex-col gap-1 rounded-xl border border-slate-800 bg-slate-900/60 px-3 py-2">
+      <div className="flex items-center justify-between gap-2">
+        <div className="flex items-center gap-2">
+          <span className="text-xs font-semibold text-slate-100">
+            {flight.flightNumber}
+          </span>
+          <span className="text-[11px] text-slate-400">
+            {flight.origin} → {flight.destination}
+          </span>
         </div>
-
-        {/* Critical alert banner */}
-        {criticalAlerts > 0 && (
-          <div className="mt-3 flex items-center gap-2 rounded-xl px-4 py-2.5 text-sm font-semibold bg-destructive/15 text-destructive border border-destructive/30" role="alert">
-            <AlertTriangle className="w-4 h-4 flex-shrink-0" />
-            {criticalAlerts} critical alert{criticalAlerts > 1 ? 's' : ''} — action required
-          </div>
-        )}
+        <div className="flex items-center gap-1">
+          <Pill label={flight.status} tone={flight.statusTone} />
+          <Pill label={`${flight.depTime}Z`} tone="info" />
+          <Pill label={flight.risk} tone={riskTone} />
+        </div>
       </div>
-
-      {/* Stats grid */}
-      <div className="p-4">
-        <div className="grid grid-cols-2 sm:grid-cols-5 gap-3 mb-4">
-          <StatTile icon={Plane} label="Airborne" value={airborne} color={airborne > 0 ? 'text-green-400' : 'text-muted-foreground'} onClick={() => setActiveTab('flights')} />
-          <StatTile icon={AlertTriangle} label="Delays" value={delayed} color={delayed > 0 ? 'text-orange-400' : 'text-muted-foreground'} onClick={() => setActiveTab('flights')} />
-          <StatTile icon={Zap} label="ETOPS" value={etopsFlights} color={etopsPending > 0 ? 'text-orange-400' : etopsFlights > 0 ? 'text-blue-400' : 'text-muted-foreground'} onClick={() => setActiveTab('etops')} />
-          <StatTile icon={Users} label="Illegal Crew" value={illegalCrew} color={illegalCrew > 0 ? 'text-destructive' : 'text-muted-foreground'} onClick={() => setActiveTab('crew')} />
-          <StatTile icon={AlertTriangle} label="Critical" value={criticalAlerts} color={criticalAlerts > 0 ? 'text-destructive' : 'text-muted-foreground'} onClick={() => setActiveTab('alerts')} />
-        </div>
-
-        {/* Tabs */}
-        <div className="border-b border-border bg-card/50 rounded-t-xl">
-          <RovingTabindexList
-            items={TABS}
-            ariaLabel="Dispatch workstation modules"
-            role="tablist"
-            className="flex gap-0.5 px-4 py-2 overflow-x-auto scrollbar-hide"
-            renderItem={({ key, label, icon: Icon }, index, { focusedIndex, handleKeyDown, getTabIndex, registerRef }) => (
-              <button
-                key={key}
-                ref={(el) => registerRef(index, el)}
-                tabIndex={getTabIndex(index)}
-                onClick={() => setActiveTab(key)}
-                onKeyDown={handleKeyDown}
-                role="tab"
-                aria-selected={activeTab === key}
-                aria-label={`${label}${activeTab === key ? ' - currently selected' : ''}`}
-                className={cn(
-                  'flex items-center gap-1.5 whitespace-nowrap text-xs font-semibold px-3 py-2 rounded-lg transition-all flex-shrink-0 focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2',
-                  activeTab === key ? 'bg-primary text-primary-foreground' : 'text-muted-foreground hover:text-foreground hover:bg-secondary',
-                  focusedIndex === index && 'ring-2 ring-primary ring-offset-2'
-                )}
-              >
-                <Icon className="w-3.5 h-3.5" />
-                {label}
-              </button>
-            )}
-          />
-        </div>
-
-        {/* Content */}
-        <div className="bg-card rounded-b-xl border border-border border-t-0 p-4">
-          {isLoading && <div className="text-sm text-muted-foreground py-8 text-center">Loading dispatch data…</div>}
-
-          {activeTab === 'flights' && (
-            <Suspense fallback={<div className="text-sm text-muted-foreground">Loading flights…</div>}>
-              <FlightMonitoringConsole monitoring={monitoring} flights={flights} releases={releases} />
-            </Suspense>
-          )}
-
-          {activeTab === 'release' && (
-            <Suspense fallback={<div className="text-sm text-muted-foreground">Loading release builder…</div>}>
-              <DispatchReleaseBuilder flights={flights} releases={releases} crew={crew} />
-            </Suspense>
-          )}
-
-          {activeTab === 'alerts' && (
-            <Suspense fallback={<div className="text-sm text-muted-foreground">Loading alerts…</div>}>
-              <DispatcherAlerts alerts={alerts} flights={flights} />
-            </Suspense>
-          )}
-
-          {activeTab === 'etops' && (
-            <Suspense fallback={<div className="text-sm text-muted-foreground">Loading ETOPS…</div>}>
-              <EtopsMonitorPanel releases={releases} flights={flights} />
-            </Suspense>
-          )}
-
-          {activeTab === 'weather' && (
-            <Suspense fallback={<div className="text-sm text-muted-foreground">Loading weather…</div>}>
-              <DispatchWeatherPanel flights={flights} monitoring={monitoring} />
-            </Suspense>
-          )}
-
-          {activeTab === 'crew' && (
-            <Suspense fallback={<div className="text-sm text-muted-foreground">Loading crew…</div>}>
-              <CrewLegalityBoard crew={crew} flights={flights} />
-            </Suspense>
-          )}
-        </div>
+      <div className="flex flex-wrap items-center gap-2 text-[11px] text-slate-400">
+        <span>Tail {flight.tail}</span>
+        <span>ETOPS {flight.etops || "N/A"}</span>
+        <span>ALT: {flight.alternate}</span>
+        <span>Fuel: {flight.fuelPlan} / {flight.fuelExtra} extra</span>
+      </div>
+      <div className="flex flex-wrap items-center gap-2 text-[11px] text-slate-400">
+        {flight.flags.map((f) => (
+          <Pill key={f.label} label={f.label} tone={f.tone} />
+        ))}
       </div>
     </div>
   );
-}
+};
+
+const DispatchWorkstation = () => {
+  // 🔧 Replace with real hooks / data later
+  const dispatcher = {
+    name: "System Dispatch",
+    bankLabel: "Trans‑Atlantic PM Bank",
+    utcTime: "23:15Z",
+  };
+
+  const flights = [
+    {
+      flightNumber: "ADY 102",
+      origin: "EWR",
+      destination: "LHR",
+      depTime: "23:45",
+      status: "RELEASED",
+      statusTone: "good",
+      risk: "MED",
+      tail: "N782AD",
+      etops: "330",
+      alternate: "DUB",
+      fuelPlan: "74.5",
+      fuelExtra: "+3.0",
+      flags: [
+        { label: "WX ATLANTIC", tone: "warn" },
+        { label: "ETOPS CRIT", tone: "warn" },
+      ],
+    },
+    {
+      flightNumber: "ADY 204",
+      origin: "EWR",
+      destination: "CDG",
+      depTime: "00:05",
+      status: "PENDING",
+      statusTone: "warn",
+      risk: "HIGH",
+      tail: "N789AD",
+      etops: "240",
+      alternate: "BRU",
+      fuelPlan: "68.2",
+      fuelExtra: "+1.2",
+      flags: [
+        { label: "CREW MCT", tone: "bad" },
+        { label: "MX DEFERRAL", tone: "warn" },
+      ],
+    },
+    {
+      flightNumber: "ADY 306",
+      origin: "EWR",
+      destination: "SFO",
+      depTime: "23:30",
+      status: "RELEASED",
+      statusTone: "good",
+      risk: "LOW",
+      tail: "N761AD",
+      etops: null,
+      alternate: "OAK",
+      fuelPlan: "39.8",
+      fuelExtra: "+2.0",
+      flags: [{ label: "RNP AR", tone: "info" }],
+    },
+  ];
+
+  const weatherSummary = [
+    { station: "EWR", condition: "OVC008 1SM -RA", risk: "MED" },
+    { station: "LHR", condition: "BKN012 5SM", risk: "LOW" },
+    { station: "CDG", condition: "TSRA VC", risk: "HIGH" },
+  ];
+
+  const atcPrograms = [
+    { center: "ZNY", type: "GDP", detail: "EWR departures +25 avg", risk: "MED" },
+    { center: "EGTT", type: "MIT", detail: "NAT track C 10 MIT", risk: "LOW" },
+  ];
+
+  const alerts = [
+    "ETOPS 330 tail N782AD downgraded to 180 after arrival – re‑plan ADY 108.",
+    "CDG convective SIGMET active 22:30–01:00Z – review alternates.",
+    "Crew legality risk on ADY 204 if off‑gate after 00:40Z.",
+  ];
+
+  return (
+    <div className="flex min-h-screen flex-col gap-4 bg-slate-950 px-4 py-4 text-slate-50">
+      {/* Top bar */}
+      <header className="flex items-center justify-between gap-4">
+        <div>
+          <div className="text-[10px] font-semibold uppercase tracking-[0.22em] text-slate-500">
+            Aerodyne Fleet
+          </div>
+          <h1 className="text-xl font-semibold text-slate-50">
+            Dispatch Workstation
+          </h1>
+          <p className="text-xs text-slate-400">
+            Flight‑centric control surface for releases, risk, and route decisions.
+          </p>
+        </div>
+        <div className="flex flex-col items-end gap-1 text-xs text-slate-400">
+          <div className="flex items-center gap-2">
+            <span className="h-2 w-2 rounded-full bg-emerald-400" />
+            Live ops link
+          </div>
+          <div className="text-[11px]">
+            {dispatcher.bankLabel} · {dispatcher.utcTime}
+          </div>
+        </div>
+      </header>
+
+      {/* Main layout */}
+      <main className="grid gap-4 lg:grid-cols-3">
+        {/* Left: Flight stack */}
+        <section className="lg:col-span-2 flex flex-col gap-3 rounded-2xl border border-slate-800 bg-slate-900/40 p-4">
+          <SectionHeader
+            title="Active flight stack"
+            subtitle="Bank‑scoped flights under your control"
+          />
+          <div className="flex flex-col gap-2">
+            {flights.map((f) => (
+              <FlightStrip key={f.flightNumber} flight={f} />
+            ))}
+          </div>
+        </section>
+
+        {/* Right: Risk, WX, ATC */}
+        <section className="lg:col-span-1 flex flex-col gap-3">
+          {/* Risk panel */}
+          <div className="flex flex-col gap-3 rounded-2xl border border-slate-800 bg-slate-900/40 p-4">
+            <SectionHeader
+              title="Risk posture"
+              subtitle="Dispatch‑level risk snapshot"
+            />
+            <div className="grid grid-cols-3 gap-2 text-center text-[11px]">
+              <div className="rounded-xl border border-emerald-700/60 bg-emerald-900/40 px-2 py-2">
+                <div className="text-[10px] uppercase tracking-wide text-emerald-200">
+                  Low
+                </div>
+                <div className="text-lg font-semibold text-emerald-100">7</div>
+              </div>
+              <div className="rounded-xl border border-amber-700/60 bg-amber-900/40 px-2 py-2">
+                <div className="text-[10px] uppercase tracking-wide text-amber-200">
+                  Medium
+                </div>
+                <div className="text-lg font-semibold text-amber-100">4</div>
+              </div>
+              <div className="rounded-xl border border-rose-700/60 bg-rose-900/40 px-2 py-2">
+                <div className="text-[10px] uppercase tracking-wide text-rose-200">
+                  High
+                </div>
+                <div className="text-lg font-semibold text-rose-100">2</div>
+              </div>
+            </div>
+            <p className="text-[11px] text-slate-400">
+              High‑risk flights require explicit dispatcher attention before release or off‑gate.
+            </p>
+          </div>
+
+          {/* Weather */}
+          <div className="flex flex-col gap-3 rounded-2xl border border-slate-800 bg-slate-900/40 p-4">
+            <SectionHeader
+              title="Critical weather"
+              subtitle="Departure / destination / alternates"
+            />
+            <div className="flex flex-col gap-2 text-[11px]">
+              {weatherSummary.map((w) => (
+                <div
+                  key={w.station}
+                  className="flex items-center justify-between rounded-xl border border-slate-800 bg-slate-900/60 px-3 py-2"
+                >
+                  <div>
+                    <div className="text-xs font-medium text-slate-100">
+                      {w.station}
+                    </div>
+                    <div className="text-[11px] text-slate-400">
+                      {w.condition}
+                    </div>
+                  </div>
+                  <Pill
+                    label={w.risk === "HIGH" ? "SIG" : w.risk}
+                    tone={w.risk === "HIGH" ? "bad" : w.risk === "MED" ? "warn" : "good"}
+                  />
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {/* ATC programs */}
+          <div className="flex flex-col gap-3 rounded-2xl border border-slate-800 bg-slate-900/40 p-4">
+            <SectionHeader
+              title="ATC programs"
+              subtitle="Constraints impacting this bank"
+            />
+            <div className="flex flex-col gap-2 text-[11px] text-slate-300">
+              {atcPrograms.map((p, idx) => (
+                <div
+                  key={`${p.center}-${idx}`}
+                  className="flex items-center justify-between rounded-xl border border-slate-800 bg-slate-900/60 px-3 py-2"
+                >
+                  <div>
+                    <div className="text-xs font-medium text-slate-100">
+                      {p.center} · {p.type}
+                    </div>
+                    <div className="text-[11px] text-slate-400">
+                      {p.detail}
+                    </div>
+                  </div>
+                  <Pill
+                    label={p.risk}
+                    tone={p.risk === "HIGH" ? "bad" : p.risk === "MED" ? "warn" : "good"}
+                  />
+                </div>
+              ))}
+            </div>
+          </div>
+        </section>
+
+        {/* Bottom: Alerts / actions */}
+        <section className="lg:col-span-3 flex flex-col gap-3 rounded-2xl border border-slate-800 bg-slate-900/40 p-4">
+          <SectionHeader
+            title="Dispatch action queue"
+            subtitle="Items requiring explicit decision or re‑plan"
+          />
+          <ul className="flex flex-col gap-2 text-[11px] text-slate-300">
+            {alerts.map((a, idx) => (
+              <li key={idx} className="flex items-start gap-2">
+                <span className="mt-[3px] h-1.5 w-1.5 rounded-full bg-sky-400" />
+                <span>{a}</span>
+              </li>
+            ))}
+          </ul>
+        </section>
+      </main>
+    </div>
+  );
+};
+
+export default DispatchWorkstation;
