@@ -6,6 +6,7 @@ import {
   Clock, Zap, Search, MapPin
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import WorkflowPipeline from '@/components/qa/WorkflowPipeline';
 
 const TOP_TABS = [
   { id: 'dashboard', label: 'QC/RII Dashboard' },
@@ -531,6 +532,15 @@ export default function QAQCDashboard() {
   const [selectedModule, setSelectedModule] = useState('fleet_health');
   const [selectedStation, setSelectedStation] = useState('All Stations');
   const [selectedInspectionType, setSelectedInspectionType] = useState('pending_qc');
+
+  if (activeTopTab === 'qa_workflow') {
+    return (
+      <div className="min-h-screen bg-background pb-24">
+        <TopNav activeTopTab={activeTopTab} setActiveTopTab={setActiveTopTab} />
+        <WorkflowPipeline />
+      </div>
+    );
+  }
 
   if (activeTopTab === 'qc_inspection') {
     return <QCInspectionView
