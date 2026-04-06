@@ -135,10 +135,10 @@ export default function QAQCDashboard() {
   const [activeTab, setActiveTab] = useState('overview');
   const [activeTopTab, setActiveTopTab] = useState('qa_env');
   const [selectedModule, setSelectedModule] = useState('fleet_health');
+  const [selectedStation, setSelectedStation] = useState('All Stations');
+  const [selectedInspectionType, setSelectedInspectionType] = useState('pending_qc');
 
   if (activeTopTab === 'qc_inspection') {
-    const [selectedStation, setSelectedStation] = useState('All Stations');
-    const [selectedInspectionType, setSelectedInspectionType] = useState('pending_qc');
 
     return (
       <div className="min-h-screen bg-background pb-24">
