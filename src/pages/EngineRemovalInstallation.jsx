@@ -126,6 +126,13 @@ function NewEngineEventModal({ aircraft, onClose, onCreate }) {
                 <option value="">Select tail…</option>
                 {aircraft.map(a => <option key={a.id} value={a.tail_number}>{a.tail_number} — {a.aircraft_type}</option>)}
               </select>
+              {form.aircraft_tail && aircraft.find(a => a.tail_number === form.aircraft_tail) && (
+                <p className="text-xs text-gray-400 mt-2">
+                  <span className="text-primary font-bold">{aircraft.find(a => a.tail_number === form.aircraft_tail)?.airline || 'Fleet'}</span>
+                  <span className="text-gray-500 mx-1">•</span>
+                  <span className="text-gray-400">{aircraft.find(a => a.tail_number === form.aircraft_tail)?.aircraft_type}</span>
+                </p>
+              )}
             </div>
             <div>
               <label className="text-[10px] font-bold text-gray-400 uppercase tracking-widest block mb-1">Engine Position *</label>
