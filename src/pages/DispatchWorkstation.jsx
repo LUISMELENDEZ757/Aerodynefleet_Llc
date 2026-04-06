@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 import EtopsMonitorPanel from "@/components/dispatch/EtopsMonitorPanel";
+import SituationalAwarenessMap from "@/components/dispatch/SituationalAwarenessMap";
 
 const Pill = ({ label, tone = "default" }) => {
   const toneClasses = {
@@ -488,6 +489,9 @@ const DispatchWorkstation = () => {
             </div>
           </div>
         </section>
+
+        {/* Bottom: Situational Awareness Map */}
+        <SituationalAwarenessMap flights={flights} />
 
         {/* Bottom: Alerts / actions */}
         <section className="lg:col-span-3 flex flex-col gap-3 rounded-2xl border border-slate-800 bg-slate-900/40 p-4">
