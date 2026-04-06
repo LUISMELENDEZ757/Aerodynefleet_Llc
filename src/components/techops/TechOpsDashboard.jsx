@@ -24,6 +24,7 @@ const TECH_CARDS = [
   { icon: DollarSign,    iconBg: 'bg-rose-700',   title: 'Cost Reporting', subtitle: 'P&L · Delay · Fuel ROI',     path: '/CostReporting' },
   { icon: BarChart3,     iconBg: 'bg-lime-600',   title: 'Analytics',      subtitle: 'OTP · Delays · Fleet',       path: '/Analytics' },
   { icon: Activity,      iconBg: 'bg-emerald-700',title: 'Engineering',    subtitle: 'Trends · Engine Health', path: '/EngineeringDashboard' },
+  { icon: BarChart3,     iconBg: 'bg-emerald-500',title: 'Engine Health Analytics', subtitle: 'EGT · LLP · Shop Visits', path: '/EngineHealthAnalytics' },
 ];
 
 const cardVariants = {

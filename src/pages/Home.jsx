@@ -55,6 +55,7 @@ const TIER3 = [
   { icon: UserCog,       iconBg: 'bg-slate-600',  iconColor: 'text-white',              title: 'USER MGMT',     subtitle: 'Roles · Invitations',     borderColor: 'border-slate-600/30',  path: '/UserManagement' },
   { icon: Activity,      iconBg: 'bg-emerald-700',iconColor: 'text-white',              title: 'ENGINEERING',   subtitle: 'Trend Analysis · Engine Health', borderColor: 'border-emerald-700/30', path: '/EngineeringDashboard' },
   { icon: Layers,        iconBg: 'bg-sky-600',    iconColor: 'text-white',              title: 'FLEET REGISTRY',subtitle: 'Multi-Fleet · Operators',        borderColor: 'border-sky-600/30',    path: '/FleetRegistry' },
+  { icon: Activity,      iconBg: 'bg-emerald-500',iconColor: 'text-white',              title: 'ENGINE HEALTH', subtitle: 'EGT · LLP Life · Shop Visits',   borderColor: 'border-emerald-500/30',path: '/EngineHealthAnalytics' },
 ];
 
 // Stagger config per tier
