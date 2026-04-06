@@ -27,6 +27,7 @@ const CrewCalendar          = lazy(() => import('@/pages/CrewCalendar'));
 const CrewControl           = lazy(() => import('@/pages/CrewControl'));
 const WorldClock            = lazy(() => import('@/pages/WorldClock'));
 const SafetyQA              = lazy(() => import('@/pages/SafetyQA'));
+const QAQCDashboard         = lazy(() => import('@/pages/QAQCDashboard'));
 const Scheduling            = lazy(() => import('@/pages/Scheduling'));
 const WeatherDashboard      = lazy(() => import('@/pages/WeatherDashboard'));
 const LearningCenter        = lazy(() => import('@/pages/LearningCenter'));
@@ -155,6 +156,7 @@ const AuthenticatedApp = () => {
         <Route path="/CrewControl" element={<CrewControl />} />
         <Route path="/WorldClock" element={<WorldClock />} />
         <Route path="/SafetyQA" element={<SafetyQA />} />
+        <Route path="/QAQC" element={<QAQCDashboard />} />
         <Route path="/Scheduling" element={<Scheduling />} />
         <Route path="/Weather" element={<WeatherDashboard />} />
         <Route path="/Learning" element={<LearningCenter />} />

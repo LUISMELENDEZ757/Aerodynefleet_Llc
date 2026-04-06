@@ -18,6 +18,7 @@ const FLIGHT_OPS_ITEMS = [
   { label: 'LOAD CONTROL',   path: '/LoadControl' },
   { label: 'FLIGHT PLANNER', path: '/FlightPlanner' },
   { label: 'SAFETY & QA',    path: '/SafetyQA' },
+  { label: 'QA/QC',          path: '/QAQC' },
   { label: 'ANALYTICS',      path: '/Analytics' },
   { label: 'COMM CENTER',    path: '/CommCenter' },
   { label: 'STARLINK',       path: '/Starlink' },
