@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState } from "react";
 
 const Pill = ({ label, tone = "default" }) => {
   const toneClasses = {
@@ -10,7 +10,9 @@ const Pill = ({ label, tone = "default" }) => {
   }[tone];
 
   return (
-    <span className={`inline-flex items-center rounded-full px-2 py-0.5 text-[10px] font-medium ${toneClasses}`}>
+    <span
+      className={`inline-flex items-center rounded-full px-2 py-0.5 text-[10px] font-medium ${toneClasses}`}
+    >
       {label}
     </span>
   );
@@ -29,12 +31,15 @@ const SectionHeader = ({ title, subtitle }) => (
   </div>
 );
 
-const FlightStrip = ({ flight }) => {
+const FlightStrip = ({ flight, onSelect }) => {
   const riskTone =
     flight.risk === "HIGH" ? "bad" : flight.risk === "MED" ? "warn" : "good";
 
   return (
-    <div className="flex flex-col gap-1 rounded-xl border border-slate-800 bg-slate-900/60 px-3 py-2">
+    <div
+      onClick={() => onSelect(flight)}
+      className="cursor-pointer flex flex-col gap-1 rounded-xl border border-slate-800 bg-slate-900/60 px-3 py-2 hover:bg-slate-800/60 transition"
+    >
       <div className="flex items-center justify-between gap-2">
         <div className="flex items-center gap-2">
           <span className="text-xs font-semibold text-slate-100">
@@ -65,8 +70,126 @@ const FlightStrip = ({ flight }) => {
   );
 };
 
+const DetailDrawer = ({ flight, onClose }) => {
+  if (!flight) return null;
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-end bg-black/40 backdrop-blur-sm">
+      <div className="w-full max-h-[85vh] overflow-y-auto rounded-t-2xl bg-slate-900 border-t border-slate-700 p-4">
+        {/* Header */}
+        <div className="flex items-center justify-between">
+          <div>
+            <h2 className="text-lg font-semibold text-slate-100">
+              {flight.flightNumber} — {flight.origin} → {flight.destination}
+            </h2>
+            <p className="text-xs text-slate-400">
+              Tail {flight.tail} · ETOPS {flight.etops || "N/A"} · Dep{" "}
+              {flight.depTime}Z
+            </p>
+          </div>
+          <button
+            onClick={onClose}
+            className="rounded-lg bg-slate-800 px-3 py-1 text-xs text-slate-300 hover:bg-slate-700"
+          >
+            Close
+          </button>
+        </div>
+
+        {/* Route */}
+        <div className="mt-4">
+          <SectionHeader title="Route" />
+          <div className="mt-2 rounded-xl border border-slate-800 bg-slate-900/60 p-3 text-xs text-slate-300">
+            {flight.route}
+          </div>
+        </div>
+
+        {/* NOTAMs */}
+        <div className="mt-4">
+          <SectionHeader title="NOTAMs" />
+          <div className="mt-2 flex flex-col gap-2">
+            {flight.notams.map((n, idx) => (
+              <div
+                key={idx}
+                className="rounded-xl border border-slate-800 bg-slate-900/60 p-3 text-xs text-slate-300"
+              >
+                {n}
+              </div>
+            ))}
+          </div>
+        </div>
+
+        {/* Weather */}
+        <div className="mt-4">
+          <SectionHeader title="Weather" />
+          <div className="mt-2 flex flex-col gap-2">
+            <div className="rounded-xl border border-slate-800 bg-slate-900/60 p-3 text-xs text-slate-300">
+              <span className="text-[10px] uppercase text-slate-500">DEP</span>
+              <div>{flight.wx.dep}</div>
+            </div>
+            <div className="rounded-xl border border-slate-800 bg-slate-900/60 p-3 text-xs text-slate-300">
+              <span className="text-[10px] uppercase text-slate-500">ARR</span>
+              <div>{flight.wx.arr}</div>
+            </div>
+            <div className="rounded-xl border border-slate-800 bg-slate-900/60 p-3 text-xs text-slate-300">
+              <span className="text-[10px] uppercase text-slate-500">ALT</span>
+              <div>{flight.wx.alt}</div>
+            </div>
+          </div>
+        </div>
+
+        {/* Fuel */}
+        <div className="mt-4">
+          <SectionHeader title="Fuel Breakdown" />
+          <div className="mt-2 grid grid-cols-2 gap-2 text-xs text-slate-300">
+            {Object.entries(flight.fuelBreakdown).map(([k, v]) => (
+              <div
+                key={k}
+                className="rounded-xl border border-slate-800 bg-slate-900/60 p-3"
+              >
+                <div className="text-[10px] uppercase text-slate-500">
+                  {k}
+                </div>
+                <div className="text-sm text-slate-100">{v}</div>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        {/* MEL / ETOPS */}
+        <div className="mt-4">
+          <SectionHeader title="MEL / ETOPS Impact" />
+          <div className="mt-2 flex flex-col gap-2 text-xs text-slate-300">
+            {flight.mel.map((m, idx) => (
+              <div
+                key={idx}
+                className="rounded-xl border border-slate-800 bg-slate-900/60 p-3"
+              >
+                {m}
+              </div>
+            ))}
+          </div>
+        </div>
+
+        {/* Actions */}
+        <div className="mt-6 flex gap-2">
+          <button className="flex-1 rounded-lg bg-sky-700 px-3 py-2 text-xs font-medium text-slate-50 hover:bg-sky-600">
+            Amend Release
+          </button>
+          <button className="flex-1 rounded-lg bg-amber-700 px-3 py-2 text-xs font-medium text-slate-50 hover:bg-amber-600">
+            Re‑Plan
+          </button>
+          <button className="flex-1 rounded-lg bg-rose-700 px-3 py-2 text-xs font-medium text-slate-50 hover:bg-rose-600">
+            Cancel Flight
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+};
+
 const DispatchWorkstation = () => {
-  // 🔧 Replace with real hooks / data later
+  const [selectedFlight, setSelectedFlight] = useState(null);
+
   const dispatcher = {
     name: "System Dispatch",
     bankLabel: "Trans‑Atlantic PM Bank",
@@ -87,9 +210,29 @@ const DispatchWorkstation = () => {
       alternate: "DUB",
       fuelPlan: "74.5",
       fuelExtra: "+3.0",
-      flags: [
-        { label: "WX ATLANTIC", tone: "warn" },
-        { label: "ETOPS CRIT", tone: "warn" },
+      flags: [{ label: "WX ATLANTIC", tone: "warn" }],
+      route:
+        "MERIT HFD PUT EBONY N47A 52N50W 53N40W 54N30W MALOT UL9 KONAN UL607 LAM",
+      notams: [
+        "LHR RWY 27L CLSD 23:00–05:00Z",
+        "DUB ILS CAT II U/S",
+        "EWR TWY K CLSD BTN K3–K5",
+      ],
+      wx: {
+        dep: "EWR 232251Z 04008KT 1SM -RA BR OVC008 03/02 A2984",
+        arr: "LHR 232250Z 21006KT 5SM BKN012 08/06 A3002",
+        alt: "DUB 232250Z 19010KT 8SM SHRA SCT020 BKN040 07/05 A2996",
+      },
+      fuelBreakdown: {
+        Taxi: "0.8",
+        Trip: "68.0",
+        Contingency: "3.4",
+        Alternate: "1.2",
+        FinalReserve: "2.0",
+      },
+      mel: [
+        "27‑51‑01 FLAP SYS — CAT III RESTR (CAT I ONLY)",
+        "34‑21‑02 IRS #2 DEGRADED — ETOPS MONITOR",
       ],
     },
     {
@@ -109,6 +252,28 @@ const DispatchWorkstation = () => {
         { label: "CREW MCT", tone: "bad" },
         { label: "MX DEFERRAL", tone: "warn" },
       ],
+      route:
+        "GREKI Q818 YQG Q822 YXU Q824 YCF N49W050 N49W040 N49W030 LGL UN859 OKTET",
+      notams: [
+        "CDG RWY 26R TORA REDUCED",
+        "BRU APCH RADAR LIMITED 23:00–01:00Z",
+      ],
+      wx: {
+        dep: "EWR 232251Z 04008KT 1SM -RA BR OVC008 03/02 A2984",
+        arr: "CDG 232250Z 20012KT 3SM TSRA BKN015CB 09/07 A2990",
+        alt: "BRU 232250Z 19008KT 6SM SHRA SCT020 BKN035 08/06 A2988",
+      },
+      fuelBreakdown: {
+        Taxi: "0.7",
+        Trip: "62.5",
+        Contingency: "3.1",
+        Alternate: "1.0",
+        FinalReserve: "1.9",
+      },
+      mel: [
+        "23‑11‑03 APU INOP — GND PWR / AIR REQ",
+        "22‑11‑01 L SLAT ACTUATOR — SPD/ALT RESTR",
+      ],
     },
     {
       flightNumber: "ADY 306",
@@ -124,6 +289,25 @@ const DispatchWorkstation = () => {
       fuelPlan: "39.8",
       fuelExtra: "+2.0",
       flags: [{ label: "RNP AR", tone: "info" }],
+      route:
+        "MERIT J80 MCI J24 HVE J146 FMG BDEGA3",
+      notams: [
+        "SFO RWY 28L/28R ILS PRM AVBL",
+        "OAK RWY 30 CLOSED 06:00–09:00Z",
+      ],
+      wx: {
+        dep: "EWR 232251Z 04008KT 1SM -RA BR OVC008 03/02 A2984",
+        arr: "SFO 232250Z 28012KT 10SM FEW008 SCT020 14/10 A3010",
+        alt: "OAK 232250Z 29010KT 10SM FEW010 13/09 A3008",
+      },
+      fuelBreakdown: {
+        Taxi: "0.5",
+        Trip: "35.0",
+        Contingency: "1.8",
+        Alternate: "1.0",
+        FinalReserve: "1.5",
+      },
+      mel: ["No active MEL/CDL items impacting dispatch."],
     },
   ];
 
@@ -180,7 +364,11 @@ const DispatchWorkstation = () => {
           />
           <div className="flex flex-col gap-2">
             {flights.map((f) => (
-              <FlightStrip key={f.flightNumber} flight={f} />
+              <FlightStrip
+                key={f.flightNumber}
+                flight={f}
+                onSelect={setSelectedFlight}
+              />
             ))}
           </div>
         </section>
@@ -240,7 +428,13 @@ const DispatchWorkstation = () => {
                   </div>
                   <Pill
                     label={w.risk === "HIGH" ? "SIG" : w.risk}
-                    tone={w.risk === "HIGH" ? "bad" : w.risk === "MED" ? "warn" : "good"}
+                    tone={
+                      w.risk === "HIGH"
+                        ? "bad"
+                        : w.risk === "MED"
+                        ? "warn"
+                        : "good"
+                    }
                   />
                 </div>
               ))}
@@ -269,7 +463,13 @@ const DispatchWorkstation = () => {
                   </div>
                   <Pill
                     label={p.risk}
-                    tone={p.risk === "HIGH" ? "bad" : p.risk === "MED" ? "warn" : "good"}
+                    tone={
+                      p.risk === "HIGH"
+                        ? "bad"
+                        : p.risk === "MED"
+                        ? "warn"
+                        : "good"
+                    }
                   />
                 </div>
               ))}
@@ -293,6 +493,11 @@ const DispatchWorkstation = () => {
           </ul>
         </section>
       </main>
+
+      <DetailDrawer
+        flight={selectedFlight}
+        onClose={() => setSelectedFlight(null)}
+      />
     </div>
   );
 };
