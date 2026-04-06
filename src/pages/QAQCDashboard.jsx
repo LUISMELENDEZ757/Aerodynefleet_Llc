@@ -5,7 +5,7 @@ import { base44 } from '@/api/base44Client';
 import {
   ChevronLeft, CheckCircle2, AlertTriangle, Users, TrendingUp,
   Download, Clipboard, Eye, BarChart3, Shield, Activity, Filter,
-  Clock, Zap, ChevronRight, Search
+  Clock, Zap, ChevronRight, Search, MapPin
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
@@ -135,6 +135,192 @@ export default function QAQCDashboard() {
   const [activeTab, setActiveTab] = useState('overview');
   const [activeTopTab, setActiveTopTab] = useState('qa_env');
   const [selectedModule, setSelectedModule] = useState('fleet_health');
+
+  if (activeTopTab === 'qc_inspection') {
+    const [selectedStation, setSelectedStation] = useState('All Stations');
+    const [selectedInspectionType, setSelectedInspectionType] = useState('pending_qc');
+
+    return (
+      <div className="min-h-screen bg-background pb-24">
+        {/* Top Navigation Tabs */}
+        <div className="border-b border-border bg-secondary/40 px-5 py-3 flex gap-2 overflow-x-auto scrollbar-hide">
+          {TOP_TABS.map(({ id, label }) => (
+            <button
+              key={id}
+              onClick={() => setActiveTopTab(id)}
+              className={cn(
+                'px-3 py-2 rounded-lg text-xs font-bold whitespace-nowrap transition-all flex-shrink-0',
+                activeTopTab === id ? 'bg-primary text-primary-foreground' : 'text-muted-foreground hover:text-foreground'
+              )}
+            >
+              {label}
+            </button>
+          ))}
+        </div>
+
+        {/* QC Inspection Header */}
+        <div className="bg-gradient-to-r from-yellow-600 to-yellow-700 px-5 py-4 text-white">
+          <div className="flex items-center justify-between gap-4">
+            <div className="flex items-start gap-3">
+              <div className="w-10 h-10 rounded-xl bg-white/20 flex items-center justify-center">
+                <Clipboard className="w-6 h-6" />
+              </div>
+              <div>
+                <h1 className="text-2xl font-extrabold tracking-wide">QC INSPECTION ENVIRONMENT</h1>
+                <p className="text-sm opacity-90">Quality Control Inspection Management • RII Tracking • Inspector Workload</p>
+              </div>
+            </div>
+            <LiveClock />
+          </div>
+        </div>
+
+        {/* KPI Cards */}
+        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-8 gap-2 px-5 py-4 bg-background/50 overflow-x-auto scrollbar-hide">
+          <KpiCard icon={Clipboard} label="Pending QC" value="2" dotColor="bg-yellow-500" />
+          <KpiCard icon={AlertTriangle} label="Pending RII" value="1" dotColor="bg-orange-500" />
+          <KpiCard icon={TrendingUp} label="In Progress" value="1" dotColor="bg-blue-500" />
+          <KpiCard icon={CheckCircle2} label="Approved" value="1" dotColor="bg-green-500" />
+          <KpiCard icon={AlertTriangle} label="Rejected" value="1" dotColor="bg-red-500" />
+          <KpiCard icon={AlertTriangle} label="AOG Priority" value="1" dotColor="bg-pink-500" />
+          <KpiCard icon={Users} label="Available" value="2" dotColor="bg-purple-500" />
+          <KpiCard icon={CheckCircle2} label="Completed Today" value="23" dotColor="bg-cyan-500" />
+        </div>
+
+        {/* Main Content with Sidebar */}
+        <div className="flex gap-0">
+          {/* Left Sidebar */}
+          <div className="w-72 border-r border-border bg-secondary/20 p-4 flex flex-col gap-4 max-h-[calc(100vh-320px)] overflow-y-auto">
+            <div className="relative">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+              <input type="text" placeholder="Search inspections..." className="w-full pl-9 pr-3 py-2 bg-background border border-border rounded-lg text-xs outline-none focus:ring-1 focus:ring-primary" />
+            </div>
+
+            <div className="space-y-3">
+              <p className="text-xs font-extrabold text-muted-foreground uppercase tracking-widest">STATION FILTER</p>
+              <select value={selectedStation} onChange={(e) => setSelectedStation(e.target.value)} className="w-full px-3 py-2 bg-background border border-border rounded-lg text-xs outline-none focus:ring-1 focus:ring-primary text-foreground">
+                <option>All Stations</option>
+                <option>KSTL - St. Louis</option>
+                <option>KDAL - Dallas</option>
+                <option>KJFK - New York</option>
+              </select>
+            </div>
+
+            <div className="space-y-2">
+              <p className="text-xs font-extrabold text-muted-foreground uppercase tracking-widest">PENDING INSPECTIONS</p>
+              {[
+                { id: 'pending_qc', label: 'Pending QC', count: 2, desc: 'Standard quality control inspections' },
+                { id: 'pending_rii', label: 'Pending RII', count: 1, desc: 'Required Inspection Items' },
+              ].map(({ id, label, count, desc }) => (
+                <button
+                  key={id}
+                  onClick={() => setSelectedInspectionType(id)}
+                  className={cn(
+                    'w-full text-left p-3 rounded-xl border transition-all',
+                    selectedInspectionType === id
+                      ? 'bg-yellow-600/30 border-yellow-500/50'
+                      : 'border-border hover:border-border/80'
+                  )}
+                >
+                  <div className="flex items-start justify-between gap-2">
+                    <div>
+                      <p className="text-xs font-bold">{label}</p>
+                      <p className="text-[10px] text-muted-foreground mt-0.5">{desc}</p>
+                    </div>
+                    <span className={cn('text-xs font-extrabold px-1.5 py-0.5 rounded-full', selectedInspectionType === id ? 'bg-yellow-500/30 text-yellow-600' : 'bg-muted text-muted-foreground')}>
+                      {count}
+                    </span>
+                  </div>
+                </button>
+              ))}
+            </div>
+          </div>
+
+          {/* Right Content Area */}
+          <div className="flex-1 p-5">
+            <div className="space-y-4">
+              <div className="flex items-center justify-between">
+                <div>
+                  <h2 className="text-xl font-extrabold text-foreground">Pending QC</h2>
+                  <p className="text-xs text-muted-foreground mt-0.5">Pending Inspections • Standard quality control inspections</p>
+                </div>
+                <div className="flex items-center gap-2">
+                  <button className="flex items-center gap-1.5 bg-secondary text-muted-foreground hover:text-foreground text-xs font-bold px-3 py-2 rounded-lg transition-colors">
+                    <Filter className="w-3.5 h-3.5" /> Filter
+                  </button>
+                  <button className="flex items-center gap-1.5 bg-blue-600 hover:bg-blue-500 text-white text-xs font-bold px-3 py-2 rounded-lg transition-colors">
+                    <Download className="w-3.5 h-3.5" /> Export
+                  </button>
+                </div>
+              </div>
+
+              {/* Inspection Cards */}
+              <div className="space-y-3">
+                {[
+                  { qcId: 'QC-2026-003', types: ['FUNCTIONAL TEST', 'AOG'], desc: 'Boeing 737-900ER: Landing gear retraction test and inspection', aircraft: 'N737CC', workOrder: 'WO-2024-4593', ata: '32', station: 'KSTL', inspector: 'Michael Torres', license: 'A&P 4729384', date: '2/28/2026, 11:45:00 AM', photos: 5, status: 'PENDING' },
+                ].map((item, i) => (
+                  <div key={i} className="bg-card border border-border rounded-2xl p-5 space-y-4">
+                    <div className="flex items-start justify-between gap-4">
+                      <div className="flex items-start gap-3 flex-1">
+                        <div className="w-10 h-10 rounded-lg bg-blue-500/20 flex items-center justify-center flex-shrink-0">
+                          <Clipboard className="w-5 h-5 text-blue-400" />
+                        </div>
+                        <div className="flex-1">
+                          <div className="flex items-center gap-2 mb-1">
+                            <p className="text-sm font-extrabold text-foreground">{item.qcId}</p>
+                            {item.types.map(t => (
+                              <span key={t} className={cn('text-[10px] font-bold px-2 py-0.5 rounded-full',
+                                t === 'AOG' ? 'bg-red-500/20 text-red-600' : 'bg-purple-500/20 text-purple-600'
+                              )}>{t}</span>
+                            ))}
+                          </div>
+                          <p className="text-xs text-muted-foreground">{item.desc}</p>
+                        </div>
+                      </div>
+                      <span className="text-xs font-extrabold px-3 py-1 rounded-lg bg-yellow-600/30 text-yellow-600 flex-shrink-0">{item.status}</span>
+                    </div>
+
+                    <div className="grid grid-cols-4 gap-4 pt-2 border-t border-border text-xs">
+                      <div>
+                        <p className="text-muted-foreground">Aircraft</p>
+                        <p className="font-bold text-foreground">{item.aircraft}</p>
+                      </div>
+                      <div>
+                        <p className="text-muted-foreground">Work Order</p>
+                        <p className="font-bold text-foreground">{item.workOrder}</p>
+                      </div>
+                      <div>
+                        <p className="text-muted-foreground">ATA Chapter</p>
+                        <p className="font-bold text-foreground">{item.ata}</p>
+                      </div>
+                      <div>
+                        <p className="text-muted-foreground">Station</p>
+                        <p className="font-bold text-foreground flex items-center gap-1"><MapPin className="w-3 h-3" />{item.station}</p>
+                      </div>
+                    </div>
+
+                    <div className="flex items-center justify-between pt-2 border-t border-border text-xs">
+                      <div className="flex items-center gap-3">
+                        <div className="flex items-center gap-1">
+                          <Users className="w-3 h-3 text-muted-foreground" />
+                          <span>{item.inspector}</span>
+                        </div>
+                        <span className="text-muted-foreground">{item.license}</span>
+                        <span className="text-muted-foreground">{item.date}</span>
+                        <span className="text-blue-400 flex items-center gap-1"><Eye className="w-3 h-3" />{item.photos} Photos</span>
+                      </div>
+                      <button className="flex items-center gap-1.5 bg-blue-600 hover:bg-blue-500 text-white font-bold px-3 py-1.5 rounded-lg transition-colors text-xs">
+                        <Eye className="w-3.5 h-3.5" /> View Details
+                      </button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   if (activeTopTab === 'qa_env') {
     return (
