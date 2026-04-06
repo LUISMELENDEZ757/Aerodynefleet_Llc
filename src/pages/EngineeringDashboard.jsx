@@ -4,17 +4,19 @@ import { useQuery } from '@tanstack/react-query';
 import { base44 } from '@/api/base44Client';
 import {
   ChevronLeft, Activity, Wrench, Droplets, TrendingUp,
-  BarChart3, AlertTriangle, CheckCircle, Clock, Zap
+  BarChart3, AlertTriangle, CheckCircle, Clock, Zap, CalendarDays
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import EngineTrendAnalysis from '@/components/engineering/EngineTrendAnalysis';
 import OilServiceTrends from '@/components/engineering/OilServiceTrends';
 import ApuTrendDashboard from '@/components/engineering/ApuTrendDashboard';
+import MaintenanceForecastModule from '@/components/engineering/MaintenanceForecastModule';
 
 const TABS = [
   { id: 'trends',   label: 'Engine Trend Analysis', icon: TrendingUp },
   { id: 'oil',      label: 'Oil Servicing Trends',   icon: Droplets },
   { id: 'apu',      label: 'APU Trends',             icon: Zap },
+  { id: 'forecast', label: 'Maintenance Forecast',   icon: CalendarDays },
 ];
 
 export default function EngineeringDashboard() {
@@ -142,6 +144,9 @@ export default function EngineeringDashboard() {
             aircraft={aircraft}
             selectedTail={selectedTail}
           />
+        )}
+        {activeTab === 'forecast' && (
+          <MaintenanceForecastModule aircraft={aircraft} />
         )}
       </div>
     </div>

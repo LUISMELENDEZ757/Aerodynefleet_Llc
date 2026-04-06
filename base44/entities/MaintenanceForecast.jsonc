@@ -1,0 +1,93 @@
+{
+  "name": "MaintenanceForecast",
+  "type": "object",
+  "description": "Maintenance forecasting record \u2014 stores estimated flight hours, cycles, and computed time-remaining for major engine / APU overhaul per aircraft.",
+  "properties": {
+    "aircraft_tail": {
+      "type": "string",
+      "description": "Aircraft tail number"
+    },
+    "aircraft_type": {
+      "type": "string",
+      "description": "Aircraft type e.g. B737-800"
+    },
+    "component": {
+      "type": "string",
+      "enum": [
+        "engine_1",
+        "engine_2",
+        "apu",
+        "engine_hsi",
+        "engine_epr_overhaul"
+      ],
+      "description": "Component being tracked"
+    },
+    "total_flight_hours": {
+      "type": "number",
+      "description": "Cumulative flight hours on component"
+    },
+    "total_cycles": {
+      "type": "number",
+      "description": "Cumulative cycles (takeoff/landing pairs)"
+    },
+    "overhaul_interval_hours": {
+      "type": "number",
+      "description": "Manufacturer overhaul interval in flight hours (e.g. 20000)"
+    },
+    "overhaul_interval_cycles": {
+      "type": "number",
+      "description": "Manufacturer overhaul interval in cycles (e.g. 15000)"
+    },
+    "last_overhaul_date": {
+      "type": "string",
+      "format": "date",
+      "description": "Date of last overhaul/shop visit"
+    },
+    "last_overhaul_hours": {
+      "type": "number",
+      "description": "Flight hours at last overhaul"
+    },
+    "last_overhaul_cycles": {
+      "type": "number",
+      "description": "Cycles at last overhaul"
+    },
+    "avg_hours_per_month": {
+      "type": "number",
+      "description": "Average flight hours flown per month (used for projection)"
+    },
+    "avg_cycles_per_month": {
+      "type": "number",
+      "description": "Average cycles per month (used for projection)"
+    },
+    "suggested_window_start": {
+      "type": "string",
+      "format": "date",
+      "description": "Suggested maintenance window start date"
+    },
+    "suggested_window_end": {
+      "type": "string",
+      "format": "date",
+      "description": "Suggested maintenance window end date"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "ok",
+        "watch",
+        "due_soon",
+        "overdue"
+      ],
+      "default": "ok",
+      "description": "Computed urgency status"
+    },
+    "notes": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "aircraft_tail",
+    "component",
+    "total_flight_hours",
+    "overhaul_interval_hours"
+  ]
+}
