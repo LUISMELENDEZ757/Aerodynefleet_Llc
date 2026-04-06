@@ -1,4 +1,5 @@
 import React, { useState } from "react";
+import EtopsMonitorPanel from "@/components/dispatch/EtopsMonitorPanel";
 
 const Pill = ({ label, tone = "default" }) => {
   const toneClasses = {
@@ -234,6 +235,10 @@ const DispatchWorkstation = () => {
         "27‑51‑01 FLAP SYS — CAT III RESTR (CAT I ONLY)",
         "34‑21‑02 IRS #2 DEGRADED — ETOPS MONITOR",
       ],
+      etopsAlternates: ["SNN", "KEK"],
+      natTrackPoints: { entry: "51N50W", exit: "54N30W" },
+      driftDownTerrain: "Min FL200 over Greenland/Iceland",
+      maxDiversionTime: "330 min",
     },
     {
       flightNumber: "ADY 204",
@@ -274,6 +279,10 @@ const DispatchWorkstation = () => {
         "23‑11‑03 APU INOP — GND PWR / AIR REQ",
         "22‑11‑01 L SLAT ACTUATOR — SPD/ALT RESTR",
       ],
+      etopsAlternates: ["ORY", "CRL"],
+      natTrackPoints: { entry: "49N50W", exit: "49N30W" },
+      driftDownTerrain: "Min FL180 over Atlantic/Europe",
+      maxDiversionTime: "240 min",
     },
     {
       flightNumber: "ADY 306",
@@ -373,8 +382,11 @@ const DispatchWorkstation = () => {
           </div>
         </section>
 
-        {/* Right: Risk, WX, ATC */}
+        {/* Right: Risk, WX, ATC, ETOPS */}
         <section className="lg:col-span-1 flex flex-col gap-3">
+          {/* ETOPS Monitor */}
+          <EtopsMonitorPanel flights={flights} />
+
           {/* Risk panel */}
           <div className="flex flex-col gap-3 rounded-2xl border border-slate-800 bg-slate-900/40 p-4">
             <SectionHeader
