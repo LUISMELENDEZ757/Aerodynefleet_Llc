@@ -216,6 +216,46 @@ function NewEngineEventModal({ aircraft, onClose, onCreate }) {
   );
 }
 
+// ── Edit Airline Modal ────────────────────────────────────────────────────────
+function EditAirlineModal({ fleet, onClose, onSave }) {
+  const [name, setName] = useState(fleet?.name || '');
+  const handleSubmit = (e) => {
+    e.preventDefault();
+    if (name.trim()) {
+      onSave(fleet.id, { name });
+      onClose();
+    }
+  };
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 p-4">
+      <div className="w-full max-w-md bg-[#141922] border border-white/10 rounded-2xl overflow-hidden shadow-2xl">
+        <div className="flex items-center justify-between px-5 py-4 border-b border-white/10">
+          <p className="font-extrabold text-white text-sm uppercase tracking-wide">Edit Airline Name</p>
+          <button onClick={onClose} className="w-8 h-8 rounded-lg bg-white/10 flex items-center justify-center hover:bg-white/20"><X className="w-4 h-4 text-white" /></button>
+        </div>
+        <form onSubmit={handleSubmit} className="p-5 space-y-4">
+          <div>
+            <label className="text-[10px] font-bold text-gray-500 uppercase tracking-widest block mb-2">Airline Name</label>
+            <input
+              type="text"
+              value={name}
+              onChange={(e) => setName(e.target.value)}
+              className="w-full bg-[#0d1117] border border-white/10 rounded-xl px-3 py-2.5 text-sm text-white placeholder-gray-600 outline-none focus:border-primary"
+              placeholder="e.g. Aerodyne Express"
+              autoFocus
+            />
+          </div>
+          <div className="flex gap-3 pt-2">
+            <button type="button" onClick={onClose} className="flex-1 py-2.5 rounded-xl border border-white/10 text-sm font-bold text-gray-400 hover:bg-white/5">Cancel</button>
+            <button type="submit" className="flex-1 py-2.5 rounded-xl bg-primary text-primary-foreground text-sm font-bold hover:bg-primary/90">Save</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  );
+}
+
 // ── Event Card ────────────────────────────────────────────────────────────────
 function EventCard({ event, isSelected, onSelect }) {
   const rawStatus = event.notes?.match(/Status: ([^|]+)/)?.[1]?.trim().toLowerCase().replace('-', '_') || 'active';
@@ -302,6 +342,8 @@ export default function EngineRemovalInstallation() {
   const [selectedEvent, setSelectedEvent] = useState(null);
   const [selectedFleetId, setSelectedFleetId] = useState(null);
   const [showFleetMenu, setShowFleetMenu] = useState(false);
+  const [showAirlineModal, setShowAirlineModal] = useState(false);
+  const [editingAirline, setEditingAirline] = useState(null);
   const qc = useQueryClient();
 
   const { data: fleets = [] } = useQuery({
@@ -339,6 +381,14 @@ export default function EngineRemovalInstallation() {
       qc.invalidateQueries({ queryKey: ['engine-removal-events'] });
       setShowModal(false);
       setSelectedEvent(newEvent);
+    },
+  });
+
+  const updateFleetMutation = useMutation({
+    mutationFn: ({ id, data }) => base44.entities.Fleet.update(id, data),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ['engine-fleets'] });
+      setShowAirlineModal(false);
     },
   });
 
@@ -386,7 +436,16 @@ export default function EngineRemovalInstallation() {
             <div className="relative">
               <button
                 onClick={() => setShowFleetMenu(!showFleetMenu)}
+                onContextMenu={(e) => {
+                  e.preventDefault();
+                  if (selectedFleet) {
+                    setEditingAirline(selectedFleet);
+                    setShowAirlineModal(true);
+                    setShowFleetMenu(false);
+                  }
+                }}
                 className="flex items-center gap-2 bg-[#141922] border border-white/10 rounded-xl px-4 py-2 hover:border-white/20 transition-colors"
+                title="Right-click to edit airline name"
               >
                 <span className="text-xs font-bold text-white">{selectedFleet?.name || 'Select Fleet'}</span>
                 <ChevronDown className="w-4 h-4 text-gray-400" />
@@ -519,6 +578,17 @@ export default function EngineRemovalInstallation() {
           aircraft={aircraft}
           onClose={() => setShowModal(false)}
           onCreate={(data) => createMutation.mutate(data)}
+        />
+      )}
+
+      {showAirlineModal && editingAirline && (
+        <EditAirlineModal
+          fleet={editingAirline}
+          onClose={() => {
+            setShowAirlineModal(false);
+            setEditingAirline(null);
+          }}
+          onSave={(id, data) => updateFleetMutation.mutate({ id, data })}
         />
       )}
     </div>
