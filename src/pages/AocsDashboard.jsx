@@ -24,11 +24,11 @@ const TABS = [
   { id: 'alerts', label: 'Alerts', icon: AlertTriangle },
 ];
 
-function StatCard({ icon: IconComp, label, value, sub, color }) {
+function StatCard({ icon: Icon, label, value, sub, color }) {
   return (
     <div className={cn('rounded-xl border p-4 space-y-1', color)}>
       <div className="flex items-center gap-2">
-        {IconComp && <IconComp className="w-4 h-4" />}
+        {Icon && <Icon className="w-4 h-4" />}
         <p className="text-2xl font-extrabold font-mono">{value}</p>
       </div>
       <p className="text-xs opacity-70">{label}</p>
