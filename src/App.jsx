@@ -89,7 +89,7 @@ function PageFallback() {
 class ChunkErrorBoundary extends React.Component {
   constructor(props) {
     super(props);
-    this.state = { hasError: false };
+    this.state = { hasError: false, errorCount: 0 };
   }
   static getDerivedStateFromError(error) {
     if (error?.message?.includes('Failed to fetch dynamically imported module') ||
@@ -100,14 +100,22 @@ class ChunkErrorBoundary extends React.Component {
     return null;
   }
   componentDidCatch(error) {
-    // Log but don't reload—let fallback UI handle it
-    console.error('Chunk error:', error);
+    console.error('Chunk load error:', error);
+    this.setState(prev => ({ errorCount: prev.errorCount + 1 }));
   }
   render() {
     if (this.state.hasError) {
       return (
         <div className="fixed inset-0 flex items-center justify-center bg-background z-50">
-          <div className="w-8 h-8 border-4 border-slate-200 border-t-primary rounded-full animate-spin" />
+          <div className="text-center space-y-4">
+            <div className="text-sm text-muted-foreground">Page failed to load</div>
+            <button
+              onClick={() => window.location.reload()}
+              className="px-4 py-2 bg-primary text-primary-foreground rounded-lg text-sm font-semibold hover:bg-primary/90"
+            >
+              Reload App
+            </button>
+          </div>
         </div>
       );
     }
