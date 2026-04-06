@@ -4,10 +4,11 @@ import { motion } from 'framer-motion';
 import {
   Sun, Cloud, CloudRain, Wind, Droplets, Thermometer,
   MapPin, Search, Umbrella, Eye, Gauge, Sunrise, Sunset,
-  Waves, TreePalm, Star, ArrowLeft
+  Waves, TreePalm, Star, ArrowLeft, Loader
 } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { cn } from '@/lib/utils';
+import { fetchWeather, geocodeLocation, mapWeatherCondition } from '@/lib/weather-api';
 
 const DESTINATIONS = [
   { name: 'Cancún', country: 'Mexico', emoji: '🇲🇽', lat: 21.16, lon: -86.85, vibe: 'Beach Paradise', temp: 31, feels: 36, humidity: 78, wind: 18, uv: 11, vis: 16, pressure: 1012, condition: 'sunny', high: 33, low: 26, sunrise: '6:14 AM', sunset: '6:58 PM', icon: '☀️', desc: 'Crystal clear skies. Perfect beach day!', activities: ['Snorkeling', 'Beach Volleyball', 'Cenote Swim'] },
@@ -198,32 +199,42 @@ export default function TravelWeather() {
 
   const convertTemp = (celsius) => unit === 'F' ? Math.round((celsius * 9/5) + 32) : celsius;
 
-  const addCustomDestination = () => {
+  const addCustomDestination = async () => {
     if (!customDest.trim()) return;
     const [city, country] = customDest.split(',').map(s => s.trim());
     if (!city) return;
+    
+    // Try to geocode and fetch real weather
+    const coords = await geocodeLocation(city, country);
+    let weatherData = null;
+    
+    if (coords) {
+      weatherData = await fetchWeather(coords.lat, coords.lon);
+    }
+
+    const mapped = weatherData ? mapWeatherCondition(weatherData.weather?.[0]?.main) : { condition: 'partly_cloudy', icon: '⛅' };
     
     const newDest = {
       name: city,
       country: country || 'Unknown',
       emoji: '🌍',
-      lat: 0,
-      lon: 0,
+      lat: coords?.lat || 0,
+      lon: coords?.lon || 0,
       vibe: 'Custom Destination',
-      temp: 25,
-      feels: 27,
-      humidity: 60,
-      wind: 10,
+      temp: weatherData?.main?.temp || 25,
+      feels: weatherData?.main?.feels_like || 27,
+      humidity: weatherData?.main?.humidity || 60,
+      wind: weatherData?.wind?.speed || 10,
       uv: 7,
-      vis: 15,
-      pressure: 1013,
-      condition: 'partly_cloudy',
-      high: 28,
-      low: 20,
-      sunrise: '6:00 AM',
-      sunset: '6:30 PM',
-      icon: '⛅',
-      desc: 'Search your custom destination online for live weather.',
+      vis: (weatherData?.visibility || 15000) / 1000,
+      pressure: weatherData?.main?.pressure || 1013,
+      condition: mapped.condition,
+      high: weatherData?.main?.temp_max || 28,
+      low: weatherData?.main?.temp_min || 20,
+      sunrise: weatherData?.sys?.sunrise ? new Date(weatherData.sys.sunrise * 1000).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: true }) : '6:00 AM',
+      sunset: weatherData?.sys?.sunset ? new Date(weatherData.sys.sunset * 1000).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: true }) : '6:30 PM',
+      icon: mapped.icon,
+      desc: weatherData?.weather?.[0]?.description || 'Search your custom destination online for live weather.',
       activities: ['Explore', 'Discover', 'Adventure']
     };
     
