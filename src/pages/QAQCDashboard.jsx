@@ -6,7 +6,7 @@ import {
   Clock, Zap, Search, MapPin
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
-import WorkflowPipeline from '@/components/qa/WorkflowPipeline';
+import FullWorkflowPipeline from '@/components/qa/FullWorkflowPipeline';
 
 const TOP_TABS = [
   { id: 'dashboard', label: 'QC/RII Dashboard' },
@@ -537,7 +537,7 @@ export default function QAQCDashboard() {
     return (
       <div className="min-h-screen bg-background pb-24">
         <TopNav activeTopTab={activeTopTab} setActiveTopTab={setActiveTopTab} />
-        <WorkflowPipeline />
+        <FullWorkflowPipeline />
       </div>
     );
   }
