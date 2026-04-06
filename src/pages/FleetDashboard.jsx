@@ -58,7 +58,28 @@ function AircraftDetailOverlay({ aircraft: initialAircraft, onClose }) {
     queryFn: () => base44.entities.LogbookEntry.filter({ aircraft_tail: aircraft.tail_number }),
   });
 
-  const [catStatus, setCatStatus] = useState('CAPABLE');
+  // Derive max CAT capability from aircraft type
+  // CAT IIIc: B777, B787, A350 (highest-tier autoland certified types)
+  // CAT IIIb: B737 MAX, A320, A321
+  // CAT IIIa: B737-800/900, B757, B767
+  // CAT II:   CRJ700, CRJ900, E175, E190
+  const getMaxCatOptions = (acType = '') => {
+    if (['B777', 'B787', 'A350'].some(t => acType.includes(t))) {
+      return ['CAT IIIc — Zero/Zero', 'CAT IIIb', 'CAT IIIa', 'CAT II', 'CAT I', 'DOWNGRADED'];
+    }
+    if (['B737 MAX', 'A320', 'A321'].some(t => acType.includes(t))) {
+      return ['CAT IIIb', 'CAT IIIa', 'CAT II', 'CAT I', 'DOWNGRADED'];
+    }
+    if (['B737-800', 'B737-900', 'B757', 'B767'].some(t => acType.includes(t))) {
+      return ['CAT IIIa', 'CAT II', 'CAT I', 'DOWNGRADED'];
+    }
+    // CRJ, E-jets, B737-700 default
+    return ['CAT II', 'CAT I', 'DOWNGRADED'];
+  };
+
+  const catOptions = getMaxCatOptions(aircraft.aircraft_type);
+  const defaultCat = catOptions[0];
+  const [catStatus, setCatStatus] = useState(defaultCat);
   const [etopsStatus, setEtopsStatus] = useState('NON-ETOPS');
   const [showCatDropdown, setShowCatDropdown] = useState(false);
   const [showEtopsDropdown, setShowEtopsDropdown] = useState(false);
@@ -129,7 +150,7 @@ function AircraftDetailOverlay({ aircraft: initialAircraft, onClose }) {
             {[
               { icon: MapPin, label: 'Location', value: aircraft.base_station || '—', badge: 'LIVE', iconColor: 'text-primary' },
               { icon: Cpu, label: 'Engines', value: aircraft.engine_type || '—', iconColor: 'text-orange-400' },
-              { icon: CheckCircle, label: 'CAT Status', value: 'CAT II', iconColor: 'text-green-400' },
+              { icon: CheckCircle, label: 'CAT Status', value: catStatus, iconColor: catStatus === 'DOWNGRADED' ? 'text-red-400' : catStatus === 'CAT I' ? 'text-yellow-400' : 'text-green-400' },
             ].map(({ icon: Icon, label, value, badge, iconColor }) => (
               <div key={label} className="flex items-start gap-3">
                 <Icon className={cn('w-4 h-4 mt-0.5 flex-shrink-0', iconColor)} />
@@ -145,26 +166,51 @@ function AircraftDetailOverlay({ aircraft: initialAircraft, onClose }) {
           </div>
 
           {/* CAT Selector */}
-          <div className="rounded-xl border border-green-600/40 bg-green-900/20 px-4 py-3 relative">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-2">
-                <Shield className="w-4 h-4 text-green-400" />
-                <p className="text-[10px] font-bold text-green-400 uppercase tracking-widest">CAT II STATUS</p>
+          {(() => {
+            const isDowngraded = catStatus === 'DOWNGRADED';
+            const isCatI = catStatus === 'CAT I';
+            const borderColor = isDowngraded ? 'border-red-600/40' : isCatI ? 'border-yellow-600/40' : 'border-green-600/40';
+            const bgColor = isDowngraded ? 'bg-red-900/20' : isCatI ? 'bg-yellow-900/20' : 'bg-green-900/20';
+            const textColor = isDowngraded ? 'text-red-400' : isCatI ? 'text-yellow-400' : 'text-green-400';
+            const maxCat = catOptions[0];
+            return (
+              <div className={cn('rounded-xl border px-4 py-3 relative', borderColor, bgColor)}>
+                <div className="flex items-center justify-between mb-2">
+                  <div className="flex items-center gap-2">
+                    <Shield className={cn('w-4 h-4', textColor)} />
+                    <p className={cn('text-[10px] font-bold uppercase tracking-widest', textColor)}>ILS / CAT STATUS</p>
+                  </div>
+                  <button onClick={() => setShowCatDropdown(v => !v)}
+                    className="flex items-center gap-1 px-3 py-1.5 rounded-lg border border-white/20 bg-[#1a1f2e] text-xs font-bold text-white hover:bg-white/10">
+                    {catStatus} <ChevronDown className="w-3 h-3" />
+                  </button>
+                </div>
+                <p className={cn('text-[10px]', textColor)}>
+                  Max certified: <span className="font-bold">{maxCat}</span>
+                  {maxCat === 'CAT IIIc — Zero/Zero' && ' · No DH · No RVR'}
+                  {maxCat === 'CAT IIIb' && ' · No DH · RVR ≥ 50m'}
+                  {maxCat === 'CAT IIIa' && ' · DH < 100ft · RVR ≥ 200m'}
+                </p>
+                {showCatDropdown && (
+                  <div className="absolute right-3 top-full mt-1 bg-[#1a1f2e] border border-white/10 rounded-xl overflow-hidden z-20 shadow-xl min-w-[180px]">
+                    {catOptions.map(opt => (
+                      <button key={opt} onClick={() => { setCatStatus(opt); setShowCatDropdown(false); }}
+                        className={cn(
+                          'block w-full text-left px-4 py-2.5 text-xs font-bold hover:bg-white/10',
+                          opt === 'DOWNGRADED' ? 'text-red-400' :
+                          opt === 'CAT I' ? 'text-yellow-400' :
+                          opt.includes('IIIc') ? 'text-cyan-300' :
+                          opt.includes('IIIb') ? 'text-blue-300' :
+                          opt.includes('IIIa') ? 'text-green-300' :
+                          'text-white'
+                        )}
+                      >{opt}</button>
+                    ))}
+                  </div>
+                )}
               </div>
-              <button onClick={() => setShowCatDropdown(v => !v)}
-                className="flex items-center gap-1 px-3 py-1.5 rounded-lg border border-white/20 bg-[#1a1f2e] text-xs font-bold text-white hover:bg-white/10">
-                {catStatus} <ChevronDown className="w-3 h-3" />
-              </button>
-            </div>
-            {showCatDropdown && (
-              <div className="absolute right-3 top-full mt-1 bg-[#1a1f2e] border border-white/10 rounded-xl overflow-hidden z-20 shadow-xl">
-                {['CAPABLE', 'NOT CAPABLE', 'DOWNGRADED'].map(opt => (
-                  <button key={opt} onClick={() => { setCatStatus(opt); setShowCatDropdown(false); }}
-                    className="block w-full text-left px-4 py-2.5 text-xs font-bold text-white hover:bg-white/10">{opt}</button>
-                ))}
-              </div>
-            )}
-          </div>
+            );
+          })()}
 
           {/* ETOPS Selector */}
           <div className={cn(
