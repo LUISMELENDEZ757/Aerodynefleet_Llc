@@ -101,7 +101,7 @@ export default function LeftRail() {
 
   if (mode === 'tech') {
     return (
-      <aside className="fixed left-0 top-0 h-full w-48 glass-strong border-r border-border flex flex-col py-4 z-50 liquid-glow">
+      <aside className="fixed left-0 top-0 h-full w-48 bg-[#0a0e18] border-r border-border flex flex-col py-4 z-50">
         <nav className="flex flex-col gap-0 flex-1 w-full px-2 overflow-y-auto scrollbar-hide">
           {TECH_MODE_ITEMS.map(({ label, path }, idx) => {
             const isActive = location.pathname === path;
@@ -128,7 +128,7 @@ export default function LeftRail() {
   }
 
   return (
-    <aside className="fixed left-0 top-0 h-full w-48 glass-strong border-r border-border flex flex-col py-2 z-50 liquid-glow">
+    <aside className="fixed left-0 top-0 h-full w-48 bg-[#0a0e18] border-r border-border flex flex-col py-2 z-50">
       <motion.nav 
         className="flex flex-col gap-0 flex-1 w-full px-2 overflow-y-auto scrollbar-hide"
         initial={{ opacity: 0 }}
