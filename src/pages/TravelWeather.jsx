@@ -221,27 +221,28 @@ export default function TravelWeather() {
               <p className="text-xs text-gray-500 font-mono">TRAVEL WEATHER · {new Date().toDateString().toUpperCase()}</p>
             </div>
           </div>
-          <div className="flex items-center gap-2 text-xs font-bold bg-amber-500/20 text-amber-400 px-3 py-1.5 rounded-full border border-amber-500/30">
-            <Waves className="w-3.5 h-3.5" />
-            {DESTINATIONS.filter(d => d.condition === 'sunny').length} sunny destinations
+          <div className="flex items-center gap-3">
+            <div className="flex items-center gap-2 text-xs font-bold bg-amber-500/20 text-amber-400 px-3 py-1.5 rounded-full border border-amber-500/30">
+              <Waves className="w-3.5 h-3.5" />
+              {DESTINATIONS.filter(d => d.condition === 'sunny').length} sunny destinations
+            </div>
+            <button
+              onClick={() => setUnit(unit === 'C' ? 'F' : 'C')}
+              className="text-xs font-bold bg-primary/20 text-primary px-3 py-1.5 rounded-full border border-primary/30 hover:bg-primary/30 transition-colors"
+              title={`Switch to ${unit === 'C' ? 'Fahrenheit' : 'Celsius'}`}
+            >
+              °{unit} / °{unit === 'C' ? 'F' : 'C'}
+            </button>
           </div>
         </div>
 
         {/* Hottest pick banner */}
-        <div className="mt-4 flex items-center justify-between">
-        <div className="flex items-center gap-3 rounded-xl bg-gradient-to-r from-orange-500/20 to-yellow-500/10 border border-orange-500/20 px-4 py-3 flex-1">
-          <span className="text-2xl">🔥</span>
-          <div>
-            <p className="text-xs font-bold text-orange-400 uppercase tracking-wider">Hottest Destination Today</p>
-            <p className="text-sm font-extrabold text-white">{sunniest.name}, {sunniest.country} — {convertTemp(sunniest.temp)}°{unit} {sunniest.icon}</p>
-          </div>
+        <div className="mt-4 flex items-center gap-3 rounded-xl bg-gradient-to-r from-orange-500/20 to-yellow-500/10 border border-orange-500/20 px-4 py-3">
+        <span className="text-2xl">🔥</span>
+        <div>
+          <p className="text-xs font-bold text-orange-400 uppercase tracking-wider">Hottest Destination Today</p>
+          <p className="text-sm font-extrabold text-white">{sunniest.name}, {sunniest.country} — {convertTemp(sunniest.temp)}°{unit} {sunniest.icon}</p>
         </div>
-        <button
-          onClick={() => setUnit(unit === 'C' ? 'F' : 'C')}
-          className="ml-3 px-4 py-2.5 rounded-lg bg-white/10 border border-white/20 text-white font-bold text-sm hover:bg-white/20 transition-colors"
-        >
-          °{unit === 'C' ? 'F' : 'C'}
-        </button>
         </div>
         </div>
 
