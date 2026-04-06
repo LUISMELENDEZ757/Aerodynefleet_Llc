@@ -6,6 +6,7 @@ import { BrowserRouter as Router, Route, Routes } from 'react-router-dom';
 import PageNotFound from './lib/PageNotFound';
 import { AuthProvider, useAuth } from '@/lib/AuthContext';
 import { FleetProvider } from '@/lib/FleetContext';
+import { ThemeProvider } from '@/lib/ThemeContext';
 import UserNotRegisteredError from '@/components/UserNotRegisteredError';
 import { Navigate } from 'react-router-dom';
 import { lazy, Suspense, useState, useEffect } from 'react';
@@ -218,9 +219,10 @@ function App() {
   const [showSplash, setShowSplash] = useState(true);
 
   return (
-    <AuthProvider>
-      <QueryClientProvider client={queryClientInstance}>
-        <FleetProvider>
+    <ThemeProvider>
+      <AuthProvider>
+        <QueryClientProvider client={queryClientInstance}>
+          <FleetProvider>
         {showSplash && <SplashScreen onComplete={() => setShowSplash(false)} />}
         <Router>
           <AuthenticatedApp />
@@ -230,6 +232,7 @@ function App() {
         </FleetProvider>
       </QueryClientProvider>
     </AuthProvider>
+    </ThemeProvider>
   )
 }
 
