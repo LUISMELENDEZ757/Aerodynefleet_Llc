@@ -12,20 +12,20 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { useLocation } from 'react-router-dom';
 import { getRouteDepth, getNavigationDirection } from '@/lib/NavigationStack';
 
-// Mobile: directional slide. Desktop: fade only.
+// Mobile: directional slide with subtle scale. Desktop: fade with scale.
 function makeVariants(direction) {
-  const x = direction >= 0 ? 40 : -40;
+  const x = direction >= 0 ? 48 : -48;
   return {
-    initial:  { opacity: 0, x },
-    animate:  { opacity: 1, x: 0 },
-    exit:     { opacity: 0, x: -x },
+    initial:  { opacity: 0, x, scale: 0.98 },
+    animate:  { opacity: 1, x: 0, scale: 1 },
+    exit:     { opacity: 0, x: -x, scale: 0.98 },
   };
 }
 
 const DESKTOP_VARIANTS = {
-  initial:  { opacity: 0 },
-  animate:  { opacity: 1 },
-  exit:     { opacity: 0 },
+  initial:  { opacity: 0, scale: 0.98 },
+  animate:  { opacity: 1, scale: 1 },
+  exit:     { opacity: 0, scale: 0.98 },
 };
 
 export default function PageTransition({ children }) {
@@ -49,7 +49,13 @@ export default function PageTransition({ children }) {
         initial="initial"
         animate="animate"
         exit="exit"
-        transition={{ duration: 0.2, ease: [0.25, 0.1, 0.25, 1] }}
+        transition={{ 
+          duration: 0.35, 
+          ease: [0.32, 0.72, 0.36, 1],
+          opacity: { duration: 0.3 },
+          scale: { duration: 0.35 },
+          x: { type: 'spring', stiffness: 300, damping: 30, mass: 1 }
+        }}
         style={{ willChange: 'transform, opacity' }}
       >
         {children}
