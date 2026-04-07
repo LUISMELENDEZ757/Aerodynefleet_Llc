@@ -75,6 +75,7 @@ export default function FlightMovementPanel({ flights }) {
                 <span className="text-xs font-mono font-bold text-white w-20 truncate">{f.flight_number}</span>
                 <span className="text-xs text-gray-500 flex-1">{f.origin} → {f.destination}</span>
                 {f.aircraft_tail && <span className="text-[10px] font-mono text-gray-600 flex-shrink-0">{f.aircraft_tail}</span>}
+                {f.gate && <span className="text-[10px] font-extrabold text-sky-400 flex-shrink-0 bg-sky-500/10 border border-sky-500/20 px-1.5 py-0.5 rounded">Gate {f.gate}</span>}
                 {late && <span className="text-[10px] font-bold text-amber-400 flex-shrink-0">+{f.delay_minutes}m</span>}
               </div>
             );
