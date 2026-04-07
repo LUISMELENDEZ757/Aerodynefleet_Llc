@@ -321,19 +321,54 @@ function OverviewTab({ reqs, parts }) {
   );
 }
 
+// ── Status Action Button ──────────────────────────────────────────────────────
+const NEXT_STATUS = {
+  pending_approval: { label: 'Approve',      next: 'approved',   color: 'bg-green-700 hover:bg-green-600' },
+  approved:         { label: 'Place Order',  next: 'ordered',    color: 'bg-blue-700 hover:bg-blue-600' },
+  ordered:          { label: 'Mark Transit', next: 'in_transit', color: 'bg-purple-700 hover:bg-purple-600' },
+  in_transit:       { label: 'Mark Received',next: 'received',   color: 'bg-emerald-700 hover:bg-emerald-600' },
+  received:         null,
+  cancelled:        null,
+};
+
+function ActionBtn({ status, onAdvance, onCancel }) {
+  const next = NEXT_STATUS[status];
+  return (
+    <div className="flex items-center gap-1">
+      {next && (
+        <button onClick={onAdvance}
+          className={cn('text-[10px] font-bold px-2.5 py-1 rounded-lg text-white transition-colors whitespace-nowrap', next.color)}>
+          {next.label}
+        </button>
+      )}
+      {status !== 'received' && status !== 'cancelled' && (
+        <button onClick={onCancel}
+          className="text-[10px] font-bold px-2 py-1 rounded-lg bg-white/5 hover:bg-red-900/40 text-gray-400 hover:text-red-400 transition-colors">
+          <X className="w-3 h-3" />
+        </button>
+      )}
+    </div>
+  );
+}
+
 // ── Requisitions Tab ──────────────────────────────────────────────────────────
-function RequisitionsTab({ reqs, onStatusChange }) {
-  const [filter, setFilter] = useState('all');
+function RequisitionsTab({ reqs, onStatusChange, filterPreset = 'all' }) {
+  const [filter, setFilter] = useState(filterPreset);
   const filtered = filter === 'all' ? reqs : reqs.filter(r => r.status === filter || r.priority === filter);
 
   return (
     <div className="space-y-4">
       <div className="flex flex-wrap gap-2">
-        {['all', 'pending_approval', 'approved', 'ordered', 'in_transit', 'received', 'aog', 'critical'].map(f => (
+        {['all', 'pending_approval', 'approved', 'ordered', 'in_transit', 'received', 'cancelled', 'aog', 'critical'].map(f => (
           <button key={f} onClick={() => setFilter(f)}
             className={cn('px-3 py-1.5 rounded-xl text-xs font-bold border transition-all',
               filter === f ? 'bg-primary text-primary-foreground border-transparent' : 'border-white/10 text-gray-400 hover:text-white')}>
-            {f === 'all' ? 'All' : f.replace('_', ' ').replace(/\b\w/g, c => c.toUpperCase())}
+            {f === 'all' ? 'All' : f.replace(/_/g, ' ').replace(/\b\w/g, c => c.toUpperCase())}
+            {f !== 'all' && reqs.filter(r => r.status === f || r.priority === f).length > 0 && (
+              <span className="ml-1 text-[9px] opacity-60">
+                {reqs.filter(r => r.status === f || r.priority === f).length}
+              </span>
+            )}
           </button>
         ))}
       </div>
@@ -342,19 +377,19 @@ function RequisitionsTab({ reqs, onStatusChange }) {
           <table className="w-full text-sm">
             <thead>
               <tr className="border-b border-white/10">
-                {['Priority','Req #','Part Name','Part #','Tail','Station','Qty','Status','Supplier','Date'].map(h => (
+                {['Priority','Req #','Part Name','Part #','Tail','Station','Qty','Status','Supplier','Date','Actions'].map(h => (
                   <th key={h} className="text-left py-3 px-4 text-[10px] font-bold text-gray-500 uppercase tracking-widest whitespace-nowrap">{h}</th>
                 ))}
               </tr>
             </thead>
             <tbody className="divide-y divide-white/5">
               {filtered.length === 0 ? (
-                <tr><td colSpan="10" className="text-center py-8 text-gray-500">No requisitions found</td></tr>
+                <tr><td colSpan="11" className="text-center py-8 text-gray-500">No requisitions found</td></tr>
               ) : filtered.map(r => (
                 <tr key={r.id} className="hover:bg-white/5 transition-colors">
                   <td className="py-3 px-4"><PriorityBadge priority={r.priority} /></td>
                   <td className="py-3 px-4 font-mono text-xs text-primary">{r.req_number || '—'}</td>
-                  <td className="py-3 px-4 text-white font-medium max-w-[200px]">
+                  <td className="py-3 px-4 text-white font-medium max-w-[180px]">
                     <p className="truncate">{r.part_name}</p>
                     {r.reason && <p className="text-[10px] text-gray-500 truncate">{r.reason}</p>}
                   </td>
@@ -363,8 +398,110 @@ function RequisitionsTab({ reqs, onStatusChange }) {
                   <td className="py-3 px-4 text-xs text-gray-400">{r.station || '—'}</td>
                   <td className="py-3 px-4 text-xs text-white">{r.quantity}</td>
                   <td className="py-3 px-4"><StatusBadge status={r.status} /></td>
-                  <td className="py-3 px-4 text-xs text-gray-400 max-w-[120px] truncate">{r.supplier || '—'}</td>
+                  <td className="py-3 px-4 text-xs text-gray-400 max-w-[100px] truncate">{r.supplier || '—'}</td>
                   <td className="py-3 px-4 text-xs text-gray-600 whitespace-nowrap">{r.created_date ? format(new Date(r.created_date), 'MMM d') : '—'}</td>
+                  <td className="py-3 px-4">
+                    <ActionBtn
+                      status={r.status}
+                      onAdvance={() => onStatusChange(r.id, NEXT_STATUS[r.status]?.next)}
+                      onCancel={() => onStatusChange(r.id, 'cancelled')}
+                    />
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ── Orders Tab ────────────────────────────────────────────────────────────────
+function OrdersTab({ reqs, onStatusChange }) {
+  const [subTab, setSubTab] = useState('active');
+  const subsets = {
+    active:    reqs.filter(r => ['ordered','in_transit'].includes(r.status)),
+    received:  reqs.filter(r => r.status === 'received'),
+    all:       reqs.filter(r => ['ordered','in_transit','received'].includes(r.status)),
+  };
+  const current = subsets[subTab];
+
+  return (
+    <div className="space-y-4">
+      {/* Sub-tabs */}
+      <div className="flex gap-2">
+        {[
+          { key: 'active',   label: 'Active Orders',    color: 'text-blue-400' },
+          { key: 'received', label: 'Received',         color: 'text-emerald-400' },
+          { key: 'all',      label: 'All Orders',       color: 'text-gray-300' },
+        ].map(({ key, label, color }) => (
+          <button key={key} onClick={() => setSubTab(key)}
+            className={cn('flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-bold border transition-all',
+              subTab === key ? 'bg-primary text-primary-foreground border-transparent' : 'border-white/10 text-gray-400 hover:text-white')}>
+            {label}
+            <span className={cn('text-[10px] font-black px-1.5 py-0.5 rounded-full',
+              subTab === key ? 'bg-black/30 text-white' : 'bg-white/10 text-gray-400')}>
+              {subsets[key].length}
+            </span>
+          </button>
+        ))}
+      </div>
+
+      {/* KPI strip */}
+      <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+        {[
+          { label: 'Ordered',    count: reqs.filter(r=>r.status==='ordered').length,    color: 'text-blue-400',    dot: 'bg-blue-400' },
+          { label: 'In Transit', count: reqs.filter(r=>r.status==='in_transit').length, color: 'text-purple-400',  dot: 'bg-purple-400' },
+          { label: 'Received',   count: reqs.filter(r=>r.status==='received').length,   color: 'text-emerald-400', dot: 'bg-emerald-400' },
+          { label: 'AOG Orders', count: reqs.filter(r=>r.priority==='aog'&&['ordered','in_transit'].includes(r.status)).length, color: 'text-red-400', dot: 'bg-red-400' },
+        ].map(({ label, count, color, dot }) => (
+          <div key={label} className="bg-[#141922] border border-white/10 rounded-xl px-4 py-3 flex items-center gap-3">
+            <span className={cn('w-2.5 h-2.5 rounded-full flex-shrink-0', dot)} />
+            <div>
+              <p className={cn('text-xl font-black', color)}>{count}</p>
+              <p className="text-[10px] text-gray-500">{label}</p>
+            </div>
+          </div>
+        ))}
+      </div>
+
+      {/* Table */}
+      <div className="bg-[#141922] border border-white/10 rounded-2xl overflow-hidden">
+        <div className="overflow-x-auto">
+          <table className="w-full text-sm">
+            <thead>
+              <tr className="border-b border-white/10">
+                {['Priority','Req #','Part Name','Part #','Tail','Station','Qty','Status','Supplier','ETA','Actions'].map(h => (
+                  <th key={h} className="text-left py-3 px-4 text-[10px] font-bold text-gray-500 uppercase tracking-widest whitespace-nowrap">{h}</th>
+                ))}
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-white/5">
+              {current.length === 0 ? (
+                <tr><td colSpan="11" className="text-center py-8 text-gray-500">No orders in this view</td></tr>
+              ) : current.map(r => (
+                <tr key={r.id} className="hover:bg-white/5 transition-colors">
+                  <td className="py-3 px-4"><PriorityBadge priority={r.priority} /></td>
+                  <td className="py-3 px-4 font-mono text-xs text-primary">{r.req_number || '—'}</td>
+                  <td className="py-3 px-4 text-white font-medium max-w-[180px]">
+                    <p className="truncate">{r.part_name}</p>
+                    {r.reason && <p className="text-[10px] text-gray-500 truncate">{r.reason}</p>}
+                  </td>
+                  <td className="py-3 px-4 font-mono text-xs text-gray-400">{r.part_number || '—'}</td>
+                  <td className="py-3 px-4 font-mono text-xs text-cyan-400">{r.aircraft_tail || '—'}</td>
+                  <td className="py-3 px-4 text-xs text-gray-400">{r.station || '—'}</td>
+                  <td className="py-3 px-4 text-xs text-white">{r.quantity}</td>
+                  <td className="py-3 px-4"><StatusBadge status={r.status} /></td>
+                  <td className="py-3 px-4 text-xs text-gray-400 max-w-[100px] truncate">{r.supplier || '—'}</td>
+                  <td className="py-3 px-4 text-xs text-amber-400 whitespace-nowrap">{r.eta || '—'}</td>
+                  <td className="py-3 px-4">
+                    <ActionBtn
+                      status={r.status}
+                      onAdvance={() => onStatusChange(r.id, NEXT_STATUS[r.status]?.next)}
+                      onCancel={() => onStatusChange(r.id, 'cancelled')}
+                    />
+                  </td>
                 </tr>
               ))}
             </tbody>
@@ -550,6 +687,13 @@ export default function PartsSupplyDashboard() {
     onSuccess: () => { qc.invalidateQueries({ queryKey: ['supply-reqs'] }); setShowNewReq(false); },
   });
 
+  const updateStatus = useMutation({
+    mutationFn: ({ id, status }) => base44.entities.SupplyRequisition.update(id, { status }),
+    onSuccess: () => qc.invalidateQueries({ queryKey: ['supply-reqs'] }),
+  });
+
+  const handleStatusChange = (id, status) => { if (id && status) updateStatus.mutate({ id, status }); };
+
   const aogCount = reqs.filter(r => r.priority === 'aog' && r.status !== 'received' && r.status !== 'cancelled').length;
 
   return (
@@ -622,8 +766,8 @@ export default function PartsSupplyDashboard() {
           <div className="text-gray-500 text-sm text-center py-12">Loading…</div>
         ) : activeTab === 'Overview'         ? <OverviewTab reqs={reqs} parts={parts} />
           : activeTab === 'Inventory'        ? <InventoryTab parts={parts} />
-          : activeTab === 'Requisitions'     ? <RequisitionsTab reqs={reqs} />
-          : activeTab === 'Orders'           ? <RequisitionsTab reqs={reqs.filter(r => ['ordered','in_transit','received'].includes(r.status))} />
+          : activeTab === 'Requisitions'     ? <RequisitionsTab reqs={reqs} onStatusChange={handleStatusChange} />
+          : activeTab === 'Orders'           ? <OrdersTab reqs={reqs} onStatusChange={handleStatusChange} />
           : activeTab === 'Analytics'        ? <AnalyticsTab reqs={reqs} />
           : activeTab === 'Part Categories'  ? <PartCategoriesTab />
           : null
