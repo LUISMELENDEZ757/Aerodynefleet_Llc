@@ -4,8 +4,9 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { base44 } from '@/api/base44Client';
 import {
   Plus, CheckCircle, List, BookOpen, Droplets, Wind, Search, RotateCcw,
-  ChevronLeft, X, Send, Wrench, AlertTriangle, Printer
+  ChevronLeft, X, Send, Wrench, AlertTriangle, Printer, PlaneLanding
 } from 'lucide-react';
+import FlightAwarePanel from '@/components/techops/FlightAwarePanel';
 import { cn } from '@/lib/utils';
 
 // ── Shared modal shell ──────────────────────────────────────────────────────
@@ -880,17 +881,18 @@ function OxygenServiceModal({ onClose }) {
 
 // ── Main Page ───────────────────────────────────────────────────────────────
 export default function OOSDashboard() {
-  const [modal, setModal] = useState(null); // 'new' | 'discrepancies' | 'close' | 'oil' | 'oxygen'
+  const [modal, setModal] = useState(null); // 'new' | 'discrepancies' | 'close' | 'oil' | 'oxygen' | 'flightaware'
 
   const ACTIONS = [
-    { icon: Plus,        label: 'New Logbook Entry',    bg: 'bg-amber-500',    modal: 'new' },
-    { icon: CheckCircle, label: 'Close Task',           bg: 'bg-teal-600',     modal: 'close' },
-    { icon: List,        label: 'Open Discrepancies',   bg: 'bg-[#1a1f2e]',   modal: 'discrepancies', border: true },
-    { icon: BookOpen,    label: 'Manuals',              bg: 'bg-[#1a1f2e]',   link: '/Documents', border: true },
-    { icon: Droplets,    label: 'Oil Service',          bg: 'bg-violet-600',   modal: 'oil' },
-    { icon: Wind,        label: 'Oxygen Service',       bg: 'bg-cyan-600',     modal: 'oxygen' },
-    { icon: Search,      label: 'MEL Lookup',           bg: 'bg-[#1a1f2e]',   link: '/MEL', border: true },
-    { icon: RotateCcw,   label: 'RTS / OOS Board',      bg: 'bg-blue-600',     link: '/OOSDashboard' },
+    { icon: Plus,          label: 'New Logbook Entry',    bg: 'bg-amber-500',    modal: 'new' },
+    { icon: CheckCircle,   label: 'Close Task',           bg: 'bg-teal-600',     modal: 'close' },
+    { icon: List,          label: 'Open Discrepancies',   bg: 'bg-[#1a1f2e]',   modal: 'discrepancies', border: true },
+    { icon: BookOpen,      label: 'Manuals',              bg: 'bg-[#1a1f2e]',   link: '/Documents', border: true },
+    { icon: Droplets,      label: 'Oil Service',          bg: 'bg-violet-600',   modal: 'oil' },
+    { icon: Wind,          label: 'Oxygen Service',       bg: 'bg-cyan-600',     modal: 'oxygen' },
+    { icon: Search,        label: 'MEL Lookup',           bg: 'bg-[#1a1f2e]',   link: '/MEL', border: true },
+    { icon: RotateCcw,     label: 'RTS / OOS Board',      bg: 'bg-blue-600',     link: '/OOSDashboard' },
+    { icon: PlaneLanding,  label: 'Arrivals & Departures',bg: 'bg-amber-600',    modal: 'flightaware' },
   ];
 
   return (
@@ -934,6 +936,7 @@ export default function OOSDashboard() {
       {modal === 'close'         && <CloseTaskModal          onClose={() => setModal(null)} />}
       {modal === 'oil'           && <OilServiceModal    onClose={() => setModal(null)} />}
       {modal === 'oxygen'        && <OxygenServiceModal onClose={() => setModal(null)} />}
+      {modal === 'flightaware'   && <FlightAwarePanel   onClose={() => setModal(null)} />}
     </div>
   );
 }
