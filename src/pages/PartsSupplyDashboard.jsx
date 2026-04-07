@@ -37,6 +37,12 @@ const PART_CATEGORIES = [
   { name: 'Electrical', ata: '24', count: 142, value: '$68K', color: 'bg-yellow-600' },
   { name: 'Fuel System', ata: '28', count: 62, value: '$72K', color: 'bg-orange-600' },
   { name: 'Cabin / Interior', ata: '25', count: 28, value: '$28K', color: 'bg-teal-600' },
+  { name: 'Expendables — Oils & Fluids', ata: '12', count: 210, value: '$18K', color: 'bg-lime-600', expendable: true },
+  { name: 'Expendables — Seals & O-Rings', ata: '05', count: 540, value: '$12K', color: 'bg-lime-700', expendable: true },
+  { name: 'Expendables — Fasteners & Hardware', ata: '05', count: 1200, value: '$9K', color: 'bg-green-700', expendable: true },
+  { name: 'Expendables — Filters', ata: '12/73', count: 185, value: '$22K', color: 'bg-green-600', expendable: true },
+  { name: 'Expendables — Adhesives & Sealants', ata: '51', count: 96, value: '$8K', color: 'bg-emerald-700', expendable: true },
+  { name: 'Expendables — Consumable Chemicals', ata: '12', count: 74, value: '$6K', color: 'bg-emerald-600', expendable: true },
 ];
 
 const inputCls = 'w-full bg-[#0d1117] border border-white/10 rounded-xl px-3 py-2.5 text-sm text-white placeholder-gray-600 outline-none focus:border-primary transition-colors';
@@ -469,30 +475,54 @@ function AnalyticsTab({ reqs }) {
 }
 
 // ── Part Categories Tab ───────────────────────────────────────────────────────
-function PartCategoriesTab() {
+function CategoryCard({ cat }) {
   return (
-    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-      {PART_CATEGORIES.map(cat => (
-        <div key={cat.name} className="bg-[#141922] border border-white/10 rounded-2xl p-5 space-y-3">
-          <div className={cn('w-10 h-10 rounded-xl flex items-center justify-center', cat.color + '/20')}>
-            <Tag className={cn('w-5 h-5', cat.color.replace('bg-', 'text-'))} />
-          </div>
-          <div>
-            <p className="text-sm font-extrabold text-white">{cat.name}</p>
-            <p className="text-[10px] text-gray-500">ATA {cat.ata}</p>
-          </div>
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-xl font-black text-white">{cat.count}</p>
-              <p className="text-[10px] text-gray-600">Part numbers</p>
-            </div>
-            <div className="text-right">
-              <p className="text-lg font-black text-primary">{cat.value}</p>
-              <p className="text-[10px] text-gray-600">Book value</p>
-            </div>
-          </div>
+    <div className="bg-[#141922] border border-white/10 rounded-2xl p-5 space-y-3">
+      <div className="flex items-center justify-between">
+        <div className={cn('w-10 h-10 rounded-xl flex items-center justify-center', cat.color + '/20')}>
+          <Tag className={cn('w-5 h-5', cat.color.replace('bg-', 'text-'))} />
         </div>
-      ))}
+        {cat.expendable && (
+          <span className="text-[9px] font-extrabold uppercase tracking-widest px-2 py-0.5 rounded-full bg-lime-500/15 text-lime-400 border border-lime-500/20">
+            Expendable
+          </span>
+        )}
+      </div>
+      <div>
+        <p className="text-sm font-extrabold text-white">{cat.name}</p>
+        <p className="text-[10px] text-gray-500">ATA {cat.ata}</p>
+      </div>
+      <div className="flex items-center justify-between">
+        <div>
+          <p className="text-xl font-black text-white">{cat.count}</p>
+          <p className="text-[10px] text-gray-600">Part numbers</p>
+        </div>
+        <div className="text-right">
+          <p className="text-lg font-black text-primary">{cat.value}</p>
+          <p className="text-[10px] text-gray-600">Book value</p>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function PartCategoriesTab() {
+  const rotables   = PART_CATEGORIES.filter(c => !c.expendable);
+  const expendables = PART_CATEGORIES.filter(c => c.expendable);
+  return (
+    <div className="space-y-6">
+      <div>
+        <p className="text-xs font-extrabold text-gray-400 uppercase tracking-widest mb-3">Rotables / Repairables</p>
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+          {rotables.map(cat => <CategoryCard key={cat.name} cat={cat} />)}
+        </div>
+      </div>
+      <div>
+        <p className="text-xs font-extrabold text-lime-500 uppercase tracking-widest mb-3">Expendables / Consumables</p>
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+          {expendables.map(cat => <CategoryCard key={cat.name} cat={cat} />)}
+        </div>
+      </div>
     </div>
   );
 }
