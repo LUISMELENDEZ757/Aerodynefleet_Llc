@@ -3,11 +3,12 @@ import { appParams } from '@/lib/app-params';
 
 const { appId, token, functionsVersion, appBaseUrl } = appParams;
 
-// On Vercel: use relative /api path (proxies to Base44)
-// In dev: use appBaseUrl if available, otherwise fall back to /api
-const serverUrl = typeof window !== 'undefined' && window.location.hostname !== 'localhost'
+// Priority: appBaseUrl (Base44 preview) > /api (Vercel) > default
+const serverUrl = appBaseUrl 
+  ? `${appBaseUrl}/api` 
+  : typeof window !== 'undefined' && window.location.hostname.includes('vercel.app')
   ? '/api'
-  : appBaseUrl ? `${appBaseUrl}/api` : '/api';
+  : 'https://api.base44.com';
 
 export const base44 = createClient({
   appId,
