@@ -1,0 +1,82 @@
+{
+  "name": "SupplyRequisition",
+  "type": "object",
+  "description": "Parts supply requisition \u2014 tracks part requests from creation through approval, ordering, and receipt.",
+  "properties": {
+    "req_number": {
+      "type": "string",
+      "description": "Requisition number e.g. REQ-2026-0287"
+    },
+    "priority": {
+      "type": "string",
+      "enum": [
+        "aog",
+        "critical",
+        "routine"
+      ],
+      "default": "routine"
+    },
+    "part_number": {
+      "type": "string"
+    },
+    "part_name": {
+      "type": "string"
+    },
+    "quantity": {
+      "type": "number",
+      "default": 1
+    },
+    "unit_cost": {
+      "type": "number"
+    },
+    "aircraft_tail": {
+      "type": "string"
+    },
+    "station": {
+      "type": "string",
+      "description": "Station ICAO e.g. ORD, IAD"
+    },
+    "ata_chapter": {
+      "type": "string"
+    },
+    "reason": {
+      "type": "string",
+      "description": "Reason / description e.g. AOG Chicago, AD Compliance"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "pending_approval",
+        "approved",
+        "ordered",
+        "in_transit",
+        "received",
+        "cancelled"
+      ],
+      "default": "pending_approval"
+    },
+    "requested_by": {
+      "type": "string"
+    },
+    "approved_by": {
+      "type": "string"
+    },
+    "supplier": {
+      "type": "string"
+    },
+    "po_number": {
+      "type": "string"
+    },
+    "eta": {
+      "type": "string",
+      "format": "date"
+    },
+    "notes": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "part_name",
+    "priority"
+  ]
+}

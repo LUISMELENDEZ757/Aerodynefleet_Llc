@@ -40,6 +40,7 @@ const TECH_OPS_ITEMS = [
   { label: 'MCC',            path: '/MaintenanceControl' },
   { label: 'OOS DASHBOARD',  path: '/OOSDashboard' },
   { label: 'TECHNICIAN',     path: '/TechnicianMode' },
+  { label: 'PARTS SUPPLY',   path: '/PartsSupply' },
   { label: 'TOOLING',        path: '/ToolingManagement' },
   { label: 'ENGINEERING',    path: '/EngineeringDashboard' },
   { label: 'ENGINE HEALTH',  path: '/EngineHealthAnalytics' },
