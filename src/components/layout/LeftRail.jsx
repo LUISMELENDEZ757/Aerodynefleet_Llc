@@ -1,6 +1,7 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { motion } from 'framer-motion';
+import { Plane, ChevronLeft, ChevronRight } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useRail } from '@/lib/RailContext';
 
@@ -96,14 +97,51 @@ function NavGroup({ title, items, location }) {
   );
 }
 
-export default function LeftRail() {
+const BrandHeader = ({ collapsed, onToggle }) => (
+  <div className="flex items-center justify-between px-3 py-3 border-b border-white/10 flex-shrink-0">
+    {!collapsed && (
+      <div className="flex items-center gap-2.5">
+        <div className="w-9 h-9 rounded-xl bg-primary flex items-center justify-center flex-shrink-0">
+          <Plane className="w-5 h-5 text-[#0a0e18]" />
+        </div>
+        <div>
+          <p className="text-sm font-extrabold text-white tracking-widest uppercase leading-none">Aerodyne</p>
+          <p className="text-[10px] text-gray-500">Fleet Management</p>
+        </div>
+      </div>
+    )}
+    <button
+      onClick={onToggle}
+      className="w-8 h-8 rounded-lg bg-white/10 flex items-center justify-center hover:bg-white/20 transition-colors flex-shrink-0 ml-auto"
+    >
+      {collapsed ? <ChevronRight className="w-4 h-4 text-gray-300" /> : <ChevronLeft className="w-4 h-4 text-gray-300" />}
+    </button>
+  </div>
+);
+
+export default function LeftRail({ onCollapsedChange }) {
   const location = useLocation();
   const { mode } = useRail();
+  const [collapsed, setCollapsed] = useState(false);
+
+  const toggle = (val) => {
+    setCollapsed(val);
+    onCollapsedChange?.(val);
+  };
+
+  if (collapsed) {
+    return (
+      <aside className="fixed left-0 top-0 h-full w-12 bg-[#0a0e18] border-r border-border flex flex-col z-50">
+        <BrandHeader collapsed onToggle={() => toggle(false)} />
+      </aside>
+    );
+  }
 
   if (mode === 'tech') {
     return (
-      <aside className="fixed left-0 top-0 h-full w-48 bg-[#0a0e18] border-r border-border flex flex-col py-4 z-50">
-        <nav className="flex flex-col gap-0 flex-1 w-full px-2 overflow-y-auto scrollbar-hide">
+      <aside className="fixed left-0 top-0 h-full w-48 bg-[#0a0e18] border-r border-border flex flex-col z-50">
+        <BrandHeader collapsed={false} onToggle={() => toggle(true)} />
+        <nav className="flex flex-col gap-0 flex-1 w-full px-2 overflow-y-auto scrollbar-hide py-2">
           {TECH_MODE_ITEMS.map(({ label, path }, idx) => {
             const isActive = location.pathname === path;
             return (
@@ -129,9 +167,10 @@ export default function LeftRail() {
   }
 
   return (
-    <aside className="fixed left-0 top-0 h-full w-48 bg-[#0a0e18] border-r border-border flex flex-col py-2 z-50">
+    <aside className="fixed left-0 top-0 h-full w-48 bg-[#0a0e18] border-r border-border flex flex-col z-50">
+      <BrandHeader collapsed={false} onToggle={() => toggle(true)} />
       <motion.nav 
-        className="flex flex-col gap-0 flex-1 w-full px-2 overflow-y-auto scrollbar-hide"
+        className="flex flex-col gap-0 flex-1 w-full px-2 overflow-y-auto scrollbar-hide py-2"
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         transition={{ duration: 0.4, staggerChildren: 0.02 }}
