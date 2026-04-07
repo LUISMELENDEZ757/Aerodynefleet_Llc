@@ -78,14 +78,21 @@ function NewEngineEventModal({ aircraft, onClose, onCreate }) {
   const set = (k, v) => setForm(p => ({ ...p, [k]: v }));
 
   // When user picks a tail, auto-fill engine type & aircraft type
+  // Only clear airline/type/engine if user explicitly picks the blank option
   const handleTailChange = (tail) => {
+    if (!tail) {
+      // User selected the placeholder — clear everything
+      setForm(p => ({ ...p, aircraft_tail: '', aircraft_type: '', engine_type: '', airline: '' }));
+      return;
+    }
     const ac = aircraft.find(a => a.tail_number === tail);
     setForm(p => ({
       ...p,
       aircraft_tail: tail,
-      aircraft_type: ac?.aircraft_type || '',
-      engine_type: ac?.engine_type || '',
-      airline: ac?.airline || '',
+      // Keep existing values if the aircraft record has no data
+      aircraft_type: ac?.aircraft_type || p.aircraft_type,
+      engine_type: ac?.engine_type || p.engine_type,
+      airline: ac?.airline || p.airline,
     }));
   };
 
@@ -160,8 +167,8 @@ function NewEngineEventModal({ aircraft, onClose, onCreate }) {
               ))}
             </select>
 
-            {/* Auto-populated aircraft info */}
-            {form.aircraft_tail && (
+            {/* Auto-populated aircraft info — stays visible once set */}
+            {(form.airline || form.aircraft_type || form.engine_type) && (
               <div className="mt-2 grid grid-cols-3 gap-2">
                 <div className="bg-[#0d1117] border border-white/10 rounded-lg px-3 py-2">
                   <p className="text-[9px] text-gray-500 uppercase tracking-widest mb-0.5">Airline</p>
