@@ -62,7 +62,9 @@ const inputCls = 'w-full bg-[#0d1117] border border-white/10 rounded-xl px-3 py-
 function NewEngineEventModal({ aircraft, onClose, onCreate }) {
   const [form, setForm] = useState({
     aircraft_tail: '',
-    operator_number: '',
+    aircraft_type: '',
+    engine_type: '',
+    airline: '',
     engine_position: '#1 (Left)',
     removed_sn: '',
     replacement_sn: '',
@@ -74,6 +76,26 @@ function NewEngineEventModal({ aircraft, onClose, onCreate }) {
     notes: '',
   });
   const set = (k, v) => setForm(p => ({ ...p, [k]: v }));
+
+  // When user picks a tail, auto-fill engine type & aircraft type
+  const handleTailChange = (tail) => {
+    const ac = aircraft.find(a => a.tail_number === tail);
+    setForm(p => ({
+      ...p,
+      aircraft_tail: tail,
+      aircraft_type: ac?.aircraft_type || '',
+      engine_type: ac?.engine_type || '',
+      airline: ac?.airline || '',
+    }));
+  };
+
+  // Group aircraft by airline for optgroup display
+  const groupedAircraft = aircraft.reduce((acc, ac) => {
+    const key = ac.airline || 'Unassigned';
+    if (!acc[key]) acc[key] = [];
+    acc[key].push(ac);
+    return acc;
+  }, {});
 
   const handleSubmit = (e) => {
     e.preventDefault();
@@ -119,32 +141,54 @@ function NewEngineEventModal({ aircraft, onClose, onCreate }) {
           </div>
         </div>
         <form onSubmit={handleSubmit} className="p-5 space-y-4 max-h-[80vh] overflow-y-auto">
-          {/* Aircraft + Position */}
-          <div className="grid grid-cols-2 gap-3">
-            <div>
-              <label className="text-[10px] font-bold text-gray-400 uppercase tracking-widest block mb-1">Aircraft Tail *</label>
-              <select value={form.aircraft_tail} onChange={e => set('aircraft_tail', e.target.value)} required className={inputCls}>
-                <option value="">Select tail…</option>
-                {aircraft.map(a => <option key={a.id} value={a.tail_number}>{a.tail_number} — {a.aircraft_type}</option>)}
-              </select>
-              {form.aircraft_tail && aircraft.find(a => a.tail_number === form.aircraft_tail) && (
-                <p className="text-xs text-gray-400 mt-2">
-                  <span className="text-primary font-bold">{aircraft.find(a => a.tail_number === form.aircraft_tail)?.airline || 'Fleet'}</span>
-                  <span className="text-gray-500 mx-1">•</span>
-                  <span className="text-gray-400">{aircraft.find(a => a.tail_number === form.aircraft_tail)?.aircraft_type}</span>
-                </p>
-              )}
-              </div>
 
-              </div>
+          {/* Aircraft Tail */}
+          <div>
+            <label className="text-[10px] font-bold text-gray-400 uppercase tracking-widest block mb-1">Aircraft Tail *</label>
+            <select
+              value={form.aircraft_tail}
+              onChange={e => handleTailChange(e.target.value)}
+              required
+              className={inputCls}
+            >
+              <option value="">— Select aircraft tail —</option>
+              {Object.entries(groupedAircraft).map(([airline, planes]) => (
+                <optgroup key={airline} label={airline}>
+                  {planes.map(a => (
+                    <option key={a.id} value={a.tail_number}>
+                      {a.tail_number} — {a.aircraft_type}{a.engine_type ? ` (${a.engine_type})` : ''}
+                    </option>
+                  ))}
+                </optgroup>
+              ))}
+            </select>
 
-              {/* Engine Position */}
-              <div>
-              <label className="text-[10px] font-bold text-gray-400 uppercase tracking-widest block mb-1">Engine Position *</label>
-              <select value={form.engine_position} onChange={e => set('engine_position', e.target.value)} className={inputCls}>
+            {/* Auto-populated aircraft info */}
+            {form.aircraft_tail && (
+              <div className="mt-2 grid grid-cols-3 gap-2">
+                <div className="bg-[#0d1117] border border-white/10 rounded-lg px-3 py-2">
+                  <p className="text-[9px] text-gray-500 uppercase tracking-widest mb-0.5">Airline</p>
+                  <p className="text-xs font-bold text-primary truncate">{form.airline || '—'}</p>
+                </div>
+                <div className="bg-[#0d1117] border border-white/10 rounded-lg px-3 py-2">
+                  <p className="text-[9px] text-gray-500 uppercase tracking-widest mb-0.5">Type</p>
+                  <p className="text-xs font-bold text-white truncate">{form.aircraft_type || '—'}</p>
+                </div>
+                <div className="bg-[#0d1117] border border-white/10 rounded-lg px-3 py-2">
+                  <p className="text-[9px] text-gray-500 uppercase tracking-widest mb-0.5">Engine</p>
+                  <p className="text-xs font-bold text-yellow-400 truncate">{form.engine_type || '—'}</p>
+                </div>
+              </div>
+            )}
+          </div>
+
+          {/* Engine Position */}
+          <div>
+            <label className="text-[10px] font-bold text-gray-400 uppercase tracking-widest block mb-1">Engine Position *</label>
+            <select value={form.engine_position} onChange={e => set('engine_position', e.target.value)} className={inputCls}>
               {ENGINE_POSITIONS.map(p => <option key={p}>{p}</option>)}
-              </select>
-              </div>
+            </select>
+          </div>
 
           {/* Serial numbers */}
           <div className="grid grid-cols-2 gap-3">
@@ -367,6 +411,14 @@ export default function EngineRemovalInstallation() {
     refetchInterval: 60000,
   });
 
+  // All aircraft (for modal dropdown — unrestricted)
+  const { data: allAircraft = [] } = useQuery({
+    queryKey: ['engine-aircraft-all'],
+    queryFn: () => base44.entities.Aircraft.list('tail_number', 500),
+    refetchInterval: 300000,
+  });
+
+  // Fleet-filtered aircraft (for event list filtering)
   const { data: aircraft = [] } = useQuery({
     queryKey: ['engine-aircraft', selectedFleetId],
     queryFn: () => selectedFleetId
@@ -575,7 +627,7 @@ export default function EngineRemovalInstallation() {
 
       {showModal && (
         <NewEngineEventModal
-          aircraft={aircraft}
+          aircraft={allAircraft}
           onClose={() => setShowModal(false)}
           onCreate={(data) => createMutation.mutate(data)}
         />
