@@ -3,6 +3,7 @@ import EtopsMonitorPanel from "@/components/dispatch/EtopsMonitorPanel";
 import SituationalAwarenessMap from "@/components/dispatch/SituationalAwarenessMap";
 import ReplanningWorkflow from "@/components/dispatch/ReplanningWorkflow";
 import FlightProgressTimeline from "@/components/dispatch/FlightProgressTimeline";
+import EtopsReleaseTab from "@/components/dispatch/EtopsReleaseTab";
 
 const Pill = ({ label, tone = "default" }) => {
   const toneClasses = {
@@ -96,6 +97,21 @@ const DetailDrawer = ({ flight, onClose }) => {
               Details
             </button>
             <button
+              onClick={() => setActiveTab("etops")}
+              className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all flex items-center gap-1.5 ${
+                activeTab === "etops"
+                  ? "bg-emerald-700 text-white"
+                  : "bg-slate-800 text-slate-400 hover:text-slate-300"
+              }`}
+            >
+              ETOPS Release
+              {flight.etops && (
+                <span className={`text-[9px] font-black px-1.5 py-0.5 rounded-full ${activeTab === "etops" ? "bg-black/30 text-white" : "bg-emerald-900/60 text-emerald-400"}`}>
+                  {flight.etops}
+                </span>
+              )}
+            </button>
+            <button
               onClick={() => setActiveTab("replan")}
               className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all ${
                 activeTab === "replan"
@@ -127,7 +143,9 @@ const DetailDrawer = ({ flight, onClose }) => {
           </p>
         </div>
 
-        {activeTab === "details" ? (
+        {activeTab === "etops" ? (
+          <EtopsReleaseTab flight={flight} />
+        ) : activeTab === "details" ? (
           <>
             {/* Route */}
             <div className="mt-4">
@@ -225,6 +243,7 @@ const DetailDrawer = ({ flight, onClose }) => {
         ) : (
           <ReplanningWorkflow flight={flight} onClose={onClose} />
         )}
+
         </div>
       </div>
     </div>
