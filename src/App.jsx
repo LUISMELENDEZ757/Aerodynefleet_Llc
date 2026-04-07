@@ -78,6 +78,7 @@ const HeavyMxMRO               = lazy(() => import('@/pages/HeavyMxMRO'));
 const EngineRemovalInstallation = lazy(() => import('@/pages/EngineRemovalInstallation'));
 const PassengerServiceSystem   = lazy(() => import('@/pages/PassengerServiceSystem'));
 const PartsSupplyDashboard     = lazy(() => import('@/pages/PartsSupplyDashboard'));
+const LiveFlightTracker        = lazy(() => import('@/pages/LiveFlightTracker'));
 
 function PageFallback() {
   return (
@@ -217,6 +218,7 @@ const AuthenticatedApp = () => {
         <Route path="/EngineRemovalInstallation" element={<EngineRemovalInstallation />} />
         <Route path="/PSS" element={<PassengerServiceSystem />} />
         <Route path="/PartsSupply" element={<PartsSupplyDashboard />} />
+        <Route path="/LiveFlightTracker" element={<LiveFlightTracker />} />
       </Route>
       <Route path="*" element={<PageNotFound />} />
     </Routes>
