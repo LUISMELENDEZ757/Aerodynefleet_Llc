@@ -10,7 +10,9 @@ import { cn } from '@/lib/utils';
 // ── Helpers ───────────────────────────────────────────────────────────────────
 function fmtTime(iso) {
   if (!iso) return '—';
-  return new Date(iso).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', timeZone: 'UTC', hour12: false }) + 'Z';
+  const utc = new Date(iso).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', timeZone: 'UTC', hour12: false });
+  const local = new Date(iso).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: false });
+  return { utc: utc + 'Z', local };
 }
 
 function statusColor(status = '') {
@@ -71,15 +73,20 @@ function FlightRow({ flight, mode }) {
         <div className={cn('text-[10px] font-bold', statusColor(flight.status))}>
           {flight.cancelled ? 'CANCELLED' : flight.diverted ? 'DIVERTED' : (flight.status || '—')}
         </div>
-        <div className="text-[10px] text-gray-500 flex items-center justify-end gap-1">
-          <Clock className="w-2.5 h-2.5" />
-          {actualTime ? (
-            <span className="text-emerald-400">{fmtTime(actualTime)}</span>
-          ) : estimatedTime ? (
-            <span className="text-amber-400">{fmtTime(estimatedTime)}</span>
-          ) : (
-            <span>{fmtTime(scheduledTime)}</span>
-          )}
+        <div className="text-[10px] text-gray-500 flex flex-col items-end gap-0.5">
+          {(() => {
+            const t = actualTime ? fmtTime(actualTime) : estimatedTime ? fmtTime(estimatedTime) : fmtTime(scheduledTime);
+            const colorClass = actualTime ? 'text-emerald-400' : estimatedTime ? 'text-amber-400' : 'text-gray-400';
+            if (!t || t === '—') return <span>—</span>;
+            return (
+              <>
+                <span className={`flex items-center gap-1 ${colorClass}`}>
+                  <Clock className="w-2.5 h-2.5" />{t.utc}
+                </span>
+                <span className="text-gray-600">{t.local} LT</span>
+              </>
+            );
+          })()}
         </div>
         {delayMins > 1 && (
           <div className="text-[10px] text-orange-400 font-bold">+{delayMins}m delay</div>

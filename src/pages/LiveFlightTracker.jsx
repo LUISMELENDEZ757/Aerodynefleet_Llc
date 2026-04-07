@@ -40,8 +40,10 @@ const POPULAR_AIRPORTS = [
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
 function fmtTime(iso) {
-  if (!iso) return '—';
-  return new Date(iso).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', timeZone: 'UTC', hour12: false }) + 'Z';
+  if (!iso) return { utc: '—', local: '—' };
+  const utc = new Date(iso).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', timeZone: 'UTC', hour12: false });
+  const local = new Date(iso).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: false });
+  return { utc: utc + 'Z', local };
 }
 
 function statusColor(status = '', cancelled, diverted) {
@@ -76,11 +78,16 @@ function FlightDetail({ flight, onClose }) {
     ['Origin',        `${origin} — ${flight.origin?.name || ''}`],
     ['Destination',   `${dest} — ${flight.destination?.name || ''}`],
     ['Status',        flight.cancelled ? 'CANCELLED' : flight.diverted ? 'DIVERTED' : flight.status],
-    ['Sched Dep',     fmtTime(flight.scheduled_out || flight.scheduled_off)],
-    ['Actual Dep',    fmtTime(flight.actual_out || flight.actual_off)],
-    ['Sched Arr',     fmtTime(flight.scheduled_in || flight.scheduled_on)],
-    ['Est Arr',       fmtTime(flight.estimated_in || flight.estimated_on)],
-    ['Actual Arr',    fmtTime(flight.actual_in || flight.actual_on)],
+    ['Sched Dep',     fmtTime(flight.scheduled_out || flight.scheduled_off).utc],
+    ['Sched Dep LT',  fmtTime(flight.scheduled_out || flight.scheduled_off).local],
+    ['Actual Dep',    fmtTime(flight.actual_out || flight.actual_off).utc],
+    ['Actual Dep LT', fmtTime(flight.actual_out || flight.actual_off).local],
+    ['Sched Arr',     fmtTime(flight.scheduled_in || flight.scheduled_on).utc],
+    ['Sched Arr LT',  fmtTime(flight.scheduled_in || flight.scheduled_on).local],
+    ['Est Arr',       fmtTime(flight.estimated_in || flight.estimated_on).utc],
+    ['Est Arr LT',    fmtTime(flight.estimated_in || flight.estimated_on).local],
+    ['Actual Arr',    fmtTime(flight.actual_in || flight.actual_on).utc],
+    ['Actual Arr LT', fmtTime(flight.actual_in || flight.actual_on).local],
     ['Dep Delay',     flight.departure_delay ? `${Math.round(flight.departure_delay/60)} min` : '—'],
     ['Arr Delay',     flight.arrival_delay   ? `${Math.round(flight.arrival_delay/60)} min` : '—'],
     ['Route Dist',    flight.route_distance  ? `${flight.route_distance} nm` : '—'],
@@ -178,12 +185,17 @@ function FlightRow({ flight, mode, onSelect }) {
           {flight.cancelled ? 'CANCELLED' : flight.diverted ? 'DIVERTED' : (flight.status || '—')}
         </span>
       </td>
-      <td className="px-3 py-3 text-xs text-gray-400 whitespace-nowrap">
-        {actualTime ? (
-          <span className="text-emerald-400">{fmtTime(actualTime)}</span>
-        ) : estimatedTime ? (
-          <span className="text-amber-400">{fmtTime(estimatedTime)}</span>
-        ) : fmtTime(scheduledTime)}
+      <td className="px-3 py-3 text-xs whitespace-nowrap">
+        {(() => {
+          const t = actualTime ? fmtTime(actualTime) : estimatedTime ? fmtTime(estimatedTime) : fmtTime(scheduledTime);
+          const colorClass = actualTime ? 'text-emerald-400' : estimatedTime ? 'text-amber-400' : 'text-gray-400';
+          return (
+            <div className="flex flex-col gap-0.5">
+              <span className={colorClass}>{t.utc}</span>
+              <span className="text-gray-600 text-[10px]">{t.local} LT</span>
+            </div>
+          );
+        })()}
       </td>
       <td className="px-3 py-3 text-xs whitespace-nowrap">
         {delay > 1 ? <span className="text-orange-400 font-bold">+{delay}m</span> :
