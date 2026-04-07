@@ -69,6 +69,15 @@ function FlightRow({ flight, mode }) {
         </div>
       </div>
 
+      <div className="flex flex-col items-end gap-0.5 flex-shrink-0">
+        {flight.gate_origin && (
+          <span className="text-[10px] font-extrabold text-sky-400 bg-sky-500/10 border border-sky-500/20 px-1.5 py-0.5 rounded">D:{flight.gate_origin}</span>
+        )}
+        {flight.gate_destination && (
+          <span className="text-[10px] font-extrabold text-emerald-400 bg-emerald-500/10 border border-emerald-500/20 px-1.5 py-0.5 rounded">A:{flight.gate_destination}</span>
+        )}
+      </div>
+
       <div className="text-right flex-shrink-0 space-y-0.5">
         <div className={cn('text-[10px] font-bold', statusColor(flight.status))}>
           {flight.cancelled ? 'CANCELLED' : flight.diverted ? 'DIVERTED' : (flight.status || '—')}

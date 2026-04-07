@@ -198,10 +198,13 @@ function FlightRow({ flight, mode, onSelect }) {
         })()}
       </td>
       <td className="px-3 py-3 text-xs whitespace-nowrap">
-        {flight.gate_origin || flight.gate_destination
-          ? <span className="text-sky-400 font-extrabold bg-sky-500/10 border border-sky-500/20 px-1.5 py-0.5 rounded">
-              {flight.gate_origin || flight.gate_destination}
-            </span>
+        {flight.gate_origin
+          ? <span className="text-sky-400 font-extrabold bg-sky-500/10 border border-sky-500/20 px-1.5 py-0.5 rounded">{flight.gate_origin}</span>
+          : <span className="text-gray-600">—</span>}
+      </td>
+      <td className="px-3 py-3 text-xs whitespace-nowrap">
+        {flight.gate_destination
+          ? <span className="text-emerald-400 font-extrabold bg-emerald-500/10 border border-emerald-500/20 px-1.5 py-0.5 rounded">{flight.gate_destination}</span>
           : <span className="text-gray-600">—</span>}
       </td>
       <td className="px-3 py-3 text-xs whitespace-nowrap">
@@ -530,7 +533,7 @@ export default function LiveFlightTracker() {
               <table className="w-full text-sm">
                 <thead>
                   <tr className="border-b border-white/10">
-                    {['Flight','Tail','Origin','Destination','A/C Type','Status','Time','Gate','Delay','FA'].map(h => (
+                    {['Flight','Tail','Origin','Destination','A/C Type','Status','Time','Dep Gate','Arr Gate','Delay','FA'].map(h => (
                       <th key={h} className="text-left px-3 py-3 text-[10px] font-bold text-gray-500 uppercase tracking-widest whitespace-nowrap first:px-4">
                         {h}
                       </th>
