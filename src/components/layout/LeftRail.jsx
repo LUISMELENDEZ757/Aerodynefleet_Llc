@@ -1,6 +1,7 @@
 import React from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { motion } from 'framer-motion';
+import { ChevronLeft, ChevronRight } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useRail } from '@/lib/RailContext';
 
@@ -96,13 +97,35 @@ function NavGroup({ title, items, location }) {
   );
 }
 
-export default function LeftRail() {
+export default function LeftRail({ collapsed = false, onToggleCollapse }) {
   const location = useLocation();
   const { mode } = useRail();
+
+  if (collapsed) {
+    return (
+      <aside className="fixed left-0 top-0 h-full w-0 bg-[#0a0e18] border-r border-border flex flex-col z-50 overflow-visible">
+        <button
+          onClick={onToggleCollapse}
+          title="Expand rail"
+          className="absolute top-3 -right-4 w-8 h-8 rounded-full bg-[#0a0e18] border border-border flex items-center justify-center hover:bg-primary/20 transition-colors z-50"
+        >
+          <ChevronRight className="w-4 h-4 text-primary" />
+        </button>
+      </aside>
+    );
+  }
 
   if (mode === 'tech') {
     return (
       <aside className="fixed left-0 top-0 h-full w-48 bg-[#0a0e18] border-r border-border flex flex-col py-4 z-50">
+        {/* Collapse button */}
+        <button
+          onClick={onToggleCollapse}
+          title="Collapse rail"
+          className="absolute top-3 right-2 w-7 h-7 rounded-lg flex items-center justify-center text-gray-500 hover:text-primary hover:bg-primary/10 transition-colors z-10"
+        >
+          <ChevronLeft className="w-4 h-4" />
+        </button>
         <nav className="flex flex-col gap-0 flex-1 w-full px-2 overflow-y-auto scrollbar-hide">
           {TECH_MODE_ITEMS.map(({ label, path }, idx) => {
             const isActive = location.pathname === path;
@@ -130,6 +153,14 @@ export default function LeftRail() {
 
   return (
     <aside className="fixed left-0 top-0 h-full w-48 bg-[#0a0e18] border-r border-border flex flex-col py-2 z-50">
+      {/* Collapse button */}
+      <button
+        onClick={onToggleCollapse}
+        title="Collapse rail"
+        className="absolute top-3 right-2 w-7 h-7 rounded-lg flex items-center justify-center text-gray-500 hover:text-primary hover:bg-primary/10 transition-colors z-10"
+      >
+        <ChevronLeft className="w-4 h-4" />
+      </button>
       <motion.nav 
         className="flex flex-col gap-0 flex-1 w-full px-2 overflow-y-auto scrollbar-hide"
         initial={{ opacity: 0 }}
