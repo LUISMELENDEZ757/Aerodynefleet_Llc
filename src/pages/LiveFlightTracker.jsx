@@ -279,9 +279,10 @@ export default function LiveFlightTracker() {
       if (res.data?.error) throw new Error(res.data.error);
       return res.data || { departures: [], arrivals: [] };
     },
-    enabled: !!airport && airport.length === 4,
+    enabled: mode === 'airport' && !!airport && airport.length === 4,
     refetchInterval: 120000,
     staleTime: 60000,
+    refetchOnMount: true,
   });
 
   // ── Direct search ──
