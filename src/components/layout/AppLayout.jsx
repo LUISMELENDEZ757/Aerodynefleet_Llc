@@ -20,7 +20,6 @@ function LocationSync() {
 
 function AppContent() {
   const [hidden, setHidden] = useState(false);
-  const [railCollapsed, setRailCollapsed] = useState(false);
   const lastScrollY = useRef(0);
 
   useEffect(() => {
@@ -38,8 +37,8 @@ function AppContent() {
   return (
     <div className="min-h-screen bg-background flex">
       <LocationSync />
-      <LeftRail collapsed={railCollapsed} onToggleCollapse={() => setRailCollapsed(v => !v)} />
-      <div className={`flex-1 min-h-screen transition-all duration-300 ${railCollapsed ? 'ml-0' : 'ml-48'}`}>
+      <LeftRail />
+      <div className="flex-1 min-h-screen ml-48">
         {/* Top indicators bar */}
         <div className="sticky top-0 z-50 bg-card/95 backdrop-blur-md border-b border-border px-4 h-12 flex items-center justify-end gap-2">
           <WifiIndicator />
