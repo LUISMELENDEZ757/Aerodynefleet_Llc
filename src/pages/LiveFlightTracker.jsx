@@ -260,6 +260,7 @@ export default function LiveFlightTracker() {
         type: 'airline_enroute',
         airline_icao: activeAirlineIcao,
       });
+      if (res.data?.error) throw new Error(res.data.error);
       return res.data?.flights || [];
     },
     enabled: mode === 'airline' && !!activeAirlineIcao,
@@ -275,9 +276,10 @@ export default function LiveFlightTracker() {
         type: 'airport_board',
         airport,
       });
+      if (res.data?.error) throw new Error(res.data.error);
       return res.data || { departures: [], arrivals: [] };
     },
-    enabled: mode === 'airport' && !!airport,
+    enabled: !!airport && airport.length === 4,
     refetchInterval: 120000,
     staleTime: 60000,
   });
@@ -290,6 +292,7 @@ export default function LiveFlightTracker() {
         type: 'search_flight',
         ident: searchIdent,
       });
+      if (res.data?.error) throw new Error(res.data.error);
       return res.data?.flights || [];
     },
     enabled: mode === 'search' && !!searchIdent,
