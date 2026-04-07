@@ -4,6 +4,12 @@ import SituationalAwarenessMap from "@/components/dispatch/SituationalAwarenessM
 import ReplanningWorkflow from "@/components/dispatch/ReplanningWorkflow";
 import FlightProgressTimeline from "@/components/dispatch/FlightProgressTimeline";
 import EtopsReleaseTab from "@/components/dispatch/EtopsReleaseTab";
+import DispatchReleaseDocument from "@/components/dispatch/DispatchReleaseDocument";
+import CrewLegalityRelease from "@/components/dispatch/CrewLegalityRelease";
+import FuelPerformanceRelease from "@/components/dispatch/FuelPerformanceRelease";
+import WeatherBriefingPanel from "@/components/dispatch/WeatherBriefingPanel";
+import ACARSCommunications from "@/components/dispatch/ACARSCommunications";
+import DispatchAuditTrail from "@/components/dispatch/DispatchAuditTrail";
 
 const Pill = ({ label, tone = "default" }) => {
   const toneClasses = {
@@ -85,42 +91,27 @@ const DetailDrawer = ({ flight, onClose }) => {
       <div className="w-full max-w-3xl max-h-[85vh] overflow-y-auto rounded-2xl bg-slate-900 border border-slate-700">
         {/* Drawer header with tabs */}
         <div className="sticky top-0 bg-slate-900 border-b border-slate-700 px-4 py-3 flex items-center justify-between gap-2 z-10">
-          <div className="flex gap-1.5">
-            <button
-              onClick={() => setActiveTab("details")}
-              className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all ${
-                activeTab === "details"
-                  ? "bg-primary text-primary-foreground"
-                  : "bg-slate-800 text-slate-400 hover:text-slate-300"
-              }`}
-            >
-              Details
-            </button>
-            <button
-              onClick={() => setActiveTab("etops")}
-              className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all flex items-center gap-1.5 ${
-                activeTab === "etops"
-                  ? "bg-emerald-700 text-white"
-                  : "bg-slate-800 text-slate-400 hover:text-slate-300"
-              }`}
-            >
-              ETOPS Release
-              {flight.etops && (
-                <span className={`text-[9px] font-black px-1.5 py-0.5 rounded-full ${activeTab === "etops" ? "bg-black/30 text-white" : "bg-emerald-900/60 text-emerald-400"}`}>
-                  {flight.etops}
-                </span>
-              )}
-            </button>
-            <button
-              onClick={() => setActiveTab("replan")}
-              className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all ${
-                activeTab === "replan"
-                  ? "bg-primary text-primary-foreground"
-                  : "bg-slate-800 text-slate-400 hover:text-slate-300"
-              }`}
-            >
-              Re-Plan
-            </button>
+          <div className="flex flex-wrap gap-1.5">
+            {[
+              { key: "details",  label: "Details" },
+              { key: "release",  label: "Release", accent: "bg-sky-700" },
+              { key: "crew",     label: "Crew Legal" },
+              { key: "fuel",     label: "Fuel/Perf" },
+              { key: "weather",  label: "Weather" },
+              { key: "acars",    label: "ACARS" },
+              { key: "etops",    label: flight.etops ? `ETOPS-${flight.etops}` : "ETOPS", accent: "bg-emerald-700", hide: !flight.etops },
+              { key: "replan",   label: "Re-Plan" },
+              { key: "audit",    label: "Audit Log" },
+            ].filter(t => !t.hide).map(t => (
+              <button key={t.key} onClick={() => setActiveTab(t.key)}
+                className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all ${
+                  activeTab === t.key
+                    ? (t.accent || "bg-primary") + " text-white"
+                    : "bg-slate-800 text-slate-400 hover:text-slate-300"
+                }`}>
+                {t.label}
+              </button>
+            ))}
           </div>
           <button
             onClick={onClose}
@@ -143,7 +134,19 @@ const DetailDrawer = ({ flight, onClose }) => {
           </p>
         </div>
 
-        {activeTab === "etops" ? (
+        {activeTab === "release" ? (
+          <DispatchReleaseDocument flight={flight} />
+        ) : activeTab === "crew" ? (
+          <CrewLegalityRelease flight={flight} />
+        ) : activeTab === "fuel" ? (
+          <FuelPerformanceRelease flight={flight} />
+        ) : activeTab === "weather" ? (
+          <WeatherBriefingPanel flight={flight} />
+        ) : activeTab === "acars" ? (
+          <ACARSCommunications flight={flight} />
+        ) : activeTab === "audit" ? (
+          <DispatchAuditTrail flight={flight} />
+        ) : activeTab === "etops" ? (
           <EtopsReleaseTab flight={flight} />
         ) : activeTab === "details" ? (
           <>
