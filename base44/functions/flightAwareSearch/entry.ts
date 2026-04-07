@@ -23,10 +23,62 @@ Deno.serve(async (req) => {
     const body = await req.json();
     const { type, ident, airline_icao, airport, query } = body;
 
-    // Search flights by airline (operator)
+    // Search flights by airline — fetch departures from airline hubs & filter by operator
     if (type === 'airline_enroute' && airline_icao) {
-      const data = await faFetch(`/operators/${encodeURIComponent(airline_icao)}/flights/enroute`);
-      return Response.json({ flights: data.flights || [] });
+      const code = airline_icao.toUpperCase();
+
+      // Map ICAO operator codes to their primary hub airports
+      const HUB_MAP = {
+        UAL: ['KORD', 'KEWR', 'KIAH', 'KSFO', 'KDEN'],
+        AAL: ['KDFW', 'KPHL', 'KLAX', 'KMIA', 'KORD'],
+        DAL: ['KATL', 'KLAX', 'KJFK', 'KBOS', 'KSLC'],
+        SWA: ['KMDW', 'KLAS', 'KBWI', 'KDAL', 'KHOU'],
+        BAW: ['EGLL'],
+        AFR: ['LFPG'],
+        DLH: ['EDDF', 'EDDM'],
+        UAE: ['OMDB'],
+        QFA: ['YSSY', 'YMML'],
+        SIA: ['WSSS'],
+        CPA: ['VHHH'],
+        KAL: ['RKSI'],
+        ANA: ['RJTT', 'RJOO'],
+        JAL: ['RJTT'],
+        THY: ['LTFM'],
+        ETH: ['HAAB'],
+        QTR: ['OTHH'],
+        ETD: ['OMAA'],
+        ASA: ['KSEA', 'KPDX', 'KLAX'],
+        JBU: ['KJFK', 'KBOS', 'KLAX', 'KFLL'],
+      };
+
+      const hubs = HUB_MAP[code] || ['KEWR', 'KLAX', 'KATL'];
+      // Fetch departures from the primary hub
+      const hub = hubs[0];
+      const data = await faFetch(`/airports/${hub}/flights/departures?max_pages=1`);
+      const allFlights = data.departures || [];
+
+      // Filter to this operator
+      const filtered = allFlights.filter(f =>
+        (f.operator_icao || f.operator || '').toUpperCase() === code ||
+        (f.ident_icao || f.ident || '').toUpperCase().startsWith(code)
+      );
+
+      // If we got some hits, return them; otherwise try a second hub
+      if (filtered.length > 0) {
+        return Response.json({ flights: filtered });
+      }
+
+      // Try second hub if available
+      if (hubs.length > 1) {
+        const data2 = await faFetch(`/airports/${hubs[1]}/flights/departures?max_pages=1`);
+        const filtered2 = (data2.departures || []).filter(f =>
+          (f.operator_icao || f.operator || '').toUpperCase() === code ||
+          (f.ident_icao || f.ident || '').toUpperCase().startsWith(code)
+        );
+        return Response.json({ flights: filtered2 });
+      }
+
+      return Response.json({ flights: [] });
     }
 
     // Search a specific flight number or tail
