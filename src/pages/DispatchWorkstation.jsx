@@ -81,8 +81,8 @@ const DetailDrawer = ({ flight, onClose }) => {
   const [activeTab, setActiveTab] = useState("details");
 
   return (
-    <div className="fixed inset-0 z-50 flex items-end bg-black/40 backdrop-blur-sm">
-      <div className="w-full max-h-[85vh] overflow-y-auto rounded-t-2xl bg-slate-900 border-t border-slate-700">
+    <div className="fixed inset-0 z-50 flex items-start justify-center bg-black/40 backdrop-blur-sm pt-[96px]">
+      <div className="w-full max-w-3xl max-h-[85vh] overflow-y-auto rounded-2xl bg-slate-900 border border-slate-700">
         {/* Drawer header with tabs */}
         <div className="sticky top-0 bg-slate-900 border-b border-slate-700 px-4 py-3 flex items-center justify-between gap-2 z-10">
           <div className="flex gap-1.5">
