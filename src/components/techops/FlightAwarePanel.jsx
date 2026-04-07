@@ -83,7 +83,7 @@ function FlightRow({ flight, mode }) {
                 <span className={`flex items-center gap-1 ${colorClass}`}>
                   <Clock className="w-2.5 h-2.5" />{t.utc}
                 </span>
-                <span className="text-sky-400">{t.local} LT</span>
+                <span className="text-sky-400 text-[11px]">{t.local} LT</span>
               </>
             );
           })()}
