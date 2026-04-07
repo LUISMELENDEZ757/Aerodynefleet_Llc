@@ -1,4 +1,4 @@
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useEffect } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { base44 } from '@/api/base44Client';
 import { Link } from 'react-router-dom';
@@ -306,6 +306,13 @@ export default function LiveFlightTracker() {
       setMode('search');
     }
   };
+
+  // Auto-load default airline on mount
+  useEffect(() => {
+    if (mode === 'airline' && !selectedAirline && !customAirline) {
+      setSelectedAirline(POPULAR_AIRLINES[0]); // UAL by default
+    }
+  }, []);
 
   // Derive display data
   const displayFlights = mode === 'airline' ? (airlineData || [])
