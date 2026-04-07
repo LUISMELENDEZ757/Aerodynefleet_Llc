@@ -41,7 +41,11 @@ function AppContent() {
       <LeftRail onCollapsedChange={setRailCollapsed} />
       <div className={`flex-1 min-h-screen transition-all duration-300 ${railCollapsed ? 'ml-12' : 'ml-48'}`}>
         {/* Top indicators bar */}
-        <div className="sticky top-0 z-50 bg-card/95 backdrop-blur-md border-b border-border px-4 h-12 flex items-center justify-end gap-2">
+        <div className="sticky top-0 z-50 bg-card/95 backdrop-blur-md border-b border-border px-4 h-12 flex items-center justify-between gap-2">
+          <div className="flex flex-col leading-none">
+            <span className="text-xs font-extrabold text-primary tracking-widest uppercase">Aerodyne Fleet LLC</span>
+            <span className="text-[10px] text-gray-500 tracking-widest uppercase">Aircraft Maintenance Management System</span>
+          </div>
           <WifiIndicator />
           <StarlinkIndicator />
           <NotificationsBell />
