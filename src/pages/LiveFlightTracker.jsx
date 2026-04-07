@@ -192,7 +192,7 @@ function FlightRow({ flight, mode, onSelect }) {
           return (
             <div className="flex flex-col gap-0.5">
               <span className={colorClass}>{t.utc}</span>
-              <span className="text-gray-600 text-[10px]">{t.local} LT</span>
+              <span className="text-sky-400 text-[10px]">{t.local} LT</span>
             </div>
           );
         })()}
