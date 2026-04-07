@@ -26,6 +26,7 @@ const FLIGHT_OPS_ITEMS = [
   { label: 'COMM CENTER',    path: '/CommCenter' },
   { label: 'STARLINK',       path: '/Starlink' },
   { label: 'LIVE FLIGHTS',   path: '/LiveFlightTracker' },
+  { label: 'CREW PAIRING',  path: '/CrewPairing' },
   { label: 'SETTINGS',       path: '/Settings' },
 ];
 
