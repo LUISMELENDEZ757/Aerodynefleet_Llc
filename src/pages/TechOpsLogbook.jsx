@@ -511,7 +511,7 @@ export default function TechOpsLogbook() {
                         <div className="flex-1">
                           <div className="flex items-center gap-2 mb-1">
                             <span className={cn('text-[10px] font-bold tracking-widest', style.color)}>{style.label}</span>
-                            {entry.log_page && <span className="text-[10px] font-mono text-gray-500">{entry.log_page}</span>}
+                            {entry.log_page && <span className="text-[10px] font-mono font-bold text-sky-400 bg-sky-500/15 border border-sky-500/30 px-2 py-0.5 rounded">{entry.log_page}</span>}
                             {entry.ata_chapter && <span className="text-[10px] text-gray-600">ATA {entry.ata_chapter}</span>}
                           </div>
                           <p className="text-sm text-gray-200 font-medium">{entry.description}</p>

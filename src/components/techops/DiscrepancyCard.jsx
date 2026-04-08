@@ -132,7 +132,7 @@ export default function DiscrepancyCard({ entry, aircraftTail, userRole = 'techn
           <div className="flex-1 min-w-0">
             <div className="flex items-center gap-2 flex-wrap mb-1">
               <span className={cn('text-[10px] font-extrabold px-2.5 py-0.5 rounded-full text-white', cfg.bg)}>{cfg.label}</span>
-              {entry.log_page && <span className="text-[10px] font-mono text-gray-500 bg-white/5 px-2 py-0.5 rounded">{entry.log_page}</span>}
+              {entry.log_page && <span className="text-[10px] font-mono font-bold text-sky-400 bg-sky-500/15 border border-sky-500/30 px-2 py-0.5 rounded">{entry.log_page}</span>}
               {entry.ata_chapter && <span className="text-[10px] text-gray-500">ATA {entry.ata_chapter}</span>}
               {entry.station && <span className="text-[10px] text-gray-600">{entry.station}</span>}
             </div>
