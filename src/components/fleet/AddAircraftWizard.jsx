@@ -210,6 +210,16 @@ export default function AddAircraftWizard({ onClose, onSuccess }) {
                   ))}
                 </select>
               </Field>
+              {form.fleet_id && (
+                <Field label="Operator Name (editable)">
+                  <input
+                    value={form.airline}
+                    onChange={e => set('airline', e.target.value)}
+                    placeholder="Operator / airline name"
+                    className={inputCls}
+                  />
+                </Field>
+              )}
               {fleets.length === 0 && (
                 <div className="rounded-xl bg-amber-900/20 border border-amber-500/30 px-4 py-3 text-xs text-amber-300">
                   No fleets found. Create a fleet in Fleet Registry first, then return here.
