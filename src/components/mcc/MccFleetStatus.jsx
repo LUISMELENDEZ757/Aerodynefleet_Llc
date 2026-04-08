@@ -9,7 +9,7 @@ const STATUS_CFG = {
   retired:     { label: 'RETIRED',      bg: 'bg-gray-600',   dot: 'bg-gray-400' },
 };
 
-export default function MccFleetStatus({ aircraft, oosEntries, logbookEntries }) {
+export default function MccFleetStatus({ aircraft, oosEntries, logbookEntries, removeMode, selectedForDelete, onSelectForDelete }) {
   const openDiscrepancies = logbookEntries.filter(e => !e.is_cleared && e.entry_type === 'discrepancy');
 
   return (
@@ -37,7 +37,20 @@ export default function MccFleetStatus({ aircraft, oosEntries, logbookEntries })
           const acDiscr = openDiscrepancies.filter(e => e.aircraft_tail === ac.tail_number);
 
           return (
-            <div key={ac.id} className="bg-[#141922] border border-white/10 rounded-2xl p-4 space-y-3">
+            <div
+              key={ac.id}
+              onClick={removeMode ? () => onSelectForDelete(ac.id) : undefined}
+              className={cn(
+                'relative bg-[#141922] border rounded-2xl p-4 space-y-3 transition-all',
+                removeMode ? 'cursor-pointer' : '',
+                removeMode && selectedForDelete === ac.id
+                  ? 'border-red-500 bg-red-900/20'
+                  : 'border-white/10'
+              )}
+            >
+              {removeMode && selectedForDelete === ac.id && (
+                <div className="absolute top-2 right-2 text-[10px] font-extrabold text-red-300 bg-red-900/80 px-2 py-0.5 rounded-lg">SELECTED</div>
+              )}
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-2">
                   <Plane className="w-4 h-4 text-gray-400" />

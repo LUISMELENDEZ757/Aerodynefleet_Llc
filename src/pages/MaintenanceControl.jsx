@@ -1,8 +1,8 @@
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { base44 } from '@/api/base44Client';
-import { ChevronLeft, Activity } from 'lucide-react';
+import { ChevronLeft, Activity, Plus, X, AlertTriangle } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import MccKpiBar from '@/components/mcc/MccKpiBar';
 import MccFleetStatus from '@/components/mcc/MccFleetStatus';
@@ -11,6 +11,7 @@ import MccMelBoard from '@/components/mcc/MccMelBoard';
 import MccFaultBoard from '@/components/mcc/MccFaultBoard';
 import MccPartsBoard from '@/components/mcc/MccPartsBoard';
 import MccToolingBoard from '@/components/mcc/MccToolingBoard';
+import AddAircraftWizard from '@/components/fleet/AddAircraftWizard';
 
 const TABS = [
   { id: 'fleet',    label: 'Fleet Status' },
@@ -23,6 +24,22 @@ const TABS = [
 
 export default function MaintenanceControl() {
   const [activeTab, setActiveTab] = useState('fleet');
+  const [showAddWizard, setShowAddWizard] = useState(false);
+  const [removeMode, setRemoveMode] = useState(false);
+  const [selectedForDelete, setSelectedForDelete] = useState(null);
+  const queryClient = useQueryClient();
+
+  const handleRemoveClick = () => {
+    if (selectedForDelete) {
+      base44.entities.Aircraft.delete(selectedForDelete).then(() => {
+        setSelectedForDelete(null);
+        setRemoveMode(false);
+        queryClient.invalidateQueries({ queryKey: ['mcc-aircraft'] });
+      });
+    } else {
+      setRemoveMode(v => !v);
+    }
+  };
 
   const { data: aircraft = [] } = useQuery({
     queryKey: ['mcc-aircraft'],
@@ -116,9 +133,52 @@ export default function MaintenanceControl() {
         ))}
       </div>
 
+      {showAddWizard && (
+        <AddAircraftWizard
+          onClose={() => setShowAddWizard(false)}
+          onSuccess={() => { setShowAddWizard(false); queryClient.invalidateQueries({ queryKey: ['mcc-aircraft'] }); }}
+        />
+      )}
+
       {/* Tab Content */}
       <div className="px-5 mt-5">
-        {activeTab === 'fleet'   && <MccFleetStatus aircraft={aircraft} oosEntries={oosEntries} logbookEntries={logbookEntries} />}
+        {activeTab === 'fleet' && (
+          <>
+            <div className="flex items-center gap-2 mb-4">
+              <button
+                onClick={() => setShowAddWizard(true)}
+                className="flex items-center gap-1.5 px-4 py-2 rounded-xl bg-orange-600 text-white text-xs font-extrabold hover:bg-orange-500 transition-colors"
+              >
+                <Plus className="w-3.5 h-3.5" /> Add Aircraft
+              </button>
+              <button
+                onClick={handleRemoveClick}
+                className={cn(
+                  'flex items-center gap-1.5 px-4 py-2 rounded-xl text-xs font-extrabold transition-colors',
+                  removeMode
+                    ? 'bg-red-600 text-white hover:bg-red-500'
+                    : 'bg-red-900/40 border border-red-600/50 text-red-400 hover:bg-red-900/60'
+                )}
+              >
+                <X className="w-3.5 h-3.5" />
+                {removeMode ? (selectedForDelete ? 'Confirm Remove' : 'Cancel') : 'Remove Aircraft'}
+              </button>
+            </div>
+            {removeMode && (
+              <div className="mb-3 px-4 py-2.5 rounded-xl bg-red-900/30 border border-red-600/40 text-xs text-red-300 font-bold flex items-center gap-2">
+                <AlertTriangle className="w-4 h-4" /> Click an aircraft card to select it, then click "Confirm Remove"
+              </div>
+            )}
+            <MccFleetStatus
+              aircraft={aircraft}
+              oosEntries={oosEntries}
+              logbookEntries={logbookEntries}
+              removeMode={removeMode}
+              selectedForDelete={selectedForDelete}
+              onSelectForDelete={(id) => setSelectedForDelete(prev => prev === id ? null : id)}
+            />
+          </>
+        )}
         {activeTab === 'oos'     && <MccOosBoard oosEntries={oosEntries} aircraft={aircraft} />}
         {activeTab === 'mel'     && <MccMelBoard melItems={melItems} aircraft={aircraft} />}
         {activeTab === 'faults'  && <MccFaultBoard faults={faults} aircraft={aircraft} />}
