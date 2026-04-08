@@ -118,6 +118,8 @@ export default function AddAircraftWizard({ onClose, onSuccess }) {
     }
   };
 
+  const [submitError, setSubmitError] = useState(null);
+
   const mutation = useMutation({
     mutationFn: (data) => base44.entities.Aircraft.create(data),
     onSuccess: () => {
@@ -125,10 +127,14 @@ export default function AddAircraftWizard({ onClose, onSuccess }) {
       onSuccess?.();
       onClose();
     },
+    onError: (err) => {
+      setSubmitError(err?.message || 'Failed to add aircraft. Please try again.');
+    },
   });
 
   const handleSubmit = () => {
     if (!form.tail_number || !form.aircraft_type) return;
+    setSubmitError(null);
     mutation.mutate(form);
   };
 
@@ -139,7 +145,7 @@ export default function AddAircraftWizard({ onClose, onSuccess }) {
   const catOptions = catIndex >= 0 ? CAT_OPTIONS.slice(0, catIndex + 1) : CAT_OPTIONS;
 
   const canNext = () => {
-    if (step === 1) return !!form.airline;
+    if (step === 1) return !!(form.fleet_id || form.airline);
     if (step === 2) return !!form.aircraft_type;
     if (step === 3) return !!form.tail_number;
     return true;
@@ -199,23 +205,28 @@ export default function AddAircraftWizard({ onClose, onSuccess }) {
             <div className="space-y-4">
               <p className="text-xs text-gray-400 italic">Select the operator fleet this aircraft will belong to.</p>
               <Field label="Fleet / Operator *">
-                <input
-                  list="fleet-options"
-                  value={form.airline}
-                  onChange={e => {
-                    set('airline', e.target.value);
-                    const fleet = fleets.find(f => f.name === e.target.value);
-                    if (fleet) set('fleet_id', fleet.id);
-                    else set('fleet_id', '');
-                  }}
-                  placeholder="Type or select a fleet…"
-                  className={inputCls}
-                />
-                <datalist id="fleet-options">
-                  {fleets.map(f => (
-                    <option key={f.id} value={f.name}>{f.name} ({f.icao_code})</option>
-                  ))}
-                </datalist>
+                {fleets.length > 0 ? (
+                  <select
+                    value={form.fleet_id}
+                    onChange={e => {
+                      const fleet = fleets.find(f => f.id === e.target.value);
+                      setForm(p => ({ ...p, fleet_id: e.target.value, airline: fleet?.name || '' }));
+                    }}
+                    className={inputCls}
+                  >
+                    <option value="">— Select a fleet —</option>
+                    {fleets.map(f => (
+                      <option key={f.id} value={f.id}>{f.name} ({f.icao_code})</option>
+                    ))}
+                  </select>
+                ) : (
+                  <input
+                    value={form.airline}
+                    onChange={e => set('airline', e.target.value)}
+                    placeholder="Enter operator name…"
+                    className={inputCls}
+                  />
+                )}
               </Field>
               {fleets.length === 0 && (
                 <div className="rounded-xl bg-amber-900/20 border border-amber-500/30 px-4 py-3 text-xs text-amber-300">
@@ -235,16 +246,14 @@ export default function AddAircraftWizard({ onClose, onSuccess }) {
             <div className="space-y-4">
               <p className="text-xs text-gray-400 italic">Select aircraft type. Capability defaults will be auto-filled from the type profile.</p>
               <Field label="Aircraft Type *">
-                <input
-                  list="type-options"
+                <select
                   value={form.aircraft_type}
                   onChange={e => applyTypePreset(e.target.value)}
-                  placeholder="Type or select aircraft type…"
                   className={inputCls}
-                />
-                <datalist id="type-options">
-                  {AIRCRAFT_TYPES.map(t => <option key={t} value={t} />)}
-                </datalist>
+                >
+                  <option value="">— Select aircraft type —</option>
+                  {AIRCRAFT_TYPES.map(t => <option key={t} value={t}>{t}</option>)}
+                </select>
               </Field>
 
               <label className="flex items-center gap-3 cursor-pointer">
@@ -411,6 +420,11 @@ export default function AddAircraftWizard({ onClose, onSuccess }) {
               <div className="rounded-xl bg-blue-900/20 border border-blue-500/30 px-4 py-3 text-xs text-blue-300">
                 On confirm: Aircraft will be created, linked to fleet, and capability approvals stored for MEL/ETOPS/Dispatch resolution.
               </div>
+              {submitError && (
+                <div className="rounded-xl bg-red-900/30 border border-red-500/40 px-4 py-3 text-xs text-red-400 font-bold">
+                  ⚠ {submitError}
+                </div>
+              )}
             </div>
           )}
         </div>
