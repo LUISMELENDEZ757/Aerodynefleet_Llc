@@ -139,7 +139,7 @@ export default function AddAircraftWizard({ onClose, onSuccess }) {
   const catOptions = catIndex >= 0 ? CAT_OPTIONS.slice(0, catIndex + 1) : CAT_OPTIONS;
 
   const canNext = () => {
-    if (step === 1) return !!form.fleet_id;
+    if (step === 1) return !!form.airline;
     if (step === 2) return !!form.aircraft_type;
     if (step === 3) return !!form.tail_number;
     return true;
@@ -198,28 +198,25 @@ export default function AddAircraftWizard({ onClose, onSuccess }) {
           {step === 1 && (
             <div className="space-y-4">
               <p className="text-xs text-gray-400 italic">Select the operator fleet this aircraft will belong to.</p>
-              <Field label="Select Fleet *">
-                <select value={form.fleet_id} onChange={e => {
-                  const fleet = fleets.find(f => f.id === e.target.value);
-                  set('fleet_id', e.target.value);
-                  if (fleet) set('airline', fleet.name);
-                }} className={inputCls}>
-                  <option value="">Choose a fleet…</option>
+              <Field label="Fleet / Operator *">
+                <input
+                  list="fleet-options"
+                  value={form.airline}
+                  onChange={e => {
+                    set('airline', e.target.value);
+                    const fleet = fleets.find(f => f.name === e.target.value);
+                    if (fleet) set('fleet_id', fleet.id);
+                    else set('fleet_id', '');
+                  }}
+                  placeholder="Type or select a fleet…"
+                  className={inputCls}
+                />
+                <datalist id="fleet-options">
                   {fleets.map(f => (
-                    <option key={f.id} value={f.id}>{f.name} ({f.icao_code})</option>
+                    <option key={f.id} value={f.name}>{f.name} ({f.icao_code})</option>
                   ))}
-                </select>
+                </datalist>
               </Field>
-              {form.fleet_id && (
-                <Field label="Operator Name (editable)">
-                  <input
-                    value={form.airline}
-                    onChange={e => set('airline', e.target.value)}
-                    placeholder="Operator / airline name"
-                    className={inputCls}
-                  />
-                </Field>
-              )}
               {fleets.length === 0 && (
                 <div className="rounded-xl bg-amber-900/20 border border-amber-500/30 px-4 py-3 text-xs text-amber-300">
                   No fleets found. Create a fleet in Fleet Registry first, then return here.
