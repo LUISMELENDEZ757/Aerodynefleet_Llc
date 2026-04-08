@@ -147,7 +147,7 @@ export default function MaintenanceControl() {
             <div className="flex items-center gap-2 mb-4">
               <button
                 onClick={() => setShowAddWizard(true)}
-                className="flex items-center gap-1.5 px-4 py-2 rounded-xl bg-orange-600 text-white text-xs font-extrabold hover:bg-orange-500 transition-colors"
+                className="flex items-center gap-1.5 px-4 py-2 rounded-xl bg-green-600 text-white text-xs font-extrabold hover:bg-green-500 transition-colors"
               >
                 <Plus className="w-3.5 h-3.5" /> Add Aircraft
               </button>
