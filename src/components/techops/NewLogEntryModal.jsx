@@ -12,6 +12,7 @@ export default function NewLogEntryModal({ aircraftTail, nextLogPage, preset, on
     technician_name: '',
     technician_id: '',
     is_deferred: false,
+    is_cleared: false,
     mel_reference: '',
     mel_category: '',
     flight_number: '',
