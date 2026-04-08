@@ -11,6 +11,7 @@ export default function NewLogEntryModal({ aircraftTail, nextLogPage, preset, on
     corrective_action: '',
     technician_name: '',
     technician_id: '',
+    discrepancy_status: 'OPEN',
     is_deferred: false,
     is_cleared: false,
     mel_reference: '',

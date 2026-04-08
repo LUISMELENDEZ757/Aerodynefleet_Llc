@@ -10,6 +10,7 @@ import {
 import { cn } from '@/lib/utils';
 import NewLogEntryModal from '@/components/techops/NewLogEntryModal';
 import NewFaultModal from '@/components/techops/NewFaultModal';
+import DiscrepancyCard from '@/components/techops/DiscrepancyCard';
 
 const STATUS_STYLES = {
   active:      { label: 'IN SERVICE',  bg: 'bg-green-600',  dot: 'bg-green-400' },
@@ -496,51 +497,54 @@ export default function TechOpsLogbook() {
                 No log entries yet — tap "NEW ENTRY" to create the first record
               </div>
             ) : (
-              entries.map((entry, i) => {
-                const style = ENTRY_STYLES[entry.entry_type] || ENTRY_STYLES.discrepancy;
-                return (
-                  <div key={entry.id} className={cn('px-5 py-4 border-l-2 hover:bg-white/5 transition-colors', style.border)}>
-                    <div className="flex items-start justify-between gap-3">
-                      <div className="flex-1">
-                        <div className="flex items-center gap-2 mb-1">
-                          <span className={cn('text-[10px] font-bold tracking-widest', style.color)}>{style.label}</span>
-                          {entry.log_page && <span className="text-[10px] font-mono text-gray-500">{entry.log_page}</span>}
-                          {entry.ata_chapter && <span className="text-[10px] text-gray-600">ATA {entry.ata_chapter}</span>}
+              <div className="p-4 space-y-3">
+                {entries.map((entry) => {
+                  if (entry.entry_type === 'discrepancy') {
+                    return (
+                      <DiscrepancyCard key={entry.id} entry={entry} aircraftTail={selectedTail} />
+                    );
+                  }
+                  const style = ENTRY_STYLES[entry.entry_type] || ENTRY_STYLES.discrepancy;
+                  return (
+                    <div key={entry.id} className={cn('px-5 py-4 border-l-2 rounded-xl bg-[#141922] hover:bg-white/5 transition-colors', style.border)}>
+                      <div className="flex items-start justify-between gap-3">
+                        <div className="flex-1">
+                          <div className="flex items-center gap-2 mb-1">
+                            <span className={cn('text-[10px] font-bold tracking-widest', style.color)}>{style.label}</span>
+                            {entry.log_page && <span className="text-[10px] font-mono text-gray-500">{entry.log_page}</span>}
+                            {entry.ata_chapter && <span className="text-[10px] text-gray-600">ATA {entry.ata_chapter}</span>}
+                          </div>
+                          <p className="text-sm text-gray-200 font-medium">{entry.description}</p>
+                          {entry.corrective_action && (
+                            <p className="text-xs text-green-400 mt-1">✓ {entry.corrective_action}</p>
+                          )}
+                          <div className="flex items-center gap-3 mt-1.5">
+                            {entry.technician_name && (
+                              <span className="text-[10px] text-gray-600 flex items-center gap-1">
+                                <Wrench className="w-2.5 h-2.5" /> {entry.technician_name}
+                              </span>
+                            )}
+                            {entry.is_deferred && !entry.is_cleared && (
+                              <span className="text-[10px] font-bold text-amber-400 bg-amber-500/10 px-2 py-0.5 rounded">
+                                MEL {entry.mel_category} — {entry.mel_reference}
+                              </span>
+                            )}
+                            {entry.is_cleared && (
+                              <span className="text-[10px] font-bold text-green-400 flex items-center gap-1">
+                                <CheckCircle className="w-2.5 h-2.5" /> CLEARED
+                              </span>
+                            )}
+                          </div>
                         </div>
-                        <p className="text-sm text-gray-200 font-medium">{entry.description}</p>
-                        {entry.corrective_action && (
-                          <p className="text-xs text-green-400 mt-1">✓ {entry.corrective_action}</p>
-                        )}
-                        <div className="flex items-center gap-3 mt-1.5">
-                          {entry.technician_name && (
-                            <span className="text-[10px] text-gray-600 flex items-center gap-1">
-                              <Wrench className="w-2.5 h-2.5" /> {entry.technician_name}
-                            </span>
-                          )}
-                          {entry.is_deferred && !entry.is_cleared && (
-                            <span className="text-[10px] font-bold text-amber-400 bg-amber-500/10 px-2 py-0.5 rounded">
-                              MEL {entry.mel_category} — {entry.mel_reference}
-                            </span>
-                          )}
-                          {entry.is_cleared && (
-                            <span className="text-[10px] font-bold text-green-400 flex items-center gap-1">
-                              <CheckCircle className="w-2.5 h-2.5" /> CLEARED
-                            </span>
-                          )}
+                        <div className="text-right flex-shrink-0">
+                          <p className="text-[10px] font-mono text-gray-600">{new Date(entry.created_date).toLocaleDateString()}</p>
+                          <p className="text-[10px] font-mono text-gray-600">{new Date(entry.created_date).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: false })}</p>
                         </div>
-                      </div>
-                      <div className="text-right flex-shrink-0">
-                        <p className="text-[10px] font-mono text-gray-600">
-                          {new Date(entry.created_date).toLocaleDateString()}
-                        </p>
-                        <p className="text-[10px] font-mono text-gray-600">
-                          {new Date(entry.created_date).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: false })}
-                        </p>
                       </div>
                     </div>
-                  </div>
-                );
-              })
+                  );
+                })}
+              </div>
             )}
           </div>
         </div>

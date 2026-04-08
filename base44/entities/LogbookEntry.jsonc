@@ -1,0 +1,168 @@
+{
+  "name": "LogbookEntry",
+  "type": "object",
+  "description": "TechOps aircraft electronic logbook entry \u2014 discrepancies, corrective actions, and deferral tracking.",
+  "properties": {
+    "aircraft_tail": {
+      "type": "string",
+      "description": "Aircraft tail number"
+    },
+    "log_page": {
+      "type": "string",
+      "description": "Log page number e.g. LP#0001"
+    },
+    "flight_number": {
+      "type": "string",
+      "description": "Associated flight number"
+    },
+    "station": {
+      "type": "string",
+      "description": "Station ICAO where entry was made"
+    },
+    "entry_type": {
+      "type": "string",
+      "enum": [
+        "discrepancy",
+        "corrective_action",
+        "deferred",
+        "cleared",
+        "info"
+      ],
+      "default": "discrepancy"
+    },
+    "discrepancy_status": {
+      "type": "string",
+      "enum": [
+        "OPEN",
+        "IN_PROGRESS",
+        "PENDING_RII",
+        "CLOSED"
+      ],
+      "default": "OPEN",
+      "description": "Lifecycle state of the discrepancy"
+    },
+    "ata_chapter": {
+      "type": "string",
+      "description": "ATA chapter e.g. 21-31"
+    },
+    "description": {
+      "type": "string",
+      "description": "Full discrepancy or action description"
+    },
+    "corrective_action": {
+      "type": "string",
+      "description": "Corrective action taken"
+    },
+    "corrected_by": {
+      "type": "string",
+      "description": "Name of technician who performed the correction"
+    },
+    "corrected_by_id": {
+      "type": "string",
+      "description": "Tech ID / License of correcting technician"
+    },
+    "work_started_at": {
+      "type": "string",
+      "description": "ISO timestamp when work began (IN_PROGRESS)"
+    },
+    "work_completed_at": {
+      "type": "string",
+      "description": "ISO timestamp when corrective action was submitted"
+    },
+    "rii_required": {
+      "type": "boolean",
+      "default": false,
+      "description": "Requires Required Inspection Item sign-off"
+    },
+    "rii_inspector_name": {
+      "type": "string",
+      "description": "RII inspector name"
+    },
+    "rii_inspector_id": {
+      "type": "string",
+      "description": "RII inspector license/ID"
+    },
+    "rii_signed_at": {
+      "type": "string",
+      "description": "ISO timestamp of RII sign-off"
+    },
+    "rii_rejected": {
+      "type": "boolean",
+      "default": false,
+      "description": "RII inspector rejected the correction"
+    },
+    "rii_rejection_reason": {
+      "type": "string",
+      "description": "Reason for RII rejection"
+    },
+    "technician_name": {
+      "type": "string"
+    },
+    "technician_id": {
+      "type": "string"
+    },
+    "is_deferred": {
+      "type": "boolean",
+      "default": false
+    },
+    "mel_reference": {
+      "type": "string",
+      "description": "MEL item reference if deferred"
+    },
+    "mel_category": {
+      "type": "string",
+      "enum": [
+        "A",
+        "B",
+        "C",
+        "D"
+      ]
+    },
+    "is_cleared": {
+      "type": "boolean",
+      "default": false
+    },
+    "cleared_by": {
+      "type": "string"
+    },
+    "cleared_date": {
+      "type": "string",
+      "format": "date"
+    },
+    "reopened_by": {
+      "type": "string",
+      "description": "MCC user who reopened the discrepancy"
+    },
+    "reopened_at": {
+      "type": "string",
+      "description": "ISO timestamp of reopen"
+    },
+    "reopen_reason": {
+      "type": "string",
+      "description": "Reason for MCC reopen"
+    },
+    "troubleshooting_notes": {
+      "type": "string",
+      "description": "Notes added during IN_PROGRESS phase"
+    },
+    "parts_used": {
+      "type": "string",
+      "description": "Parts used during correction"
+    },
+    "captain_signature": {
+      "type": "string"
+    },
+    "captain_accepted": {
+      "type": "boolean",
+      "default": false
+    },
+    "notes": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "aircraft_tail",
+    "entry_type",
+    "description"
+  ]
+}
