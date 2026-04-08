@@ -545,6 +545,12 @@ export default function FleetDashboard() {
 
           {/* Right-side action buttons */}
           <div className="ml-auto flex items-center gap-2 flex-wrap">
+            <button
+              onClick={() => setShowAddWizard(true)}
+              className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-primary text-primary-foreground text-xs font-extrabold hover:bg-primary/90 transition-all border border-primary"
+            >
+              <Plus className="w-3.5 h-3.5" /> ADD AIRCRAFT
+            </button>
             {ACTION_BTNS.map(({ label, icon: Icon, path, primary }) => (
               <Link key={label} to={path}
                 className={cn(
