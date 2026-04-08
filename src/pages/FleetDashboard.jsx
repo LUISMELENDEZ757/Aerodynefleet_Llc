@@ -347,13 +347,47 @@ function AircraftDetailOverlay({ aircraft: initialAircraft, onClose }) {
   );
 }
 
+// ── Discrepancy Badge Block ──────────────────────────────────────────────────
+function DiscrepancyBadges({ discrepancies }) {
+  if (!discrepancies || discrepancies.length === 0) return null;
+  const count = discrepancies.length;
+  const hasInProgress = discrepancies.some(d => d.discrepancy_status === 'IN_PROGRESS');
+  const hasPendingRii = discrepancies.some(d => d.discrepancy_status === 'PENDING_RII');
+  return (
+    <div className="border-t border-amber-500/20 pt-2 mt-1 flex flex-col gap-1">
+      <div className="flex items-center gap-1.5">
+        <span className="text-amber-400">⚠️</span>
+        <span className="text-[10px] font-extrabold text-amber-400">{count} Open Write-Up{count > 1 ? 's' : ''}</span>
+      </div>
+      <div className="flex items-center gap-1.5">
+        <span className="text-red-400 text-[10px]">🔴</span>
+        <span className="text-[10px] font-bold text-red-400">RON Risk</span>
+      </div>
+      <div className="flex items-center gap-1.5">
+        <span className="text-[10px]">🛠️</span>
+        <span className="text-[10px] font-bold text-gray-300">
+          {hasPendingRii ? 'Awaiting RII Sign-Off' : hasInProgress ? 'Work In Progress' : 'Assigned to Line MX'}
+        </span>
+      </div>
+      <div className="flex items-center gap-1.5">
+        <Clock className="w-3 h-3 text-sky-400" />
+        <span className="text-[10px] font-bold text-sky-400">ETA: 06:30</span>
+      </div>
+    </div>
+  );
+}
+
 // ── Aircraft Card ────────────────────────────────────────────────────────────
-function AircraftCard({ aircraft, onSelect }) {
+function AircraftCard({ aircraft, onSelect, discrepancies }) {
   const status = STATUS_STYLES[aircraft.status] || STATUS_STYLES.active;
   const StatusIcon = status.icon;
+  const hasDiscrepancies = discrepancies && discrepancies.length > 0;
   return (
     <div onClick={() => onSelect(aircraft)}
-      className="bg-card rounded-2xl border border-border p-5 flex flex-col gap-3 hover:border-primary/40 transition-all cursor-pointer active:scale-[0.97]">
+      className={cn(
+        "bg-card rounded-2xl border p-5 flex flex-col gap-3 hover:border-primary/40 transition-all cursor-pointer active:scale-[0.97]",
+        hasDiscrepancies ? 'border-amber-500/40' : 'border-border'
+      )}>
       <div className="flex items-start justify-between">
         <div>
           <p className="text-xl font-extrabold text-primary tracking-wide font-mono">{aircraft.tail_number}</p>
@@ -372,21 +406,33 @@ function AircraftCard({ aircraft, onSelect }) {
           <span className="text-[10px] font-bold px-2 py-1 rounded-lg bg-white/5 text-gray-400 truncate max-w-[100px]">{aircraft.engine_type}</span>
         )}
       </div>
+      <DiscrepancyBadges discrepancies={discrepancies} />
     </div>
   );
 }
 
-function AircraftRow({ aircraft, onSelect }) {
+function AircraftRow({ aircraft, onSelect, discrepancies }) {
   const status = STATUS_STYLES[aircraft.status] || STATUS_STYLES.active;
   const StatusIcon = status.icon;
+  const count = discrepancies?.length || 0;
   return (
     <div onClick={() => onSelect(aircraft)}
-      className="flex items-center justify-between px-5 py-3 rounded-xl bg-card border border-border hover:border-primary/30 transition-all cursor-pointer">
-      <div className="flex items-center gap-5">
+      className={cn(
+        "flex items-center justify-between px-5 py-3 rounded-xl bg-card border hover:border-primary/30 transition-all cursor-pointer",
+        count > 0 ? 'border-amber-500/40' : 'border-border'
+      )}>
+      <div className="flex items-center gap-5 flex-1 min-w-0">
         <p className="text-sm font-extrabold text-primary font-mono w-24">{aircraft.tail_number}</p>
         <p className="text-xs text-gray-400 w-24">{aircraft.aircraft_type}</p>
         <p className="text-xs text-gray-500 hidden sm:block">{aircraft.base_station || '—'}</p>
         {aircraft.engine_type && <p className="text-xs text-gray-600 hidden lg:block">{aircraft.engine_type}</p>}
+        {count > 0 && (
+          <div className="hidden md:flex items-center gap-3">
+            <span className="text-[10px] font-extrabold text-amber-400">⚠️ {count} Open Write-Up{count > 1 ? 's' : ''}</span>
+            <span className="text-[10px] font-bold text-red-400">🔴 RON Risk</span>
+            <span className="text-[10px] font-bold text-sky-400 flex items-center gap-1"><Clock className="w-3 h-3" /> ETA: 06:30</span>
+          </div>
+        )}
       </div>
       <span className={cn('flex items-center gap-1.5 px-3 py-1 rounded-lg text-[10px] font-extrabold text-white flex-shrink-0', status.bg)}>
         <StatusIcon className="w-3 h-3" /> {status.label}
@@ -428,6 +474,21 @@ export default function FleetDashboard() {
     queryFn: () => base44.entities.Aircraft.list('-created_date', 1000),
     refetchInterval: 60000,
   });
+
+  const { data: openDiscrepancies = [] } = useQuery({
+    queryKey: ['fleet-open-discrepancies'],
+    queryFn: () => base44.entities.LogbookEntry.filter({ entry_type: 'discrepancy' }),
+    refetchInterval: 60000,
+  });
+
+  // Map tail -> open (non-closed) discrepancy entries
+  const discrepanciesByTail = openDiscrepancies.reduce((acc, e) => {
+    if (e.discrepancy_status !== 'CLOSED') {
+      if (!acc[e.aircraft_tail]) acc[e.aircraft_tail] = [];
+      acc[e.aircraft_tail].push(e);
+    }
+    return acc;
+  }, {});
 
   const total       = aircraft.length;
   const inService   = aircraft.filter(a => a.status === 'active').length;
@@ -631,7 +692,7 @@ export default function FleetDashboard() {
                       <span className="text-xs font-extrabold text-red-300 bg-red-900/80 px-2 py-1 rounded-lg">SELECTED</span>
                     </div>
                   )}
-                  <AircraftCard aircraft={a} onSelect={removeMode ? () => {} : setSelectedAircraft} />
+                  <AircraftCard aircraft={a} onSelect={removeMode ? () => {} : setSelectedAircraft} discrepancies={discrepanciesByTail[a.tail_number]} />
                 </div>
               ))}
             </div>
@@ -645,7 +706,7 @@ export default function FleetDashboard() {
                       <span className="text-xs font-extrabold text-red-300">SELECTED</span>
                     </div>
                   )}
-                  <AircraftRow aircraft={a} onSelect={removeMode ? () => {} : setSelectedAircraft} />
+                  <AircraftRow aircraft={a} onSelect={removeMode ? () => {} : setSelectedAircraft} discrepancies={discrepanciesByTail[a.tail_number]} />
                 </div>
               ))}
             </div>
