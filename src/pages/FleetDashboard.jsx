@@ -647,36 +647,9 @@ export default function FleetDashboard() {
                   <X className="w-3 h-3" /> Clear filter
                 </button>
               )}
-              <button
-                onClick={() => setShowAddWizard(true)}
-                className="flex items-center gap-1.5 px-4 py-2 rounded-xl bg-green-600 text-white text-xs font-extrabold hover:bg-green-500 transition-colors"
-              >
-                <Plus className="w-3.5 h-3.5" /> Add Aircraft
-              </button>
-              <button
-                onClick={() => {
-                  if (selectedForDelete) {
-                    base44.entities.Aircraft.delete(selectedForDelete).then(() => {
-                      setSelectedForDelete(null);
-                      setRemoveMode(false);
-                      queryClient.invalidateQueries({ queryKey: ['fleet-aircraft'] });
-                    });
-                  } else {
-                    setRemoveMode(v => !v);
-                  }
-                }}
-                className={`flex items-center gap-1.5 px-4 py-2 rounded-xl text-xs font-extrabold transition-colors ${removeMode ? 'bg-red-600 text-white hover:bg-red-500' : 'bg-red-900/40 border border-red-600/50 text-red-400 hover:bg-red-900/60'}`}
-              >
-                <X className="w-3.5 h-3.5" /> {removeMode ? (selectedForDelete ? 'Confirm Remove' : 'Cancel') : 'Remove Aircraft'}
-              </button>
+
             </div>
           </div>
-
-          {removeMode && (
-            <div className="mb-3 px-4 py-2.5 rounded-xl bg-red-900/30 border border-red-600/40 text-xs text-red-300 font-bold flex items-center gap-2">
-              <AlertTriangle className="w-4 h-4" /> Click an aircraft to select it for removal, then click "Confirm Remove"
-            </div>
-          )}
 
           {isLoading ? (
             <div className="text-center text-gray-600 py-20">Loading fleet data…</div>
@@ -685,28 +658,16 @@ export default function FleetDashboard() {
           ) : viewMode === 'grid' ? (
             <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-6 gap-3">
               {filtered.map(a => (
-                <div key={a.id} className="relative"
-                  onClick={removeMode ? () => setSelectedForDelete(selectedForDelete === a.id ? null : a.id) : undefined}>
-                  {removeMode && selectedForDelete === a.id && (
-                    <div className="absolute inset-0 z-10 rounded-2xl border-2 border-red-500 bg-red-500/20 flex items-center justify-center pointer-events-none">
-                      <span className="text-xs font-extrabold text-red-300 bg-red-900/80 px-2 py-1 rounded-lg">SELECTED</span>
-                    </div>
-                  )}
-                  <AircraftCard aircraft={a} onSelect={removeMode ? () => {} : setSelectedAircraft} discrepancies={discrepanciesByTail[a.tail_number]} />
+                <div key={a.id} className="relative">
+                  <AircraftCard aircraft={a} onSelect={setSelectedAircraft} discrepancies={discrepanciesByTail[a.tail_number]} />
                 </div>
               ))}
             </div>
           ) : (
             <div className="flex flex-col gap-1.5">
               {filtered.map(a => (
-                <div key={a.id} className="relative"
-                  onClick={removeMode ? () => setSelectedForDelete(selectedForDelete === a.id ? null : a.id) : undefined}>
-                  {removeMode && selectedForDelete === a.id && (
-                    <div className="absolute inset-0 z-10 rounded-xl border-2 border-red-500 bg-red-500/20 flex items-center justify-center pointer-events-none">
-                      <span className="text-xs font-extrabold text-red-300">SELECTED</span>
-                    </div>
-                  )}
-                  <AircraftRow aircraft={a} onSelect={removeMode ? () => {} : setSelectedAircraft} discrepancies={discrepanciesByTail[a.tail_number]} />
+                <div key={a.id} className="relative">
+                  <AircraftRow aircraft={a} onSelect={setSelectedAircraft} discrepancies={discrepanciesByTail[a.tail_number]} />
                 </div>
               ))}
             </div>
