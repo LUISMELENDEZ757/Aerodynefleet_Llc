@@ -7,6 +7,7 @@ import {
 import { base44 } from '@/api/base44Client';
 import { cn } from '@/lib/utils';
 import DeleteAccountModal from '@/components/layout/UserMenu';
+import UserApprovalPanel from '@/components/settings/UserApprovalPanel';
 
 // For Settings page, we export the modal separately
 export { DeleteAccountModal };
@@ -341,6 +342,14 @@ export default function SettingsPage() {
             </div>
           </div>
         ))}
+
+        {/* User Approval Panel — admin only */}
+        {user?.role === 'admin' && (
+          <div>
+            <p className="text-xs font-mono font-semibold text-muted-foreground uppercase tracking-wider mb-2">Access Requests</p>
+            <UserApprovalPanel currentUser={user} />
+          </div>
+        )}
 
         {/* Privacy & data info block — required for store compliance */}
         <div className="rounded-2xl bg-secondary/30 border border-border p-4 space-y-2">
