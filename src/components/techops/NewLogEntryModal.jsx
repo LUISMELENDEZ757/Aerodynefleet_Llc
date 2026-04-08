@@ -75,13 +75,6 @@ export default function NewLogEntryModal({ aircraftTail, nextLogPage, preset, on
               className="w-full bg-[#1a1f2e] border border-white/10 rounded-lg px-3 py-2 text-sm text-white placeholder-gray-600 outline-none focus:border-primary resize-none" />
           </div>
 
-          <div>
-            <label className="text-[10px] font-bold text-gray-500 uppercase tracking-widest block mb-1">Corrective Action</label>
-            <textarea rows={2} value={form.corrective_action} onChange={e => set('corrective_action', e.target.value)}
-              placeholder="Corrective action taken (if any)..."
-              className="w-full bg-[#1a1f2e] border border-white/10 rounded-lg px-3 py-2 text-sm text-white placeholder-gray-600 outline-none focus:border-primary resize-none" />
-          </div>
-
           <div className="grid grid-cols-2 gap-3">
             <div>
               <label className="text-[10px] font-bold text-gray-500 uppercase tracking-widest block mb-1">Technician Name</label>
@@ -93,6 +86,13 @@ export default function NewLogEntryModal({ aircraftTail, nextLogPage, preset, on
               <input value={form.technician_id} onChange={e => set('technician_id', e.target.value)}
                 className="w-full bg-[#1a1f2e] border border-white/10 rounded-lg px-3 py-2 text-sm text-white outline-none focus:border-primary" />
             </div>
+          </div>
+
+          <div>
+            <label className="text-[10px] font-bold text-gray-500 uppercase tracking-widest block mb-1">Corrective Action</label>
+            <textarea rows={2} value={form.corrective_action} onChange={e => set('corrective_action', e.target.value)}
+              placeholder="Corrective action taken (if any)..."
+              className="w-full bg-[#1a1f2e] border border-white/10 rounded-lg px-3 py-2 text-sm text-white placeholder-gray-600 outline-none focus:border-primary resize-none" />
           </div>
 
           <div className="flex items-center gap-3 bg-[#1a1f2e] border border-white/10 rounded-lg px-4 py-3">
