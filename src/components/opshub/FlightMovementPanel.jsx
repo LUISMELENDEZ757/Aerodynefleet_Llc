@@ -1,7 +1,8 @@
-import { useMemo } from 'react';
+import { useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
-import { Plane, TrendingDown, AlertTriangle, XCircle, Clock, ArrowRight } from 'lucide-react';
+import { Plane, TrendingDown, AlertTriangle, XCircle, Clock, ArrowRight, Fuel } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import FlightCardFuelPlanner from './FlightCardFuelPlanner';
 
 const STATUS_CFG = {
   departed:  { label: 'DEP',      color: 'text-green-400',  bg: 'bg-green-500/15'  },
@@ -29,6 +30,7 @@ function KpiBox({ label, value, color, icon: Icon }) {
 }
 
 export default function FlightMovementPanel({ flights }) {
+  const [fuelPlanFlight, setFuelPlanFlight] = useState(null);
   const today = new Date().toISOString().split('T')[0];
   const todayFlights = useMemo(() => flights.filter(f => f.flight_date === today), [flights, today]);
 
@@ -70,13 +72,34 @@ export default function FlightMovementPanel({ flights }) {
             const st = STATUS_CFG[f.status] || STATUS_CFG.scheduled;
             const late = (f.delay_minutes || 0) >= 15;
             return (
-              <div key={f.id} className="flex items-center gap-3 px-4 py-2.5 hover:bg-white/5 transition-colors">
-                <span className={cn('text-[10px] font-extrabold px-2 py-0.5 rounded flex-shrink-0', st.bg, st.color)}>{st.label}</span>
-                <span className="text-xs font-mono font-bold text-white w-20 truncate">{f.flight_number}</span>
-                <span className="text-xs text-gray-500 flex-1">{f.origin} → {f.destination}</span>
-                {f.aircraft_tail && <span className="text-[10px] font-mono text-gray-600 flex-shrink-0">{f.aircraft_tail}</span>}
-                {f.gate && <span className="text-[10px] font-extrabold text-sky-400 flex-shrink-0 bg-sky-500/10 border border-sky-500/20 px-1.5 py-0.5 rounded">Gate {f.gate}</span>}
-                {late && <span className="text-[10px] font-bold text-amber-400 flex-shrink-0">+{f.delay_minutes}m</span>}
+              <div key={f.id} className="flex flex-col">
+                <div className="flex items-center gap-3 px-4 py-2.5 hover:bg-white/5 transition-colors">
+                  <span className={cn('text-[10px] font-extrabold px-2 py-0.5 rounded flex-shrink-0', st.bg, st.color)}>{st.label}</span>
+                  <span className="text-xs font-mono font-bold text-white w-20 truncate">{f.flight_number}</span>
+                  <span className="text-xs text-gray-500 flex-1">{f.origin} → {f.destination}</span>
+                  {f.aircraft_tail && <span className="text-[10px] font-mono text-gray-600 flex-shrink-0">{f.aircraft_tail}</span>}
+                  {f.gate && <span className="text-[10px] font-extrabold text-sky-400 flex-shrink-0 bg-sky-500/10 border border-sky-500/20 px-1.5 py-0.5 rounded">Gate {f.gate}</span>}
+                  {late && <span className="text-[10px] font-bold text-amber-400 flex-shrink-0">+{f.delay_minutes}m</span>}
+                  <button
+                    onClick={() => setFuelPlanFlight(fuelPlanFlight?.id === f.id ? null : f)}
+                    title="Fuel Planner"
+                    className={cn(
+                      'flex items-center gap-1 text-[10px] font-bold px-2 py-1 rounded-lg border transition-all flex-shrink-0',
+                      fuelPlanFlight?.id === f.id
+                        ? 'bg-sky-600 border-sky-500 text-white'
+                        : 'bg-sky-500/10 border-sky-500/20 text-sky-400 hover:bg-sky-500/20'
+                    )}>
+                    <Fuel className="w-3 h-3" /> FUEL
+                  </button>
+                </div>
+                {fuelPlanFlight?.id === f.id && (
+                  <div className="px-4 pb-3">
+                    <FlightCardFuelPlanner
+                      flight={f}
+                      onClose={() => setFuelPlanFlight(null)}
+                    />
+                  </div>
+                )}
               </div>
             );
           })}
