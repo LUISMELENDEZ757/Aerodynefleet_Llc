@@ -235,10 +235,16 @@ export default function AddAircraftWizard({ onClose, onSuccess }) {
             <div className="space-y-4">
               <p className="text-xs text-gray-400 italic">Select aircraft type. Capability defaults will be auto-filled from the type profile.</p>
               <Field label="Aircraft Type *">
-                <select value={form.aircraft_type} onChange={e => applyTypePreset(e.target.value)} className={inputCls}>
-                  <option value="">Select type…</option>
-                  {AIRCRAFT_TYPES.map(t => <option key={t} value={t}>{t}</option>)}
-                </select>
+                <input
+                  list="type-options"
+                  value={form.aircraft_type}
+                  onChange={e => applyTypePreset(e.target.value)}
+                  placeholder="Type or select aircraft type…"
+                  className={inputCls}
+                />
+                <datalist id="type-options">
+                  {AIRCRAFT_TYPES.map(t => <option key={t} value={t} />)}
+                </datalist>
               </Field>
 
               <label className="flex items-center gap-3 cursor-pointer">
