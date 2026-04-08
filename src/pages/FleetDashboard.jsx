@@ -417,6 +417,9 @@ export default function FleetDashboard() {
   const [selectedAircraft, setSelectedAircraft] = useState(null);
   const [kpiFilter, setKpiFilter] = useState(null);
   const [showAddWizard, setShowAddWizard] = useState(false);
+  const [removeMode, setRemoveMode] = useState(false);
+  const [selectedForDelete, setSelectedForDelete] = useState(null);
+  const queryClient = useQueryClient();
 
   const { activeFleet, activeFleetId } = useFleet();
 
@@ -589,20 +592,60 @@ export default function FleetDashboard() {
               >
                 <Plus className="w-3.5 h-3.5" /> Add Aircraft
               </button>
+              <button
+                onClick={() => {
+                  if (selectedForDelete) {
+                    base44.entities.Aircraft.delete(selectedForDelete).then(() => {
+                      setSelectedForDelete(null);
+                      queryClient.invalidateQueries({ queryKey: ['fleet-aircraft'] });
+                    });
+                  } else {
+                    setRemoveMode(v => !v);
+                  }
+                }}
+                className={`flex items-center gap-1.5 px-4 py-2 rounded-xl text-xs font-extrabold transition-colors ${removeMode ? 'bg-red-600 text-white hover:bg-red-500' : 'bg-red-900/40 border border-red-600/50 text-red-400 hover:bg-red-900/60'}`}
+              >
+                <X className="w-3.5 h-3.5" /> {removeMode ? (selectedForDelete ? 'Confirm Remove' : 'Cancel') : 'Remove Aircraft'}
+              </button>
             </div>
           </div>
 
+          {removeMode && (
+            <div className="mb-3 px-4 py-2.5 rounded-xl bg-red-900/30 border border-red-600/40 text-xs text-red-300 font-bold flex items-center gap-2">
+              <AlertTriangle className="w-4 h-4" /> Click an aircraft to select it for removal, then click "Confirm Remove"
+            </div>
+          )}
           {isLoading ? (
             <div className="text-center text-gray-600 py-20">Loading fleet data…</div>
           ) : filtered.length === 0 ? (
             <div className="text-center text-gray-600 py-20">No aircraft found</div>
           ) : viewMode === 'grid' ? (
             <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-6 gap-3">
-              {filtered.map(a => <AircraftCard key={a.id} aircraft={a} onSelect={setSelectedAircraft} />)}
+              {filtered.map(a => (
+                <div key={a.id} className="relative"
+                  onClick={removeMode ? () => setSelectedForDelete(selectedForDelete === a.id ? null : a.id) : undefined}>
+                  {removeMode && selectedForDelete === a.id && (
+                    <div className="absolute inset-0 z-10 rounded-2xl border-2 border-red-500 bg-red-500/20 flex items-center justify-center pointer-events-none">
+                      <span className="text-xs font-extrabold text-red-300 bg-red-900/80 px-2 py-1 rounded-lg">SELECTED</span>
+                    </div>
+                  )}
+                  <AircraftCard aircraft={a} onSelect={removeMode ? () => {} : setSelectedAircraft} />
+                </div>
+              ))}
             </div>
           ) : (
             <div className="flex flex-col gap-1.5">
-              {filtered.map(a => <AircraftRow key={a.id} aircraft={a} onSelect={setSelectedAircraft} />)}
+              {filtered.map(a => (
+                <div key={a.id} className="relative"
+                  onClick={removeMode ? () => setSelectedForDelete(selectedForDelete === a.id ? null : a.id) : undefined}>
+                  {removeMode && selectedForDelete === a.id && (
+                    <div className="absolute inset-0 z-10 rounded-xl border-2 border-red-500 bg-red-500/20 flex items-center justify-center pointer-events-none">
+                      <span className="text-xs font-extrabold text-red-300">SELECTED</span>
+                    </div>
+                  )}
+                  <AircraftRow aircraft={a} onSelect={removeMode ? () => {} : setSelectedAircraft} />
+                </div>
+              ))}
             </div>
           )}
         </div>
