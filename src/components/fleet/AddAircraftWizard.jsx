@@ -146,8 +146,8 @@ export default function AddAircraftWizard({ onClose, onSuccess }) {
   };
 
   return (
-    <div className="fixed inset-0 z-[70] bg-black/80 flex items-center justify-center p-4 overflow-y-auto">
-      <div className="w-full max-w-2xl bg-[#0d1117] border border-white/10 rounded-2xl overflow-hidden shadow-2xl my-4">
+    <div className="fixed inset-0 z-[70] bg-black/80 flex justify-center p-4 overflow-y-auto pt-[96px]">
+      <div className="w-full max-w-2xl bg-[#0d1117] border border-white/10 rounded-2xl overflow-hidden shadow-2xl h-fit">
 
         {/* Header */}
         <div className="flex items-center justify-between px-6 py-4 border-b border-white/10 bg-[#141922]">
