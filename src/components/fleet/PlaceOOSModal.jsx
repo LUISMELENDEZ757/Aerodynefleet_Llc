@@ -56,6 +56,7 @@ export default function PlaceOOSModal({ aircraft, onClose, onSubmit, isPending }
       technician_name: form.tech_name,
       technician_id: form.tech_cert,
       is_deferred: form.is_deferred,
+      is_cleared: false,
       mel_category: form.mel_category !== 'N/A' ? form.mel_category.split(' ')[0] : '',
       mel_reference: form.mel_ref || '',
       notes: form.notes || `Role: ${form.role} | MEL: ${form.mel_category}`,
