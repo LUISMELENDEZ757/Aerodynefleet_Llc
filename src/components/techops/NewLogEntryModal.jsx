@@ -95,6 +95,21 @@ export default function NewLogEntryModal({ aircraftTail, nextLogPage, preset, on
               className="w-full bg-[#1a1f2e] border border-white/10 rounded-lg px-3 py-2 text-sm text-white placeholder-gray-600 outline-none focus:border-primary resize-none" />
           </div>
 
+          <div className="grid grid-cols-2 gap-3">
+            <div>
+              <label className="text-[10px] font-bold text-gray-500 uppercase tracking-widest block mb-1">Corrected By</label>
+              <input value={form.corrected_by || ''} onChange={e => set('corrected_by', e.target.value)}
+                placeholder="Technician name"
+                className="w-full bg-[#1a1f2e] border border-white/10 rounded-lg px-3 py-2 text-sm text-white placeholder-gray-600 outline-none focus:border-primary" />
+            </div>
+            <div>
+              <label className="text-[10px] font-bold text-gray-500 uppercase tracking-widest block mb-1">Tech ID / License</label>
+              <input value={form.corrected_by_id || ''} onChange={e => set('corrected_by_id', e.target.value)}
+                placeholder="e.g. AMT-12345"
+                className="w-full bg-[#1a1f2e] border border-white/10 rounded-lg px-3 py-2 text-sm text-white placeholder-gray-600 outline-none focus:border-primary" />
+            </div>
+          </div>
+
           <div className="flex items-center gap-3 bg-[#1a1f2e] border border-white/10 rounded-lg px-4 py-3">
             <input type="checkbox" id="deferred" checked={form.is_deferred} onChange={e => set('is_deferred', e.target.checked)}
               className="w-4 h-4 rounded cursor-pointer" />
