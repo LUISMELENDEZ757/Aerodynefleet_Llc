@@ -142,17 +142,24 @@ export default function GroundOpsPage() {
     queryFn: () => base44.entities.Flight.filter({ flight_date: TODAY }),
   });
 
-  const { data: arrivals = {}, refetch: refetchArrivals, isLoading: loadingArr } = useQuery({
-    queryKey: ['station-arrivals', selectedStation],
-    queryFn: () => base44.functions.invoke('flightAwareStationOps', { station: selectedStation, direction: 'arrivals' }),
+  const { data: airportData = {}, refetch: refetchAirport, isLoading: loadingAirport } = useQuery({
+    queryKey: ['station-airport', selectedStation],
+    queryFn: async () => {
+      const res = await base44.functions.invoke('flightAwareSearch', {
+        type: 'airport_board',
+        airport: selectedStation,
+      });
+      if (res.data?.error) throw new Error(res.data.error);
+      return res.data || { departures: [], arrivals: [] };
+    },
     refetchInterval: 60000,
+    refetchOnMount: true,
   });
 
-  const { data: departures = {}, refetch: refetchDepartures, isLoading: loadingDep } = useQuery({
-    queryKey: ['station-departures', selectedStation],
-    queryFn: () => base44.functions.invoke('flightAwareStationOps', { station: selectedStation, direction: 'departures' }),
-    refetchInterval: 60000,
-  });
+  const arrivals = { flights: airportData.arrivals || [] };
+  const departures = { flights: airportData.departures || [] };
+  const loadingArr = loadingAirport;
+  const loadingDep = loadingAirport;
 
   const updateMutation = useMutation({
     mutationFn: ({ id, data }) => base44.entities.GroundOps.update(id, data),
@@ -282,28 +289,50 @@ export default function GroundOpsPage() {
             <div className="flex items-center gap-2 px-5 py-3 border-b border-border bg-secondary">
               <TrendingDown className="w-4 h-4 text-green-400" />
               <h3 className="font-bold text-foreground">Arrivals</h3>
-              <span className="ml-auto text-xs text-muted-foreground">{arrivals?.flights?.length || 0} flights</span>
+              <span className="ml-auto text-xs text-muted-foreground">{arrivals?.flights?.length || 0} arrivals</span>
             </div>
             <div className="divide-y divide-border max-h-96 overflow-y-auto">
               {loadingArr ? (
                 <div className="px-5 py-4 text-xs text-muted-foreground text-center">Loading...</div>
-              ) : arrivals?.error && !arrivals?.flights?.length ? (
-                <div className="px-5 py-4 text-xs text-amber-400 text-center">⚠ Flight data unavailable</div>
               ) : arrivals?.flights?.length === 0 ? (
                 <div className="px-5 py-4 text-xs text-muted-foreground text-center">No arrivals</div>
               ) : (
-                arrivals?.flights?.slice(0, 15).map((flight, idx) => (
-                  <div key={idx} className="px-5 py-3 flex items-center justify-between text-sm">
-                    <div>
-                      <p className="font-mono font-bold text-foreground">{flight.ident || flight.flight_number || '—'}</p>
-                      <p className="text-xs text-muted-foreground">{flight.origin?.code || flight.origin || '—'} → {flight.destination?.code || flight.destination || '—'}</p>
+                arrivals?.flights?.slice(0, 15).map((flight, idx) => {
+                  const origin = flight.origin?.code_icao || flight.origin?.code || '—';
+                  const dest = flight.destination?.code_icao || flight.destination?.code || '—';
+                  const scheduledTime = flight.scheduled_in || flight.scheduled_on;
+                  const actualTime = flight.actual_in || flight.actual_on;
+                  const estimatedTime = flight.estimated_in || flight.estimated_on;
+                  const time = actualTime || estimatedTime || scheduledTime;
+                  const timeStr = time ? new Date(time).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: false }) : '—';
+                  const isDelayed = (flight.arrival_delay || 0) > 300;
+                  const isCancelled = flight.cancelled;
+                  return (
+                    <div key={idx} className="px-5 py-3 flex items-center justify-between text-sm border-b border-border last:border-0">
+                      <div>
+                        <p className="font-mono font-bold text-foreground">{flight.ident_iata || flight.ident || '—'}</p>
+                        <p className="text-xs text-muted-foreground">{origin} → {dest}</p>
+                      </div>
+                      <div className="text-right">
+                        {isCancelled ? (
+                          <p className="text-xs text-red-400 font-bold">CANCELLED</p>
+                        ) : (
+                          <>
+                            <p className={cn('text-xs font-bold', isDelayed ? 'text-amber-400' : 'text-green-400')}>
+                              {isDelayed ? 'DELAYED' : 'ARR'}
+                            </p>
+                            <p className="text-xs text-muted-foreground">{timeStr}</p>
+                            {flight.arrival_delay && Math.abs(flight.arrival_delay) > 60 && (
+                              <p className={cn('text-[10px] font-bold', isDelayed ? 'text-amber-400' : 'text-green-400')}>
+                                {flight.arrival_delay > 0 ? '+' : ''}{Math.round(flight.arrival_delay / 60)}m
+                              </p>
+                            )}
+                          </>
+                        )}
+                      </div>
                     </div>
-                    <div className="text-right">
-                      <p className="text-xs text-green-400 font-bold">ARR</p>
-                      <p className="text-xs text-muted-foreground">{flight.scheduled_out ? new Date(flight.scheduled_out).toLocaleTimeString() : '—'}</p>
-                    </div>
-                  </div>
-                ))
+                  );
+                })
               )}
             </div>
           </div>
@@ -313,28 +342,50 @@ export default function GroundOpsPage() {
             <div className="flex items-center gap-2 px-5 py-3 border-b border-border bg-secondary">
               <TrendingUp className="w-4 h-4 text-orange-400" />
               <h3 className="font-bold text-foreground">Departures</h3>
-              <span className="ml-auto text-xs text-muted-foreground">{departures?.flights?.length || 0} flights</span>
+              <span className="ml-auto text-xs text-muted-foreground">{departures?.flights?.length || 0} departures</span>
             </div>
             <div className="divide-y divide-border max-h-96 overflow-y-auto">
               {loadingDep ? (
                 <div className="px-5 py-4 text-xs text-muted-foreground text-center">Loading...</div>
-              ) : departures?.error && !departures?.flights?.length ? (
-                <div className="px-5 py-4 text-xs text-amber-400 text-center">⚠ Flight data unavailable</div>
               ) : departures?.flights?.length === 0 ? (
                 <div className="px-5 py-4 text-xs text-muted-foreground text-center">No departures</div>
               ) : (
-                departures?.flights?.slice(0, 15).map((flight, idx) => (
-                  <div key={idx} className="px-5 py-3 flex items-center justify-between text-sm">
-                    <div>
-                      <p className="font-mono font-bold text-foreground">{flight.ident || flight.flight_number || '—'}</p>
-                      <p className="text-xs text-muted-foreground">{flight.origin?.code || flight.origin || '—'} → {flight.destination?.code || flight.destination || '—'}</p>
+                departures?.flights?.slice(0, 15).map((flight, idx) => {
+                  const origin = flight.origin?.code_icao || flight.origin?.code || '—';
+                  const dest = flight.destination?.code_icao || flight.destination?.code || '—';
+                  const scheduledTime = flight.scheduled_out || flight.scheduled_off;
+                  const actualTime = flight.actual_out || flight.actual_off;
+                  const estimatedTime = flight.estimated_out || flight.estimated_off;
+                  const time = actualTime || estimatedTime || scheduledTime;
+                  const timeStr = time ? new Date(time).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: false }) : '—';
+                  const isDelayed = (flight.departure_delay || 0) > 300;
+                  const isCancelled = flight.cancelled;
+                  return (
+                    <div key={idx} className="px-5 py-3 flex items-center justify-between text-sm border-b border-border last:border-0">
+                      <div>
+                        <p className="font-mono font-bold text-foreground">{flight.ident_iata || flight.ident || '—'}</p>
+                        <p className="text-xs text-muted-foreground">{origin} → {dest}</p>
+                      </div>
+                      <div className="text-right">
+                        {isCancelled ? (
+                          <p className="text-xs text-red-400 font-bold">CANCELLED</p>
+                        ) : (
+                          <>
+                            <p className={cn('text-xs font-bold', isDelayed ? 'text-amber-400' : 'text-orange-400')}>
+                              {isDelayed ? 'DELAYED' : 'DEP'}
+                            </p>
+                            <p className="text-xs text-muted-foreground">{timeStr}</p>
+                            {flight.departure_delay && Math.abs(flight.departure_delay) > 60 && (
+                              <p className={cn('text-[10px] font-bold', isDelayed ? 'text-amber-400' : 'text-green-400')}>
+                                {flight.departure_delay > 0 ? '+' : ''}{Math.round(flight.departure_delay / 60)}m
+                              </p>
+                            )}
+                          </>
+                        )}
+                      </div>
                     </div>
-                    <div className="text-right">
-                      <p className="text-xs text-orange-400 font-bold">DEP</p>
-                      <p className="text-xs text-muted-foreground">{flight.scheduled_out ? new Date(flight.scheduled_out).toLocaleTimeString() : '—'}</p>
-                    </div>
-                  </div>
-                ))
+                  );
+                })
               )}
             </div>
           </div>
