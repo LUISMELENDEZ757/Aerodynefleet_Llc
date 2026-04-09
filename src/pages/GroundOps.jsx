@@ -129,6 +129,7 @@ export default function GroundOpsPage() {
   const [showNew, setShowNew] = useState(false);
   const [activeTab, setActiveTab] = useState('ops');
   const [selectedStation, setSelectedStation] = useState('KJFK');
+  const [showStationDropdown, setShowStationDropdown] = useState(false);
   const qc = useQueryClient();
 
   const { data: ops = [], refetch } = useQuery({
@@ -163,7 +164,15 @@ export default function GroundOpsPage() {
   });
 
   const complete = ops.filter(o => o.boarding_status === 'closed').length;
-  const stations = ['KJFK', 'KLAX', 'KORD', 'KDFW', 'KATL', 'KDEN'];
+  const stations = [
+    { code: 'KATL', name: 'Atlanta' }, { code: 'KORD', name: "Chicago O'Hare" }, { code: 'KDFW', name: 'Dallas/Fort Worth' },
+    { code: 'KDEN', name: 'Denver' }, { code: 'KJFK', name: 'New York JFK' }, { code: 'KLAX', name: 'Los Angeles' },
+    { code: 'KLAS', name: 'Las Vegas' }, { code: 'KMIA', name: 'Miami' }, { code: 'KMSP', name: 'Minneapolis' },
+    { code: 'KEWR', name: 'Newark' }, { code: 'KBOS', name: 'Boston' }, { code: 'KSEA', name: 'Seattle' },
+    { code: 'KSFO', name: 'San Francisco' }, { code: 'KPHX', name: 'Phoenix' }, { code: 'KIAH', name: 'Houston' },
+    { code: 'KCLT', name: 'Charlotte' }, { code: 'KDTW', name: 'Detroit' }, { code: 'KSLC', name: 'Salt Lake City' },
+    { code: 'KMCO', name: 'Orlando' }, { code: 'KDCA', name: 'Washington Reagan' }, { code: 'KIAD', name: 'Washington Dulles' },
+  ];
 
   return (
     <div className="min-h-screen bg-background pb-24">
@@ -202,16 +211,36 @@ export default function GroundOpsPage() {
         {/* Station Selector */}
         {activeTab === 'station' && (
           <div className="space-y-3">
-            <div className="flex gap-2 overflow-x-auto scrollbar-hide pb-2">
-              {stations.map(stn => (
-                <button
-                  key={stn}
-                  onClick={() => setSelectedStation(stn)}
-                  className={cn('px-4 py-2 rounded-lg text-xs font-bold whitespace-nowrap', selectedStation === stn ? 'bg-primary text-primary-foreground' : 'bg-card border border-border text-muted-foreground')}
-                >
-                  {stn}
-                </button>
-              ))}
+            <div className="relative">
+              <button
+                onClick={() => setShowStationDropdown(v => !v)}
+                className="w-full flex items-center justify-between gap-2 bg-card border border-border rounded-xl px-4 py-3 text-left hover:border-primary/40 transition-colors"
+              >
+                <div>
+                  <p className="text-xs font-bold text-muted-foreground uppercase tracking-wider">Selected Station</p>
+                  <p className="text-sm font-bold text-foreground">{stations.find(s => s.code === selectedStation)?.name} ({selectedStation})</p>
+                </div>
+                <span className="text-xs text-primary font-bold">Change</span>
+              </button>
+              {showStationDropdown && (
+                <>
+                  <div className="fixed inset-0 z-30" onClick={() => setShowStationDropdown(false)} />
+                  <div className="absolute top-full left-0 right-0 mt-1 bg-card border border-border rounded-xl overflow-hidden z-40 shadow-xl max-h-64 overflow-y-auto">
+                    {stations.map(stn => (
+                      <button
+                        key={stn.code}
+                        onClick={() => { setSelectedStation(stn.code); setShowStationDropdown(false); }}
+                        className={cn(
+                          'w-full text-left px-4 py-2.5 text-sm font-bold transition-colors border-b border-border last:border-0',
+                          selectedStation === stn.code ? 'bg-primary/10 text-primary' : 'text-foreground hover:bg-secondary'
+                        )}
+                      >
+                        <span className="font-mono">{stn.code}</span> — {stn.name}
+                      </button>
+                    ))}
+                  </div>
+                </>
+              )}
             </div>
           </div>
         )}
