@@ -4,7 +4,7 @@ import { base44 } from '@/api/base44Client';
 import { Link } from 'react-router-dom';
 import {
   Settings, AlertTriangle, CheckCircle, Zap, Wrench, Shield,
-  ChevronLeft, Plus, Activity, X, Send, Clock, MapPin, User, ChevronDown, BookOpen
+  ChevronLeft, Plus, Activity, X, Send, Clock, ChevronDown, BookOpen
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { format } from 'date-fns';
