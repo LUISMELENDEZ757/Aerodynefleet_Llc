@@ -84,7 +84,7 @@ const FAR117Calculator         = lazy(() => import('@/pages/FAR117Calculator'));
 const OTPDashboard             = lazy(() => import('@/pages/OTPDashboard'));
 const DiversionWorkflow        = lazy(() => import('@/pages/DiversionWorkflow'));
 const AIDispatchCopilot        = lazy(() => import('@/pages/AIDispatchCopilot'));
-const LiveSIGMETMap            = lazy(() => import('@/pages/LiveSIGMETMap'));
+const LiveSIGMETMap            = lazy(() => import('@/pages/LiveSIGMETMap.jsx'));
 const AOGProbabilityForecast   = lazy(() => import('@/pages/AOGProbabilityForecast'));
 const CostPerFlightAnalytics   = lazy(() => import('@/pages/CostPerFlightAnalytics'));
 const PredictivePartsOrdering  = lazy(() => import('@/pages/PredictivePartsOrdering'));
