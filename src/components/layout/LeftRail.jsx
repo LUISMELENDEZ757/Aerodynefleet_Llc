@@ -20,6 +20,7 @@ const TECHNICIAN_ITEMS = [
   { label: 'Tooling', path: '/ToolingManagement' },
   { label: 'Engineering', path: '/EngineeringDashboard' },
   { label: 'Engine Removal', path: '/EngineRemovalInstallation' },
+  { label: 'Heavy MxMRO', path: '/HeavyMxMRO' },
   { label: 'ROB/BOR Operations', path: '/BORROB' },
 ];
 
