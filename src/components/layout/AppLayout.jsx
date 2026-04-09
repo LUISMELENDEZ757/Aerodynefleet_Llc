@@ -7,6 +7,7 @@ import StarlinkIndicator from './StarlinkIndicator';
 import NotificationsBell from './NotificationsBell';
 import { TabHistoryProvider, useTabHistory } from '@/lib/TabHistoryContext';
 import PageTransition from '@/components/ui/PageTransition';
+import SupportButton from './SupportButton';
 
 // Syncs location changes into TabHistoryContext so lastPaths stays accurate
 function LocationSync() {
@@ -49,6 +50,7 @@ function AppContent() {
           <WifiIndicator />
           <StarlinkIndicator />
           <NotificationsBell />
+          <SupportButton />
         </div>
         <main className="pb-safe-bottom">
           <PageTransition>
