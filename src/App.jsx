@@ -80,6 +80,14 @@ const PassengerServiceSystem   = lazy(() => import('@/pages/PassengerServiceSyst
 const PartsSupplyDashboard     = lazy(() => import('@/pages/PartsSupplyDashboard'));
 const LiveFlightTracker        = lazy(() => import('@/pages/LiveFlightTracker'));
 const CrewPairingScheduler     = lazy(() => import('@/pages/CrewPairingScheduler'));
+const FAR117Calculator         = lazy(() => import('@/pages/FAR117Calculator'));
+const OTPDashboard             = lazy(() => import('@/pages/OTPDashboard'));
+const DiversionWorkflow        = lazy(() => import('@/pages/DiversionWorkflow'));
+const AIDispatchCopilot        = lazy(() => import('@/pages/AIDispatchCopilot'));
+const LiveSIGMETMap            = lazy(() => import('@/pages/LiveSIGMETMap'));
+const AOGProbabilityForecast   = lazy(() => import('@/pages/AOGProbabilityForecast'));
+const CostPerFlightAnalytics   = lazy(() => import('@/pages/CostPerFlightAnalytics'));
+const PredictivePartsOrdering  = lazy(() => import('@/pages/PredictivePartsOrdering'));
 
 function PageFallback() {
   return (
@@ -221,6 +229,14 @@ const AuthenticatedApp = () => {
         <Route path="/PartsSupply" element={<PartsSupplyDashboard />} />
         <Route path="/LiveFlightTracker" element={<LiveFlightTracker />} />
         <Route path="/CrewPairing" element={<CrewPairingScheduler />} />
+        <Route path="/FAR117" element={<FAR117Calculator />} />
+        <Route path="/OTPDashboard" element={<OTPDashboard />} />
+        <Route path="/DiversionWorkflow" element={<DiversionWorkflow />} />
+        <Route path="/AIDispatchCopilot" element={<AIDispatchCopilot />} />
+        <Route path="/SIGMETMap" element={<LiveSIGMETMap />} />
+        <Route path="/AOGForecast" element={<AOGProbabilityForecast />} />
+        <Route path="/CostAnalytics" element={<CostPerFlightAnalytics />} />
+        <Route path="/PredictiveParts" element={<PredictivePartsOrdering />} />
       </Route>
       <Route path="*" element={<PageNotFound />} />
     </Routes>

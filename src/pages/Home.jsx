@@ -35,6 +35,15 @@ const QUICK_LINKS = [
   { label: 'Analytics',       path: '/Analytics',             bg: 'bg-lime-600/20',      color: 'text-lime-400'   },
   { label: 'Engine Health',   path: '/EngineHealthAnalytics', bg: 'bg-emerald-700/20',   color: 'text-emerald-400'},
   { label: 'Telemetry',       path: '/TelemetryHub',          bg: 'bg-sky-600/20',       color: 'text-sky-400'    },
+  { label: 'AI Co-Pilot',    path: '/AIDispatchCopilot',     bg: 'bg-violet-600/20',    color: 'text-violet-400' },
+  { label: 'AOG Forecast',   path: '/AOGForecast',           bg: 'bg-red-600/20',       color: 'text-red-400'    },
+  { label: 'Diversion',      path: '/DiversionWorkflow',     bg: 'bg-orange-600/20',    color: 'text-orange-400' },
+  { label: 'SIGMET Map',     path: '/SIGMETMap',             bg: 'bg-blue-600/20',      color: 'text-blue-400'   },
+  { label: 'FAR 117',        path: '/FAR117',                bg: 'bg-green-600/20',     color: 'text-green-400'  },
+  { label: 'OTP Report',     path: '/OTPDashboard',          bg: 'bg-amber-600/20',     color: 'text-amber-400'  },
+  { label: 'Cost/Flight',    path: '/CostAnalytics',         bg: 'bg-emerald-600/20',   color: 'text-emerald-400'},
+  { label: 'Pred. Parts',    path: '/PredictiveParts',       bg: 'bg-cyan-600/20',      color: 'text-cyan-400'   },
+  { label: 'AOCS Hub',       path: '/AocsDashboard',         bg: 'bg-indigo-600/20',    color: 'text-indigo-400' },
 ];
 
 function ZuluClock() {
