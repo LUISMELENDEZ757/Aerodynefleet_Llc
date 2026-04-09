@@ -317,8 +317,8 @@ export default function LiveFlightTracker() {
   // Derive display data
   const displayFlights = mode === 'airline' ? (airlineData || [])
     : mode === 'search' ? (searchData || [])
-    : airportTab === 'departures' ? (airportData?.departures || [])
-    : (airportData?.arrivals || []);
+    : airportTab === 'departures' ? (airportData?.departures || []).filter(f => !selectedAirline || (f.operator || f.ident_iata?.substring(0, 2) || '').includes(selectedAirline))
+    : (airportData?.arrivals || []).filter(f => !selectedAirline || (f.operator || f.ident_iata?.substring(0, 2) || '').includes(selectedAirline));
 
   const isLoading = mode === 'airline' ? airlineLoading
     : mode === 'airport' ? airportLoading
