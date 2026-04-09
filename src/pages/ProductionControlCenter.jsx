@@ -8,8 +8,10 @@ import { cn } from '@/lib/utils';
 import BOWPlanner from '@/components/production/BOWPlanner';
 import WorkforceScheduler from '@/components/production/WorkforceScheduler';
 import BOWInventoryTracker from '@/components/production/BOWInventoryTracker';
+import BOWAnalytics from '@/components/production/BOWAnalytics';
 
 const TABS = [
+  { id: 'analytics', label: 'Analytics', icon: '📊', badge: 3 },
   { id: 'planning', label: 'Planning', icon: '📋' },
   { id: 'bow', label: 'BOW Planner', icon: '🔨' },
   { id: 'inventory', label: 'Inventory', icon: '📦', badge: 2 },
@@ -234,7 +236,7 @@ function OverviewModule() {
 }
 
 export default function ProductionControlCenter() {
-  const [activeTab, setActiveTab] = useState('planning');
+  const [activeTab, setActiveTab] = useState('analytics');
 
   return (
     <div className="min-h-screen bg-[#060809] pb-24">
@@ -285,6 +287,7 @@ export default function ProductionControlCenter() {
 
       {/* Content */}
       <div className="px-6 py-6 max-w-7xl mx-auto">
+        {activeTab === 'analytics' && <BOWAnalytics />}
         {activeTab === 'planning' && <PlanningModule />}
         {activeTab === 'bow' && <BOWPlanner />}
         {activeTab === 'inventory' && <BOWInventoryTracker bows={[]} />}
