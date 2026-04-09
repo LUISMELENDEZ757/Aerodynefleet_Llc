@@ -282,23 +282,25 @@ export default function GroundOpsPage() {
             <div className="flex items-center gap-2 px-5 py-3 border-b border-border bg-secondary">
               <TrendingDown className="w-4 h-4 text-green-400" />
               <h3 className="font-bold text-foreground">Arrivals</h3>
-              <span className="ml-auto text-xs text-muted-foreground">{arrivals.data?.flights?.length || 0} flights</span>
+              <span className="ml-auto text-xs text-muted-foreground">{arrivals?.flights?.length || 0} flights</span>
             </div>
             <div className="divide-y divide-border max-h-96 overflow-y-auto">
               {loadingArr ? (
                 <div className="px-5 py-4 text-xs text-muted-foreground text-center">Loading...</div>
-              ) : arrivals.data?.flights?.length === 0 ? (
+              ) : arrivals?.error ? (
+                <div className="px-5 py-4 text-xs text-red-400 text-center">Error: {arrivals.error}</div>
+              ) : arrivals?.flights?.length === 0 ? (
                 <div className="px-5 py-4 text-xs text-muted-foreground text-center">No arrivals</div>
               ) : (
-                arrivals.data?.flights?.slice(0, 15).map((flight, idx) => (
+                arrivals?.flights?.slice(0, 15).map((flight, idx) => (
                   <div key={idx} className="px-5 py-3 flex items-center justify-between text-sm">
                     <div>
                       <p className="font-mono font-bold text-foreground">{flight.ident || flight.flight_number || '—'}</p>
-                      <p className="text-xs text-muted-foreground">{flight.origin || '—'} → {flight.destination || '—'}</p>
+                      <p className="text-xs text-muted-foreground">{flight.origin?.code || flight.origin || '—'} → {flight.destination?.code || flight.destination || '—'}</p>
                     </div>
                     <div className="text-right">
                       <p className="text-xs text-green-400 font-bold">ARR</p>
-                      <p className="text-xs text-muted-foreground">{flight.estimatedarrivaltime ? new Date(flight.estimatedarrivaltime * 1000).toLocaleTimeString() : '—'}</p>
+                      <p className="text-xs text-muted-foreground">{flight.scheduled_out ? new Date(flight.scheduled_out).toLocaleTimeString() : '—'}</p>
                     </div>
                   </div>
                 ))
@@ -311,23 +313,25 @@ export default function GroundOpsPage() {
             <div className="flex items-center gap-2 px-5 py-3 border-b border-border bg-secondary">
               <TrendingUp className="w-4 h-4 text-orange-400" />
               <h3 className="font-bold text-foreground">Departures</h3>
-              <span className="ml-auto text-xs text-muted-foreground">{departures.data?.flights?.length || 0} flights</span>
+              <span className="ml-auto text-xs text-muted-foreground">{departures?.flights?.length || 0} flights</span>
             </div>
             <div className="divide-y divide-border max-h-96 overflow-y-auto">
               {loadingDep ? (
                 <div className="px-5 py-4 text-xs text-muted-foreground text-center">Loading...</div>
-              ) : departures.data?.flights?.length === 0 ? (
+              ) : departures?.error ? (
+                <div className="px-5 py-4 text-xs text-red-400 text-center">Error: {departures.error}</div>
+              ) : departures?.flights?.length === 0 ? (
                 <div className="px-5 py-4 text-xs text-muted-foreground text-center">No departures</div>
               ) : (
-                departures.data?.flights?.slice(0, 15).map((flight, idx) => (
+                departures?.flights?.slice(0, 15).map((flight, idx) => (
                   <div key={idx} className="px-5 py-3 flex items-center justify-between text-sm">
                     <div>
                       <p className="font-mono font-bold text-foreground">{flight.ident || flight.flight_number || '—'}</p>
-                      <p className="text-xs text-muted-foreground">{flight.origin || '—'} → {flight.destination || '—'}</p>
+                      <p className="text-xs text-muted-foreground">{flight.origin?.code || flight.origin || '—'} → {flight.destination?.code || flight.destination || '—'}</p>
                     </div>
                     <div className="text-right">
                       <p className="text-xs text-orange-400 font-bold">DEP</p>
-                      <p className="text-xs text-muted-foreground">{flight.estimateddeparturetime ? new Date(flight.estimateddeparturetime * 1000).toLocaleTimeString() : '—'}</p>
+                      <p className="text-xs text-muted-foreground">{flight.scheduled_out ? new Date(flight.scheduled_out).toLocaleTimeString() : '—'}</p>
                     </div>
                   </div>
                 ))

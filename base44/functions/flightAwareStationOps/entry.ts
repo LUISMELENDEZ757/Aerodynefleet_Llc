@@ -26,12 +26,13 @@ Deno.serve(async (req) => {
       );
     }
 
-    const url = `https://apc-api.flightaware.com/apc/v2/query?query=prefix ${station} -${direction.slice(0, -1)} limit 50`;
+    // Use FlightAware AeroAPI endpoint
+    const url = `https://aeroapi.flightaware.com/aeroapi/flights/airport/${station}/${direction === 'arrivals' ? 'arrivals' : 'departures'}`;
 
     const response = await fetch(url, {
       method: 'GET',
       headers: {
-        'X-APIKey': apiKey,
+        'x-apikey': apiKey,
         'Accept': 'application/json',
       },
     });
@@ -42,11 +43,14 @@ Deno.serve(async (req) => {
 
     const data = await response.json();
 
+    // AeroAPI returns flights in data.flights array
+    const flights = data.flights || [];
+
     return Response.json({
       success: true,
       station,
       direction,
-      flights: data.flights || [],
+      flights: flights,
       timestamp: new Date().toISOString(),
     });
   } catch (error) {
