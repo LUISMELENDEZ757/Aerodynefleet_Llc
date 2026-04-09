@@ -15,6 +15,7 @@ const TECHNICIAN_ITEMS = [
   { label: 'Parts Supply', path: '/PartsSupply' },
   { label: 'Tooling', path: '/ToolingManagement' },
   { label: 'Engineering', path: '/EngineeringDashboard' },
+  { label: 'Engine Removal', path: '/EngineRemovalInstallation' },
 ];
 
 // ── WORKGROUP 2: DISPATCH & OPERATIONS CONTROL ─────────────────────────────────
