@@ -216,6 +216,9 @@ export default function SupervisorHandoverModule() {
           <Mail className="w-4 h-4 text-primary" />
           <p className="text-sm font-bold text-foreground">Supervisor Shift Turn Over</p>
         </div>
+        <button onClick={() => setShowForm(true)} className="px-4 py-2 rounded-lg bg-primary text-primary-foreground text-xs font-bold hover:bg-primary/90 flex items-center gap-2">
+          <Plus className="w-3.5 h-3.5" /> New Shift Turnover
+        </button>
       </div>
 
       {isLoading ? (
