@@ -11,6 +11,7 @@ const TECHNICIAN_ITEMS = [
   { label: 'OOS Aircraft', path: '/OOSDashboard' },
   { label: 'Maintenance Control', path: '/MaintenanceControl' },
   { label: 'Fleet Management', path: '/FleetDashboard' },
+  { label: 'Comm Center', path: '/CommCenter' },
   { label: 'E-Logbook', path: '/TechOpsLogbook' },
   { label: 'MEL Deferrals', path: '/MEL' },
   { label: 'Parts Supply', path: '/PartsSupply' },
