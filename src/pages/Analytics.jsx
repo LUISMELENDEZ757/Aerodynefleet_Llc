@@ -8,12 +8,12 @@ import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, PieChart, Pi
 
 const COLORS = ['#22c55e', '#f59e0b', '#ef4444', '#3b82f6', '#a78bfa', '#f97316'];
 
-function MetricCard({ icon: Icon, label, value, trend, color }) {
+function MetricCard({ icon: IconComponent, label, value, trend, color }) {
   return (
     <div className={cn('rounded-xl border p-4 space-y-2', color)}>
       <div className="flex items-center justify-between">
         <p className="text-xs font-bold opacity-75 uppercase tracking-widest">{label}</p>
-        {Icon && <Icon className="w-4 h-4 opacity-60" />}
+        {IconComponent && <IconComponent className="w-4 h-4 opacity-60" />}
       </div>
       <p className="text-3xl font-extrabold font-mono">{value}</p>
       {trend && <p className="text-xs opacity-70">{trend}</p>}
