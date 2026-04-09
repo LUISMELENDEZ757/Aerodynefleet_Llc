@@ -1,7 +1,8 @@
 import { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { base44 } from '@/api/base44Client';
-import { X, Plus, AlertTriangle, CheckCircle, Clock, Send } from 'lucide-react';
+import { X, Plus, AlertTriangle, CheckCircle, Clock, Send, Download } from 'lucide-react';
+import { jsPDF } from 'jspdf';
 import { cn } from '@/lib/utils';
 
 function HandoverForm({ onSubmit, onCancel, isPending }) {
@@ -225,7 +226,7 @@ function HandoverForm({ onSubmit, onCancel, isPending }) {
   );
 }
 
-function HandoverCard({ handover }) {
+function HandoverCard({ handover, onExport }) {
   const criticalIssues = handover.pending_issues?.filter(i => i.priority === 'critical') || [];
 
   return (
@@ -244,7 +245,10 @@ function HandoverCard({ handover }) {
           <p className="text-xs text-muted-foreground">{new Date(handover.shift_end_time).toLocaleString()}</p>
         </div>
         <div className="text-right">
-          <p className="text-xs font-bold text-foreground">{handover.shift_period}</p>
+          <button onClick={(e) => { e.stopPropagation(); onExport(handover); }} className="text-muted-foreground hover:text-foreground transition-colors" title="Export to PDF">
+            <Download className="w-4 h-4" />
+          </button>
+          <p className="text-xs font-bold text-foreground mt-2">{handover.shift_period}</p>
           <p className="text-xs text-muted-foreground">{handover.shift_date}</p>
         </div>
       </div>
@@ -267,6 +271,154 @@ function HandoverCard({ handover }) {
     </div>
   );
 }
+
+const generatePDF = (handover) => {
+  const doc = new jsPDF();
+  const pageWidth = doc.internal.pageSize.getWidth();
+  const pageHeight = doc.internal.pageSize.getHeight();
+  let yPos = 20;
+  const margin = 15;
+  const lineHeight = 7;
+  const maxWidth = pageWidth - 2 * margin;
+
+  // Title
+  doc.setFontSize(18);
+  doc.setFont(undefined, 'bold');
+  doc.text('Shift Handover Log', margin, yPos);
+  yPos += 12;
+
+  // Header Info
+  doc.setFontSize(10);
+  doc.setFont(undefined, 'bold');
+  doc.text('Shift Information', margin, yPos);
+  yPos += 6;
+
+  doc.setFont(undefined, 'normal');
+  doc.setFontSize(9);
+  const headerInfo = [
+    `Date: ${handover.shift_date}`,
+    `Period: ${handover.shift_period.toUpperCase()}`,
+    `Submitted by: ${handover.submitted_by} (${handover.submitted_by_cert || 'N/A'})`,
+    `Status: ${handover.status.toUpperCase()}`,
+    `Time: ${new Date(handover.shift_end_time).toLocaleString()}`,
+  ];
+  headerInfo.forEach(info => {
+    doc.text(info, margin, yPos);
+    yPos += lineHeight;
+  });
+  yPos += 5;
+
+  // Progress Summary
+  doc.setFont(undefined, 'bold');
+  doc.setFontSize(10);
+  doc.text('Shift Summary', margin, yPos);
+  yPos += 6;
+  doc.setFont(undefined, 'normal');
+  doc.setFontSize(9);
+  const summaryLines = doc.splitTextToSize(handover.progress_summary || '—', maxWidth);
+  summaryLines.forEach(line => {
+    if (yPos > pageHeight - 20) {
+      doc.addPage();
+      yPos = 20;
+    }
+    doc.text(line, margin, yPos);
+    yPos += lineHeight;
+  });
+  yPos += 5;
+
+  // Safety Critical Notes
+  if (handover.safety_critical_notes) {
+    if (yPos > pageHeight - 40) {
+      doc.addPage();
+      yPos = 20;
+    }
+    doc.setFont(undefined, 'bold');
+    doc.setFontSize(10);
+    doc.setTextColor(220, 38, 38);
+    doc.text('⚠ Safety Critical Notes', margin, yPos);
+    doc.setTextColor(0);
+    yPos += 6;
+    doc.setFont(undefined, 'normal');
+    doc.setFontSize(9);
+    const safetyLines = doc.splitTextToSize(handover.safety_critical_notes, maxWidth);
+    safetyLines.forEach(line => {
+      if (yPos > pageHeight - 20) {
+        doc.addPage();
+        yPos = 20;
+      }
+      doc.text(line, margin, yPos);
+      yPos += lineHeight;
+    });
+    yPos += 5;
+  }
+
+  // Pending Issues
+  if (handover.pending_issues && handover.pending_issues.length > 0) {
+    if (yPos > pageHeight - 40) {
+      doc.addPage();
+      yPos = 20;
+    }
+    doc.setFont(undefined, 'bold');
+    doc.setFontSize(10);
+    doc.text(`Pending Issues (${handover.pending_issues.length})`, margin, yPos);
+    yPos += 6;
+    doc.setFont(undefined, 'normal');
+    doc.setFontSize(9);
+
+    handover.pending_issues.forEach((issue, idx) => {
+      if (yPos > pageHeight - 30) {
+        doc.addPage();
+        yPos = 20;
+      }
+      doc.setFont(undefined, 'bold');
+      doc.text(`${idx + 1}. [${issue.priority.toUpperCase()}]`, margin, yPos);
+      yPos += 5;
+      doc.setFont(undefined, 'normal');
+      const issueLines = doc.splitTextToSize(issue.description, maxWidth - 5);
+      issueLines.forEach(line => {
+        doc.text(line, margin + 2, yPos);
+        yPos += lineHeight;
+      });
+      if (issue.aircraft_tail) doc.text(`Aircraft: ${issue.aircraft_tail}`, margin + 2, yPos++, { maxWidth: maxWidth - 5 });
+      if (issue.assigned_to) doc.text(`Assigned to: ${issue.assigned_to}`, margin + 2, yPos++, { maxWidth: maxWidth - 5 });
+      yPos += 3;
+    });
+  }
+
+  // Additional Details
+  const details = [
+    { label: 'Parts Consumed', value: handover.parts_consumed },
+    { label: 'Tools In Use', value: handover.tools_in_use },
+    { label: 'Notes', value: handover.notes },
+  ];
+
+  details.forEach(({ label, value }) => {
+    if (value) {
+      if (yPos > pageHeight - 30) {
+        doc.addPage();
+        yPos = 20;
+      }
+      doc.setFont(undefined, 'bold');
+      doc.setFontSize(9);
+      doc.text(label, margin, yPos);
+      yPos += 5;
+      doc.setFont(undefined, 'normal');
+      const valueLines = doc.splitTextToSize(value, maxWidth);
+      valueLines.forEach(line => {
+        if (yPos > pageHeight - 20) {
+          doc.addPage();
+          yPos = 20;
+        }
+        doc.text(line, margin, yPos);
+        yPos += lineHeight;
+      });
+      yPos += 3;
+    }
+  });
+
+  const filename = `Shift-Handover_${handover.shift_date}_${handover.shift_period}.pdf`;
+  doc.save(filename);
+};
 
 export default function ShiftHandoverModule() {
   const [showForm, setShowForm] = useState(false);
@@ -310,7 +462,7 @@ export default function ShiftHandoverModule() {
         </div>
       ) : (
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-3">
-          {handovers.map(h => <HandoverCard key={h.id} handover={h} />)}
+          {handovers.map(h => <HandoverCard key={h.id} handover={h} onExport={generatePDF} />)}
         </div>
       )}
 
