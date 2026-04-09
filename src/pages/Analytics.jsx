@@ -93,7 +93,7 @@ export default function Analytics() {
       {/* Header */}
       <div className="flex items-center justify-between px-5 py-4 border-b border-white/10 bg-[#0a0e18]">
         <div className="flex items-center gap-3">
-          <Link to="/Home" className="w-9 h-9 rounded-lg bg-white/10 flex items-center justify-center hover:bg-white/20">
+          <Link to="/" className="w-9 h-9 rounded-lg bg-white/10 flex items-center justify-center hover:bg-white/20">
             <BarChart3 className="w-5 h-5" />
           </Link>
           <div>
