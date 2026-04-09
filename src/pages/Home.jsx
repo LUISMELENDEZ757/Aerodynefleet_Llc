@@ -45,6 +45,7 @@ const QUICK_LINKS = [
   { label: 'Cost/Flight',    path: '/CostAnalytics',         bg: 'bg-emerald-600/20',   color: 'text-emerald-400'},
   { label: 'Pred. Parts',    path: '/PredictiveParts',       bg: 'bg-cyan-600/20',      color: 'text-cyan-400'   },
   { label: 'AOCS Hub',       path: '/AocsDashboard',         bg: 'bg-indigo-600/20',    color: 'text-indigo-400' },
+  { label: 'MX Tablet',     path: '/LineMxTablet',          bg: 'bg-orange-600/20',    color: 'text-orange-400' },
 ];
 
 function ZuluClock() {
@@ -95,7 +96,7 @@ export default function Home() {
             <Plane className="w-5 h-5 text-primary" />
           </div>
           <div>
-            <p className="text-sm font-extrabold text-white tracking-widest uppercase leading-none">OCC Operations Control Center</p>
+            <p className="text-sm font-extrabold text-white tracking-widest uppercase leading-none">Operations Hub</p>
             <p className="text-[10px] text-gray-500 font-mono">Aerodyne Fleet LLC</p>
           </div>
           <FleetBadge />
