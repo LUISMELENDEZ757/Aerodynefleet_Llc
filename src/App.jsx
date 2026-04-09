@@ -78,6 +78,7 @@ const LineMaintenanceDashboard = lazy(() => import('@/pages/LineMaintenanceDashb
 const ReleaseArchiveDashboard = lazy(() => import('@/pages/ReleaseArchiveDashboard'));
 const HeavyMxMRO               = lazy(() => import('@/pages/HeavyMxMRO'));
 const RecordRetentionDashboard  = lazy(() => import('@/pages/RecordRetentionDashboard'));
+const ShiftHandoverPage         = lazy(() => import('@/pages/ShiftHandoverPage'));
 const EngineRemovalInstallation = lazy(() => import('@/pages/EngineRemovalInstallation'));
 const PassengerServiceSystem   = lazy(() => import('@/pages/PassengerServiceSystem'));
 const PartsSupplyDashboard     = lazy(() => import('@/pages/PartsSupplyDashboard'));
@@ -249,6 +250,7 @@ const AuthenticatedApp = () => {
         <Route path="/BORROB" element={<BORROBDashboard />} />
         <Route path="/ProductionControl" element={<ProductionControlCenter />} />
         <Route path="/RecordsRetention" element={<RecordRetentionDashboard />} />
+        <Route path="/ShiftHandover" element={<ShiftHandoverPage />} />
       </Route>
       <Route path="*" element={<PageNotFound />} />
     </Routes>
