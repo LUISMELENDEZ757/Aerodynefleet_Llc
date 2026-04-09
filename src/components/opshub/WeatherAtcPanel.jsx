@@ -1,9 +1,10 @@
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
-import { Cloud, Wind, AlertTriangle, ArrowRight, MapPin } from 'lucide-react';
+import { Cloud, Wind, AlertTriangle, ArrowRight, MapPin, Thermometer, RefreshCw } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useQuery } from '@tanstack/react-query';
 import { base44 } from '@/api/base44Client';
+import { useMultiStationWeather } from '@/hooks/useOpenMeteo';
 
 const CATEGORY_CFG = {
   VFR:  { color: 'text-green-400',  bg: 'bg-green-500/15',  label: 'VFR'  },
@@ -12,45 +13,33 @@ const CATEGORY_CFG = {
   LIFR: { color: 'text-purple-400', bg: 'bg-purple-500/15', label: 'LIFR' },
 };
 
-// Extract key stations from active dispatch releases
-function extractStations(releases) {
-  const stations = new Set();
-  releases.forEach(r => {
-    if (r.origin) stations.add(r.origin);
-    if (r.destination) stations.add(r.destination);
-    if (r.alternate) stations.add(r.alternate);
-  });
-  return [...stations].slice(0, 8);
-}
 
-function parseWeatherCategory(metar) {
-  if (!metar) return null;
-  if (metar.includes('LIFR') || metar.match(/\bR\d+\/M\d+/)) return 'LIFR';
-  if (metar.includes(' IFR') || metar.match(/BKN0[0-2]\d|OVC0[0-2]\d/)) return 'IFR';
-  if (metar.includes('MVFR') || metar.match(/BKN0[3-4]\d|OVC0[3-4]\d/)) return 'MVFR';
+const HUB_STATIONS = ['KEWR', 'KJFK', 'KORD', 'KATL', 'KLAX', 'KDFW', 'KDEN', 'KBOS'];
+
+function wmoToFlightCat(code, windspeed_kt = 0) {
+  if (code >= 95) return 'IFR';
+  if (code >= 50 && code <= 69) return 'MVFR';
+  if (code >= 70 && code <= 79) return 'IFR';
+  if (windspeed_kt > 25) return 'MVFR';
   return 'VFR';
 }
 
 export default function WeatherAtcPanel({ releases }) {
-  // Derive weather from dispatch monitoring data
-  const { data: monitoring = [] } = useQuery({
-    queryKey: ['opshub-monitoring'],
-    queryFn: () => base44.entities.DispatchMonitoring.list('-created_date', 50),
-    refetchInterval: 120000,
-  });
+  const { data: liveWx = [], isLoading: wxLoading } = useMultiStationWeather(HUB_STATIONS);
 
-  const stationsWithWeather = monitoring
-    .filter(m => m.weather_monitoring?.current_metar_destination)
-    .slice(0, 6)
-    .map(m => ({
-      station: m.destination,
-      metar: m.weather_monitoring.current_metar_destination,
-      trend: m.weather_monitoring.destination_trend,
-      sigmets: m.weather_monitoring.active_sigmets || [],
-    }));
+  const stationsWithWeather = liveWx.map(wx => ({
+    station: wx.icao,
+    cat: wmoToFlightCat(wx.weathercode, wx.windspeed_kt),
+    temp_c: wx.temp_c,
+    temp_f: wx.temp_f,
+    windspeed_kt: wx.windspeed_kt,
+    winddirection: wx.winddirection,
+    condition: wx.condition,
+    is_day: wx.is_day,
+  }));
 
-  const deteriorating = stationsWithWeather.filter(s => s.trend === 'deteriorating').length;
-  const activeSigmets = stationsWithWeather.flatMap(s => s.sigmets).filter(Boolean);
+  const deteriorating = stationsWithWeather.filter(s => s.cat === 'IFR' || s.cat === 'LIFR').length;
+  const activeSigmets = [];
 
   return (
     <div className="bg-[#141922] border border-white/10 rounded-2xl overflow-hidden">
@@ -76,25 +65,30 @@ export default function WeatherAtcPanel({ releases }) {
             <p className="text-[10px] text-gray-500">SIGMETs</p>
           </div>
           <div className="bg-[#0d1117] rounded-xl px-3 py-2 text-center">
-            <p className="text-xl font-extrabold text-primary">{stationsWithWeather.length}</p>
-            <p className="text-[10px] text-gray-500">Stations</p>
+            <p className="text-xl font-extrabold text-primary">{wxLoading ? '…' : stationsWithWeather.length}</p>
+            <p className="text-[10px] text-gray-500">Live Stations</p>
           </div>
         </div>
 
-        {/* Station weather list */}
-        {stationsWithWeather.length > 0 ? (
+        {/* Live station weather grid */}
+        {wxLoading ? (
+          <div className="flex items-center gap-2 text-xs text-gray-500 py-2">
+            <RefreshCw className="w-3 h-3 animate-spin" /> Fetching live weather…
+          </div>
+        ) : stationsWithWeather.length > 0 ? (
           <div className="space-y-1.5">
-            {stationsWithWeather.map(({ station, metar, trend }) => {
-              const cat = parseWeatherCategory(metar);
-              const cfg = cat ? CATEGORY_CFG[cat] : CATEGORY_CFG.VFR;
+            {stationsWithWeather.map(({ station, cat, temp_c, windspeed_kt, winddirection, condition }) => {
+              const cfg = CATEGORY_CFG[cat] || CATEGORY_CFG.VFR;
               return (
                 <div key={station} className="flex items-center gap-2 bg-[#0d1117] rounded-lg px-3 py-2">
-                  <MapPin className="w-3 h-3 text-gray-600 flex-shrink-0" />
+                  <span className="text-sm flex-shrink-0">{condition.icon}</span>
                   <span className="text-xs font-mono font-bold text-white w-10 flex-shrink-0">{station}</span>
-                  {cat && <span className={cn('text-[10px] font-extrabold px-1.5 py-0.5 rounded flex-shrink-0', cfg.bg, cfg.color)}>{cfg.label}</span>}
-                  <span className="text-[10px] text-gray-500 flex-1 truncate">{metar?.slice(0, 40)}</span>
-                  {trend === 'deteriorating' && <AlertTriangle className="w-3 h-3 text-amber-400 flex-shrink-0" />}
-                  {trend === 'improving' && <span className="text-[10px] text-green-400 flex-shrink-0">↑</span>}
+                  <span className={cn('text-[10px] font-extrabold px-1.5 py-0.5 rounded flex-shrink-0', cfg.bg, cfg.color)}>{cat}</span>
+                  <span className="text-[10px] text-white flex-shrink-0">{temp_c}°C</span>
+                  <span className="text-[10px] text-gray-500 flex-1 truncate flex items-center gap-1">
+                    <Wind className="w-2.5 h-2.5 inline" /> {windspeed_kt}kt {winddirection}°
+                  </span>
+                  {(cat === 'IFR' || cat === 'LIFR') && <AlertTriangle className="w-3 h-3 text-amber-400 flex-shrink-0" />}
                 </div>
               );
             })}
@@ -102,8 +96,7 @@ export default function WeatherAtcPanel({ releases }) {
         ) : (
           <div className="bg-[#0d1117] rounded-xl px-4 py-4 text-center">
             <Cloud className="w-7 h-7 text-gray-700 mx-auto mb-1" />
-            <p className="text-xs text-gray-600">Weather data populates from active dispatch monitoring</p>
-            <Link to="/Weather" className="text-[10px] text-primary mt-1 block">Open Weather Dashboard →</Link>
+            <p className="text-xs text-gray-600">Connecting to Open-Meteo…</p>
           </div>
         )}
 

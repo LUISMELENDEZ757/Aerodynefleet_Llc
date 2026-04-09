@@ -4,8 +4,9 @@ import { base44 } from '@/api/base44Client';
 import {
   Plane, AlertTriangle, CheckCircle, Wrench, Clock, User, Send,
   ChevronRight, X, Plus, Zap, Shield, Activity, RefreshCw,
-  FileText, ArrowLeft, Circle, Radio
+  FileText, ArrowLeft, Circle, Radio, Wind, Thermometer
 } from 'lucide-react';
+import { useStationWeather } from '@/hooks/useOpenMeteo';
 import { cn } from '@/lib/utils';
 
 // ─── Zulu Clock ──────────────────────────────────────────────────────────────
@@ -258,6 +259,8 @@ function AircraftDetailView({ aircraft, onBack }) {
   const [activeTab, setActiveTab] = useState('discrepancies');
   const qc = useQueryClient();
 
+  const { data: stationWx } = useStationWeather(aircraft.base_station);
+
   const { data: discrepancies = [] } = useQuery({
     queryKey: ['tablet-discrepancies', aircraft.tail_number],
     queryFn: () => base44.entities.LogbookEntry.filter({ aircraft_tail: aircraft.tail_number }),
@@ -312,6 +315,14 @@ function AircraftDetailView({ aircraft, onBack }) {
               <span className={cn('text-xs font-extrabold px-3 py-1 rounded-full border', acStatus.bg, acStatus.color)}>{acStatus.label}</span>
             </div>
             <p className="text-sm text-gray-400">{aircraft.aircraft_type} · {aircraft.base_station || '—'} · {aircraft.engine_type || '—'}</p>
+            {stationWx && (
+              <div className="flex items-center gap-2 mt-1.5">
+                <span className="text-base">{stationWx.condition.icon}</span>
+                <span className="text-sm font-bold text-white">{stationWx.temp_c}°C / {stationWx.temp_f}°F</span>
+                <span className="text-xs text-gray-400">{stationWx.condition.label}</span>
+                <span className="text-xs text-cyan-400 flex items-center gap-1"><Wind className="w-3 h-3" />{stationWx.windspeed_kt}kt {stationWx.winddirection}°</span>
+              </div>
+            )}
           </div>
           <button onClick={() => setShowNewDisc(true)}
             className="flex items-center gap-2 px-5 py-3 rounded-2xl bg-amber-500 text-black font-extrabold text-sm hover:bg-amber-400 transition-colors active:scale-95">

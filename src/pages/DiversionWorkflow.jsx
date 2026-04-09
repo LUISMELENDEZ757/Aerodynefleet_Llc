@@ -2,7 +2,8 @@ import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import { base44 } from '@/api/base44Client';
-import { ChevronLeft, AlertTriangle, Plane, MapPin, Fuel, Users, CloudRain, FileText, CheckCircle, Zap, Clock } from 'lucide-react';
+import { ChevronLeft, AlertTriangle, Plane, MapPin, Fuel, Users, CloudRain, FileText, CheckCircle, Zap, Clock, Wind, Thermometer } from 'lucide-react';
+import { useMultiStationWeather } from '@/hooks/useOpenMeteo';
 import { cn } from '@/lib/utils';
 
 const DIVERSION_AIRPORTS = [
@@ -57,6 +58,10 @@ export default function DiversionWorkflow() {
     queryKey: ['div-flights'],
     queryFn: () => base44.entities.Flight.list('-flight_date', 100),
   });
+
+  const altIcaos = DIVERSION_AIRPORTS.map(a => a.icao).filter(Boolean);
+  const { data: altWeather = [] } = useMultiStationWeather(altIcaos);
+  const wxByIcao = altWeather.reduce((acc, w) => { acc[w.icao] = w; return acc; }, {});
 
   const set = (k, v) => setForm(p => ({ ...p, [k]: v }));
   const toggleCheck = (id) => setChecklist(p => ({ ...p, [id]: !p[id] }));
@@ -166,7 +171,7 @@ export default function DiversionWorkflow() {
                   </div>
                   {form.alternate === apt.icao && <CheckCircle className="w-5 h-5 text-primary" />}
                 </div>
-                <div className="flex gap-2">
+                <div className="flex gap-2 flex-wrap">
                   <span className={cn('text-[10px] font-bold px-2 py-0.5 rounded', apt.fuel ? 'bg-green-500/15 text-green-400' : 'bg-red-500/15 text-red-400')}>
                     {apt.fuel ? '✓ Fuel' : '✗ Fuel'}
                   </span>
@@ -176,6 +181,11 @@ export default function DiversionWorkflow() {
                   <span className={cn('text-[10px] font-bold px-2 py-0.5 rounded', apt.hotel ? 'bg-purple-500/15 text-purple-400' : 'bg-gray-500/15 text-gray-400')}>
                     {apt.hotel ? '✓ Hotel' : '✗ Hotel'}
                   </span>
+                  {wxByIcao[apt.icao] && (
+                    <span className="text-[10px] font-bold px-2 py-0.5 rounded bg-cyan-500/15 text-cyan-400 flex items-center gap-1">
+                      {wxByIcao[apt.icao].condition.icon} {wxByIcao[apt.icao].temp_c}°C · {wxByIcao[apt.icao].windspeed_kt}kt
+                    </span>
+                  )}
                 </div>
               </button>
             ))}
