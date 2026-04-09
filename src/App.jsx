@@ -74,6 +74,7 @@ const TravelWeather           = lazy(() => import('@/pages/TravelWeather'));
 const TelemetryHub            = lazy(() => import('@/pages/TelemetryHub'));
 const EngineHealthAnalytics   = lazy(() => import('@/pages/EngineHealthAnalytics'));
 const LineMaintenanceDashboard = lazy(() => import('@/pages/LineMaintenanceDashboard'));
+const ReleaseArchiveDashboard = lazy(() => import('@/pages/ReleaseArchiveDashboard'));
 const HeavyMxMRO               = lazy(() => import('@/pages/HeavyMxMRO'));
 const EngineRemovalInstallation = lazy(() => import('@/pages/EngineRemovalInstallation'));
 const PassengerServiceSystem   = lazy(() => import('@/pages/PassengerServiceSystem'));
@@ -239,6 +240,7 @@ const AuthenticatedApp = () => {
         <Route path="/CostAnalytics" element={<CostPerFlightAnalytics />} />
         <Route path="/PredictiveParts" element={<PredictivePartsOrdering />} />
         <Route path="/LineMxTablet" element={<LineMxTablet />} />
+        <Route path="/ReleaseArchive" element={<ReleaseArchiveDashboard />} />
       </Route>
       <Route path="*" element={<PageNotFound />} />
     </Routes>
