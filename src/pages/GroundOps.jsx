@@ -309,7 +309,7 @@ export default function GroundOpsPage() {
         {/* Arrivals */}
         <div className="bg-card border border-border rounded-2xl overflow-hidden">
           <div className="flex items-center gap-2 px-5 py-3 border-b border-border bg-secondary">
-            <TrendingDown className="w-4 h-4 text-green-400" />
+            <TrendingDown className="w-4 h-4 text-blue-400" />
             <h3 className="font-bold text-foreground">Arrivals</h3>
             <span className="ml-auto text-xs text-muted-foreground">{arrivals?.flights?.length || 0} arrivals</span>
           </div>
@@ -364,7 +364,7 @@ export default function GroundOpsPage() {
           {/* Departures */}
           <div className="bg-card border border-border rounded-2xl overflow-hidden">
             <div className="flex items-center gap-2 px-5 py-3 border-b border-border bg-secondary">
-              <TrendingUp className="w-4 h-4 text-orange-400" />
+              <TrendingUp className="w-4 h-4 text-green-400" />
               <h3 className="font-bold text-foreground">Departures</h3>
               <span className="ml-auto text-xs text-muted-foreground">{departures?.flights?.length || 0} departures</span>
             </div>
