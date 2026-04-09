@@ -27,7 +27,6 @@ const FLIGHT_OPS_ITEMS = [
   { label: 'STARLINK',       path: '/Starlink' },
   { label: 'LIVE FLIGHTS',   path: '/LiveFlightTracker' },
   { label: 'CREW PAIRING',  path: '/CrewPairing' },
-  { label: 'SETTINGS',       path: '/Settings' },
 ];
 
 // ── TECH OPS GROUP ───────────────────────────────────────────────────────────
@@ -59,7 +58,6 @@ const TECH_MODE_ITEMS = [
   { label: 'AOCS',           path: '/AocsDashboard' },
   { label: 'LINE MX',        path: '/LineMaintenanceDashboard' },
   ...TECH_OPS_ITEMS,
-  { label: 'SETTINGS',       path: '/Settings' },
 ];
 
 function NavGroup({ title, items, location }) {
@@ -182,6 +180,9 @@ export default function LeftRail({ onCollapsedChange }) {
         <motion.div className="my-1 border-t border-white/8 mx-3" />
         <NavGroup title="Tech Ops" items={TECH_OPS_ITEMS} location={location} />
       </motion.nav>
+      <div className="border-t border-white/10 px-2 py-2">
+        <NavGroup items={[{ label: 'ADMINISTRATION', path: '/Settings' }]} location={location} />
+      </div>
     </aside>
   );
 }
