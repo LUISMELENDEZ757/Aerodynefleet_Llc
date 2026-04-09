@@ -394,6 +394,34 @@ export default function BORROBDashboard() {
           </button>
         </div>
 
+        {/* Workflow Stages */}
+        <div className="flex items-center gap-2 mt-4 overflow-x-auto scrollbar-hide pb-2">
+          {WORKFLOW_STAGES.map(({ id, label, badge, icon }) => (
+            <button
+              key={id}
+              onClick={() => setActiveWorkflow(id)}
+              className={cn(
+                'flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs font-bold whitespace-nowrap transition-all flex-shrink-0',
+                activeWorkflow === id
+                  ? 'bg-primary text-primary-foreground'
+                  : 'border border-white/10 text-gray-400 hover:text-white hover:border-white/20'
+              )}
+            >
+              {icon && <span>{icon}</span>}
+              {label}
+              {badge && (
+                <span className={cn(
+                  'text-[10px] font-bold px-1.5 py-0.5 rounded-full ml-1',
+                  activeWorkflow === id ? 'bg-white/20 text-white' : 'bg-red-600 text-white'
+                )}>{badge}</span>
+              )}
+            </button>
+          ))}
+          <button className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-yellow-600 hover:bg-yellow-500 text-white text-xs font-bold whitespace-nowrap transition-all flex-shrink-0 ml-auto">
+            + New Request
+          </button>
+        </div>
+
       {/* Stats */}
         <div className="grid grid-cols-5 gap-2 mt-4">
           {[
