@@ -130,7 +130,7 @@ function NewEngineEventModal({ aircraft, onClose, onCreate }) {
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 p-4 overflow-y-auto">
+    <div className="fixed inset-0 z-50 flex items-start justify-center bg-black/70 p-4 overflow-y-auto" style={{ paddingTop: '1in' }}>
       <div className="w-full max-w-lg bg-[#141922] border border-white/10 rounded-2xl shadow-2xl my-4">
         <div className="flex items-center justify-between px-5 py-4 border-b border-white/10">
           <div className="flex items-center gap-2">
