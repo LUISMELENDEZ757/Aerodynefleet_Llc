@@ -130,6 +130,7 @@ export default function GroundOpsPage() {
   const [activeTab, setActiveTab] = useState('ops');
   const [selectedStation, setSelectedStation] = useState('KJFK');
   const [showStationDropdown, setShowStationDropdown] = useState(false);
+  const [selectedAirline, setSelectedAirline] = useState(null);
   const qc = useQueryClient();
 
   const { data: ops = [], refetch } = useQuery({
@@ -284,20 +285,43 @@ export default function GroundOpsPage() {
         </>
         ) : (
         <div className="space-y-4">
-          {/* Arrivals */}
-          <div className="bg-card border border-border rounded-2xl overflow-hidden">
-            <div className="flex items-center gap-2 px-5 py-3 border-b border-border bg-secondary">
-              <TrendingDown className="w-4 h-4 text-green-400" />
-              <h3 className="font-bold text-foreground">Arrivals</h3>
-              <span className="ml-auto text-xs text-muted-foreground">{arrivals?.flights?.length || 0} arrivals</span>
-            </div>
-            <div className="divide-y divide-border max-h-96 overflow-y-auto">
-              {loadingArr ? (
-                <div className="px-5 py-4 text-xs text-muted-foreground text-center">Loading...</div>
-              ) : arrivals?.flights?.length === 0 ? (
-                <div className="px-5 py-4 text-xs text-muted-foreground text-center">No arrivals</div>
-              ) : (
-                arrivals?.flights?.slice(0, 15).map((flight, idx) => {
+          {/* Airline Filter */}
+        {(arrivals?.flights?.length > 0 || departures?.flights?.length > 0) && (
+          <div className="bg-card border border-border rounded-2xl p-4">
+            <label className="text-xs font-bold text-muted-foreground uppercase tracking-widest block mb-2">Filter by Airline</label>
+            <select
+              value={selectedAirline || ''}
+              onChange={e => setSelectedAirline(e.target.value || null)}
+              className="w-full h-10 bg-background border border-border rounded-lg px-3 text-sm text-foreground focus:outline-none focus:ring-1 focus:ring-primary"
+            >
+              <option value="">All Airlines</option>
+              {Array.from(new Set(
+                [...(arrivals?.flights || []), ...(departures?.flights || [])]
+                  .map(f => f.operator || f.ident_iata?.substring(0, 2))
+                  .filter(Boolean)
+              )).sort().map(airline => (
+                <option key={airline} value={airline}>{airline}</option>
+              ))}
+            </select>
+          </div>
+        )}
+
+        {/* Arrivals */}
+        <div className="bg-card border border-border rounded-2xl overflow-hidden">
+          <div className="flex items-center gap-2 px-5 py-3 border-b border-border bg-secondary">
+            <TrendingDown className="w-4 h-4 text-green-400" />
+            <h3 className="font-bold text-foreground">Arrivals</h3>
+            <span className="ml-auto text-xs text-muted-foreground">{arrivals?.flights?.length || 0} arrivals</span>
+          </div>
+          <div className="divide-y divide-border max-h-96 overflow-y-auto">
+            {loadingArr ? (
+              <div className="px-5 py-4 text-xs text-muted-foreground text-center">Loading...</div>
+            ) : arrivals?.flights?.length === 0 ? (
+              <div className="px-5 py-4 text-xs text-muted-foreground text-center">No arrivals</div>
+            ) : (
+              arrivals?.flights?.slice(0, 15)
+                .filter(f => !selectedAirline || (f.operator || f.ident_iata?.substring(0, 2) || '').includes(selectedAirline))
+                .map((flight, idx) => {
                   const origin = flight.origin?.code_icao || flight.origin?.code || '—';
                   const dest = flight.destination?.code_icao || flight.destination?.code || '—';
                   const scheduledTime = flight.scheduled_in || flight.scheduled_on;
@@ -333,9 +357,9 @@ export default function GroundOpsPage() {
                     </div>
                   );
                 })
-              )}
-            </div>
+            )}
           </div>
+        </div>
 
           {/* Departures */}
           <div className="bg-card border border-border rounded-2xl overflow-hidden">
@@ -350,14 +374,9 @@ export default function GroundOpsPage() {
               ) : departures?.flights?.length === 0 ? (
                 <div className="px-5 py-4 text-xs text-muted-foreground text-center">No departures</div>
               ) : (
-                departures?.flights?.slice(0, 15).map((flight, idx) => {
-                  const origin = flight.origin?.code_icao || flight.origin?.code || '—';
-                  const dest = flight.destination?.code_icao || flight.destination?.code || '—';
-                  const scheduledTime = flight.scheduled_out || flight.scheduled_off;
-                  const actualTime = flight.actual_out || flight.actual_off;
-                  const estimatedTime = flight.estimated_out || flight.estimated_off;
-                  const time = actualTime || estimatedTime || scheduledTime;
-                  const timeStr = time ? new Date(time).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: false }) : '—';
+                departures?.flights?.slice(0, 15)
+                  .filter(f => !selectedAirline || (f.operator || f.ident_iata?.substring(0, 2) || '').includes(selectedAirline))
+                  .map((flight, idx) => {
                   const isDelayed = (flight.departure_delay || 0) > 300;
                   const isCancelled = flight.cancelled;
                   return (
