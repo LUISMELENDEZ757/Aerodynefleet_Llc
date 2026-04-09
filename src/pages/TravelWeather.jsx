@@ -4,11 +4,11 @@ import { motion } from 'framer-motion';
 import {
   Sun, Cloud, CloudRain, Wind, Droplets, Thermometer,
   MapPin, Search, Umbrella, Eye, Gauge, Sunrise, Sunset,
-  Waves, TreePalm, Star, ArrowLeft, Loader
+  Waves, TreePalm, Star, ArrowLeft, Loader, RefreshCw
 } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { cn } from '@/lib/utils';
-import { fetchWeather, geocodeLocation, mapWeatherCondition } from '@/lib/weather-api';
+import { wmoCondition } from '@/hooks/useOpenMeteo';
 
 const DESTINATIONS = [
   { name: 'Cancún', country: 'Mexico', emoji: '🇲🇽', lat: 21.16, lon: -86.85, vibe: 'Beach Paradise', temp: 31, feels: 36, humidity: 78, wind: 18, uv: 11, vis: 16, pressure: 1012, condition: 'sunny', high: 33, low: 26, sunrise: '6:14 AM', sunset: '6:58 PM', icon: '☀️', desc: 'Crystal clear skies. Perfect beach day!', activities: ['Snorkeling', 'Beach Volleyball', 'Cenote Swim'] },
@@ -36,14 +36,48 @@ const CONDITION_CONFIG = {
   rainy:          { bg: 'from-blue-600 via-indigo-500 to-blue-500',       card: 'bg-blue-500/10 border-blue-500/20',  badge: 'bg-blue-500/20 text-blue-300' },
 };
 
+function wmoToCondition(code) {
+  if (code === 0) return 'sunny';
+  if (code <= 2)  return 'partly_cloudy';
+  if (code === 3) return 'cloudy';
+  if (code <= 49) return 'cloudy';
+  if (code <= 69) return 'rainy';
+  if (code <= 79) return 'rainy';
+  if (code <= 82) return 'rainy';
+  if (code <= 86) return 'cloudy';
+  return 'thunderstorm';
+}
+
+async function fetchOpenMeteo(lat, lon) {
+  const url = `https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&current_weather=true&daily=temperature_2m_max,temperature_2m_min,uv_index_max,sunrise,sunset&timezone=auto&forecast_days=1`;
+  const res = await fetch(url);
+  if (!res.ok) throw new Error('weather fetch failed');
+  return res.json();
+}
+
 function UvIndex({ uv }) {
   const color = uv <= 2 ? 'text-green-400' : uv <= 5 ? 'text-yellow-400' : uv <= 7 ? 'text-orange-400' : uv <= 10 ? 'text-red-400' : 'text-purple-400';
   const label = uv <= 2 ? 'Low' : uv <= 5 ? 'Moderate' : uv <= 7 ? 'High' : uv <= 10 ? 'Very High' : 'Extreme';
   return <span className={cn('font-bold', color)}>{uv} {label}</span>;
 }
 
+function useDestWeather(dest) {
+  return useQuery({
+    queryKey: ['travel-wx', dest.lat, dest.lon],
+    queryFn: () => fetchOpenMeteo(dest.lat, dest.lon),
+    staleTime: 300000,
+    refetchInterval: 300000,
+  });
+}
+
 function DestinationCard({ dest, onSelect, selected, convertTemp }) {
-  const cfg = CONDITION_CONFIG[dest.condition] || CONDITION_CONFIG.sunny;
+  const { data: wx } = useDestWeather(dest);
+  const liveTemp = wx ? Math.round(wx.current_weather.temperature) : dest.temp;
+  const liveCode = wx ? wx.current_weather.weathercode : null;
+  const liveCondition = liveCode != null ? wmoToCondition(liveCode) : dest.condition;
+  const liveIcon = liveCode != null ? wmoCondition(liveCode).icon : dest.icon;
+  const cfg = CONDITION_CONFIG[liveCondition] || CONDITION_CONFIG.sunny;
+
   return (
     <motion.button
       onClick={() => onSelect(dest)}
@@ -64,22 +98,42 @@ function DestinationCard({ dest, onSelect, selected, convertTemp }) {
           <p className="text-xs text-gray-400 mt-0.5">{dest.country}</p>
         </div>
         <div className="text-right">
-          <p className="text-2xl font-black text-white">{convertTemp(dest.temp)}°</p>
-          <span className="text-lg">{dest.icon}</span>
+          <p className="text-2xl font-black text-white">{convertTemp(liveTemp)}°</p>
+          <span className="text-lg">{liveIcon}</span>
         </div>
       </div>
       <div className="flex items-center justify-between">
         <span className={cn('text-[10px] font-bold px-2 py-0.5 rounded-full', cfg.badge)}>{dest.vibe}</span>
-        <div className="flex items-center gap-1 text-xs text-gray-400">
-          <Droplets className="w-3 h-3" />{dest.humidity}%
-        </div>
+        {wx ? (
+          <div className="flex items-center gap-1 text-xs text-green-400">
+            <span className="w-1.5 h-1.5 rounded-full bg-green-400 animate-pulse" /> live
+          </div>
+        ) : (
+          <div className="flex items-center gap-1 text-xs text-gray-400">
+            <Droplets className="w-3 h-3" />{dest.humidity}%
+          </div>
+        )}
       </div>
     </motion.button>
   );
 }
 
 function DetailPanel({ dest, convertTemp, unit }) {
-  const cfg = CONDITION_CONFIG[dest.condition] || CONDITION_CONFIG.sunny;
+  const { data: wx, isLoading, dataUpdatedAt } = useDestWeather(dest);
+
+  const liveTemp   = wx ? Math.round(wx.current_weather.temperature) : dest.temp;
+  const liveCode   = wx ? wx.current_weather.weathercode : null;
+  const liveWind   = wx ? Math.round(wx.current_weather.windspeed) : dest.wind;
+  const liveHigh   = wx?.daily?.temperature_2m_max?.[0] != null ? Math.round(wx.daily.temperature_2m_max[0]) : dest.high;
+  const liveLow    = wx?.daily?.temperature_2m_min?.[0] != null ? Math.round(wx.daily.temperature_2m_min[0]) : dest.low;
+  const liveUV     = wx?.daily?.uv_index_max?.[0] != null ? Math.round(wx.daily.uv_index_max[0]) : dest.uv;
+  const liveSunrise = wx?.daily?.sunrise?.[0] ? new Date(wx.daily.sunrise[0]).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' }) : dest.sunrise;
+  const liveSunset  = wx?.daily?.sunset?.[0]  ? new Date(wx.daily.sunset[0]).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' }) : dest.sunset;
+  const liveCondition = liveCode != null ? wmoToCondition(liveCode) : dest.condition;
+  const liveIcon      = liveCode != null ? wmoCondition(liveCode).icon : dest.icon;
+  const liveDesc      = liveCode != null ? wmoCondition(liveCode).label : dest.desc;
+
+  const cfg = CONDITION_CONFIG[liveCondition] || CONDITION_CONFIG.sunny;
 
   return (
     <motion.div
@@ -92,29 +146,35 @@ function DetailPanel({ dest, convertTemp, unit }) {
       {/* Hero banner */}
       <div className={cn('rounded-2xl bg-gradient-to-br p-6', cfg.bg)}>
         <div className="flex items-start justify-between">
-          <div>
+          <div className="flex-1">
             <div className="flex items-center gap-2 mb-1">
               <MapPin className="w-4 h-4 text-white/80" />
               <p className="text-sm font-bold text-white/90">{dest.name}, {dest.country} {dest.emoji}</p>
+              {isLoading && <RefreshCw className="w-3 h-3 text-white/60 animate-spin" />}
+              {wx && !isLoading && (
+                <span className="text-[10px] font-bold px-1.5 py-0.5 rounded bg-black/20 text-white/80 flex items-center gap-1">
+                  <span className="w-1.5 h-1.5 rounded-full bg-green-400 animate-pulse" /> LIVE
+                </span>
+              )}
             </div>
-            <p className="text-5xl font-black text-white">{convertTemp(dest.temp)}°{unit}</p>
-            <p className="text-sm text-white/80 mt-1">Feels like {convertTemp(dest.feels)}°{unit}</p>
+            <p className="text-5xl font-black text-white">{convertTemp(liveTemp)}°{unit}</p>
+            <p className="text-sm text-white/80 mt-1">{liveDesc}</p>
             <p className="text-sm text-white mt-2 font-semibold">{dest.desc}</p>
           </div>
-          <div className="text-6xl">{dest.icon}</div>
+          <div className="text-6xl">{liveIcon}</div>
         </div>
         <div className="flex gap-3 mt-4">
           <div className="bg-black/20 rounded-xl px-3 py-2 text-center flex-1">
             <p className="text-xs text-white/70">High</p>
-            <p className="text-lg font-bold text-white">{convertTemp(dest.high)}°{unit}</p>
+            <p className="text-lg font-bold text-white">{convertTemp(liveHigh)}°{unit}</p>
           </div>
           <div className="bg-black/20 rounded-xl px-3 py-2 text-center flex-1">
             <p className="text-xs text-white/70">Low</p>
-            <p className="text-lg font-bold text-white">{convertTemp(dest.low)}°{unit}</p>
+            <p className="text-lg font-bold text-white">{convertTemp(liveLow)}°{unit}</p>
           </div>
           <div className="bg-black/20 rounded-xl px-3 py-2 text-center flex-1">
             <p className="text-xs text-white/70">UV Index</p>
-            <p className="text-lg font-bold text-white">{dest.uv}</p>
+            <p className="text-lg font-bold text-white">{liveUV}</p>
           </div>
         </div>
       </div>
@@ -122,12 +182,12 @@ function DetailPanel({ dest, convertTemp, unit }) {
       {/* Stats grid */}
       <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
         {[
+          { icon: Wind,        label: 'Wind',        value: `${liveWind} km/h` },
           { icon: Droplets,    label: 'Humidity',    value: `${dest.humidity}%` },
-          { icon: Wind,        label: 'Wind',        value: `${dest.wind} km/h` },
           { icon: Eye,         label: 'Visibility',  value: `${dest.vis} km` },
           { icon: Gauge,       label: 'Pressure',    value: `${dest.pressure} hPa` },
-          { icon: Sunrise,     label: 'Sunrise',     value: dest.sunrise },
-          { icon: Sunset,      label: 'Sunset',      value: dest.sunset },
+          { icon: Sunrise,     label: 'Sunrise',     value: liveSunrise },
+          { icon: Sunset,      label: 'Sunset',      value: liveSunset },
         ].map(({ icon: Icon, label, value }) => (
           <div key={label} className="rounded-xl bg-card border border-border px-3 py-3 flex items-center gap-3">
             <Icon className="w-4 h-4 text-primary flex-shrink-0" />
@@ -145,13 +205,13 @@ function DetailPanel({ dest, convertTemp, unit }) {
           <Sun className="w-3.5 h-3.5 text-yellow-400" /> UV Index
         </p>
         <div className="flex items-center justify-between">
-          <UvIndex uv={dest.uv} />
-          <span className="text-xs text-muted-foreground">{dest.uv >= 8 ? '🧴 Sunscreen essential!' : dest.uv >= 6 ? '🕶 Wear protection' : '😎 Enjoy safely'}</span>
+          <UvIndex uv={liveUV} />
+          <span className="text-xs text-muted-foreground">{liveUV >= 8 ? '🧴 Sunscreen essential!' : liveUV >= 6 ? '🕶 Wear protection' : '😎 Enjoy safely'}</span>
         </div>
         <div className="mt-2 h-2 rounded-full bg-gradient-to-r from-green-400 via-yellow-400 via-orange-400 to-purple-500 relative">
           <div
             className="absolute top-1/2 -translate-y-1/2 w-3 h-3 rounded-full bg-white border-2 border-gray-800 shadow"
-            style={{ left: `${Math.min((dest.uv / 12) * 100, 96)}%` }}
+            style={{ left: `${Math.min((liveUV / 12) * 100, 96)}%` }}
           />
         </div>
         <div className="flex justify-between text-[10px] text-muted-foreground mt-1">
@@ -180,9 +240,9 @@ function DetailPanel({ dest, convertTemp, unit }) {
         </p>
         <p className="text-sm text-amber-200">
           {dest.humidity > 80 ? 'High humidity — pack light, breathable fabrics and extra sunscreen.' :
-           dest.wind > 20 ? 'Breezy conditions — bring a light jacket for evenings.' :
-           dest.uv >= 10 ? 'Extreme UV — reef-safe SPF 50+ and a hat are must-haves.' :
-           dest.condition === 'thunderstorm' ? 'Monsoon season — pack a compact rain poncho for afternoon showers.' :
+           liveWind > 20 ? 'Breezy conditions — bring a light jacket for evenings.' :
+           liveUV >= 10 ? 'Extreme UV — reef-safe SPF 50+ and a hat are must-haves.' :
+           liveCondition === 'thunderstorm' ? 'Storms possible — pack a compact rain poncho for afternoon showers.' :
            'Perfect conditions! Pack your swimsuit and sunglasses. '}
         </p>
       </div>
@@ -196,51 +256,70 @@ export default function TravelWeather() {
   const [unit, setUnit] = useState('C');
   const [customDest, setCustomDest] = useState('');
   const [destinations, setDestinations] = useState(DESTINATIONS);
+  const [addingCustom, setAddingCustom] = useState(false);
 
   const convertTemp = (celsius) => unit === 'F' ? Math.round((celsius * 9/5) + 32) : celsius;
+
+  // Fetch all destination weather in parallel for live "hottest" calc
+  const { data: allWx = [] } = useQuery({
+    queryKey: ['travel-wx-all', destinations.map(d => `${d.lat},${d.lon}`).join('|')],
+    queryFn: () => Promise.allSettled(destinations.map(d => fetchOpenMeteo(d.lat, d.lon))).then(results =>
+      results.map((r, i) => r.status === 'fulfilled' ? { name: destinations[i].name, temp: Math.round(r.value.current_weather.temperature) } : null)
+    ),
+    staleTime: 300000,
+    refetchInterval: 300000,
+  });
+
+  const liveTemps = allWx.filter(Boolean).reduce((acc, w) => { acc[w.name] = w.temp; return acc; }, {});
+  const hottestName = Object.entries(liveTemps).sort((a, b) => b[1] - a[1])[0]?.[0];
+  const sunniest = destinations.find(d => d.name === hottestName) || [...destinations].sort((a, b) => b.temp - a.temp)[0];
+  const sunniestTemp = liveTemps[sunniest?.name] ?? sunniest?.temp;
 
   const addCustomDestination = async () => {
     if (!customDest.trim()) return;
     const [city, country] = customDest.split(',').map(s => s.trim());
     if (!city) return;
+    setAddingCustom(true);
+
+    // Use Open-Meteo geocoding
+    const geoRes = await fetch(`https://geocoding-api.open-meteo.com/v1/search?name=${encodeURIComponent(city)}&count=1`);
+    const geoData = await geoRes.json();
+    const place = geoData.results?.[0];
     
-    // Try to geocode and fetch real weather
-    const coords = await geocodeLocation(city, country);
-    let weatherData = null;
-    
-    if (coords) {
-      weatherData = await fetchWeather(coords.lat, coords.lon);
+    let wx = null;
+    if (place) {
+      wx = await fetchOpenMeteo(place.latitude, place.longitude);
     }
 
-    const mapped = weatherData ? mapWeatherCondition(weatherData.weather?.[0]?.main) : { condition: 'partly_cloudy', icon: '⛅' };
-    
+    const code = wx?.current_weather?.weathercode ?? 1;
     const newDest = {
       name: city,
-      country: country || 'Unknown',
+      country: country || place?.country || 'Unknown',
       emoji: '🌍',
-      lat: coords?.lat || 0,
-      lon: coords?.lon || 0,
+      lat: place?.latitude || 0,
+      lon: place?.longitude || 0,
       vibe: 'Custom Destination',
-      temp: weatherData?.main?.temp || 25,
-      feels: weatherData?.main?.feels_like || 27,
-      humidity: weatherData?.main?.humidity || 60,
-      wind: weatherData?.wind?.speed || 10,
-      uv: 7,
-      vis: (weatherData?.visibility || 15000) / 1000,
-      pressure: weatherData?.main?.pressure || 1013,
-      condition: mapped.condition,
-      high: weatherData?.main?.temp_max || 28,
-      low: weatherData?.main?.temp_min || 20,
-      sunrise: weatherData?.sys?.sunrise ? new Date(weatherData.sys.sunrise * 1000).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: true }) : '6:00 AM',
-      sunset: weatherData?.sys?.sunset ? new Date(weatherData.sys.sunset * 1000).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: true }) : '6:30 PM',
-      icon: mapped.icon,
-      desc: weatherData?.weather?.[0]?.description || 'Search your custom destination online for live weather.',
-      activities: ['Explore', 'Discover', 'Adventure']
+      temp: wx ? Math.round(wx.current_weather.temperature) : 25,
+      feels: wx ? Math.round(wx.current_weather.temperature) : 25,
+      humidity: 65,
+      wind: wx ? Math.round(wx.current_weather.windspeed) : 10,
+      uv: wx?.daily?.uv_index_max?.[0] ?? 7,
+      vis: 15,
+      pressure: 1013,
+      condition: wmoToCondition(code),
+      high: wx?.daily?.temperature_2m_max?.[0] ?? 28,
+      low: wx?.daily?.temperature_2m_min?.[0] ?? 18,
+      sunrise: '6:00 AM',
+      sunset: '6:30 PM',
+      icon: wmoCondition(code).icon,
+      desc: wmoCondition(code).label,
+      activities: ['Explore', 'Discover', 'Adventure'],
     };
     
-    setDestinations([...destinations, newDest]);
+    setDestinations(prev => [...prev, newDest]);
     setSelected(newDest);
     setCustomDest('');
+    setAddingCustom(false);
   };
 
   const filtered = destinations.filter(d =>
@@ -249,7 +328,7 @@ export default function TravelWeather() {
     d.vibe.toLowerCase().includes(search.toLowerCase())
   );
 
-  const sunniest = [...destinations].sort((a, b) => b.temp - a.temp)[0];
+
 
   return (
     <div className="min-h-screen bg-[#0d1117] pb-24">
@@ -273,6 +352,9 @@ export default function TravelWeather() {
               <Waves className="w-3.5 h-3.5" />
               {destinations.filter(d => d.condition === 'sunny').length} sunny destinations
             </div>
+            <div className="flex items-center gap-1 text-[10px] text-green-400 font-bold">
+              <span className="w-1.5 h-1.5 rounded-full bg-green-400 animate-pulse" /> live data
+            </div>
             <button
               onClick={() => setUnit(unit === 'C' ? 'F' : 'C')}
               className="text-sm font-extrabold bg-cyan-500/20 text-cyan-300 px-4 py-2 rounded-lg border border-cyan-500/40 hover:bg-cyan-500/30 transition-colors"
@@ -288,7 +370,7 @@ export default function TravelWeather() {
         <span className="text-2xl">🔥</span>
         <div>
           <p className="text-xs font-bold text-orange-400 uppercase tracking-wider">Hottest Destination Today</p>
-          <p className="text-sm font-extrabold text-white">{sunniest.name}, {sunniest.country} — {convertTemp(sunniest.temp)}°{unit} {sunniest.icon}</p>
+          <p className="text-sm font-extrabold text-white">{sunniest.name}, {sunniest.country} — {convertTemp(sunniestTemp)}°{unit} {sunniest.icon}</p>
         </div>
         </div>
         </div>
@@ -321,9 +403,10 @@ export default function TravelWeather() {
               />
               <button
                 onClick={addCustomDestination}
-                className="px-3 py-2 bg-primary/20 text-primary rounded-lg font-bold text-xs hover:bg-primary/30 transition-colors"
+                disabled={addingCustom}
+                className="px-3 py-2 bg-primary/20 text-primary rounded-lg font-bold text-xs hover:bg-primary/30 transition-colors disabled:opacity-50 flex items-center gap-1"
               >
-                Add
+                {addingCustom ? <><RefreshCw className="w-3 h-3 animate-spin" /> …</> : 'Add'}
               </button>
             </div>
             <p className="text-xs text-gray-500">Add any city worldwide (e.g., "Tokyo, Japan")</p>
