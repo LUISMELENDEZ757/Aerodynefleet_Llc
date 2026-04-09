@@ -1,136 +1,7 @@
 import { useState } from 'react';
 import { cn } from '@/lib/utils';
-import { CheckCircle, FileText, Wrench, User, X } from 'lucide-react';
-
-const INITIAL_PHASE_TASKS = {
-  mcc_init: {
-    label: 'MCC Initiation',
-    tasks: [
-      {
-        id: 'mcc_wp',
-        title: 'MCC Initiation & Work Package Setup',
-        assigned: 'MCC Controller',
-        documents: ['AMM 71-00-00', 'IPC Engine Section', 'Engineering Order (if applicable)'],
-        tooling: [],
-        completed: true,
-        completedBy: 'John Martinez',
-        cert: 'MCC-JM-4729',
-        dateTime: '3/7/2026, 8:00:00 AM',
-      },
-    ],
-  },
-  pre_removal: {
-    label: 'Pre-Removal Inspection',
-    tasks: [
-      {
-        id: 'pre_visual',
-        title: 'Pre-Removal Visual Inspection',
-        assigned: 'Line Maintenance Technician',
-        documents: ['Pre-Removal Inspection Checklist'],
-        tooling: ['Digital Camera', 'Flashlight'],
-        completed: true,
-        completedBy: 'Mike Rodriguez',
-        cert: 'A&P 3847592',
-        dateTime: '3/7/2026, 9:30:00 AM',
-      },
-    ],
-  },
-  parts_tooling: {
-    label: 'Parts & Tooling Prep',
-    tasks: [
-      {
-        id: 'parts_prep',
-        title: 'Parts & Tooling Preparation',
-        assigned: 'Parts / Stores',
-        documents: ['Parts Requirement List', 'Tool Control Sheet'],
-        tooling: ['Engine Sling', 'Workstand', 'Torque Wrench Set'],
-        completed: true,
-        completedBy: 'Lisa Anderson',
-        cert: 'STORES-LA-001',
-        dateTime: '3/7/2026, 11:15:00 AM',
-      },
-    ],
-  },
-  engine_removal: {
-    label: 'Engine Removal',
-    tasks: [
-      {
-        id: 'qc_pre_removal',
-        title: 'QC Pre-Removal RII',
-        assigned: 'QC Inspector',
-        documents: ['RII Sign-Off Card'],
-        tooling: [],
-        completed: true,
-        completedBy: 'Sarah Mitchell',
-        cert: 'A&P 2847593 (RII)',
-        dateTime: '3/7/2026, 9:45:00 AM',
-      },
-      {
-        id: 'eng_removal_amm',
-        title: 'Engine Removal Per AMM',
-        assigned: 'Line Maintenance Crew',
-        documents: ['AMM 71-00-00 Engine Removal', 'Work Card Package'],
-        tooling: ['Engine Sling', 'Bootstrap Kit', 'Torque Wrenches', 'Engine Stand'],
-        completed: false,
-        completedBy: null,
-        cert: null,
-        dateTime: null,
-        signOff: true,
-      },
-    ],
-  },
-  engine_install: {
-    label: 'Engine Installation',
-    tasks: [
-      {
-        id: 'eng_position',
-        title: 'Engine Positioning & Mating',
-        assigned: 'Lead A&P Technician',
-        documents: ['AMM 71-00-00 Task 500'],
-        tooling: ['Engine Sling', 'Alignment Tool'],
-        completed: false,
-        completedBy: null,
-        cert: null,
-        dateTime: null,
-        signOff: true,
-      },
-    ],
-  },
-  post_testing: {
-    label: 'Post-Install Testing',
-    tasks: [
-      {
-        id: 'engine_run',
-        title: 'Engine Run-Up & Functional Test',
-        assigned: 'Lead A&P + RII Inspector',
-        documents: ['Engine Run Procedure', 'Ground Run Record Card'],
-        tooling: ['Fire Extinguisher', 'Headset', 'Fuel Flow Meter'],
-        completed: false,
-        completedBy: null,
-        cert: null,
-        dateTime: null,
-        signOff: true,
-      },
-    ],
-  },
-  final_release: {
-    label: 'Final Release',
-    tasks: [
-      {
-        id: 'mcc_release',
-        title: 'MCC Final Release & Logbook Sign-Off',
-        assigned: 'MCC Controller',
-        documents: ['Return to Service Form', 'Completed Work Package'],
-        tooling: [],
-        completed: false,
-        completedBy: null,
-        cert: null,
-        dateTime: null,
-        signOff: true,
-      },
-    ],
-  },
-};
+import { CheckCircle, FileText, Wrench, User, X, Shield, Lock, AlertTriangle } from 'lucide-react';
+import { PHASES, isPhaseUnlocked } from '@/lib/engineWorkflowState';
 
 // ── Sign-Off Modal ────────────────────────────────────────────────────────────
 function SignOffModal({ task, onConfirm, onClose }) {
@@ -150,6 +21,9 @@ function SignOffModal({ task, onConfirm, onClose }) {
           <div className="flex items-center gap-2">
             <CheckCircle className="w-4 h-4 text-green-400" />
             <p className="text-sm font-extrabold text-white">Sign Off Task</p>
+            {task.isRII && (
+              <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-purple-500/20 border border-purple-500/40 text-purple-400">RII</span>
+            )}
           </div>
           <button onClick={onClose} className="w-7 h-7 rounded-lg bg-white/10 flex items-center justify-center hover:bg-white/20">
             <X className="w-3.5 h-3.5 text-white" />
@@ -160,8 +34,16 @@ function SignOffModal({ task, onConfirm, onClose }) {
             <p className="text-[10px] text-gray-500 uppercase tracking-widest">Task</p>
             <p className="text-sm font-bold text-white mt-0.5">{task.title}</p>
           </div>
+          {task.isRII && (
+            <div className="flex items-start gap-2 bg-purple-900/20 border border-purple-500/30 rounded-xl p-3">
+              <Shield className="w-4 h-4 text-purple-400 flex-shrink-0 mt-0.5" />
+              <p className="text-[11px] text-purple-300">This task requires a <strong>Required Inspection Item (RII)</strong> sign-off. Inspector must hold a valid RII authorization.</p>
+            </div>
+          )}
           <div>
-            <label className="text-[10px] font-bold text-gray-400 uppercase tracking-widest block mb-1.5">Technician Name *</label>
+            <label className="text-[10px] font-bold text-gray-400 uppercase tracking-widest block mb-1.5">
+              {task.isRII ? 'RII Inspector Name *' : 'Technician Name *'}
+            </label>
             <input
               autoFocus
               value={name}
@@ -172,11 +54,13 @@ function SignOffModal({ task, onConfirm, onClose }) {
             />
           </div>
           <div>
-            <label className="text-[10px] font-bold text-gray-400 uppercase tracking-widest block mb-1.5">Certificate / License #</label>
+            <label className="text-[10px] font-bold text-gray-400 uppercase tracking-widest block mb-1.5">
+              {task.isRII ? 'RII Certificate / License #' : 'Certificate / License #'}
+            </label>
             <input
               value={cert}
               onChange={e => setCert(e.target.value)}
-              placeholder="e.g. A&P 1234567"
+              placeholder={task.isRII ? 'e.g. A&P 1234567 (RII)' : 'e.g. A&P 1234567'}
               className="w-full bg-[#0d1117] border border-white/10 rounded-xl px-3 py-2.5 text-sm text-white placeholder-gray-600 outline-none focus:border-green-500 transition-colors"
             />
           </div>
@@ -195,21 +79,35 @@ function SignOffModal({ task, onConfirm, onClose }) {
 }
 
 // ── Task Card ─────────────────────────────────────────────────────────────────
-function TaskCard({ task, onSignOff }) {
+function TaskCard({ task, completion, onSignOff, phaseUnlocked }) {
+  const isCompleted = !!completion;
+  const locked = !phaseUnlocked;
+
   return (
     <div className={cn(
-      'rounded-2xl border p-5 space-y-3 flex flex-col',
-      task.completed ? 'bg-[#0d1117] border-green-500/40' : 'bg-[#0d1117] border-white/10'
+      'rounded-2xl border p-5 space-y-3 flex flex-col transition-all',
+      isCompleted ? 'bg-[#0d1117] border-green-500/40' :
+      locked      ? 'bg-[#0a0d14] border-white/5 opacity-50' :
+                    'bg-[#0d1117] border-white/10'
     )}>
+      {/* Title */}
       <div className="flex items-start gap-2">
         <p className="flex-1 text-sm font-extrabold text-white leading-snug">{task.title}</p>
-        {task.completed && <CheckCircle className="w-5 h-5 text-green-400 flex-shrink-0 mt-0.5" />}
+        <div className="flex items-center gap-1.5 flex-shrink-0">
+          {task.isRII && (
+            <span className="text-[9px] font-bold px-1.5 py-0.5 rounded bg-purple-500/20 border border-purple-500/40 text-purple-400">RII</span>
+          )}
+          {isCompleted && <CheckCircle className="w-5 h-5 text-green-400" />}
+          {locked && <Lock className="w-4 h-4 text-gray-700" />}
+        </div>
       </div>
 
+      {/* Assigned role from phase */}
       <p className="text-[11px] text-gray-500">
-        <span className="text-gray-600">Assigned: </span>{task.assigned}
+        <span className="text-gray-600">Assigned: </span>{task.role || 'See phase assignment'}
       </p>
 
+      {/* Documents */}
       {task.documents.length > 0 && (
         <div>
           <p className="text-[10px] font-extrabold text-gray-500 uppercase tracking-widest mb-1.5">Required Documents</p>
@@ -224,6 +122,7 @@ function TaskCard({ task, onSignOff }) {
         </div>
       )}
 
+      {/* Tooling */}
       {task.tooling.length > 0 && (
         <div>
           <p className="text-[10px] font-extrabold text-gray-500 uppercase tracking-widest mb-1.5">Required Tooling</p>
@@ -238,20 +137,26 @@ function TaskCard({ task, onSignOff }) {
         </div>
       )}
 
-      {task.completed ? (
+      {/* Footer */}
+      {isCompleted ? (
         <div className="flex items-end justify-between border-t border-white/5 pt-3 mt-auto gap-4">
           <div>
             <p className="text-[10px] text-gray-500">Completed By</p>
-            <p className="text-sm font-extrabold text-white">{task.completedBy}</p>
+            <p className="text-sm font-extrabold text-white">{completion.name}</p>
             <div className="flex items-center gap-1 mt-0.5">
               <User className="w-2.5 h-2.5 text-primary" />
-              <p className="text-[10px] text-primary font-mono">{task.cert}</p>
+              <p className="text-[10px] text-primary font-mono">{completion.cert || 'N/A'}</p>
             </div>
           </div>
           <div className="text-right">
             <p className="text-[10px] text-gray-500">Date/Time</p>
-            <p className="text-xs font-bold text-white">{task.dateTime}</p>
+            <p className="text-xs font-bold text-white">{completion.dateTime}</p>
           </div>
+        </div>
+      ) : locked ? (
+        <div className="flex items-center gap-2 border-t border-white/5 pt-3 mt-auto">
+          <Lock className="w-3.5 h-3.5 text-gray-700" />
+          <p className="text-[10px] text-gray-600 font-bold uppercase tracking-wide">Locked — Complete prior phase</p>
         </div>
       ) : task.signOff ? (
         <button
@@ -270,36 +175,68 @@ function TaskCard({ task, onSignOff }) {
   );
 }
 
+// ── Phase Entry Conditions ────────────────────────────────────────────────────
+function EntryConditions({ conditions, unlocked }) {
+  return (
+    <div className={cn(
+      'rounded-xl border p-3 space-y-1.5',
+      unlocked ? 'border-green-500/20 bg-green-900/10' : 'border-amber-500/20 bg-amber-900/10'
+    )}>
+      <p className="text-[10px] font-extrabold uppercase tracking-widest flex items-center gap-1.5"
+        style={{ color: unlocked ? '#4ade80' : '#fbbf24' }}>
+        <AlertTriangle className="w-3 h-3" /> Phase Entry Conditions
+      </p>
+      <ul className="space-y-1">
+        {conditions.map((c, i) => (
+          <li key={i} className="flex items-start gap-1.5 text-[11px] text-gray-400">
+            <CheckCircle className={cn('w-3 h-3 flex-shrink-0 mt-0.5', unlocked ? 'text-green-400' : 'text-gray-600')} />
+            {c}
+          </li>
+        ))}
+      </ul>
+    </div>
+  );
+}
+
 // ── Main Component ────────────────────────────────────────────────────────────
-export default function TaskWorkflowCards({ currentPhaseId = 'engine_removal' }) {
-  const phaseTemplate = INITIAL_PHASE_TASKS[currentPhaseId];
-  const [tasks, setTasks] = useState(phaseTemplate?.tasks || []);
+export default function TaskWorkflowCards({ selectedPhaseId, completedTasks, onTaskComplete }) {
   const [signingOffTask, setSigningOffTask] = useState(null);
 
-  if (!phaseTemplate) return null;
+  const phase = PHASES.find(p => p.id === selectedPhaseId);
+  if (!phase) return null;
+
+  const phaseUnlocked = isPhaseUnlocked(selectedPhaseId, completedTasks);
 
   const handleConfirmSignOff = (taskId, name, cert) => {
     const now = new Date().toLocaleString('en-US');
-    setTasks(prev => prev.map(t =>
-      t.id === taskId
-        ? { ...t, completed: true, completedBy: name, cert: cert || 'N/A', dateTime: now }
-        : t
-    ));
+    onTaskComplete(taskId, { name, cert, dateTime: now });
     setSigningOffTask(null);
   };
 
   return (
     <>
       <div className="space-y-3">
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-3">
           <FileText className="w-4 h-4 text-primary" />
           <h2 className="text-base font-extrabold text-primary tracking-wide">
-            Task Workflow — Current Phase: {phaseTemplate.label}
+            Task Workflow — Current Phase: <span className={phase.color}>{phase.label}</span>
           </h2>
+          <span className="text-[10px] text-gray-500 ml-auto">
+            Assigned Role: <span className="text-white font-bold">{phase.role}</span>
+          </span>
         </div>
+
+        <EntryConditions conditions={phase.entryConditions} unlocked={phaseUnlocked} />
+
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          {tasks.map(task => (
-            <TaskCard key={task.id} task={task} onSignOff={setSigningOffTask} />
+          {phase.tasks.map(task => (
+            <TaskCard
+              key={task.id}
+              task={{ ...task, role: phase.role }}
+              completion={completedTasks[task.id]}
+              onSignOff={setSigningOffTask}
+              phaseUnlocked={phaseUnlocked}
+            />
           ))}
         </div>
       </div>
@@ -314,5 +251,3 @@ export default function TaskWorkflowCards({ currentPhaseId = 'engine_removal' })
     </>
   );
 }
-
-export { INITIAL_PHASE_TASKS as PHASE_TASKS };

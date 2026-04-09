@@ -13,6 +13,7 @@ import TaskWorkflowCards from '@/components/engine/TaskWorkflowCards';
 import PartsEngineStatus from '@/components/engine/PartsEngineStatus';
 import ToolingReservations from '@/components/engine/ToolingReservations';
 import QCRIIInspections from '@/components/engine/QCRIIInspections';
+import { PHASES, computeCurrentPhase } from '@/lib/engineWorkflowState';
 
 // ── Live Clock ────────────────────────────────────────────────────────────────
 function LiveClock() {
@@ -399,6 +400,25 @@ export default function EngineRemovalInstallation() {
   const [editingAirline, setEditingAirline] = useState(null);
   const qc = useQueryClient();
 
+  // ── Workflow Logic State ──────────────────────────────────────────────────
+  const [completedTasks, setCompletedTasks] = useState({}); // { taskId: { name, cert, dateTime } }
+  const [selectedPhaseId, setSelectedPhaseId] = useState('engine_removal');
+  const currentPhaseId = computeCurrentPhase(completedTasks);
+
+  const handleTaskComplete = (taskId, data) => {
+    setCompletedTasks(prev => ({ ...prev, [taskId]: data }));
+  };
+
+  const phaseCompletions = PHASES.reduce((acc, phase) => {
+    const allDone = phase.tasks.every(t => completedTasks[t.id]);
+    if (allDone && phase.tasks.length > 0) {
+      const last = phase.tasks[phase.tasks.length - 1];
+      const lastComp = completedTasks[last.id];
+      acc[phase.id] = { technician: lastComp?.name, time: lastComp?.dateTime?.split(',')[1]?.trim() };
+    }
+    return acc;
+  }, {});
+
   const { data: fleets = [] } = useQuery({
     queryKey: ['engine-fleets'],
     queryFn: () => base44.entities.Fleet.list('name', 50),
@@ -577,10 +597,19 @@ export default function EngineRemovalInstallation() {
         </div>
 
         {/* ── WORKFLOW TIMELINE ── */}
-        <WorkflowTimeline currentPhaseId="engine_removal" />
+        <WorkflowTimeline
+          currentPhaseId={currentPhaseId}
+          completedTasks={completedTasks}
+          phaseCompletions={phaseCompletions}
+          onSelectPhase={setSelectedPhaseId}
+        />
 
         {/* ── TASK WORKFLOW CARDS ── */}
-        <TaskWorkflowCards currentPhaseId="engine_removal" />
+        <TaskWorkflowCards
+          selectedPhaseId={selectedPhaseId}
+          completedTasks={completedTasks}
+          onTaskComplete={handleTaskComplete}
+        />
 
         {/* ── PARTS & TOOLING ROW ── */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
@@ -589,7 +618,10 @@ export default function EngineRemovalInstallation() {
         </div>
 
         {/* ── QC/RII INSPECTIONS ── */}
-        <QCRIIInspections />
+        <QCRIIInspections
+          completedTasks={completedTasks}
+          currentPhaseId={currentPhaseId}
+        />
 
         {/* ── DETAIL PANEL ── */}
         {selectedEvent && selectedEvent.description?.includes('[ENGINE REMOVAL]') && (
