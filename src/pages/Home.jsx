@@ -4,13 +4,13 @@ import { motion } from 'framer-motion';
 import { useQuery } from '@tanstack/react-query';
 import { base44 } from '@/api/base44Client';
 import {
-  Plane, LayoutGrid, Activity, RefreshCw, Bell,
+  Plane, LayoutGrid, Activity, RefreshCw, Bell, AlertTriangle,
   ChevronDown, Clock, Settings
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
-import { FleetBadge } from '@/components/fleet/FleetSwitcher';
 import { useRail } from '@/lib/RailContext';
 import TechOpsDashboard from '@/components/techops/TechOpsDashboard';
+import { FleetBadge } from '@/components/fleet/FleetSwitcher';
 import useTieredPreload from '@/hooks/useTieredPreload';
 
 import FlightMovementPanel  from '@/components/opshub/FlightMovementPanel';
@@ -73,16 +73,23 @@ export default function Home() {
   const { data: aircraft = [],   refetch: refetchAircraft }   = useQuery({ queryKey: ['opshub-aircraft'],   queryFn: () => base44.entities.Aircraft.list('tail_number', 500),          refetchInterval: 60000 });
   const { data: crew = [],       refetch: refetchCrew }       = useQuery({ queryKey: ['opshub-crew'],       queryFn: () => base44.entities.CrewAssignment.list('-flight_date', 200),   refetchInterval: 30000 });
   const { data: melItems = [],   refetch: refetchMel }        = useQuery({ queryKey: ['opshub-mel'],        queryFn: () => base44.entities.MELItem.list('-deferred_date', 200),        refetchInterval: 60000 });
-  const { data: alerts = [],     refetch: refetchAlerts }     = useQuery({ queryKey: ['opshub-alerts'],     queryFn: () => base44.entities.OpsAlert.filter({ is_dismissed: false }),   refetchInterval: 20000 });
+  const { data: alerts = [],     refetch: refetchAlerts }     = useQuery({ queryKey: ['opshub-alerts'],     queryFn: () => base44.entities.OpsAlert.filter({ is_dismissed: false }),   refetchInterval: 20000 }); // Legacy alerts
   const { data: groundOps = [],  refetch: refetchGroundOps }  = useQuery({ queryKey: ['opshub-groundops'],  queryFn: () => base44.entities.GroundOps.list('-flight_date', 100),         refetchInterval: 30000 });
   const { data: releases = [] }                               = useQuery({ queryKey: ['opshub-releases'],   queryFn: () => base44.entities.DispatchRelease.list('-flight_date', 100),  refetchInterval: 60000 });
+  const { data: liveAlerts = [] }                             = useQuery({ queryKey: ['opshub-live-alerts'], queryFn: () => base44.entities.OpsAlert.filter({ is_dismissed: false, severity: { $in: ['critical', 'warning'] } }), refetchInterval: 15000 });
 
   const refetchAll = () => {
-    refetchFlights(); refetchAircraft(); refetchCrew();
-    refetchMel(); refetchAlerts(); refetchGroundOps();
+    refetchFlights();
+    refetchAircraft();
+    refetchCrew();
+    refetchMel();
+    refetchAlerts();
+    refetchGroundOps();
   };
 
-  const criticalAlerts = alerts.filter(a => !a.is_dismissed && a.severity === 'critical').length;
+  const criticalAlerts = liveAlerts.filter(a => a.severity === 'critical').length;
+  const etaAlerts = liveAlerts.filter(a => a.alert_type === 'flight_status');
+  const iropsAlerts = liveAlerts.filter(a => a.alert_type === 'irops');
 
   if (mode === 'tech') return <TechOpsDashboard />;
 
@@ -103,9 +110,9 @@ export default function Home() {
         </div>
         <div className="flex items-center gap-3">
           <ZuluClock />
-          {criticalAlerts > 0 && (
+          {(criticalAlerts > 0 || etaAlerts.length > 0 || iropsAlerts.length > 0) && (
             <span className="flex items-center gap-1 text-[10px] font-bold text-red-400 bg-red-500/15 border border-red-500/30 px-2 py-1 rounded-full animate-pulse">
-              <Bell className="w-3 h-3" /> {criticalAlerts}
+              <Bell className="w-3 h-3" /> {etaAlerts.length + iropsAlerts.length}
             </span>
           )}
           <button onClick={refetchAll} className="w-8 h-8 rounded-xl bg-white/5 border border-white/10 flex items-center justify-center hover:bg-white/10 transition-colors">
@@ -121,6 +128,42 @@ export default function Home() {
           </button>
         </div>
       </div>
+
+      {/* ── LIVE ALERTS BANNER ── */}
+      {(etaAlerts.length > 0 || iropsAlerts.length > 0) && (
+        <motion.div
+          initial={{ height: 0, opacity: 0 }}
+          animate={{ height: 'auto', opacity: 1 }}
+          className="bg-red-500/5 border-b border-red-500/20 px-4 py-3"
+        >
+          <div className="space-y-2 max-w-7xl mx-auto">
+            {etaAlerts.map(a => (
+              <div key={a.id} className="flex items-start gap-2 text-xs p-2 rounded-lg bg-orange-500/10 border border-orange-500/30">
+                <Clock className="w-3.5 h-3.5 text-orange-400 flex-shrink-0 mt-0.5" />
+                <div className="flex-1 min-w-0">
+                  <p className="font-bold text-orange-300">{a.title}</p>
+                  <p className="text-orange-200/70">{a.message}</p>
+                </div>
+                {a.action_url && (
+                  <Link to={a.action_url} className="text-orange-400 hover:text-orange-300 font-bold flex-shrink-0">View →</Link>
+                )}
+              </div>
+            ))}
+            {iropsAlerts.map(a => (
+              <div key={a.id} className="flex items-start gap-2 text-xs p-2 rounded-lg bg-red-500/10 border border-red-500/30">
+                <AlertTriangle className="w-3.5 h-3.5 text-red-400 flex-shrink-0 mt-0.5" />
+                <div className="flex-1 min-w-0">
+                  <p className="font-bold text-red-300">{a.title}</p>
+                  <p className="text-red-200/70">{a.message}</p>
+                </div>
+                {a.action_url && (
+                  <Link to={a.action_url} className="text-red-400 hover:text-red-300 font-bold flex-shrink-0">Resolve →</Link>
+                )}
+              </div>
+            ))}
+          </div>
+        </motion.div>
+      )}
 
       {/* ── MODULE QUICK-ACCESS DRAWER ── */}
       {showModules && (
