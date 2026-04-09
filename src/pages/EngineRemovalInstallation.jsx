@@ -173,12 +173,17 @@ function NewEngineEventModal({ aircraft, onClose, onCreate }) {
               ))}
             </select>
 
-            {/* Auto-populated aircraft info — stays visible once set */}
+            {/* Auto-populated aircraft info — airline is editable */}
             {(form.airline || form.aircraft_type || form.engine_type) && (
               <div className="mt-2 grid grid-cols-3 gap-2">
                 <div className="bg-[#0d1117] border border-white/10 rounded-lg px-3 py-2">
                   <p className="text-[9px] text-gray-500 uppercase tracking-widest mb-0.5">Airline</p>
-                  <p className="text-xs font-bold text-primary truncate">{form.airline || '—'}</p>
+                  <input
+                    value={form.airline}
+                    onChange={e => set('airline', e.target.value)}
+                    placeholder="Airline"
+                    className="w-full bg-transparent text-xs font-bold text-primary outline-none border-b border-primary/40 focus:border-primary placeholder-gray-600"
+                  />
                 </div>
                 <div className="bg-[#0d1117] border border-white/10 rounded-lg px-3 py-2">
                   <p className="text-[9px] text-gray-500 uppercase tracking-widest mb-0.5">Type</p>
