@@ -23,7 +23,7 @@ const TECHNICIAN_ITEMS = [
 const DISPATCH_OPS_ITEMS = [
   { label: 'Dispatch Workstation', path: '/Dispatch' },
   { label: 'Flight Monitoring', path: '/DispatchWorkstation' },
-  { label: 'ETOPS Monitor', path: '/LiveFlightTracker' },
+  { label: 'ETOPS Monitor', path: '/ETOPSMonitor' },
   { label: 'IROPS Recovery', path: '/IROPS' },
   { label: 'Delay Predictor', path: '/AIDispatchCopilot' },
   { label: 'Weather', path: '/Weather' },
