@@ -44,6 +44,7 @@ const QUICK_LINKS = [
   { label: 'Cost/Flight',    path: '/CostAnalytics',         bg: 'bg-emerald-600/20',   color: 'text-emerald-400'},
   { label: 'Pred. Parts',    path: '/PredictiveParts',       bg: 'bg-cyan-600/20',      color: 'text-cyan-400'   },
   { label: 'AOCS Hub',       path: '/AocsDashboard',         bg: 'bg-indigo-600/20',    color: 'text-indigo-400' },
+  { label: 'MX Tablet',     path: '/LineMxTablet',          bg: 'bg-orange-600/20',    color: 'text-orange-400' },
 ];
 
 function ZuluClock() {
