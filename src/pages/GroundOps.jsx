@@ -339,20 +339,13 @@ export default function GroundOpsPage() {
                       </div>
                       <div className="text-right">
                         {isCancelled ? (
-                          <p className="text-xs text-red-400 font-bold">CANCELLED</p>
+                          <span className="text-xs font-bold px-2.5 py-1 rounded-full bg-red-500/20 text-red-400 border border-red-500/40">CANCELLED</span>
+                        ) : isDelayed ? (
+                          <span className="text-xs font-bold px-2.5 py-1 rounded-full bg-amber-500/20 text-amber-400 border border-amber-500/40">DELAYED {flight.arrival_delay ? Math.round(flight.arrival_delay / 60) + 'm' : ''}</span>
                         ) : (
-                          <>
-                            <p className={cn('text-xs font-bold', isDelayed ? 'text-amber-400' : 'text-green-400')}>
-                              {isDelayed ? 'DELAYED' : 'ARR'}
-                            </p>
-                            <p className="text-xs text-muted-foreground">{timeStr}</p>
-                            {flight.arrival_delay && Math.abs(flight.arrival_delay) > 60 && (
-                              <p className={cn('text-[10px] font-bold', isDelayed ? 'text-amber-400' : 'text-green-400')}>
-                                {flight.arrival_delay > 0 ? '+' : ''}{Math.round(flight.arrival_delay / 60)}m
-                              </p>
-                            )}
-                          </>
+                          <span className="text-xs font-bold px-2.5 py-1 rounded-full bg-green-500/20 text-green-400 border border-green-500/40">ON TIME</span>
                         )}
+                        <p className="text-xs text-muted-foreground mt-1.5">{timeStr}</p>
                       </div>
                     </div>
                   );
@@ -394,20 +387,13 @@ export default function GroundOpsPage() {
                       </div>
                       <div className="text-right">
                         {isCancelled ? (
-                          <p className="text-xs text-red-400 font-bold">CANCELLED</p>
+                          <span className="text-xs font-bold px-2.5 py-1 rounded-full bg-red-500/20 text-red-400 border border-red-500/40">CANCELLED</span>
+                        ) : isDelayed ? (
+                          <span className="text-xs font-bold px-2.5 py-1 rounded-full bg-amber-500/20 text-amber-400 border border-amber-500/40">DELAYED {flight.departure_delay ? Math.round(flight.departure_delay / 60) + 'm' : ''}</span>
                         ) : (
-                          <>
-                            <p className={cn('text-xs font-bold', isDelayed ? 'text-amber-400' : 'text-orange-400')}>
-                              {isDelayed ? 'DELAYED' : 'DEP'}
-                            </p>
-                            <p className="text-xs text-muted-foreground">{timeStr}</p>
-                            {flight.departure_delay && Math.abs(flight.departure_delay) > 60 && (
-                              <p className={cn('text-[10px] font-bold', isDelayed ? 'text-amber-400' : 'text-green-400')}>
-                                {flight.departure_delay > 0 ? '+' : ''}{Math.round(flight.departure_delay / 60)}m
-                              </p>
-                            )}
-                          </>
+                          <span className="text-xs font-bold px-2.5 py-1 rounded-full bg-green-500/20 text-green-400 border border-green-500/40">ON TIME</span>
                         )}
+                        <p className="text-xs text-muted-foreground mt-1.5">{timeStr}</p>
                       </div>
                     </div>
                   );
