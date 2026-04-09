@@ -88,7 +88,7 @@ const LiveSIGMETMap            = lazy(() => import('@/pages/LiveSIGMETMap.jsx'))
 const AOGProbabilityForecast   = lazy(() => import('@/pages/AOGProbabilityForecast'));
 const CostPerFlightAnalytics   = lazy(() => import('@/pages/CostPerFlightAnalytics'));
 const PredictivePartsOrdering  = lazy(() => import('@/pages/PredictivePartsOrdering'));
-const LineMxTablet             = lazy(() => import('@/pages/LineMxTablet'));
+
 
 function PageFallback() {
   return (
@@ -238,7 +238,7 @@ const AuthenticatedApp = () => {
         <Route path="/AOGForecast" element={<AOGProbabilityForecast />} />
         <Route path="/CostAnalytics" element={<CostPerFlightAnalytics />} />
         <Route path="/PredictiveParts" element={<PredictivePartsOrdering />} />
-        <Route path="/LineMxTablet" element={<LineMxTablet />} />
+
       </Route>
       <Route path="*" element={<PageNotFound />} />
     </Routes>
