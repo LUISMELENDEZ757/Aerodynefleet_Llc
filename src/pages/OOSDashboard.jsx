@@ -2,6 +2,8 @@ import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { base44 } from '@/api/base44Client';
+import { useOfflineTechnician } from '@/hooks/useOfflineTechnician';
+import OfflineQueueManager from '@/components/techops/OfflineQueueManager';
 import {
   Plus, CheckCircle, List, BookOpen, Droplets, Wind, Search, RotateCcw,
   ChevronLeft, X, Send, Wrench, AlertTriangle, Printer, PlaneLanding
@@ -882,6 +884,7 @@ function OxygenServiceModal({ onClose }) {
 // ── Main Page ───────────────────────────────────────────────────────────────
 export default function OOSDashboard() {
   const [modal, setModal] = useState(null); // 'new' | 'discrepancies' | 'close' | 'oil' | 'oxygen' | 'flightaware'
+  const { queue, isOnline, isSyncing, syncError, queueOperation, syncQueue, clearQueue, pendingCount } = useOfflineTechnician();
 
   const ACTIONS = [
     { icon: Plus,          label: 'New Logbook Entry',    bg: 'bg-amber-500',    modal: 'new' },
@@ -937,6 +940,16 @@ export default function OOSDashboard() {
       {modal === 'oil'           && <OilServiceModal    onClose={() => setModal(null)} />}
       {modal === 'oxygen'        && <OxygenServiceModal onClose={() => setModal(null)} />}
       {modal === 'flightaware'   && <FlightAwarePanel   onClose={() => setModal(null)} />}
+      
+      <OfflineQueueManager
+        queue={queue}
+        isOnline={isOnline}
+        isSyncing={isSyncing}
+        syncError={syncError}
+        onSync={syncQueue}
+        onClear={clearQueue}
+        pendingCount={pendingCount}
+      />
     </div>
   );
 }
