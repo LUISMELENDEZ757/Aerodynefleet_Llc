@@ -83,7 +83,7 @@ function NewBOWModal({ onClose, onSubmit, isPending }) {
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 p-4">
       <div className="w-full max-w-lg bg-[#0f1419] border border-white/10 rounded-2xl shadow-2xl">
         <div className="flex items-center justify-between px-5 py-4 border-b border-white/10">
-          <p className="text-sm font-extrabold text-white">New BOW (Build of Work)</p>
+          <p className="text-sm font-extrabold text-white">New BOW (Bill of Work)</p>
           <button onClick={onClose} className="w-7 h-7 rounded-lg bg-white/10 flex items-center justify-center hover:bg-white/20">
             <X className="w-3.5 h-3.5 text-white" />
           </button>
@@ -242,7 +242,7 @@ export default function BOWPlanner() {
           <span className="text-2xl">🔨</span>
           <h2 className="text-2xl font-black text-primary">BOW PLANNER</h2>
         </div>
-        <p className="text-sm text-gray-400">Build of Work planning & scheduling — manage hangar maintenance workflow</p>
+        <p className="text-sm text-gray-400">Bill of Work planning & scheduling — manage hangar maintenance workflow</p>
       </div>
 
       <div className="grid grid-cols-4 gap-3">
