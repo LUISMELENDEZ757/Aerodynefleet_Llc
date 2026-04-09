@@ -1,4 +1,6 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { base44 } from '@/api/base44Client';
 import { Plus, X, Calendar, AlertTriangle, CheckCircle, Clock } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { format } from 'date-fns';
@@ -188,31 +190,57 @@ function NewBOWModal({ onClose, onSubmit, isPending }) {
   );
 }
 
+const MAINTENANCE_TYPES = {
+  routine: 'Routine Maintenance',
+  timed: 'Timed Inspection',
+  ad: 'Airworthiness Directive',
+  sb: 'Service Bulletin',
+  inspection: 'Periodic Inspection',
+  overhaul: 'Engine/Component Overhaul',
+};
+
 export default function BOWPlanner() {
-  const [bows, setBows] = useState([
-    {
-      id: 1,
-      tail_number: 'N455GJ',
-      aircraft_type: 'B737-800',
-      work_scope: 'C-Check',
-      estimated_hours: 120,
-      priority: 'high',
-      planned_date: '2026-04-15',
+  const qc = useQueryClient();
+  const [bows, setBows] = useState([]);
+  const [maintenanceType, setMaintenanceType] = useState('all');
+
+  const { data: aircraft = [] } = useQuery({
+    queryKey: ['bow-aircraft'],
+    queryFn: () => base44.entities.Aircraft.list('tail_number', 500),
+    refetchInterval: 300000,
+  });
+
+  const { data: forecasts = [] } = useQuery({
+    queryKey: ['bow-forecasts'],
+    queryFn: () => base44.entities.MaintenanceForecast.list('-suggested_window_start', 500),
+    refetchInterval: 300000,
+  });
+
+  const createMutation = useMutation({
+    mutationFn: (data) => base44.entities.SupplyRequisition.create(data),
+    onSuccess: () => qc.invalidateQueries({ queryKey: ['bow-aircraft', 'bow-forecasts'] }),
+  });
+
+  // Auto-generate BOWs from maintenance forecasts
+  useEffect(() => {
+    if (forecasts.length === 0) return;
+    const generatedBows = forecasts.map((forecast, idx) => ({
+      id: idx + 1,
+      tail_number: forecast.aircraft_tail,
+      aircraft_type: forecast.aircraft_type,
+      work_scope: forecast.component === 'engine_1' ? 'Engine #1 Overhaul' :
+                  forecast.component === 'engine_2' ? 'Engine #2 Overhaul' :
+                  forecast.component === 'apu' ? 'APU Overhaul' :
+                  `${forecast.component} Inspection`,
+      maintenance_type: 'overhaul',
+      estimated_hours: Math.ceil(forecast.total_flight_hours / 100) * 80,
+      priority: forecast.status === 'overdue' ? 'critical' : forecast.status === 'due_soon' ? 'high' : 'medium',
+      planned_date: forecast.suggested_window_start || format(new Date(), 'yyyy-MM-dd'),
       status: 'scheduled',
-      notes: 'Scheduled for KDFW hangar bay 1',
-    },
-    {
-      id: 2,
-      tail_number: 'N789KL',
-      aircraft_type: 'A320',
-      work_scope: 'Engine Overhaul - Left Engine',
-      estimated_hours: 240,
-      priority: 'critical',
-      planned_date: '2026-04-12',
-      status: 'in_progress',
-      notes: 'High priority - AOG risk',
-    },
-  ]);
+      notes: `Status: ${forecast.status} | Hours remaining: ${Math.max(0, forecast.overhaul_interval_hours - forecast.total_flight_hours)}h`,
+    }));
+    setBows(generatedBows);
+  }, [forecasts]);
 
   const [showNewModal, setShowNewModal] = useState(false);
   const [editingItem, setEditingItem] = useState(null);
@@ -231,9 +259,10 @@ export default function BOWPlanner() {
     setBows(bows.filter(b => b.id !== id));
   };
 
-  const totalHours = bows.reduce((sum, b) => sum + b.estimated_hours, 0);
-  const criticalCount = bows.filter(b => b.priority === 'critical').length;
-  const inProgressCount = bows.filter(b => b.status === 'in_progress').length;
+  const filteredBows = maintenanceType === 'all' ? bows : bows.filter(b => b.maintenance_type === maintenanceType);
+  const totalHours = filteredBows.reduce((sum, b) => sum + b.estimated_hours, 0);
+  const criticalCount = filteredBows.filter(b => b.priority === 'critical').length;
+  const inProgressCount = filteredBows.filter(b => b.status === 'in_progress').length;
 
   return (
     <div className="space-y-6">
@@ -264,27 +293,52 @@ export default function BOWPlanner() {
         </div>
       </div>
 
-      <div className="flex items-center justify-between">
-        <div>
-          <h3 className="text-lg font-bold text-white">Active BOWs</h3>
-          <p className="text-xs text-gray-500 mt-0.5">Planned maintenance schedules and hangar assignments</p>
+      <div className="space-y-3">
+        <div className="flex items-center justify-between">
+          <div>
+            <h3 className="text-lg font-bold text-white">Active BOWs</h3>
+            <p className="text-xs text-gray-500 mt-0.5">Auto-generated from maintenance forecasts & scheduled timed repairs</p>
+          </div>
+          <button
+            onClick={() => setShowNewModal(true)}
+            className="flex items-center gap-2 px-5 py-2.5 rounded-xl bg-primary text-primary-foreground font-bold text-sm hover:bg-primary/90"
+          >
+            <Plus className="w-4 h-4" /> New BOW
+          </button>
         </div>
-        <button
-          onClick={() => setShowNewModal(true)}
-          className="flex items-center gap-2 px-5 py-2.5 rounded-xl bg-primary text-primary-foreground font-bold text-sm hover:bg-primary/90"
-        >
-          <Plus className="w-4 h-4" /> New BOW
-        </button>
+
+        <div className="flex gap-2 overflow-x-auto scrollbar-hide">
+          <button
+            onClick={() => setMaintenanceType('all')}
+            className={cn('px-4 py-2 rounded-lg text-xs font-bold whitespace-nowrap transition-all',
+              maintenanceType === 'all' ? 'bg-primary text-primary-foreground' : 'bg-white/5 text-gray-400 hover:text-white')}
+          >
+            All ({bows.length})
+          </button>
+          {Object.entries(MAINTENANCE_TYPES).map(([key, label]) => {
+            const count = bows.filter(b => b.maintenance_type === key).length;
+            return (
+              <button
+                key={key}
+                onClick={() => setMaintenanceType(key)}
+                className={cn('px-4 py-2 rounded-lg text-xs font-bold whitespace-nowrap transition-all',
+                  maintenanceType === key ? 'bg-primary text-primary-foreground' : 'bg-white/5 text-gray-400 hover:text-white')}
+              >
+                {label} ({count})
+              </button>
+            );
+          })}
+        </div>
       </div>
 
-      {bows.length === 0 ? (
+      {filteredBows.length === 0 ? (
         <div className="text-center py-12 text-gray-600">
           <p className="text-lg font-bold">No BOWs scheduled</p>
           <p className="text-sm mt-2">Create your first Build of Work to get started</p>
         </div>
       ) : (
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-          {bows.map(bow => (
+          {filteredBows.map(bow => (
             <BOWCard key={bow.id} item={bow} onEdit={setEditingItem} onDelete={handleDelete} />
           ))}
         </div>
