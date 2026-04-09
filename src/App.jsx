@@ -81,6 +81,7 @@ const RecordRetentionDashboard  = lazy(() => import('@/pages/RecordRetentionDash
 const ShiftHandoverPage         = lazy(() => import('@/pages/ShiftHandoverPage'));
 const ChronicMELDashboard       = lazy(() => import('@/pages/ChronicMELDashboard'));
 const EngineeringCalendar       = lazy(() => import('@/pages/EngineeringCalendar'));
+const WorkAssignmentDashboard   = lazy(() => import('@/pages/WorkAssignmentDashboard'));
 const EngineRemovalInstallation = lazy(() => import('@/pages/EngineRemovalInstallation'));
 const PassengerServiceSystem   = lazy(() => import('@/pages/PassengerServiceSystem'));
 const PartsSupplyDashboard     = lazy(() => import('@/pages/PartsSupplyDashboard'));
@@ -255,6 +256,7 @@ const AuthenticatedApp = () => {
         <Route path="/ShiftHandover" element={<ShiftHandoverPage />} />
         <Route path="/ChronicMEL" element={<ChronicMELDashboard />} />
         <Route path="/EngCalendar" element={<EngineeringCalendar />} />
+        <Route path="/WorkAssignments" element={<WorkAssignmentDashboard />} />
       </Route>
       <Route path="*" element={<PageNotFound />} />
     </Routes>
