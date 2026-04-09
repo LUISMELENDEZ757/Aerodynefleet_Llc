@@ -67,7 +67,7 @@ const CabinDiscrepancy      = lazy(() => import('@/pages/CabinDiscrepancy'));
 const ToolingManagement       = lazy(() => import('@/pages/ToolingManagement'));
 const EngineeringDashboard    = lazy(() => import('@/pages/EngineeringDashboard'));
 const MaintenanceControl      = lazy(() => import('@/pages/MaintenanceControl'));
-const AocsDashboard           = lazy(() => import('@/pages/AocsDashboard'));
+
 const FleetRegistry           = lazy(() => import('@/pages/FleetRegistry'));
 const TechOpsDashboard        = lazy(() => import('@/components/techops/TechOpsDashboard'));
 const TravelWeather           = lazy(() => import('@/pages/TravelWeather'));
@@ -216,7 +216,7 @@ const AuthenticatedApp = () => {
         <Route path="/ToolingManagement" element={<ToolingManagement />} />
         <Route path="/EngineeringDashboard" element={<EngineeringDashboard />} />
         <Route path="/MaintenanceControl" element={<MaintenanceControl />} />
-        <Route path="/AocsDashboard" element={<AocsDashboard />} />
+
         <Route path="/FleetRegistry" element={<FleetRegistry />} />
         <Route path="/TechOps" element={<TechOpsDashboard />} />
         <Route path="/Settings" element={<SettingsPage />} />
