@@ -377,6 +377,13 @@ export default function GroundOpsPage() {
                 departures?.flights?.slice(0, 15)
                   .filter(f => !selectedAirline || (f.operator || f.ident_iata?.substring(0, 2) || '').includes(selectedAirline))
                   .map((flight, idx) => {
+                  const origin = flight.origin?.code_icao || flight.origin?.code || '—';
+                  const dest = flight.destination?.code_icao || flight.destination?.code || '—';
+                  const scheduledTime = flight.scheduled_out || flight.scheduled_off;
+                  const actualTime = flight.actual_out || flight.actual_off;
+                  const estimatedTime = flight.estimated_out || flight.estimated_off;
+                  const time = actualTime || estimatedTime || scheduledTime;
+                  const timeStr = time ? new Date(time).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: false }) : '—';
                   const isDelayed = (flight.departure_delay || 0) > 300;
                   const isCancelled = flight.cancelled;
                   return (
