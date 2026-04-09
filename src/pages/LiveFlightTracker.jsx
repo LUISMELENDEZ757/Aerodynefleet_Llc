@@ -476,7 +476,7 @@ export default function LiveFlightTracker() {
                 </button>
               ))}
             </div>
-            <div className="flex gap-2">
+            <div className="flex gap-2 mb-3">
               {['departures','arrivals'].map(t => (
                 <button key={t} onClick={() => setAirportTab(t)}
                   className={cn('flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-bold transition-all',
@@ -492,6 +492,25 @@ export default function LiveFlightTracker() {
                 </button>
               ))}
             </div>
+            {(airportData?.departures?.length > 0 || airportData?.arrivals?.length > 0) && (
+              <div className="space-y-2">
+                <label className="text-xs font-bold text-gray-500 uppercase tracking-widest block">Filter by Airline</label>
+                <select
+                  value={selectedAirline || ''}
+                  onChange={e => setSelectedAirline(e.target.value || null)}
+                  className="w-full bg-[#0d1117] border border-white/10 rounded-xl px-3 py-2 text-sm text-white outline-none focus:border-sky-500/50"
+                >
+                  <option value="">All Airlines</option>
+                  {Array.from(new Set(
+                    [...(airportData?.departures || []), ...(airportData?.arrivals || [])]
+                      .map(f => f.operator || f.ident_iata?.substring(0, 2))
+                      .filter(Boolean)
+                  )).sort().map(airline => (
+                    <option key={airline} value={airline}>{airline}</option>
+                  ))}
+                </select>
+              </div>
+            )}
           </div>
         )}
 
@@ -552,7 +571,9 @@ export default function LiveFlightTracker() {
                   </tr>
                 </thead>
                 <tbody>
-                  {displayFlights.map((f, i) => (
+                  {displayFlights
+                    .filter(f => !selectedAirline || (f.operator || f.ident_iata?.substring(0, 2) || '').includes(selectedAirline))
+                    .map((f, i) => (
                     <FlightRow key={f.fa_flight_id || i} flight={f}
                       mode={mode === 'airport' ? airportTab : 'departures'}
                       onSelect={setSelectedFlight} />
