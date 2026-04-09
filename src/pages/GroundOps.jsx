@@ -287,8 +287,8 @@ export default function GroundOpsPage() {
             <div className="divide-y divide-border max-h-96 overflow-y-auto">
               {loadingArr ? (
                 <div className="px-5 py-4 text-xs text-muted-foreground text-center">Loading...</div>
-              ) : arrivals?.error ? (
-                <div className="px-5 py-4 text-xs text-red-400 text-center">Error: {arrivals.error}</div>
+              ) : arrivals?.error && !arrivals?.flights?.length ? (
+                <div className="px-5 py-4 text-xs text-amber-400 text-center">⚠ Flight data unavailable</div>
               ) : arrivals?.flights?.length === 0 ? (
                 <div className="px-5 py-4 text-xs text-muted-foreground text-center">No arrivals</div>
               ) : (
@@ -318,8 +318,8 @@ export default function GroundOpsPage() {
             <div className="divide-y divide-border max-h-96 overflow-y-auto">
               {loadingDep ? (
                 <div className="px-5 py-4 text-xs text-muted-foreground text-center">Loading...</div>
-              ) : departures?.error ? (
-                <div className="px-5 py-4 text-xs text-red-400 text-center">Error: {departures.error}</div>
+              ) : departures?.error && !departures?.flights?.length ? (
+                <div className="px-5 py-4 text-xs text-amber-400 text-center">⚠ Flight data unavailable</div>
               ) : departures?.flights?.length === 0 ? (
                 <div className="px-5 py-4 text-xs text-muted-foreground text-center">No departures</div>
               ) : (

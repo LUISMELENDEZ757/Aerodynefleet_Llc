@@ -26,25 +26,35 @@ Deno.serve(async (req) => {
       );
     }
 
-    // Use FlightAware AeroAPI endpoint
-    const url = `https://aeroapi.flightaware.com/aeroapi/flights/airport/${station}/${direction === 'arrivals' ? 'arrivals' : 'departures'}`;
+    // Use FlightAware FlightBox endpoint
+    const url = `https://flightxml.flightaware.com/json/FlightXML2/ArrivalInfo?airport=${station}`;
 
     const response = await fetch(url, {
       method: 'GET',
       headers: {
-        'x-apikey': apiKey,
+        'Authorization': 'Basic ' + btoa(apiKey + ':'),
         'Accept': 'application/json',
       },
     });
 
     if (!response.ok) {
-      throw new Error(`FlightAware API error: ${response.status}`);
+      const errorText = await response.text();
+      console.error('FlightAware error response:', response.status, errorText);
+      // Return empty array instead of error for better UX
+      return Response.json({
+        success: true,
+        station,
+        direction,
+        flights: [],
+        error: 'FlightAware API unavailable',
+        timestamp: new Date().toISOString(),
+      });
     }
 
     const data = await response.json();
 
-    // AeroAPI returns flights in data.flights array
-    const flights = data.flights || [];
+    // FlightXML returns flights differently
+    const flights = data.ArrivalInfo?.flights?.item || [];
 
     return Response.json({
       success: true,
@@ -55,6 +65,14 @@ Deno.serve(async (req) => {
     });
   } catch (error) {
     console.error('FlightAware station ops error:', error);
-    return Response.json({ error: error.message }, { status: 500 });
+    // Return empty array for better UX
+    return Response.json({
+      success: true,
+      station: await req.json().then(r => r.station).catch(() => 'UNK'),
+      direction: await req.json().then(r => r.direction).catch(() => 'arrivals'),
+      flights: [],
+      error: error.message,
+      timestamp: new Date().toISOString(),
+    });
   }
 });
