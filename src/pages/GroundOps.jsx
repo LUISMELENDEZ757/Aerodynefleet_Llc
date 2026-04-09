@@ -6,6 +6,7 @@ import { Truck, RefreshCw, Plus, CheckCircle, Clock, AlertTriangle, Plane, Trend
 import { cn } from '@/lib/utils';
 
 const TODAY = new Date().toISOString().split('T')[0];
+const TOMORROW = new Date(Date.now() + 86400000).toISOString().split('T')[0];
 
 const STATUS_COLORS = {
   not_requested: 'text-muted-foreground bg-muted',
@@ -138,10 +139,15 @@ export default function GroundOpsPage() {
     queryFn: () => base44.entities.GroundOps.filter({ flight_date: TODAY }),
     refetchInterval: 30000,
   });
-  const { data: flights = [] } = useQuery({
-    queryKey: ['go-flights', TODAY],
-    queryFn: () => base44.entities.Flight.filter({ flight_date: TODAY }),
+  const { data: allFlights = [] } = useQuery({
+    queryKey: ['go-flights-48h'],
+    queryFn: async () => {
+      const todayFlights = await base44.entities.Flight.filter({ flight_date: TODAY });
+      const tomorrowFlights = await base44.entities.Flight.filter({ flight_date: TOMORROW });
+      return [...todayFlights, ...tomorrowFlights];
+    },
   });
+  const flights = allFlights;
 
   const { data: airportData = {}, refetch: refetchAirport, isLoading: loadingAirport } = useQuery({
     queryKey: ['station-airport', selectedStation],
@@ -172,6 +178,7 @@ export default function GroundOpsPage() {
   });
 
   const complete = ops.filter(o => o.boarding_status === 'closed').length;
+  const next48h = new Date(Date.now() + 172800000); // 48 hours from now
   const stations = [
     { code: 'KATL', name: 'Atlanta' }, { code: 'KORD', name: "Chicago O'Hare" }, { code: 'KDFW', name: 'Dallas/Fort Worth' },
     { code: 'KDEN', name: 'Denver' }, { code: 'KJFK', name: 'New York JFK' }, { code: 'KLAX', name: 'Los Angeles' },
