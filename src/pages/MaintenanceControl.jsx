@@ -20,6 +20,7 @@ const TABS = [
   { id: 'parts',    label: 'Parts' },
   { id: 'tooling',  label: 'Tooling' },
   { id: 'technician', label: 'MC Tech' },
+  { id: 'supervisor', label: 'MC Supervisor' },
 ];
 
 export default function MaintenanceControl() {
@@ -161,6 +162,46 @@ export default function MaintenanceControl() {
             <div className="bg-card border border-border rounded-2xl p-5">
               <p className="text-xs font-bold text-muted-foreground uppercase tracking-widest mb-3">Technician Dashboard</p>
               <p className="text-sm text-muted-foreground">Maintenance Control Technician oversight and task management dashboard.</p>
+            </div>
+          </div>
+        )}
+        {activeTab === 'supervisor' && (
+          <div className="space-y-4">
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+              <div className="bg-card border border-border rounded-2xl p-5 space-y-3">
+                <div className="flex items-center gap-2">
+                  <Users className="w-4 h-4 text-primary" />
+                  <p className="text-sm font-bold text-foreground">Teams</p>
+                </div>
+                <div className="bg-secondary/50 rounded-xl p-3 text-center">
+                  <p className="text-2xl font-black text-primary">3</p>
+                  <p className="text-xs text-muted-foreground mt-1">MCC teams</p>
+                </div>
+              </div>
+              <div className="bg-card border border-border rounded-2xl p-5 space-y-3">
+                <div className="flex items-center gap-2">
+                  <Activity className="w-4 h-4 text-amber-400" />
+                  <p className="text-sm font-bold text-foreground">Completion Rate</p>
+                </div>
+                <div className="bg-secondary/50 rounded-xl p-3 text-center">
+                  <p className="text-2xl font-black text-amber-400">94%</p>
+                  <p className="text-xs text-muted-foreground mt-1">Tasks completed</p>
+                </div>
+              </div>
+              <div className="bg-card border border-border rounded-2xl p-5 space-y-3">
+                <div className="flex items-center gap-2">
+                  <Activity className="w-4 h-4 text-orange-400" />
+                  <p className="text-sm font-bold text-foreground">Critical Issues</p>
+                </div>
+                <div className="bg-secondary/50 rounded-xl p-3 text-center">
+                  <p className="text-2xl font-black text-orange-400">2</p>
+                  <p className="text-xs text-muted-foreground mt-1">Escalated</p>
+                </div>
+              </div>
+            </div>
+            <div className="bg-card border border-border rounded-2xl p-5">
+              <p className="text-xs font-bold text-muted-foreground uppercase tracking-widest mb-3">Supervisor Dashboard</p>
+              <p className="text-sm text-muted-foreground">Team oversight, performance metrics, and escalation management.</p>
             </div>
           </div>
         )}
