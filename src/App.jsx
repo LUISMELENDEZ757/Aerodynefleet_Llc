@@ -88,6 +88,7 @@ const DiversionWorkflow        = lazy(() => import('@/pages/DiversionWorkflow'))
 const AIDispatchCopilot        = lazy(() => import('@/pages/AIDispatchCopilot'));
 const LiveSIGMETMap            = lazy(() => import('@/pages/LiveSIGMETMap.jsx'));
 const AOGProbabilityForecast   = lazy(() => import('@/pages/AOGProbabilityForecast'));
+const ProductionControlCenter  = lazy(() => import('@/pages/ProductionControlCenter'));
 const CostPerFlightAnalytics   = lazy(() => import('@/pages/CostPerFlightAnalytics'));
 const PredictivePartsOrdering  = lazy(() => import('@/pages/PredictivePartsOrdering'));
 const LineMxTablet             = lazy(() => import('@/pages/LineMxTablet'));
@@ -245,6 +246,7 @@ const AuthenticatedApp = () => {
         <Route path="/LineMxTablet" element={<LineMxTablet />} />
         <Route path="/ReleaseArchive" element={<ReleaseArchiveDashboard />} />
         <Route path="/BORROB" element={<BORROBDashboard />} />
+        <Route path="/ProductionControl" element={<ProductionControlCenter />} />
       </Route>
       <Route path="*" element={<PageNotFound />} />
     </Routes>
