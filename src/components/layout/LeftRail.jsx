@@ -27,6 +27,7 @@ const DISPATCH_OPS_ITEMS = [
   { label: 'IROPS Recovery', path: '/IROPS' },
   { label: 'Delay Predictor', path: '/AIDispatchCopilot' },
   { label: 'Weather', path: '/Weather' },
+  { label: 'Travel Weather', path: '/TravelWeather' },
   { label: 'NOTAMs', path: '/NOTAMs' },
   { label: 'Ops Analytics', path: '/OTPDashboard' },
   { label: 'Fuel Management', path: '/FuelContracts' },
