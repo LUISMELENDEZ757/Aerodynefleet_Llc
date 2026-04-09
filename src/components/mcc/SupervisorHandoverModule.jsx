@@ -46,7 +46,7 @@ function SupervisorHandoverForm({ onSubmit, onCancel, isPending }) {
     <div className="fixed inset-0 z-50 bg-black/70 p-4 flex justify-center items-start overflow-y-auto pt-8">
       <div className="w-full max-w-2xl bg-card border border-border rounded-2xl shadow-2xl">
         <div className="flex items-center justify-between px-6 py-4 border-b border-border sticky top-0 z-10 bg-card">
-          <p className="text-base font-bold text-foreground">Supervisor Handover & Escalation</p>
+          <p className="text-base font-bold text-foreground">Supervisor Shift Turn Over</p>
           <button onClick={onCancel} className="w-8 h-8 rounded-lg bg-secondary hover:bg-secondary/80 flex items-center justify-center">
             <X className="w-4 h-4" />
           </button>
@@ -214,7 +214,7 @@ export default function SupervisorHandoverModule() {
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-2">
           <Mail className="w-4 h-4 text-primary" />
-          <p className="text-sm font-bold text-foreground">Supervisor Handover & Escalation</p>
+          <p className="text-sm font-bold text-foreground">Supervisor Shift Turn Over</p>
         </div>
         <button onClick={() => setShowForm(true)} className="px-4 py-2 rounded-lg bg-primary text-primary-foreground text-xs font-bold hover:bg-primary/90 flex items-center gap-2">
           <Plus className="w-3.5 h-3.5" /> New Handover
