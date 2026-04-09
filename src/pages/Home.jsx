@@ -20,6 +20,7 @@ import WeatherAtcPanel      from '@/components/opshub/WeatherAtcPanel';
 import StationPerformancePanel from '@/components/opshub/StationPerformancePanel';
 import OpsAlertsPanel       from '@/components/opshub/OpsAlertsPanel';
 import PredictiveAiPanel    from '@/components/opshub/PredictiveAiPanel';
+import DelayProbabilityWidget from '@/components/opshub/DelayProbabilityWidget';
 
 // ── Module launcher (kept for quick-access) ──────────────────────────────────
 const QUICK_LINKS = [
@@ -164,13 +165,16 @@ export default function Home() {
           <StationPerformancePanel groundOps={groundOps} flights={flights} />
         </div>
 
-        {/* Row 5: Predictive AI (full width) */}
-        <PredictiveAiPanel
+        {/* Row 5: Delay Probability + Predictive AI */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+          <DelayProbabilityWidget flights={flights} aircraft={aircraft} />
+          <PredictiveAiPanel
           flights={flights}
           aircraft={aircraft}
           crew={crew}
           melItems={melItems}
         />
+        </div>
 
         {/* Footer */}
         <p className="text-center text-xs text-gray-700 font-mono pt-2">AERODYNE FLEET LLC · OPS HUB v3.0</p>
