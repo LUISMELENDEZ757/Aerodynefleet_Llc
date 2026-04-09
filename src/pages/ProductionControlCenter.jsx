@@ -5,9 +5,11 @@ import {
   Activity, CheckCircle, AlertCircle, Clock, Zap
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import BOWPlanner from '@/components/production/BOWPlanner';
 
 const TABS = [
   { id: 'planning', label: 'Planning', icon: '📋' },
+  { id: 'bow', label: 'BOW Planner', icon: '🔨' },
   { id: 'ai', label: 'AI Assistant', icon: '🤖' },
   { id: 'overview', label: 'Overview', icon: '👁️' },
   { id: 'hangar', label: 'Hangar Bays', icon: '🏭' },
@@ -281,6 +283,7 @@ export default function ProductionControlCenter() {
       {/* Content */}
       <div className="px-6 py-6 max-w-7xl mx-auto">
         {activeTab === 'planning' && <PlanningModule />}
+        {activeTab === 'bow' && <BOWPlanner />}
         {activeTab === 'integrations' && <IntegrationHub />}
         {activeTab === 'overview' && <OverviewModule />}
         {['ai', 'hangar', 'tasks', 'workforce', 'goals'].includes(activeTab) && (
