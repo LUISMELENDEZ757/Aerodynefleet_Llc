@@ -15,6 +15,7 @@ const TECHNICIAN_ITEMS = [
   { label: 'Fleet Management', path: '/FleetDashboard' },
   { label: 'Comm Center', path: '/CommCenter' },
   { label: 'E-Logbook', path: '/TechOpsLogbook' },
+  { label: 'Chronic & MEL Control', path: '/ChronicMEL' },
   { label: 'MEL Deferrals', path: '/MEL' },
   { label: 'QA/QC', path: '/QAQC' },
   { label: 'Parts Supply', path: '/PartsSupply' },
