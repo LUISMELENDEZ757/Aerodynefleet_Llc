@@ -237,6 +237,86 @@ function AssignTechModal({ item, onClose, onConfirm }) {
   );
 }
 
+function NewRequestModal({ onClose, onConfirm, isPending }) {
+  const [formData, setFormData] = useState({ part_name: '', part_number: '', quantity: 1, priority: 'routine' });
+  const handleSubmit = (e) => {
+    e.preventDefault();
+    if (!formData.part_name.trim()) return;
+    onConfirm(formData);
+    setFormData({ part_name: '', part_number: '', quantity: 1, priority: 'routine' });
+  };
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 p-4">
+      <div className="w-full max-w-md bg-card border border-border rounded-2xl shadow-2xl">
+        <div className="flex items-center justify-between px-5 py-4 border-b border-border">
+          <div className="flex items-center gap-2">
+            <Plus className="w-4 h-4 text-yellow-400" />
+            <p className="text-sm font-extrabold text-foreground">New Parts Request</p>
+          </div>
+          <button onClick={onClose} className="w-7 h-7 rounded-lg bg-secondary flex items-center justify-center hover:bg-secondary/80">
+            <X className="w-3.5 h-3.5 text-foreground" />
+          </button>
+        </div>
+        <form onSubmit={handleSubmit} className="p-5 space-y-4">
+          <div>
+            <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest block mb-1.5">Part Name *</label>
+            <input
+              autoFocus
+              value={formData.part_name}
+              onChange={e => setFormData({...formData, part_name: e.target.value})}
+              placeholder="e.g. Engine Oil Filter"
+              required
+              className="w-full bg-background border border-border rounded-xl px-3 py-2.5 text-sm text-foreground placeholder-muted-foreground outline-none focus:border-yellow-500 transition-colors"
+            />
+          </div>
+          <div>
+            <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest block mb-1.5">Part Number</label>
+            <input
+              value={formData.part_number}
+              onChange={e => setFormData({...formData, part_number: e.target.value})}
+              placeholder="e.g. P/N 65-48253-2"
+              className="w-full bg-background border border-border rounded-xl px-3 py-2.5 text-sm text-foreground placeholder-muted-foreground outline-none focus:border-yellow-500 transition-colors"
+            />
+          </div>
+          <div className="grid grid-cols-2 gap-3">
+            <div>
+              <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest block mb-1.5">Quantity</label>
+              <input
+                type="number"
+                min="1"
+                value={formData.quantity}
+                onChange={e => setFormData({...formData, quantity: parseInt(e.target.value) || 1})}
+                className="w-full bg-background border border-border rounded-xl px-3 py-2.5 text-sm text-foreground outline-none focus:border-yellow-500 transition-colors"
+              />
+            </div>
+            <div>
+              <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest block mb-1.5">Priority</label>
+              <select
+                value={formData.priority}
+                onChange={e => setFormData({...formData, priority: e.target.value})}
+                className="w-full bg-background border border-border rounded-xl px-3 py-2.5 text-sm text-foreground outline-none focus:border-yellow-500 transition-colors"
+              >
+                <option value="routine">Routine</option>
+                <option value="critical">Critical</option>
+                <option value="aog">AOG</option>
+              </select>
+            </div>
+          </div>
+          <div className="flex gap-3 pt-1">
+            <button type="button" onClick={onClose} className="flex-1 py-2.5 rounded-xl border border-border text-sm font-bold text-muted-foreground hover:bg-secondary">
+              Cancel
+            </button>
+            <button type="submit" disabled={isPending} className="flex-1 py-2.5 rounded-xl bg-yellow-600 hover:bg-yellow-500 text-white text-sm font-bold flex items-center justify-center gap-2 disabled:opacity-50">
+              <Plus className="w-4 h-4" /> Create Request
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  );
+}
+
 function CompleteInstallationModal({ item, onClose, onConfirm }) {
   const [technician, setTechnician] = useState('');
   const [notes, setNotes] = useState('');
@@ -304,6 +384,7 @@ export default function BORROBDashboard() {
   const [approvingItem, setApprovingItem] = useState(null);
   const [assigningItem, setAssigningItem] = useState(null);
   const [completingItem, setCompletingItem] = useState(null);
+  const [showNewRequest, setShowNewRequest] = useState(false);
   const [filter, setFilter] = useState('all');
   const qc = useQueryClient();
 
@@ -322,6 +403,21 @@ export default function BORROBDashboard() {
       setCompletingItem(null);
     },
   });
+
+  const createMutation = useMutation({
+    mutationFn: (data) => base44.entities.SupplyRequisition.create(data),
+    onSuccess: () => { qc.invalidateQueries({ queryKey: ['borrob-requests'] }); setShowNewRequest(false); },
+  });
+
+  const handleNewRequest = (formData) => {
+    createMutation.mutate({
+      part_name: formData.part_name,
+      part_number: formData.part_number,
+      quantity: formData.quantity,
+      priority: formData.priority,
+      status: 'pending_mcc',
+    });
+  };
 
   const handleApprove = (id, notes) => {
     updateMutation.mutate({
@@ -417,7 +513,7 @@ export default function BORROBDashboard() {
               )}
             </button>
           ))}
-          <button className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-yellow-600 hover:bg-yellow-500 text-white text-xs font-bold whitespace-nowrap transition-all flex-shrink-0 ml-auto">
+          <button onClick={() => setShowNewRequest(true)} className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-yellow-600 hover:bg-yellow-500 text-white text-xs font-bold whitespace-nowrap transition-all flex-shrink-0 ml-auto">
             + New Request
           </button>
         </div>
@@ -484,6 +580,14 @@ export default function BORROBDashboard() {
           item={completingItem}
           onClose={() => setCompletingItem(null)}
           onConfirm={handleComplete}
+        />
+      )}
+
+      {showNewRequest && (
+        <NewRequestModal
+          onClose={() => setShowNewRequest(false)}
+          onConfirm={handleNewRequest}
+          isPending={createMutation.isPending}
         />
       )}
     </div>
