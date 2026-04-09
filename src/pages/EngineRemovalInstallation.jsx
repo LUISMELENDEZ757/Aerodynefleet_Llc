@@ -4,7 +4,7 @@ import { base44 } from '@/api/base44Client';
 import { Link } from 'react-router-dom';
 import {
   Settings, AlertTriangle, CheckCircle, Zap, Wrench, Shield,
-  ChevronLeft, Plus, Activity, X, Send, Clock, MapPin, User, ChevronDown, BookOpen
+  ChevronLeft, Plus, Activity, X, Send, Clock, ChevronDown
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { format } from 'date-fns';
@@ -83,11 +83,8 @@ function NewEngineEventModal({ aircraft, onClose, onCreate }) {
   });
   const set = (k, v) => setForm(p => ({ ...p, [k]: v }));
 
-  // When user picks a tail, auto-fill engine type & aircraft type
-  // Only clear airline/type/engine if user explicitly picks the blank option
   const handleTailChange = (tail) => {
     if (!tail) {
-      // User selected the placeholder — clear everything
       setForm(p => ({ ...p, aircraft_tail: '', aircraft_type: '', engine_type: '', airline: '' }));
       return;
     }
@@ -95,14 +92,12 @@ function NewEngineEventModal({ aircraft, onClose, onCreate }) {
     setForm(p => ({
       ...p,
       aircraft_tail: tail,
-      // Keep existing values if the aircraft record has no data
       aircraft_type: ac?.aircraft_type || p.aircraft_type,
       engine_type: ac?.engine_type || p.engine_type,
       airline: ac?.airline || p.airline,
     }));
   };
 
-  // Group aircraft by airline for optgroup display
   const groupedAircraft = aircraft.reduce((acc, ac) => {
     const key = ac.airline || 'Unassigned';
     if (!acc[key]) acc[key] = [];
@@ -151,16 +146,9 @@ function NewEngineEventModal({ aircraft, onClose, onCreate }) {
           </div>
         </div>
         <form onSubmit={handleSubmit} className="p-5 space-y-4 max-h-[80vh] overflow-y-auto">
-
-          {/* Aircraft Tail */}
           <div>
             <label className="text-[10px] font-bold text-gray-400 uppercase tracking-widest block mb-1">Aircraft Tail *</label>
-            <select
-              value={form.aircraft_tail}
-              onChange={e => handleTailChange(e.target.value)}
-              required
-              className={inputCls}
-            >
+            <select value={form.aircraft_tail} onChange={e => handleTailChange(e.target.value)} required className={inputCls}>
               <option value="">— Select aircraft tail —</option>
               {Object.entries(groupedAircraft).map(([airline, planes]) => (
                 <optgroup key={airline} label={airline}>
@@ -172,18 +160,12 @@ function NewEngineEventModal({ aircraft, onClose, onCreate }) {
                 </optgroup>
               ))}
             </select>
-
-            {/* Auto-populated aircraft info — airline is editable */}
             {(form.airline || form.aircraft_type || form.engine_type) && (
               <div className="mt-2 grid grid-cols-3 gap-2">
                 <div className="bg-[#0d1117] border border-white/10 rounded-lg px-3 py-2">
                   <p className="text-[9px] text-gray-500 uppercase tracking-widest mb-0.5">Airline</p>
-                  <input
-                    value={form.airline}
-                    onChange={e => set('airline', e.target.value)}
-                    placeholder="Airline"
-                    className="w-full bg-transparent text-xs font-bold text-primary outline-none border-b border-primary/40 focus:border-primary placeholder-gray-600"
-                  />
+                  <input value={form.airline} onChange={e => set('airline', e.target.value)} placeholder="Airline"
+                    className="w-full bg-transparent text-xs font-bold text-primary outline-none border-b border-primary/40 focus:border-primary placeholder-gray-600" />
                 </div>
                 <div className="bg-[#0d1117] border border-white/10 rounded-lg px-3 py-2">
                   <p className="text-[9px] text-gray-500 uppercase tracking-widest mb-0.5">Type</p>
@@ -197,7 +179,6 @@ function NewEngineEventModal({ aircraft, onClose, onCreate }) {
             )}
           </div>
 
-          {/* Engine Position */}
           <div>
             <label className="text-[10px] font-bold text-gray-400 uppercase tracking-widest block mb-1">Engine Position *</label>
             <select value={form.engine_position} onChange={e => set('engine_position', e.target.value)} className={inputCls}>
@@ -205,7 +186,6 @@ function NewEngineEventModal({ aircraft, onClose, onCreate }) {
             </select>
           </div>
 
-          {/* Serial numbers */}
           <div className="grid grid-cols-2 gap-3">
             <div>
               <label className="text-[10px] font-bold text-gray-400 uppercase tracking-widest block mb-1">Removed Engine S/N *</label>
@@ -217,7 +197,6 @@ function NewEngineEventModal({ aircraft, onClose, onCreate }) {
             </div>
           </div>
 
-          {/* Reason + Station */}
           <div className="grid grid-cols-2 gap-3">
             <div>
               <label className="text-[10px] font-bold text-gray-400 uppercase tracking-widest block mb-1">Removal Reason *</label>
@@ -231,7 +210,6 @@ function NewEngineEventModal({ aircraft, onClose, onCreate }) {
             </div>
           </div>
 
-          {/* Technicians */}
           <div className="grid grid-cols-2 gap-3">
             <div>
               <label className="text-[10px] font-bold text-gray-400 uppercase tracking-widest block mb-1">Lead Technician</label>
@@ -243,7 +221,6 @@ function NewEngineEventModal({ aircraft, onClose, onCreate }) {
             </div>
           </div>
 
-          {/* Status */}
           <div>
             <label className="text-[10px] font-bold text-gray-400 uppercase tracking-widest block mb-1">Status</label>
             <div className="flex gap-2 flex-wrap">
@@ -257,7 +234,6 @@ function NewEngineEventModal({ aircraft, onClose, onCreate }) {
             </div>
           </div>
 
-          {/* Notes */}
           <div>
             <label className="text-[10px] font-bold text-gray-400 uppercase tracking-widest block mb-1">Notes</label>
             <textarea rows={2} value={form.notes} onChange={e => set('notes', e.target.value)} placeholder="Additional notes…" className={inputCls + ' resize-none'} />
@@ -285,7 +261,6 @@ function EditAirlineModal({ fleet, onClose, onSave }) {
       onClose();
     }
   };
-
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 p-4">
       <div className="w-full max-w-md bg-[#141922] border border-white/10 rounded-2xl overflow-hidden shadow-2xl">
@@ -296,14 +271,9 @@ function EditAirlineModal({ fleet, onClose, onSave }) {
         <form onSubmit={handleSubmit} className="p-5 space-y-4">
           <div>
             <label className="text-[10px] font-bold text-gray-500 uppercase tracking-widest block mb-2">Airline Name</label>
-            <input
-              type="text"
-              value={name}
-              onChange={(e) => setName(e.target.value)}
+            <input type="text" value={name} onChange={(e) => setName(e.target.value)}
               className="w-full bg-[#0d1117] border border-white/10 rounded-xl px-3 py-2.5 text-sm text-white placeholder-gray-600 outline-none focus:border-primary"
-              placeholder="e.g. Aerodyne Express"
-              autoFocus
-            />
+              placeholder="e.g. Aerodyne Express" autoFocus />
           </div>
           <div className="flex gap-3 pt-2">
             <button type="button" onClick={onClose} className="flex-1 py-2.5 rounded-xl border border-white/10 text-sm font-bold text-gray-400 hover:bg-white/5">Cancel</button>
@@ -321,22 +291,16 @@ function EventCard({ event, isSelected, onSelect }) {
   const statusKey = Object.keys(STATUS).find(k => rawStatus.includes(k)) || 'active';
   const cfg = STATUS[statusKey];
   const position = event.notes?.match(/Position: ([^|]+)/)?.[1]?.trim() || '—';
-  const riiName  = event.notes?.match(/RII: ([^|]+)/)?.[1]?.trim() || '—';
-
   return (
     <button onClick={() => onSelect(event)}
-      className={cn(
-        'rounded-2xl border p-4 text-left transition-all active:scale-95 w-full',
-        isSelected ? 'border-primary bg-primary/10' : 'border-white/10 bg-[#141922] hover:border-white/20'
-      )}>
+      className={cn('rounded-2xl border p-4 text-left transition-all active:scale-95 w-full',
+        isSelected ? 'border-primary bg-primary/10' : 'border-white/10 bg-[#141922] hover:border-white/20')}>
       <div className="flex items-start justify-between gap-2 mb-2">
         <div>
           <p className="text-lg font-black text-primary font-mono leading-none">{event.aircraft_tail}</p>
           <p className="text-xs text-gray-400 mt-0.5">Engine {position}</p>
         </div>
-        <span className={cn('text-[10px] font-bold px-2.5 py-1 rounded-full text-white flex-shrink-0', cfg.bg)}>
-          {cfg.label}
-        </span>
+        <span className={cn('text-[10px] font-bold px-2.5 py-1 rounded-full text-white flex-shrink-0', cfg.bg)}>{cfg.label}</span>
       </div>
       <p className="text-[10px] text-gray-500 truncate">
         {event.description?.split('\n')[0]?.replace('[ENGINE REMOVAL]', '').trim()}
@@ -350,22 +314,22 @@ function EventCard({ event, isSelected, onSelect }) {
 function EventDetail({ event }) {
   const lines = (event.description || '').split('\n');
   const getValue = (prefix) => lines.find(l => l.startsWith(prefix))?.replace(prefix, '').trim() || '—';
-  const position    = event.notes?.match(/Position: ([^|]+)/)?.[1]?.trim() || '—';
+  const position     = event.notes?.match(/Position: ([^|]+)/)?.[1]?.trim() || '—';
   const riiInspector = event.notes?.match(/RII: ([^|]+)/)?.[1]?.trim() || '—';
-  const station     = event.notes?.match(/Station: ([^|]+)/)?.[1]?.trim() || event.station || '—';
-  const removedSN   = getValue('Removed S/N:');
-  const replaceSN   = getValue('Replacement S/N:');
-  const reason      = getValue('Removal Reason:');
+  const station      = event.notes?.match(/Station: ([^|]+)/)?.[1]?.trim() || event.station || '—';
+  const removedSN    = getValue('Removed S/N:');
+  const replaceSN    = getValue('Replacement S/N:');
+  const reason       = getValue('Removal Reason:');
 
   const INFO = [
-    { label: 'Aircraft Tail',      value: event.aircraft_tail,      valueColor: 'text-primary text-2xl font-black' },
-    { label: 'Engine Position',    value: position,                  valueColor: 'text-yellow-400 text-2xl font-black' },
-    { label: 'Removed Engine S/N', value: removedSN,                 valueColor: 'text-gray-300' },
-    { label: 'Replacement S/N',    value: replaceSN,                 valueColor: 'text-green-400' },
-    { label: 'Removal Reason',     value: reason,                    valueColor: 'text-gray-300', dot: 'bg-red-500' },
-    { label: 'Station',            value: station,                   valueColor: 'text-cyan-400' },
+    { label: 'Aircraft Tail',      value: event.aircraft_tail,         valueColor: 'text-primary text-2xl font-black' },
+    { label: 'Engine Position',    value: position,                     valueColor: 'text-yellow-400 text-2xl font-black' },
+    { label: 'Removed Engine S/N', value: removedSN,                    valueColor: 'text-gray-300' },
+    { label: 'Replacement S/N',    value: replaceSN,                    valueColor: 'text-green-400' },
+    { label: 'Removal Reason',     value: reason,                       valueColor: 'text-gray-300', dot: 'bg-red-500' },
+    { label: 'Station',            value: station,                      valueColor: 'text-cyan-400' },
     { label: 'Lead Technician',    value: event.technician_name || '—', valueColor: 'text-gray-300' },
-    { label: 'RII Inspector',      value: riiInspector,              valueColor: 'text-gray-300' },
+    { label: 'RII Inspector',      value: riiInspector,                 valueColor: 'text-gray-300' },
   ];
 
   return (
@@ -405,8 +369,7 @@ export default function EngineRemovalInstallation() {
   const [editingAirline, setEditingAirline] = useState(null);
   const qc = useQueryClient();
 
-  // ── Workflow Logic State ──────────────────────────────────────────────────
-  const [completedTasks, setCompletedTasks] = useState({}); // { taskId: { name, cert, dateTime } }
+  const [completedTasks, setCompletedTasks] = useState({});
   const [selectedPhaseId, setSelectedPhaseId] = useState('engine_removal');
   const currentPhaseId = computeCurrentPhase(completedTasks);
 
@@ -430,12 +393,9 @@ export default function EngineRemovalInstallation() {
     refetchInterval: 60000,
   });
 
-  // Auto-select first fleet
   useEffect(() => {
-    if (!selectedFleetId && fleets.length > 0) {
-      setSelectedFleetId(fleets[0].id);
-    }
-  }, [fleets]);
+    if (!selectedFleetId && fleets.length > 0) setSelectedFleetId(fleets[0].id);
+  }, [fleets, selectedFleetId]);
 
   const selectedFleet = fleets.find(f => f.id === selectedFleetId);
 
@@ -445,14 +405,12 @@ export default function EngineRemovalInstallation() {
     refetchInterval: 60000,
   });
 
-  // All aircraft (for modal dropdown — unrestricted)
   const { data: allAircraft = [] } = useQuery({
     queryKey: ['engine-aircraft-all'],
     queryFn: () => base44.entities.Aircraft.list('tail_number', 500),
     refetchInterval: 300000,
   });
 
-  // Fleet-filtered aircraft (for event list filtering)
   const { data: aircraft = [] } = useQuery({
     queryKey: ['engine-aircraft', selectedFleetId],
     queryFn: () => selectedFleetId
@@ -478,7 +436,6 @@ export default function EngineRemovalInstallation() {
     },
   });
 
-  // Filter events by fleet
   const engineEvents = events.filter(e => {
     if (!e.description?.includes('[ENGINE REMOVAL]')) return false;
     if (!selectedFleetId) return true;
@@ -490,14 +447,12 @@ export default function EngineRemovalInstallation() {
   const completedCount = engineEvents.filter(e => e.is_cleared).length;
   const enginesReady   = aircraft.filter(a => a.status === 'active' && a.engine_type).length;
 
-  // Auto-select first event
   useEffect(() => {
     if (!selectedEvent && engineEvents.length > 0) setSelectedEvent(engineEvents[0]);
   }, [engineEvents, selectedEvent]);
 
   return (
     <div className="min-h-screen bg-[#0d1117] text-white pb-24">
-      {/* ── HEADER ── */}
       <div className="border-b border-white/10 bg-[#0a0e18] px-5 py-4 sticky top-0 z-20">
         <div className="flex items-start justify-between gap-4">
           <div className="flex items-start gap-3">
@@ -510,25 +465,18 @@ export default function EngineRemovalInstallation() {
                 <h1 className="text-xl sm:text-2xl font-black text-primary tracking-widest uppercase">Engine Removal & Installation Dashboard</h1>
               </div>
               <p className="text-xs text-gray-500 mt-0.5">
-                {selectedFleet ? selectedFleet.name : 'Multi-Fleet'} • 
-                {selectedFleet?.aircraft_types?.join(' • ') || 'All Aircraft'} • 
-                Complete End-to-End Workflow
+                {selectedFleet ? selectedFleet.name : 'Multi-Fleet'} • {selectedFleet?.aircraft_types?.join(' • ') || 'All Aircraft'} • Complete End-to-End Workflow
               </p>
               <p className="text-[10px] text-gray-600 mt-0.5">Timeline Tracking • Multi-Department Coordination • FAA Part 121.378 & Part 43 Compliant</p>
             </div>
           </div>
           <div className="flex items-center gap-3">
-            {/* Fleet Selector */}
             <div className="relative">
               <button
                 onClick={() => setShowFleetMenu(!showFleetMenu)}
                 onContextMenu={(e) => {
                   e.preventDefault();
-                  if (selectedFleet) {
-                    setEditingAirline(selectedFleet);
-                    setShowAirlineModal(true);
-                    setShowFleetMenu(false);
-                  }
+                  if (selectedFleet) { setEditingAirline(selectedFleet); setShowAirlineModal(true); setShowFleetMenu(false); }
                 }}
                 className="flex items-center gap-2 bg-[#141922] border border-white/10 rounded-xl px-4 py-2 hover:border-white/20 transition-colors"
                 title="Right-click to edit airline name"
@@ -541,17 +489,9 @@ export default function EngineRemovalInstallation() {
                   <div className="fixed inset-0 z-30" onClick={() => setShowFleetMenu(false)} />
                   <div className="absolute right-0 top-full mt-1 w-56 bg-[#141922] border border-white/10 rounded-xl overflow-hidden z-40 shadow-xl max-h-64 overflow-y-auto">
                     {fleets.map(f => (
-                      <button
-                        key={f.id}
-                        onClick={() => {
-                          setSelectedFleetId(f.id);
-                          setShowFleetMenu(false);
-                        }}
-                        className={cn(
-                          'w-full text-left px-4 py-2.5 text-xs font-bold transition-colors',
-                          selectedFleetId === f.id ? 'bg-primary text-primary-foreground' : 'text-gray-400 hover:bg-white/5'
-                        )}
-                      >
+                      <button key={f.id} onClick={() => { setSelectedFleetId(f.id); setShowFleetMenu(false); }}
+                        className={cn('w-full text-left px-4 py-2.5 text-xs font-bold transition-colors',
+                          selectedFleetId === f.id ? 'bg-primary text-primary-foreground' : 'text-gray-400 hover:bg-white/5')}>
                         <p className="font-bold">{f.name}</p>
                         <p className="text-[10px] text-gray-500 mt-0.5">{f.aircraft_types?.join(', ')}</p>
                       </button>
@@ -566,25 +506,21 @@ export default function EngineRemovalInstallation() {
       </div>
 
       <div className="px-5 pt-5 space-y-5">
-        {/* ── KPI CARDS ── */}
         <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
-          <KpiCard icon={Activity}      label="Active Events"    value={isLoading ? '…' : activeCount}    color="text-blue-400"   dotColor="bg-blue-400" />
-          <KpiCard icon={AlertTriangle} label="On Hold"          value={isLoading ? '…' : onHoldCount}    color="text-orange-400" dotColor="bg-orange-400" />
-          <KpiCard icon={CheckCircle}   label="Phases Complete"  value={isLoading ? '…' : completedCount} color="text-green-400"  dotColor="bg-green-400" />
-          <KpiCard icon={Zap}           label="Engines Ready"    value={isLoading ? '…' : enginesReady}   color="text-cyan-400"   dotColor="bg-cyan-400" />
-          <KpiCard icon={Wrench}        label="Tooling Avail"    value="100%"                             color="text-yellow-400" dotColor="bg-yellow-400" />
-          <KpiCard icon={Shield}        label="RII Inspectors"   value="3"                                color="text-purple-400" dotColor="bg-purple-400" />
+          <KpiCard icon={Activity}      label="Active Events"   value={isLoading ? '…' : activeCount}    color="text-blue-400"   dotColor="bg-blue-400" />
+          <KpiCard icon={AlertTriangle} label="On Hold"         value={isLoading ? '…' : onHoldCount}    color="text-orange-400" dotColor="bg-orange-400" />
+          <KpiCard icon={CheckCircle}   label="Phases Complete" value={isLoading ? '…' : completedCount} color="text-green-400"  dotColor="bg-green-400" />
+          <KpiCard icon={Zap}           label="Engines Ready"   value={isLoading ? '…' : enginesReady}   color="text-cyan-400"   dotColor="bg-cyan-400" />
+          <KpiCard icon={Wrench}        label="Tooling Avail"   value="100%"                             color="text-yellow-400" dotColor="bg-yellow-400" />
+          <KpiCard icon={Shield}        label="RII Inspectors"  value="3"                                color="text-purple-400" dotColor="bg-purple-400" />
         </div>
 
-        {/* ── EVENT CARDS ROW ── */}
         <div>
           <div className="flex gap-3 overflow-x-auto scrollbar-hide pb-2">
             {isLoading ? (
               <div className="text-gray-500 text-sm py-4">Loading events…</div>
             ) : engineEvents.length === 0 ? (
-              <div className="bg-[#141922] border border-white/10 rounded-2xl px-6 py-8 text-center text-gray-500 text-sm flex-shrink-0 w-64">
-                No engine events yet
-              </div>
+              <div className="bg-[#141922] border border-white/10 rounded-2xl px-6 py-8 text-center text-gray-500 text-sm flex-shrink-0 w-64">No engine events yet</div>
             ) : (
               engineEvents.map(ev => (
                 <div key={ev.id} className="flex-shrink-0 w-52">
@@ -592,7 +528,6 @@ export default function EngineRemovalInstallation() {
                 </div>
               ))
             )}
-            {/* New Engine Event Button */}
             <button onClick={() => setShowModal(true)}
               className="flex-shrink-0 w-52 rounded-2xl bg-green-600 hover:bg-green-500 transition-colors flex flex-col items-center justify-center gap-2 py-6 px-4">
               <Plus className="w-8 h-8 text-white" />
@@ -601,7 +536,6 @@ export default function EngineRemovalInstallation() {
           </div>
         </div>
 
-        {/* ── WORKFLOW TIMELINE ── */}
         <WorkflowTimeline
           currentPhaseId={currentPhaseId}
           completedTasks={completedTasks}
@@ -609,31 +543,23 @@ export default function EngineRemovalInstallation() {
           onSelectPhase={setSelectedPhaseId}
         />
 
-        {/* ── TASK WORKFLOW CARDS ── */}
         <TaskWorkflowCards
           selectedPhaseId={selectedPhaseId}
           completedTasks={completedTasks}
           onTaskComplete={handleTaskComplete}
         />
 
-        {/* ── PARTS & TOOLING ROW ── */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
           <PartsEngineStatus />
           <ToolingReservations />
         </div>
 
-        {/* ── QC/RII INSPECTIONS ── */}
-        <QCRIIInspections
-          completedTasks={completedTasks}
-          currentPhaseId={currentPhaseId}
-        />
+        <QCRIIInspections completedTasks={completedTasks} currentPhaseId={currentPhaseId} />
 
-        {/* ── DETAIL PANEL ── */}
         {selectedEvent && selectedEvent.description?.includes('[ENGINE REMOVAL]') && (
           <EventDetail event={selectedEvent} />
         )}
 
-        {/* ── ALL EVENTS TABLE ── */}
         <div className="bg-[#141922] border border-white/10 rounded-2xl overflow-hidden">
           <div className="px-5 py-4 border-b border-white/10 flex items-center justify-between">
             <p className="font-extrabold text-white">Engine Event Log — ATA 72</p>
@@ -658,8 +584,7 @@ export default function EngineRemovalInstallation() {
                   const statusKey = Object.keys(STATUS).find(k => rawStatus.toLowerCase().includes(k)) || 'active';
                   const cfg = STATUS[statusKey];
                   return (
-                    <tr key={ev.id}
-                      onClick={() => setSelectedEvent(ev)}
+                    <tr key={ev.id} onClick={() => setSelectedEvent(ev)}
                       className={cn('hover:bg-white/5 transition-colors cursor-pointer', selectedEvent?.id === ev.id && 'bg-primary/5')}>
                       <td className="py-3 px-4 font-bold text-primary font-mono">{ev.aircraft_tail}</td>
                       <td className="py-3 px-4 text-yellow-400 font-bold">{ev.notes?.match(/Position: ([^|]+)/)?.[1]?.trim() || '—'}</td>
@@ -697,10 +622,7 @@ export default function EngineRemovalInstallation() {
       {showAirlineModal && editingAirline && (
         <EditAirlineModal
           fleet={editingAirline}
-          onClose={() => {
-            setShowAirlineModal(false);
-            setEditingAirline(null);
-          }}
+          onClose={() => { setShowAirlineModal(false); setEditingAirline(null); }}
           onSave={(id, data) => updateFleetMutation.mutate({ id, data })}
         />
       )}
