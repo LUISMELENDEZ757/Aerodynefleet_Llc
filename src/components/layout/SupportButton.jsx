@@ -16,7 +16,7 @@ export default function SupportButton() {
 
   const handleSend = () => {
     if (!form.message.trim()) return;
-    const mailto = `mailto:support@aerofleet.ops?subject=${encodeURIComponent(form.subject || 'Support Request')}&body=${encodeURIComponent(form.message)}`;
+    const mailto = `mailto:luismelendez757@yahoo.com?subject=${encodeURIComponent(form.subject || 'Support Request')}&body=${encodeURIComponent(form.message)}`;
     window.open(mailto);
     setSent(true);
     setTimeout(() => { setSent(false); setOpen(false); setForm({ subject: '', message: '' }); }, 2000);
@@ -75,7 +75,7 @@ export default function SupportButton() {
                 Send via Email
               </button>
               <p className="text-[10px] text-muted-foreground text-center">
-                Sends to support@aerofleet.ops
+                Sends to luismelendez757@yahoo.com
               </p>
             </div>
           )}
