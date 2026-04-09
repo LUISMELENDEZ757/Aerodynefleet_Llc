@@ -11,6 +11,7 @@ import MccMelBoard from '@/components/mcc/MccMelBoard';
 import MccFaultBoard from '@/components/mcc/MccFaultBoard';
 import MccPartsBoard from '@/components/mcc/MccPartsBoard';
 import MccToolingBoard from '@/components/mcc/MccToolingBoard';
+import ShiftHandoverModule from '@/components/mcc/ShiftHandoverModule';
 
 const TABS = [
   { id: 'fleet',    label: 'Fleet Status' },
@@ -136,7 +137,8 @@ export default function MaintenanceControl() {
         {activeTab === 'parts'   && <MccPartsBoard parts={parts} oosEntries={oosEntries} />}
         {activeTab === 'tooling' && <MccToolingBoard tools={tools} />}
         {activeTab === 'technician' && (
-          <div className="space-y-4">
+          <div className="space-y-5">
+            <ShiftHandoverModule />
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
               <div className="bg-card border border-border rounded-2xl p-5 space-y-3">
                 <div className="flex items-center gap-2">

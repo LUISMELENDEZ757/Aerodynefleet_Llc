@@ -1,0 +1,112 @@
+{
+  "name": "ShiftHandover",
+  "type": "object",
+  "description": "Shift handover log for maintenance teams - tracks progress, pending issues, and safety critical notes between shifts",
+  "properties": {
+    "shift_date": {
+      "type": "string",
+      "format": "date",
+      "description": "Date of the shift"
+    },
+    "shift_period": {
+      "type": "string",
+      "enum": [
+        "morning",
+        "afternoon",
+        "night"
+      ],
+      "description": "Shift period"
+    },
+    "submitted_by": {
+      "type": "string",
+      "description": "Technician name submitting handover"
+    },
+    "submitted_by_cert": {
+      "type": "string",
+      "description": "Technician certification/license number"
+    },
+    "progress_summary": {
+      "type": "string",
+      "description": "Summary of work completed during shift"
+    },
+    "aircraft_worked_on": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "List of aircraft tail numbers worked on"
+    },
+    "pending_issues": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "description": {
+            "type": "string"
+          },
+          "aircraft_tail": {
+            "type": "string"
+          },
+          "priority": {
+            "type": "string",
+            "enum": [
+              "critical",
+              "high",
+              "medium",
+              "low"
+            ]
+          },
+          "assigned_to": {
+            "type": "string",
+            "description": "Next shift technician or role"
+          }
+        }
+      },
+      "description": "Issues pending for next shift"
+    },
+    "safety_critical_notes": {
+      "type": "string",
+      "description": "Critical safety information for incoming shift"
+    },
+    "parts_consumed": {
+      "type": "string",
+      "description": "Parts used during shift"
+    },
+    "tools_in_use": {
+      "type": "string",
+      "description": "Tools currently checked out or in use"
+    },
+    "shift_end_time": {
+      "type": "string",
+      "description": "ISO timestamp when shift ended"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "draft",
+        "submitted",
+        "acknowledged"
+      ],
+      "default": "draft",
+      "description": "Handover status"
+    },
+    "acknowledged_by": {
+      "type": "string",
+      "description": "Name of technician who acknowledged handover"
+    },
+    "acknowledged_at": {
+      "type": "string",
+      "description": "ISO timestamp of acknowledgment"
+    },
+    "notes": {
+      "type": "string",
+      "description": "Additional notes or comments"
+    }
+  },
+  "required": [
+    "shift_date",
+    "shift_period",
+    "submitted_by",
+    "progress_summary"
+  ]
+}
