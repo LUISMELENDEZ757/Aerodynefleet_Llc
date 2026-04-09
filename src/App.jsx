@@ -90,7 +90,6 @@ const AOGProbabilityForecast   = lazy(() => import('@/pages/AOGProbabilityForeca
 const CostPerFlightAnalytics   = lazy(() => import('@/pages/CostPerFlightAnalytics'));
 const PredictivePartsOrdering  = lazy(() => import('@/pages/PredictivePartsOrdering'));
 const LineMxTablet             = lazy(() => import('@/pages/LineMxTablet'));
-const BORROBDashboard          = lazy(() => import('@/pages/BORROBDashboard'));
 
 function PageFallback() {
   return (
@@ -242,7 +241,6 @@ const AuthenticatedApp = () => {
         <Route path="/PredictiveParts" element={<PredictivePartsOrdering />} />
         <Route path="/LineMxTablet" element={<LineMxTablet />} />
         <Route path="/ReleaseArchive" element={<ReleaseArchiveDashboard />} />
-        <Route path="/BORROB" element={<BORROBDashboard />} />
       </Route>
       <Route path="*" element={<PageNotFound />} />
     </Routes>
