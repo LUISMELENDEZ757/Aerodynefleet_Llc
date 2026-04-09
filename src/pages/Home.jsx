@@ -95,7 +95,7 @@ export default function Home() {
             <Plane className="w-5 h-5 text-primary" />
           </div>
           <div>
-            <p className="text-sm font-extrabold text-white tracking-widest uppercase leading-none">Operations Hub</p>
+            <p className="text-sm font-extrabold text-white tracking-widest uppercase leading-none">OCC Operations Control Center</p>
             <p className="text-[10px] text-gray-500 font-mono">Aerodyne Fleet LLC</p>
           </div>
           <FleetBadge />
