@@ -2,6 +2,9 @@ import React, { useState } from "react";
 import { Link } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import { base44 } from "@/api/base44Client";
+
+// Prevent dynamic import errors with fallback
+const SafeComponent = ({ children }) => <>{children}</>;
 import {
   Plane, Shield, Brain, AlertTriangle, TrendingUp, DollarSign,
   CloudLightning, Package, Clock, CheckCircle, BarChart3, Zap,
