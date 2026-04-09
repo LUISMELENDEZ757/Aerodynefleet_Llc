@@ -54,26 +54,27 @@ const PHASE_TASKS = {
     label: 'Engine Removal',
     tasks: [
       {
-        id: 'eng_disconnect',
-        title: 'Engine Disconnection — Lines & Harnesses',
-        assigned: 'Lead A&P Technician',
-        documents: ['AMM 71-00-00 Task 400', 'Work Card ENG-REM-001'],
-        tooling: ['Engine Sling (P/N 60-80-26)', 'Blanking Caps Set'],
-        completed: false,
-        completedBy: null,
-        cert: null,
-        dateTime: null,
+        id: 'qc_pre_removal',
+        title: 'QC Pre-Removal RII',
+        assigned: 'QC Inspector',
+        documents: ['RII Sign-Off Card'],
+        tooling: [],
+        completed: true,
+        completedBy: 'Sarah Mitchell',
+        cert: 'A&P 2847593 (RII)',
+        dateTime: '3/7/2026, 9:45:00 AM',
       },
       {
-        id: 'eng_lower',
-        title: 'Engine Lower & Removal from Wing',
-        assigned: 'Lead A&P + RII Inspector',
-        documents: ['AMM 71-00-00 Task 420', 'RII Signoff Card'],
-        tooling: ['Engine Stand', 'Overhead Crane', 'Sling Assembly'],
+        id: 'eng_removal_amm',
+        title: 'Engine Removal Per AMM',
+        assigned: 'Line Maintenance Crew',
+        documents: ['AMM 71-00-00 Engine Removal', 'Work Card Package'],
+        tooling: ['Engine Sling', 'Bootstrap Kit', 'Torque Wrenches', 'Engine Stand'],
         completed: false,
         completedBy: null,
         cert: null,
         dateTime: null,
+        signOff: true,
       },
     ],
   },
@@ -192,6 +193,10 @@ function TaskCard({ task }) {
             <p className="text-xs font-bold text-white">{task.dateTime}</p>
           </div>
         </div>
+      ) : task.signOff ? (
+        <button className="w-full mt-auto flex items-center justify-center gap-2 bg-green-500 hover:bg-green-400 text-black font-extrabold text-sm py-3 rounded-xl transition-colors">
+          <CheckCircle className="w-4 h-4" /> Sign Off Task
+        </button>
       ) : (
         <div className="flex items-center gap-2 border-t border-white/5 pt-3 mt-auto">
           <div className="w-2 h-2 rounded-full bg-blue-400 animate-pulse" />

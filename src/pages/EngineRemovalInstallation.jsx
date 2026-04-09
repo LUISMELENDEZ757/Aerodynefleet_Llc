@@ -10,6 +10,9 @@ import { cn } from '@/lib/utils';
 import { format } from 'date-fns';
 import WorkflowTimeline from '@/components/engine/WorkflowTimeline';
 import TaskWorkflowCards from '@/components/engine/TaskWorkflowCards';
+import PartsEngineStatus from '@/components/engine/PartsEngineStatus';
+import ToolingReservations from '@/components/engine/ToolingReservations';
+import QCRIIInspections from '@/components/engine/QCRIIInspections';
 
 // ── Live Clock ────────────────────────────────────────────────────────────────
 function LiveClock() {
@@ -578,6 +581,15 @@ export default function EngineRemovalInstallation() {
 
         {/* ── TASK WORKFLOW CARDS ── */}
         <TaskWorkflowCards currentPhaseId="engine_removal" />
+
+        {/* ── PARTS & TOOLING ROW ── */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+          <PartsEngineStatus />
+          <ToolingReservations />
+        </div>
+
+        {/* ── QC/RII INSPECTIONS ── */}
+        <QCRIIInspections />
 
         {/* ── DETAIL PANEL ── */}
         {selectedEvent && selectedEvent.description?.includes('[ENGINE REMOVAL]') && (
