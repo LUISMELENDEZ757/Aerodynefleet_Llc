@@ -20,7 +20,7 @@ const TECHNICIAN_ITEMS = [
   { label: 'Tooling', path: '/ToolingManagement' },
   { label: 'Engineering', path: '/EngineeringDashboard' },
   { label: 'Engine Removal', path: '/EngineRemovalInstallation' },
-  { label: 'BOR/ROB Parts', path: '/BORROB' },
+  { label: 'ROB/BOR Operations', path: '/BORROB' },
 ];
 
 // ── WORKGROUP 2: DISPATCH & OPERATIONS CONTROL ─────────────────────────────────
