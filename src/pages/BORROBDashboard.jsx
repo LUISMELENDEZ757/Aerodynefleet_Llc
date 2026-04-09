@@ -9,6 +9,15 @@ import {
 import { cn } from '@/lib/utils';
 import { format } from 'date-fns';
 
+const WORKFLOW_STAGES = [
+  { id: 'overview', label: 'Overview', icon: '📋' },
+  { id: 'mcc_approval', label: 'MCC Approval', badge: 1 },
+  { id: 'qc_inspection', label: 'QC Inspection', badge: 1 },
+  { id: 'ready_to_install', label: 'Ready to Install', badge: 1 },
+  { id: 'interline_loans', label: 'Interline Loans', badge: 2 },
+  { id: 'all_requests', label: 'All Requests' },
+];
+
 const STATUS_COLORS = {
   pending_mcc: 'text-orange-400 bg-orange-500/15 border-orange-500/40',
   mcc_approved: 'text-blue-400 bg-blue-500/15 border-blue-500/40',
@@ -291,6 +300,7 @@ function CompleteInstallationModal({ item, onClose, onConfirm }) {
 }
 
 export default function BORROBDashboard() {
+  const [activeWorkflow, setActiveWorkflow] = useState('overview');
   const [approvingItem, setApprovingItem] = useState(null);
   const [assigningItem, setAssigningItem] = useState(null);
   const [completingItem, setCompletingItem] = useState(null);
@@ -384,7 +394,7 @@ export default function BORROBDashboard() {
           </button>
         </div>
 
-        {/* Stats */}
+      {/* Stats */}
         <div className="grid grid-cols-5 gap-2 mt-4">
           {[
             { label: 'Pending', value: stats.pending, color: 'text-orange-400', key: 'pending_mcc' },
