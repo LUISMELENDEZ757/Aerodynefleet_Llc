@@ -8,7 +8,6 @@ import { useRail } from '@/lib/RailContext';
 // ── FLIGHT OPS GROUP ─────────────────────────────────────────────────────────
 const FLIGHT_OPS_ITEMS = [
   { label: 'HOME',           path: '/Home' },
-  { label: 'AOCS',           path: '/AocsDashboard' },
   { label: 'DISPATCH',       path: '/Dispatch' },
   { label: 'EFB',            path: '/EFB' },
   { label: 'FLIGHT CREW',    path: '/FlightCrew' },
@@ -56,7 +55,6 @@ const TECH_OPS_ITEMS = [
 // ── TECH-MODE ONLY RAIL (simplified) ─────────────────────────────────────────
 const TECH_MODE_ITEMS = [
   { label: 'HOME',           path: '/Home' },
-  { label: 'AOCS',           path: '/AocsDashboard' },
   { label: 'LINE MX',        path: '/LineMaintenanceDashboard' },
   ...TECH_OPS_ITEMS,
   { label: 'SETTINGS',       path: '/Settings' },
