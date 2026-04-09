@@ -8,6 +8,8 @@ import {
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { format } from 'date-fns';
+import WorkflowTimeline from '@/components/engine/WorkflowTimeline';
+import TaskWorkflowCards from '@/components/engine/TaskWorkflowCards';
 
 // ── Live Clock ────────────────────────────────────────────────────────────────
 function LiveClock() {
@@ -570,6 +572,12 @@ export default function EngineRemovalInstallation() {
             </button>
           </div>
         </div>
+
+        {/* ── WORKFLOW TIMELINE ── */}
+        <WorkflowTimeline currentPhaseId="engine_removal" />
+
+        {/* ── TASK WORKFLOW CARDS ── */}
+        <TaskWorkflowCards currentPhaseId="engine_removal" />
 
         {/* ── DETAIL PANEL ── */}
         {selectedEvent && selectedEvent.description?.includes('[ENGINE REMOVAL]') && (
