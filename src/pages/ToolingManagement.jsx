@@ -44,7 +44,6 @@ export default function ToolingManagement() {
   const [scanMode, setScanMode] = useState('qr');
   const [newTool, setNewTool] = useState(null);
   const queryClient = useQueryClient();
-  // Force rebuild
 
   const { data: tools = [] } = useQuery({
     queryKey: ['tools'],
