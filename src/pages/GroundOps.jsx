@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { base44 } from '@/api/base44Client';
 import { Link } from 'react-router-dom';
-import { Truck, RefreshCw, Plus, CheckCircle, Clock, AlertTriangle } from 'lucide-react';
+import { Truck, RefreshCw, Plus, CheckCircle, Clock, AlertTriangle, Plane, TrendingUp, TrendingDown } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 const TODAY = new Date().toISOString().split('T')[0];
@@ -127,6 +127,8 @@ function NewOpsModal({ flights, onClose, onCreate }) {
 
 export default function GroundOpsPage() {
   const [showNew, setShowNew] = useState(false);
+  const [activeTab, setActiveTab] = useState('ops');
+  const [selectedStation, setSelectedStation] = useState('KJFK');
   const qc = useQueryClient();
 
   const { data: ops = [], refetch } = useQuery({
@@ -139,6 +141,18 @@ export default function GroundOpsPage() {
     queryFn: () => base44.entities.Flight.filter({ flight_date: TODAY }),
   });
 
+  const { data: arrivals = {}, refetch: refetchArrivals, isLoading: loadingArr } = useQuery({
+    queryKey: ['station-arrivals', selectedStation],
+    queryFn: () => base44.functions.invoke('flightAwareStationOps', { station: selectedStation, direction: 'arrivals' }),
+    refetchInterval: 60000,
+  });
+
+  const { data: departures = {}, refetch: refetchDepartures, isLoading: loadingDep } = useQuery({
+    queryKey: ['station-departures', selectedStation],
+    queryFn: () => base44.functions.invoke('flightAwareStationOps', { station: selectedStation, direction: 'departures' }),
+    refetchInterval: 60000,
+  });
+
   const updateMutation = useMutation({
     mutationFn: ({ id, data }) => base44.entities.GroundOps.update(id, data),
     onSuccess: () => qc.invalidateQueries({ queryKey: ['ground-ops'] }),
@@ -149,9 +163,10 @@ export default function GroundOpsPage() {
   });
 
   const complete = ops.filter(o => o.boarding_status === 'closed').length;
+  const stations = ['KJFK', 'KLAX', 'KORD', 'KDFW', 'KATL', 'KDEN'];
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen bg-background pb-24">
       <div className="border-b border-border bg-card px-5 pt-5 pb-4">
         <div className="flex items-start justify-between gap-4">
           <div className="flex items-center gap-3">
@@ -164,7 +179,7 @@ export default function GroundOpsPage() {
             </div>
           </div>
           <div className="flex gap-2">
-            <button onClick={refetch} className="w-10 h-10 rounded-xl bg-secondary flex items-center justify-center hover:bg-secondary/80 transition-colors">
+            <button onClick={() => { refetch(); refetchArrivals(); refetchDepartures(); }} className="w-10 h-10 rounded-xl bg-secondary flex items-center justify-center hover:bg-secondary/80 transition-colors">
               <RefreshCw className="w-4 h-4 text-muted-foreground" />
             </button>
             <button onClick={() => setShowNew(true)} className="flex items-center gap-1.5 px-3 h-10 rounded-xl bg-primary text-primary-foreground text-xs font-bold hover:bg-primary/90">
@@ -172,9 +187,37 @@ export default function GroundOpsPage() {
             </button>
           </div>
         </div>
+        {/* Tabs */}
+        <div className="flex gap-2 mt-4">
+          <button onClick={() => setActiveTab('ops')} className={cn('px-4 py-2 rounded-lg text-sm font-bold', activeTab === 'ops' ? 'bg-primary text-primary-foreground' : 'bg-secondary text-muted-foreground')}>
+            Local Ops
+          </button>
+          <button onClick={() => setActiveTab('station')} className={cn('px-4 py-2 rounded-lg text-sm font-bold flex items-center gap-2', activeTab === 'station' ? 'bg-primary text-primary-foreground' : 'bg-secondary text-muted-foreground')}>
+            <Plane className="w-4 h-4" /> Station View
+          </button>
+        </div>
       </div>
 
       <div className="p-4 space-y-4">
+        {/* Station Selector */}
+        {activeTab === 'station' && (
+          <div className="space-y-3">
+            <div className="flex gap-2 overflow-x-auto scrollbar-hide pb-2">
+              {stations.map(stn => (
+                <button
+                  key={stn}
+                  onClick={() => setSelectedStation(stn)}
+                  className={cn('px-4 py-2 rounded-lg text-xs font-bold whitespace-nowrap', selectedStation === stn ? 'bg-primary text-primary-foreground' : 'bg-card border border-border text-muted-foreground')}
+                >
+                  {stn}
+                </button>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {activeTab === 'ops' ? (
+        <>
         <div className="grid grid-cols-3 gap-3">
           <div className="rounded-xl bg-card border border-border px-4 py-3 text-center">
             <p className="text-2xl font-extrabold text-primary">{ops.length}</p>
@@ -202,9 +245,71 @@ export default function GroundOpsPage() {
             ))}
           </div>
         )}
-      </div>
+        </>
+        ) : (
+        <div className="space-y-4">
+          {/* Arrivals */}
+          <div className="bg-card border border-border rounded-2xl overflow-hidden">
+            <div className="flex items-center gap-2 px-5 py-3 border-b border-border bg-secondary">
+              <TrendingDown className="w-4 h-4 text-green-400" />
+              <h3 className="font-bold text-foreground">Arrivals</h3>
+              <span className="ml-auto text-xs text-muted-foreground">{arrivals.data?.flights?.length || 0} flights</span>
+            </div>
+            <div className="divide-y divide-border max-h-96 overflow-y-auto">
+              {loadingArr ? (
+                <div className="px-5 py-4 text-xs text-muted-foreground text-center">Loading...</div>
+              ) : arrivals.data?.flights?.length === 0 ? (
+                <div className="px-5 py-4 text-xs text-muted-foreground text-center">No arrivals</div>
+              ) : (
+                arrivals.data?.flights?.slice(0, 15).map((flight, idx) => (
+                  <div key={idx} className="px-5 py-3 flex items-center justify-between text-sm">
+                    <div>
+                      <p className="font-mono font-bold text-foreground">{flight.ident || flight.flight_number || '—'}</p>
+                      <p className="text-xs text-muted-foreground">{flight.origin || '—'} → {flight.destination || '—'}</p>
+                    </div>
+                    <div className="text-right">
+                      <p className="text-xs text-green-400 font-bold">ARR</p>
+                      <p className="text-xs text-muted-foreground">{flight.estimatedarrivaltime ? new Date(flight.estimatedarrivaltime * 1000).toLocaleTimeString() : '—'}</p>
+                    </div>
+                  </div>
+                ))
+              )}
+            </div>
+          </div>
 
-      {showNew && <NewOpsModal flights={flights} onClose={() => setShowNew(false)} onCreate={d => createMutation.mutate(d)} />}
+          {/* Departures */}
+          <div className="bg-card border border-border rounded-2xl overflow-hidden">
+            <div className="flex items-center gap-2 px-5 py-3 border-b border-border bg-secondary">
+              <TrendingUp className="w-4 h-4 text-orange-400" />
+              <h3 className="font-bold text-foreground">Departures</h3>
+              <span className="ml-auto text-xs text-muted-foreground">{departures.data?.flights?.length || 0} flights</span>
+            </div>
+            <div className="divide-y divide-border max-h-96 overflow-y-auto">
+              {loadingDep ? (
+                <div className="px-5 py-4 text-xs text-muted-foreground text-center">Loading...</div>
+              ) : departures.data?.flights?.length === 0 ? (
+                <div className="px-5 py-4 text-xs text-muted-foreground text-center">No departures</div>
+              ) : (
+                departures.data?.flights?.slice(0, 15).map((flight, idx) => (
+                  <div key={idx} className="px-5 py-3 flex items-center justify-between text-sm">
+                    <div>
+                      <p className="font-mono font-bold text-foreground">{flight.ident || flight.flight_number || '—'}</p>
+                      <p className="text-xs text-muted-foreground">{flight.origin || '—'} → {flight.destination || '—'}</p>
+                    </div>
+                    <div className="text-right">
+                      <p className="text-xs text-orange-400 font-bold">DEP</p>
+                      <p className="text-xs text-muted-foreground">{flight.estimateddeparturetime ? new Date(flight.estimateddeparturetime * 1000).toLocaleTimeString() : '—'}</p>
+                    </div>
+                  </div>
+                ))
+              )}
+            </div>
+          </div>
+        </div>
+        )}
+
+        {showNew && <NewOpsModal flights={flights} onClose={() => setShowNew(false)} onCreate={d => createMutation.mutate(d)} />}
+      </div>
     </div>
   );
 }
