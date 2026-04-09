@@ -6,6 +6,7 @@ import {
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import BOWPlanner from '@/components/production/BOWPlanner';
+import WorkforceScheduler from '@/components/production/WorkforceScheduler';
 
 const TABS = [
   { id: 'planning', label: 'Planning', icon: '📋' },
@@ -286,6 +287,7 @@ export default function ProductionControlCenter() {
         {activeTab === 'bow' && <BOWPlanner />}
         {activeTab === 'integrations' && <IntegrationHub />}
         {activeTab === 'overview' && <OverviewModule />}
+        {activeTab === 'workforce' && <WorkforceScheduler />}
         {['ai', 'hangar', 'tasks', 'workforce', 'goals'].includes(activeTab) && (
           <div className="text-center py-20 text-gray-600">
             <p className="text-lg font-bold">{TABS.find(t => t.id === activeTab)?.label} Module</p>
