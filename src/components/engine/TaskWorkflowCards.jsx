@@ -1,7 +1,8 @@
+import { useState } from 'react';
 import { cn } from '@/lib/utils';
-import { CheckCircle, FileText, Wrench, User, Calendar } from 'lucide-react';
+import { CheckCircle, FileText, Wrench, User, X } from 'lucide-react';
 
-const PHASE_TASKS = {
+const INITIAL_PHASE_TASKS = {
   mcc_init: {
     label: 'MCC Initiation',
     tasks: [
@@ -91,6 +92,7 @@ const PHASE_TASKS = {
         completedBy: null,
         cert: null,
         dateTime: null,
+        signOff: true,
       },
     ],
   },
@@ -107,6 +109,7 @@ const PHASE_TASKS = {
         completedBy: null,
         cert: null,
         dateTime: null,
+        signOff: true,
       },
     ],
   },
@@ -123,31 +126,90 @@ const PHASE_TASKS = {
         completedBy: null,
         cert: null,
         dateTime: null,
+        signOff: true,
       },
     ],
   },
 };
 
-function TaskCard({ task }) {
+// ── Sign-Off Modal ────────────────────────────────────────────────────────────
+function SignOffModal({ task, onConfirm, onClose }) {
+  const [name, setName] = useState('');
+  const [cert, setCert] = useState('');
+
+  const handleSubmit = (e) => {
+    e.preventDefault();
+    if (!name.trim()) return;
+    onConfirm(task.id, name.trim(), cert.trim());
+  };
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 p-4">
+      <div className="w-full max-w-sm bg-[#141922] border border-green-500/40 rounded-2xl shadow-2xl overflow-hidden">
+        <div className="flex items-center justify-between px-5 py-4 border-b border-white/10">
+          <div className="flex items-center gap-2">
+            <CheckCircle className="w-4 h-4 text-green-400" />
+            <p className="text-sm font-extrabold text-white">Sign Off Task</p>
+          </div>
+          <button onClick={onClose} className="w-7 h-7 rounded-lg bg-white/10 flex items-center justify-center hover:bg-white/20">
+            <X className="w-3.5 h-3.5 text-white" />
+          </button>
+        </div>
+        <form onSubmit={handleSubmit} className="p-5 space-y-4">
+          <div className="bg-[#0d1117] rounded-xl p-3">
+            <p className="text-[10px] text-gray-500 uppercase tracking-widest">Task</p>
+            <p className="text-sm font-bold text-white mt-0.5">{task.title}</p>
+          </div>
+          <div>
+            <label className="text-[10px] font-bold text-gray-400 uppercase tracking-widest block mb-1.5">Technician Name *</label>
+            <input
+              autoFocus
+              value={name}
+              onChange={e => setName(e.target.value)}
+              placeholder="Full Name"
+              required
+              className="w-full bg-[#0d1117] border border-white/10 rounded-xl px-3 py-2.5 text-sm text-white placeholder-gray-600 outline-none focus:border-green-500 transition-colors"
+            />
+          </div>
+          <div>
+            <label className="text-[10px] font-bold text-gray-400 uppercase tracking-widest block mb-1.5">Certificate / License #</label>
+            <input
+              value={cert}
+              onChange={e => setCert(e.target.value)}
+              placeholder="e.g. A&P 1234567"
+              className="w-full bg-[#0d1117] border border-white/10 rounded-xl px-3 py-2.5 text-sm text-white placeholder-gray-600 outline-none focus:border-green-500 transition-colors"
+            />
+          </div>
+          <div className="flex gap-3 pt-1">
+            <button type="button" onClick={onClose} className="flex-1 py-2.5 rounded-xl border border-white/10 text-sm font-bold text-gray-400 hover:bg-white/5">
+              Cancel
+            </button>
+            <button type="submit" disabled={!name.trim()} className="flex-1 py-2.5 rounded-xl bg-green-500 hover:bg-green-400 text-black text-sm font-extrabold disabled:opacity-40 flex items-center justify-center gap-2 transition-colors">
+              <CheckCircle className="w-4 h-4" /> Confirm Sign-Off
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  );
+}
+
+// ── Task Card ─────────────────────────────────────────────────────────────────
+function TaskCard({ task, onSignOff }) {
   return (
     <div className={cn(
       'rounded-2xl border p-5 space-y-3 flex flex-col',
-      task.completed
-        ? 'bg-[#0d1117] border-green-500/40'
-        : 'bg-[#0d1117] border-white/10'
+      task.completed ? 'bg-[#0d1117] border-green-500/40' : 'bg-[#0d1117] border-white/10'
     )}>
-      {/* Title */}
       <div className="flex items-start gap-2">
         <p className="flex-1 text-sm font-extrabold text-white leading-snug">{task.title}</p>
         {task.completed && <CheckCircle className="w-5 h-5 text-green-400 flex-shrink-0 mt-0.5" />}
       </div>
 
-      {/* Assigned */}
       <p className="text-[11px] text-gray-500">
         <span className="text-gray-600">Assigned: </span>{task.assigned}
       </p>
 
-      {/* Documents */}
       {task.documents.length > 0 && (
         <div>
           <p className="text-[10px] font-extrabold text-gray-500 uppercase tracking-widest mb-1.5">Required Documents</p>
@@ -162,7 +224,6 @@ function TaskCard({ task }) {
         </div>
       )}
 
-      {/* Tooling */}
       {task.tooling.length > 0 && (
         <div>
           <p className="text-[10px] font-extrabold text-gray-500 uppercase tracking-widest mb-1.5">Required Tooling</p>
@@ -177,7 +238,6 @@ function TaskCard({ task }) {
         </div>
       )}
 
-      {/* Footer */}
       {task.completed ? (
         <div className="flex items-end justify-between border-t border-white/5 pt-3 mt-auto gap-4">
           <div>
@@ -194,7 +254,10 @@ function TaskCard({ task }) {
           </div>
         </div>
       ) : task.signOff ? (
-        <button className="w-full mt-auto flex items-center justify-center gap-2 bg-green-500 hover:bg-green-400 text-black font-extrabold text-sm py-3 rounded-xl transition-colors">
+        <button
+          onClick={() => onSignOff(task)}
+          className="w-full mt-auto flex items-center justify-center gap-2 bg-green-500 hover:bg-green-400 text-black font-extrabold text-sm py-3 rounded-xl transition-colors active:scale-95"
+        >
           <CheckCircle className="w-4 h-4" /> Sign Off Task
         </button>
       ) : (
@@ -207,25 +270,49 @@ function TaskCard({ task }) {
   );
 }
 
+// ── Main Component ────────────────────────────────────────────────────────────
 export default function TaskWorkflowCards({ currentPhaseId = 'engine_removal' }) {
-  const phase = PHASE_TASKS[currentPhaseId];
-  if (!phase) return null;
+  const phaseTemplate = INITIAL_PHASE_TASKS[currentPhaseId];
+  const [tasks, setTasks] = useState(phaseTemplate?.tasks || []);
+  const [signingOffTask, setSigningOffTask] = useState(null);
+
+  if (!phaseTemplate) return null;
+
+  const handleConfirmSignOff = (taskId, name, cert) => {
+    const now = new Date().toLocaleString('en-US');
+    setTasks(prev => prev.map(t =>
+      t.id === taskId
+        ? { ...t, completed: true, completedBy: name, cert: cert || 'N/A', dateTime: now }
+        : t
+    ));
+    setSigningOffTask(null);
+  };
 
   return (
-    <div className="space-y-3">
-      <div className="flex items-center gap-2">
-        <FileText className="w-4 h-4 text-primary" />
-        <h2 className="text-base font-extrabold text-primary tracking-wide">
-          Task Workflow — Current Phase: {phase.label}
-        </h2>
+    <>
+      <div className="space-y-3">
+        <div className="flex items-center gap-2">
+          <FileText className="w-4 h-4 text-primary" />
+          <h2 className="text-base font-extrabold text-primary tracking-wide">
+            Task Workflow — Current Phase: {phaseTemplate.label}
+          </h2>
+        </div>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          {tasks.map(task => (
+            <TaskCard key={task.id} task={task} onSignOff={setSigningOffTask} />
+          ))}
+        </div>
       </div>
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        {phase.tasks.map(task => (
-          <TaskCard key={task.id} task={task} />
-        ))}
-      </div>
-    </div>
+
+      {signingOffTask && (
+        <SignOffModal
+          task={signingOffTask}
+          onConfirm={handleConfirmSignOff}
+          onClose={() => setSigningOffTask(null)}
+        />
+      )}
+    </>
   );
 }
 
-export { PHASE_TASKS };
+export { INITIAL_PHASE_TASKS as PHASE_TASKS };
