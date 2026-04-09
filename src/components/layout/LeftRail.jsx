@@ -24,7 +24,6 @@ const TECHNICIAN_ITEMS = [
 // ── WORKGROUP 2: DISPATCH & OPERATIONS CONTROL ─────────────────────────────────
 const DISPATCH_OPS_ITEMS = [
   { label: 'Dispatch Workstation', path: '/Dispatch' },
-  { label: 'Flight Monitoring', path: '/DispatchWorkstation' },
   { label: 'ETOPS Monitor', path: '/ETOPSMonitor' },
   { label: 'IROPS Recovery', path: '/IROPS' },
   { label: 'Delay Predictor', path: '/AIDispatchCopilot' },
