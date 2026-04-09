@@ -13,8 +13,6 @@ function SupervisorHandoverForm({ onSubmit, onCancel, isPending }) {
     progress_summary: '',
     pending_issues: [],
     safety_critical_notes: '',
-    escalate_to_email: '',
-    escalate_critical: false,
     notes: '',
   });
 
@@ -33,32 +31,13 @@ function SupervisorHandoverForm({ onSubmit, onCancel, isPending }) {
     set('pending_issues', form.pending_issues.filter((_, i) => i !== idx));
   };
 
-  const handleSubmit = async () => {
+  const handleSubmit = () => {
     if (!form.submitted_by || !form.progress_summary) return;
-
-    const handoverData = {
+    onSubmit({
       ...form,
       shift_end_time: new Date().toISOString(),
       status: 'submitted',
-    };
-
-    // Send escalation if enabled and email provided
-    if (form.escalate_critical && form.escalate_to_email) {
-      try {
-        await base44.functions.invoke('sendHandoverEscalation', {
-          to_email: form.escalate_to_email,
-          shift_date: form.shift_date,
-          shift_period: form.shift_period,
-          submitted_by: form.submitted_by,
-          safety_notes: form.safety_critical_notes,
-          critical_issues: form.pending_issues.filter(i => i.priority === 'critical'),
-        });
-      } catch (e) {
-        console.error('Failed to send escalation email:', e);
-      }
-    }
-
-    onSubmit(handoverData);
+    });
   };
 
   const criticalCount = form.pending_issues.filter(i => i.priority === 'critical').length;
@@ -148,22 +127,7 @@ function SupervisorHandoverForm({ onSubmit, onCancel, isPending }) {
             </div>
           </div>
 
-          {criticalCount > 0 && (
-            <div className="border border-orange-500/40 bg-orange-950/20 rounded-xl p-4 space-y-3">
-              <label className="flex items-center gap-3 cursor-pointer">
-                <div onClick={() => set('escalate_critical', !form.escalate_critical)} className={cn('w-10 h-5 rounded-full transition-all flex items-center px-0.5 flex-shrink-0', form.escalate_critical ? 'bg-orange-500' : 'bg-white/10')}>
-                  <div className={cn('w-4 h-4 rounded-full bg-white transition-all', form.escalate_critical ? 'translate-x-5' : 'translate-x-0')} />
-                </div>
-                <div>
-                  <p className="text-sm font-bold text-orange-400">Escalate {criticalCount} Critical Issue{criticalCount !== 1 ? 's' : ''} via Email</p>
-                  <p className="text-xs text-orange-300">Send alert to management or incoming shift lead</p>
-                </div>
-              </label>
-              {form.escalate_critical && (
-                <input type="email" value={form.escalate_to_email} onChange={e => set('escalate_to_email', e.target.value)} placeholder="Recipient email address" className="w-full bg-background border border-border rounded-lg px-3 py-2.5 text-sm text-foreground placeholder-muted-foreground outline-none focus:border-orange-400" />
-              )}
-            </div>
-          )}
+
 
           <div>
             <label className="text-xs font-bold text-muted-foreground uppercase tracking-widest block mb-1">Additional Notes</label>
@@ -176,7 +140,7 @@ function SupervisorHandoverForm({ onSubmit, onCancel, isPending }) {
             Cancel
           </button>
           <button onClick={handleSubmit} disabled={isPending || !form.submitted_by || !form.progress_summary} className="flex-1 py-2.5 rounded-xl bg-primary text-primary-foreground font-bold hover:bg-primary/90 disabled:opacity-50 flex items-center justify-center gap-2">
-            <Send className="w-4 h-4" /> {isPending ? 'Submitting...' : 'Submit & Escalate'}
+            <Send className="w-4 h-4" /> {isPending ? 'Submitting...' : 'Submit'}
           </button>
         </div>
       </div>
@@ -217,20 +181,12 @@ function SupervisorHandoverCard({ handover }) {
         </div>
       )}
 
-      <div className="flex items-center gap-4">
-        {criticalIssues.length > 0 && (
-          <div className="flex items-center gap-2">
-            <AlertTriangle className="w-3.5 h-3.5 text-orange-400" />
-            <p className="text-xs font-bold text-orange-400">{criticalIssues.length} critical</p>
-          </div>
-        )}
-        {handover.escalate_critical && (
-          <div className="flex items-center gap-2">
-            <Mail className="w-3.5 h-3.5 text-blue-400" />
-            <p className="text-xs font-bold text-blue-400">Escalated</p>
-          </div>
-        )}
-      </div>
+      {criticalIssues.length > 0 && (
+        <div className="flex items-center gap-2">
+          <AlertTriangle className="w-3.5 h-3.5 text-orange-400" />
+          <p className="text-xs font-bold text-orange-400">{criticalIssues.length} critical</p>
+        </div>
+      )}
     </div>
   );
 }
