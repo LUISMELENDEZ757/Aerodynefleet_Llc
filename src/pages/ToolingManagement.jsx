@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { base44 } from '@/api/base44Client';
 import { Wrench, QrCode, Radio, Wifi, Plus, Package, CheckCircle, Users, Calendar, AlertTriangle, DollarSign, BarChart3, Activity } from 'lucide-react';
