@@ -160,14 +160,14 @@ function FlightRow({ flight, isSelected, onClick }) {
           <div className="text-right">
             <p className="text-[10px] font-mono text-gray-400">{flight.scheduled_departure}</p>
             {localTime(flight.scheduled_departure, flight.origin) && (
-              <p className="text-[9px] text-gray-600">{localTime(flight.scheduled_departure, flight.origin)} LCL</p>
+              <p className="text-[9px] text-gray-600">{localTime(flight.scheduled_departure, flight.origin)} LT</p>
             )}
           </div>
           <span className="text-gray-600">→</span>
           <div className="text-right">
             <p className="text-[10px] font-mono text-gray-400">{flight.scheduled_arrival}</p>
             {localTime(flight.scheduled_arrival, flight.destination) && (
-              <p className="text-[9px] text-gray-600">{localTime(flight.scheduled_arrival, flight.destination)} LCL</p>
+              <p className="text-[9px] text-gray-600">{localTime(flight.scheduled_arrival, flight.destination)} LT</p>
             )}
           </div>
         </div>
@@ -226,7 +226,7 @@ function FlightDetailPanel({ flight, aircraft }) {
           <p className="text-[10px] text-gray-500">Departure</p>
           <p className="text-xs font-mono text-primary">{flight.scheduled_departure}</p>
           {localTime(flight.scheduled_departure, flight.origin) && (
-            <p className="text-[10px] text-amber-400">{localTime(flight.scheduled_departure, flight.origin)} LCL</p>
+            <p className="text-[10px] text-amber-400">{localTime(flight.scheduled_departure, flight.origin)} LT</p>
           )}
           {flight.actual_departure && <p className="text-[10px] text-green-400">ATD {flight.actual_departure}</p>}
         </div>
@@ -236,7 +236,7 @@ function FlightDetailPanel({ flight, aircraft }) {
           <p className="text-[10px] text-gray-500">Arrival</p>
           <p className="text-xs font-mono text-primary">{flight.scheduled_arrival}</p>
           {localTime(flight.scheduled_arrival, flight.destination) && (
-            <p className="text-[10px] text-amber-400">{localTime(flight.scheduled_arrival, flight.destination)} LCL</p>
+            <p className="text-[10px] text-amber-400">{localTime(flight.scheduled_arrival, flight.destination)} LT</p>
           )}
           {flight.actual_arrival && <p className="text-[10px] text-green-400">ATA {flight.actual_arrival}</p>}
         </div>
