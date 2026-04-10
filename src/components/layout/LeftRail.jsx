@@ -10,6 +10,7 @@ const TECHNICIAN_ITEMS = [
   { label: 'Crew Chief', path: '/CrewChief' },
   { label: 'Mx Supervisor', path: '/MxSupervisor' },
   { label: 'QC Supervisor', path: '/QCSupervisor' },
+  { label: 'Global Stations', path: '/GlobalStations' },
   { label: 'Production Control', path: '/ProductionControl' },
   { label: 'Work Assignments', path: '/WorkAssignments' },
   { label: 'Line Maintenance', path: '/LineMaintenanceDashboard' },

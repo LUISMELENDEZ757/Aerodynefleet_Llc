@@ -105,6 +105,7 @@ const SignatureAuditDashboard  = lazy(() => import('@/pages/SignatureAuditDashbo
 const CrewChiefDashboard       = lazy(() => import('@/pages/CrewChiefDashboard'));
 const MxSupervisorDashboard    = lazy(() => import('@/pages/MaintenanceSupervisorDashboard'));
 const QCSupervisorDashboard    = lazy(() => import('@/pages/QCSupervisorDashboard'));
+const GlobalStationMgmt        = lazy(() => import('@/pages/GlobalStationManagement'));
 
 function PageFallback() {
   return (
@@ -271,6 +272,7 @@ const AuthenticatedApp = () => {
         <Route path="/CrewChief" element={<CrewChiefDashboard />} />
         <Route path="/MxSupervisor" element={<MxSupervisorDashboard />} />
         <Route path="/QCSupervisor" element={<QCSupervisorDashboard />} />
+        <Route path="/GlobalStations" element={<GlobalStationMgmt />} />
       </Route>
       <Route path="*" element={<PageNotFound />} />
     </Routes>
