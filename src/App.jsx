@@ -103,6 +103,7 @@ const ComponentTraceability    = lazy(() => import('@/pages/ComponentTraceabilit
 const CertificateOfRelease     = lazy(() => import('@/pages/CertificateOfRelease'));
 const SignatureAuditDashboard  = lazy(() => import('@/pages/SignatureAuditDashboard'));
 const CrewChiefDashboard       = lazy(() => import('@/pages/CrewChiefDashboard'));
+const MxSupervisorDashboard    = lazy(() => import('@/pages/MaintenanceSupervisorDashboard'));
 
 function PageFallback() {
   return (
@@ -267,6 +268,7 @@ const AuthenticatedApp = () => {
         <Route path="/CRS" element={<CertificateOfRelease />} />
         <Route path="/SignatureAudit" element={<SignatureAuditDashboard />} />
         <Route path="/CrewChief" element={<CrewChiefDashboard />} />
+        <Route path="/MxSupervisor" element={<MxSupervisorDashboard />} />
       </Route>
       <Route path="*" element={<PageNotFound />} />
     </Routes>
