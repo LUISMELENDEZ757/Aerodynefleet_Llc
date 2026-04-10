@@ -219,8 +219,7 @@ export default function Home() {
         />
         </div>
 
-        {/* Footer */}
-        <p className="text-center text-xs text-gray-700 font-mono pt-2">AERODYNE FLEET LLC · OPS HUB v3.0</p>
+
       </div>
     </div>
   );
