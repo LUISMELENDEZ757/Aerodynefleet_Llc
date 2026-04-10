@@ -27,15 +27,15 @@ const AIRPORT_TZ = {
   YSSY:'Australia/Sydney', YMML:'Australia/Melbourne',
 };
 
-function localTime(utcStr, airportCode) {
-  if (!utcStr || utcStr === '—') return null;
+function localTime(isoOrShort, airportCode) {
+  if (!isoOrShort || isoOrShort === '—') return null;
   const tz = AIRPORT_TZ[airportCode];
   if (!tz) return null;
-  // utcStr is like "14:30Z" — build a full ISO today string
-  const today = new Date().toISOString().split('T')[0];
-  const iso = `${today}T${utcStr.replace('Z', '')}:00Z`;
   try {
-    return new Date(iso).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', timeZone: tz, hour12: false });
+    // Accept full ISO string directly
+    const d = new Date(isoOrShort);
+    if (isNaN(d.getTime())) return null;
+    return d.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', timeZone: tz, hour12: false });
   } catch { return null; }
 }
 
@@ -105,6 +105,8 @@ function normalizeFAFlight(fa) {
     scheduled_arrival: fa.scheduled_in ? new Date(fa.scheduled_in).toISOString().slice(11, 16) + 'Z' : '—',
     actual_departure: fa.actual_out ? new Date(fa.actual_out).toISOString().slice(11, 16) + 'Z' : null,
     actual_arrival: fa.actual_in ? new Date(fa.actual_in).toISOString().slice(11, 16) + 'Z' : null,
+    _raw_dep: fa.scheduled_out || null,
+    _raw_arr: fa.scheduled_in || null,
     gate: fa.gate_origin || '—',
     delay_minutes: fa.departure_delay ? Math.round(fa.departure_delay / 60) : 0,
     airline: fa.operator_iata || fa.operator || '—',
@@ -159,15 +161,15 @@ function FlightRow({ flight, isSelected, onClick }) {
         <div className="flex items-center justify-end gap-1.5">
           <div className="text-right">
             <p className="text-[10px] font-mono text-gray-400">{flight.scheduled_departure}</p>
-            {localTime(flight.scheduled_departure, flight.origin) && (
-              <p className="text-[9px] text-gray-600">{localTime(flight.scheduled_departure, flight.origin)} LT</p>
+            {localTime(flight._raw_dep, flight.origin) && (
+              <p className="text-[9px] text-amber-400">{localTime(flight._raw_dep, flight.origin)} LT</p>
             )}
           </div>
           <span className="text-gray-600">→</span>
           <div className="text-right">
             <p className="text-[10px] font-mono text-gray-400">{flight.scheduled_arrival}</p>
-            {localTime(flight.scheduled_arrival, flight.destination) && (
-              <p className="text-[9px] text-gray-600">{localTime(flight.scheduled_arrival, flight.destination)} LT</p>
+            {localTime(flight._raw_arr, flight.destination) && (
+              <p className="text-[9px] text-amber-400">{localTime(flight._raw_arr, flight.destination)} LT</p>
             )}
           </div>
         </div>
@@ -225,8 +227,8 @@ function FlightDetailPanel({ flight, aircraft }) {
           <p className="text-2xl font-black text-white">{flight.origin}</p>
           <p className="text-[10px] text-gray-500">Departure</p>
           <p className="text-xs font-mono text-primary">{flight.scheduled_departure}</p>
-          {localTime(flight.scheduled_departure, flight.origin) && (
-            <p className="text-[10px] text-amber-400">{localTime(flight.scheduled_departure, flight.origin)} LT</p>
+          {localTime(flight._raw_dep, flight.origin) && (
+            <p className="text-[10px] text-amber-400">{localTime(flight._raw_dep, flight.origin)} LT</p>
           )}
           {flight.actual_departure && <p className="text-[10px] text-green-400">ATD {flight.actual_departure}</p>}
         </div>
@@ -235,8 +237,8 @@ function FlightDetailPanel({ flight, aircraft }) {
           <p className="text-2xl font-black text-white">{flight.destination}</p>
           <p className="text-[10px] text-gray-500">Arrival</p>
           <p className="text-xs font-mono text-primary">{flight.scheduled_arrival}</p>
-          {localTime(flight.scheduled_arrival, flight.destination) && (
-            <p className="text-[10px] text-amber-400">{localTime(flight.scheduled_arrival, flight.destination)} LT</p>
+          {localTime(flight._raw_arr, flight.destination) && (
+            <p className="text-[10px] text-amber-400">{localTime(flight._raw_arr, flight.destination)} LT</p>
           )}
           {flight.actual_arrival && <p className="text-[10px] text-green-400">ATA {flight.actual_arrival}</p>}
         </div>
