@@ -25,7 +25,10 @@ function AppContent() {
   const [railCollapsed, setRailCollapsed] = useState(false);
   const lastScrollY = useRef(0);
 
+  const [isDemoMode, setIsDemoMode] = useState(false);
+
   useEffect(() => {
+    setIsDemoMode(localStorage.getItem('demoMode') === 'true');
     const root = document.getElementById('root');
     if (!root) return;
     const handleScroll = () => {
@@ -48,6 +51,9 @@ function AppContent() {
             <span className="text-xs font-extrabold text-primary tracking-widest uppercase">Aerodyne Fleet LLC</span>
             <span className="text-[10px] text-gray-500 tracking-widest uppercase">Aircraft Maintenance Management System</span>
           </div>
+          {isDemoMode && (
+            <span className="text-[10px] font-extrabold px-2 py-1 rounded-full bg-orange-500/20 text-orange-400 border border-orange-500/30">DEMO</span>
+          )}
           <LocalModeToggle />
           <WifiIndicator />
           <StarlinkIndicator />
