@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import TechAssignmentPanel from '@/components/techops/TechAssignmentPanel';
 import { base44 } from '@/api/base44Client';
 import { Link } from 'react-router-dom';
 import {
@@ -173,6 +174,12 @@ export default function CrewChiefDashboard() {
     refetchInterval: 60000,
   });
 
+  const { data: aircraft = [] } = useQuery({
+    queryKey: ['cc-aircraft'],
+    queryFn: () => base44.entities.Aircraft.list('tail_number', 500),
+    refetchInterval: 60000,
+  });
+
   const { data: ads = [] } = useQuery({
     queryKey: ['cc-ads'],
     queryFn: () => base44.entities.AirworthinessDirective.filter({ status: 'overdue' }),
@@ -273,6 +280,8 @@ export default function CrewChiefDashboard() {
             { id: 'parts', label: 'Parts & Tools', badge: lowStock.length + calDue.length },
             { id: 'handover', label: 'Shift Handover' },
             { id: 'work_assignments', label: 'Work Assignments', badge: requisitions.filter(r => r.status === 'pending_approval').length },
+            { id: 'tech_assignment', label: 'Tech Assignment' },
+
 
           ].map(t => (
             <button key={t.id} onClick={() => setTab(t.id)}
@@ -520,6 +529,15 @@ export default function CrewChiefDashboard() {
               View Full Work Assignment Dashboard <ChevronRight className="w-4 h-4" />
             </Link>
           </div>
+        )}
+
+        {/* TECH ASSIGNMENT TAB */}
+        {tab === 'tech_assignment' && (
+          <TechAssignmentPanel
+            aircraft={aircraft}
+            discrepancies={discrepancies}
+            onAssign={(id) => { const e = discrepancies.find(x => x.id === id); if (e) setAssignEntry(e); }}
+          />
         )}
       </div>
 
