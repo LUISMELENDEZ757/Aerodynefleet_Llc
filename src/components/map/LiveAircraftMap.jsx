@@ -186,10 +186,7 @@ export default function LiveAircraftMap({ flights = [] }) {
               </button>
             </div>
             <button
-              onClick={() => {
-                setSelectedAirline(null);
-                setShowAirlineModal(false);
-              }}
+              onClick={() => setSelectedAirline(null)}
               className={cn(
                 'w-full text-left text-xs font-bold px-3 py-2 rounded-lg border transition-all',
                 !selectedAirline
