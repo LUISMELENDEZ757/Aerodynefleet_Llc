@@ -1,0 +1,99 @@
+{
+  "name": "ComponentLifecycle",
+  "type": "object",
+  "description": "Component lifecycle tracking \u2014 monitors flight hours, cycles, and maintenance status of aircraft components.",
+  "properties": {
+    "aircraft_tail": {
+      "type": "string",
+      "description": "Aircraft tail number"
+    },
+    "component_name": {
+      "type": "string",
+      "description": "Name of the component (e.g., Engine 1, Main Landing Gear)"
+    },
+    "part_number": {
+      "type": "string",
+      "description": "Manufacturer part number"
+    },
+    "serial_number": {
+      "type": "string",
+      "description": "Component serial number"
+    },
+    "component_type": {
+      "type": "string",
+      "enum": [
+        "engine",
+        "landing_gear",
+        "hydraulic_system",
+        "electrical_system",
+        "avionics",
+        "structural",
+        "other"
+      ],
+      "description": "Type of component"
+    },
+    "installation_date": {
+      "type": "string",
+      "format": "date",
+      "description": "Date component was installed"
+    },
+    "total_flight_hours": {
+      "type": "number",
+      "default": 0,
+      "description": "Total flight hours on this component"
+    },
+    "total_cycles": {
+      "type": "number",
+      "default": 0,
+      "description": "Total takeoff/landing cycles"
+    },
+    "overhaul_interval_hours": {
+      "type": "number",
+      "description": "Hours between required overhauls"
+    },
+    "overhaul_interval_cycles": {
+      "type": "number",
+      "description": "Cycles between required overhauls"
+    },
+    "last_overhaul_date": {
+      "type": "string",
+      "format": "date"
+    },
+    "next_overhaul_due_hours": {
+      "type": "number",
+      "description": "Flight hours remaining until next overhaul"
+    },
+    "next_overhaul_due_cycles": {
+      "type": "number",
+      "description": "Cycles remaining until next overhaul"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "serviceable",
+        "under_maintenance",
+        "due_for_overhaul",
+        "overdue",
+        "retired"
+      ],
+      "default": "serviceable"
+    },
+    "life_limited": {
+      "type": "boolean",
+      "default": false,
+      "description": "Whether this is a life-limited part"
+    },
+    "life_limit_hours": {
+      "type": "number",
+      "description": "Maximum allowed flight hours for life-limited parts"
+    },
+    "notes": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "aircraft_tail",
+    "component_name",
+    "component_type"
+  ]
+}

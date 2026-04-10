@@ -1,0 +1,84 @@
+{
+  "name": "ScheduledInspection",
+  "type": "object",
+  "description": "Scheduled inspection for aircraft \u2014 tracks upcoming maintenance and inspection appointments.",
+  "properties": {
+    "aircraft_tail": {
+      "type": "string",
+      "description": "Aircraft tail number"
+    },
+    "inspection_type": {
+      "type": "string",
+      "enum": [
+        "100_hour",
+        "annual",
+        "progressive",
+        "ad_inspection",
+        "component_overhaul",
+        "pre_flight"
+      ],
+      "description": "Type of inspection"
+    },
+    "title": {
+      "type": "string",
+      "description": "Inspection title"
+    },
+    "scheduled_date": {
+      "type": "string",
+      "format": "date",
+      "description": "Scheduled date for inspection"
+    },
+    "due_date": {
+      "type": "string",
+      "format": "date",
+      "description": "Hard due date for inspection"
+    },
+    "estimated_hours": {
+      "type": "number",
+      "description": "Estimated man-hours required"
+    },
+    "recurring": {
+      "type": "boolean",
+      "default": false,
+      "description": "Whether this is a recurring inspection"
+    },
+    "recurring_interval_months": {
+      "type": "number",
+      "description": "Months between recurring inspections"
+    },
+    "ata_chapters": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "ATA chapters to be inspected"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "scheduled",
+        "in_progress",
+        "completed",
+        "overdue",
+        "cancelled"
+      ],
+      "default": "scheduled"
+    },
+    "assigned_technician": {
+      "type": "string",
+      "description": "Name of assigned technician"
+    },
+    "location": {
+      "type": "string",
+      "description": "Location where inspection will be performed"
+    },
+    "notes": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "aircraft_tail",
+    "inspection_type",
+    "scheduled_date"
+  ]
+}

@@ -1,0 +1,81 @@
+{
+  "name": "MaintenanceEvent",
+  "type": "object",
+  "description": "Aircraft maintenance event \u2014 records completed maintenance work including inspections, repairs, and component replacements.",
+  "properties": {
+    "aircraft_tail": {
+      "type": "string",
+      "description": "Aircraft tail number"
+    },
+    "event_type": {
+      "type": "string",
+      "enum": [
+        "inspection",
+        "repair",
+        "component_replacement",
+        "scheduled_maintenance",
+        "ad_compliance",
+        "urgent_repair"
+      ],
+      "description": "Type of maintenance event"
+    },
+    "title": {
+      "type": "string",
+      "description": "Brief title of the maintenance work"
+    },
+    "description": {
+      "type": "string",
+      "description": "Detailed description of work performed"
+    },
+    "ata_chapter": {
+      "type": "string",
+      "description": "ATA chapter reference (e.g., 72 for engines, 32 for landing gear)"
+    },
+    "component_replaced": {
+      "type": "string",
+      "description": "Part number if component was replaced"
+    },
+    "work_hours": {
+      "type": "number",
+      "description": "Man-hours spent on this work"
+    },
+    "completed_date": {
+      "type": "string",
+      "format": "date",
+      "description": "Date the maintenance was completed"
+    },
+    "technician_name": {
+      "type": "string",
+      "description": "Name of technician who performed the work"
+    },
+    "certifications": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "Technician certifications (e.g., A&P, IA)"
+    },
+    "cost": {
+      "type": "number",
+      "description": "Cost of maintenance work"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "in_progress",
+        "completed",
+        "closed"
+      ],
+      "default": "completed"
+    },
+    "notes": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "aircraft_tail",
+    "event_type",
+    "title",
+    "completed_date"
+  ]
+}
