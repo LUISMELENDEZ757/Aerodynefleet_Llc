@@ -35,6 +35,7 @@ export default function LiveAircraftMap({ flights = [] }) {
   const [aircraftPositions, setAircraftPositions] = useState([]);
   const [loading, setLoading] = useState(false);
   const [selectedAirline, setSelectedAirline] = useState(null);
+  const [showAirlineModal, setShowAirlineModal] = useState(false);
 
   // Fetch real FlightAware positions
   useEffect(() => {
@@ -76,7 +77,7 @@ export default function LiveAircraftMap({ flights = [] }) {
       <div className="flex items-center gap-2 px-4 py-2.5 border-b border-border bg-secondary/50 flex-shrink-0 overflow-x-auto scrollbar-hide">
         <span className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest flex-shrink-0">Airline:</span>
         <button
-          onClick={() => setSelectedAirline(null)}
+          onClick={() => setShowAirlineModal(true)}
           className={cn(
             'text-xs font-bold px-3 py-1.5 rounded-lg border transition-all flex-shrink-0',
             !selectedAirline
@@ -170,6 +171,56 @@ export default function LiveAircraftMap({ flights = [] }) {
         })}
         </MapContainer>
       </div>
+
+      {/* Airline Selection Modal */}
+      {showAirlineModal && (
+        <div className="fixed inset-0 z-50 bg-black/50 flex items-center justify-center p-4">
+          <div className="bg-card border border-border rounded-2xl p-5 max-w-sm w-full max-h-96 overflow-y-auto space-y-3">
+            <div className="flex items-center justify-between mb-4">
+              <p className="text-sm font-bold text-foreground">Select Airline</p>
+              <button
+                onClick={() => setShowAirlineModal(false)}
+                className="text-muted-foreground hover:text-foreground"
+              >
+                ✕
+              </button>
+            </div>
+            <button
+              onClick={() => {
+                setSelectedAirline(null);
+                setShowAirlineModal(false);
+              }}
+              className={cn(
+                'w-full text-left text-xs font-bold px-3 py-2 rounded-lg border transition-all',
+                !selectedAirline
+                  ? 'bg-primary text-primary-foreground border-primary'
+                  : 'bg-secondary border-border text-muted-foreground hover:text-foreground'
+              )}
+            >
+              All Airlines
+            </button>
+            <div className="space-y-2">
+              {airlines.map(airline => (
+                <button
+                  key={airline}
+                  onClick={() => {
+                    setSelectedAirline(airline);
+                    setShowAirlineModal(false);
+                  }}
+                  className={cn(
+                    'w-full text-left text-xs font-bold px-3 py-2 rounded-lg border transition-all',
+                    selectedAirline === airline
+                      ? 'bg-primary text-primary-foreground border-primary'
+                      : 'bg-secondary border-border text-muted-foreground hover:text-foreground'
+                  )}
+                >
+                  {airline}
+                </button>
+              ))}
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
