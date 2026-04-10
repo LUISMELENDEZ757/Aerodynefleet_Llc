@@ -111,7 +111,7 @@ export default function LiveAircraftMap({ flights = [] }) {
                 : 'bg-secondary border-border text-muted-foreground hover:text-foreground'
             )}
           >
-            {airline}
+            {AIRLINE_DISPLAY[airline] || airline}
           </button>
         ))}
         <span className="text-[10px] text-muted-foreground ml-auto flex-shrink-0">{filteredAircraft.length} aircraft</span>
