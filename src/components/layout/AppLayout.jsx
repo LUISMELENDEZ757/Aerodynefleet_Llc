@@ -1,7 +1,7 @@
 import React, { useEffect, useState, useRef } from 'react';
 import { Outlet, useLocation } from 'react-router-dom';
 import LeftRail from './LeftRail';
-import BottomTabBar from './BottomTabBar';
+
 import WifiIndicator from './WifiIndicator';
 import StarlinkIndicator from './StarlinkIndicator';
 import NotificationsBell from './NotificationsBell';
@@ -60,7 +60,7 @@ function AppContent() {
           </PageTransition>
         </main>
       </div>
-      <BottomTabBar />
+
     </div>
   );
 }
