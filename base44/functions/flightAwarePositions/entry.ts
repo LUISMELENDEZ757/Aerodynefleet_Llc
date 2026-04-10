@@ -19,7 +19,7 @@ Deno.serve(async (req) => {
     const twoHoursAgo = Math.floor((Date.now() - 2 * 3600000) / 1000);
     
     const flightsRes = await fetch(
-      `${FLIGHTAWARE_API}/flights/search?query=-aircraftType B737 -aircraftType A320&max_pages=5`,
+      `${FLIGHTAWARE_API}/flights/search?query=inAir&max_pages=2`,
       { headers: { Authorization: apiKey } }
     );
     
@@ -52,6 +52,7 @@ Deno.serve(async (req) => {
               id: flight.fa_flight_id,
               flight_number: flight.ident_iata || flight.ident,
               callsign: flight.callsign,
+              airline: flight.operator_iata || flight.operator || 'UNK',
               aircraft_type: flight.aircraft_type,
               tail: flight.registration,
               latitude: latest.lat,
