@@ -107,6 +107,35 @@ export default function Home() {
         </div>
       </motion.div>
 
+      {/* Features Section */}
+      <section id="features" className="px-5 py-20 bg-secondary/30 border-t border-border">
+        <div className="max-w-3xl mx-auto space-y-12">
+          <div className="text-center">
+            <h2 className="text-3xl font-black text-foreground mb-3">Built for Modern Aviation</h2>
+            <p className="text-muted-foreground">Comprehensive tools for every role in your operation</p>
+          </div>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            {[
+              { title: 'Real-Time Ops', items: ['Live fleet tracking', 'MEL management', 'Maintenance workflows', 'Predictive alerts'] },
+              { title: 'Regulatory Ready', items: ['FAA compliance', 'Digital signatures', 'Audit trails', 'CRS documentation'] },
+              { title: 'Integrated Data', items: ['Component traceability', 'AD compliance tracking', 'Engine health analytics', 'Cost per flight'] },
+            ].map(({ title, items }) => (
+              <div key={title} className="bg-card border border-border rounded-2xl p-6 space-y-4">
+                <h3 className="text-lg font-bold text-foreground">{title}</h3>
+                <ul className="text-sm text-muted-foreground space-y-2">
+                  {items.map((item) => (
+                    <li key={item} className="flex items-center gap-2">
+                      <span className="w-1.5 h-1.5 rounded-full bg-primary flex-shrink-0" />
+                      {item}
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
       {/* Footer */}
       <footer className="border-t border-border bg-card/50 px-5 py-4 text-center text-xs text-muted-foreground">
         <p>Aerodyne Fleet LLC — Aircraft Maintenance Management System</p>
