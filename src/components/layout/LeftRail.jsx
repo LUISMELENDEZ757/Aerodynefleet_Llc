@@ -155,14 +155,14 @@ export default function LeftRail({ onCollapsedChange }) {
 
   if (collapsed) {
     return (
-      <aside className="fixed left-0 top-0 h-full w-12 bg-[#0a0e18] border-r border-border flex flex-col z-50">
+      <aside className="fixed left-0 top-0 h-full w-12 bg-card border-r border-border flex flex-col z-50">
         <BrandHeader collapsed onToggle={() => toggle(false)} />
       </aside>
     );
   }
 
   return (
-    <aside className="fixed left-0 top-0 h-full w-48 bg-[#0a0e18] border-r border-border flex flex-col z-50">
+    <aside className="fixed left-0 top-0 h-full w-48 bg-card border-r border-border flex flex-col z-50">
       <BrandHeader collapsed={false} onToggle={() => toggle(true)} />
       <motion.nav 
         className="flex flex-col gap-0 flex-1 w-full overflow-y-auto scrollbar-hide py-2"
