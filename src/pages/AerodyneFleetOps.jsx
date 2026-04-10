@@ -18,23 +18,47 @@ function ZuluClock() {
 
 // ── Status config ─────────────────────────────────────────────────────────────
 const STATUS_CFG = {
-  Scheduled:  { label: 'SCH',      color: 'text-gray-400',   bg: 'bg-gray-500/15',  dot: 'bg-gray-400' },
-  Departed:   { label: 'DEP',      color: 'text-amber-400',  bg: 'bg-amber-500/15', dot: 'bg-amber-400' },
-  En_Route:   { label: 'EN ROUTE', color: 'text-green-400',  bg: 'bg-green-500/15', dot: 'bg-green-400 animate-pulse' },
-  Arrived:    { label: 'ARR',      color: 'text-green-400',  bg: 'bg-green-500/15', dot: 'bg-green-400' },
-  Cancelled:  { label: 'CXL',      color: 'text-red-400',    bg: 'bg-red-500/15',   dot: 'bg-red-500' },
+  // FlightAware statuses (with spaces)
+  'Scheduled':    { label: 'SCH',      color: 'text-gray-400',   bg: 'bg-gray-500/15',  dot: 'bg-gray-400' },
+  'En Route':     { label: 'EN ROUTE', color: 'text-green-400',  bg: 'bg-green-500/15', dot: 'bg-green-400 animate-pulse' },
+  'Departed':     { label: 'DEP',      color: 'text-amber-400',  bg: 'bg-amber-500/15', dot: 'bg-amber-400' },
+  'Arrived':      { label: 'ARR',      color: 'text-green-400',  bg: 'bg-green-500/15', dot: 'bg-green-400' },
+  'Landed':       { label: 'LANDED',   color: 'text-green-400',  bg: 'bg-green-500/15', dot: 'bg-green-400' },
+  'Cancelled':    { label: 'CXL',      color: 'text-red-400',    bg: 'bg-red-500/15',   dot: 'bg-red-500' },
   // entity statuses
-  scheduled:  { label: 'SCH',      color: 'text-gray-400',   bg: 'bg-gray-500/15',  dot: 'bg-gray-400' },
-  boarding:   { label: 'BOARDING', color: 'text-blue-400',   bg: 'bg-blue-500/15',  dot: 'bg-blue-400 animate-pulse' },
-  departed:   { label: 'DEP',      color: 'text-amber-400',  bg: 'bg-amber-500/15', dot: 'bg-amber-400' },
-  airborne:   { label: 'AIRBORNE', color: 'text-green-400',  bg: 'bg-green-500/15', dot: 'bg-green-400 animate-pulse' },
-  arrived:    { label: 'ARR',      color: 'text-green-400',  bg: 'bg-green-500/15', dot: 'bg-green-400' },
-  landed:     { label: 'LANDED',   color: 'text-green-400',  bg: 'bg-green-500/15', dot: 'bg-green-400' },
-  delayed:    { label: 'DELAY',    color: 'text-red-400',    bg: 'bg-red-500/15',   dot: 'bg-red-400 animate-pulse' },
-  cancelled:  { label: 'CXL',      color: 'text-red-400',    bg: 'bg-red-500/15',   dot: 'bg-red-500' },
-  on_time:    { label: 'ON TIME',  color: 'text-green-400',  bg: 'bg-green-500/15', dot: 'bg-green-400' },
+  'scheduled':    { label: 'SCH',      color: 'text-gray-400',   bg: 'bg-gray-500/15',  dot: 'bg-gray-400' },
+  'boarding':     { label: 'BOARDING', color: 'text-blue-400',   bg: 'bg-blue-500/15',  dot: 'bg-blue-400 animate-pulse' },
+  'departed':     { label: 'DEP',      color: 'text-amber-400',  bg: 'bg-amber-500/15', dot: 'bg-amber-400' },
+  'airborne':     { label: 'AIRBORNE', color: 'text-green-400',  bg: 'bg-green-500/15', dot: 'bg-green-400 animate-pulse' },
+  'arrived':      { label: 'ARR',      color: 'text-green-400',  bg: 'bg-green-500/15', dot: 'bg-green-400' },
+  'landed':       { label: 'LANDED',   color: 'text-green-400',  bg: 'bg-green-500/15', dot: 'bg-green-400' },
+  'delayed':      { label: 'DELAY',    color: 'text-red-400',    bg: 'bg-red-500/15',   dot: 'bg-red-400 animate-pulse' },
+  'cancelled':    { label: 'CXL',      color: 'text-red-400',    bg: 'bg-red-500/15',   dot: 'bg-red-500' },
+  'on_time':      { label: 'ON TIME',  color: 'text-green-400',  bg: 'bg-green-500/15', dot: 'bg-green-400' },
 };
-const getCfg = s => STATUS_CFG[s] || STATUS_CFG.Scheduled;
+const isAirborne  = s => ['En Route', 'airborne'].includes(s);
+const isActive    = s => ['En Route', 'airborne', 'boarding', 'Departed', 'departed'].includes(s);
+const isArrived   = s => ['Arrived', 'Landed', 'arrived', 'landed'].includes(s);
+const isCancelled = s => ['Cancelled', 'cancelled'].includes(s);
+const getCfg = s => STATUS_CFG[s] || STATUS_CFG['Scheduled'];
+
+// ── Fleet type → ICAO aircraft type code map ─────────────────────────────────
+const FLEET_ICAO_MAP = {
+  'B737-700': ['B737','B733','B734','B735','B736','B73G'],
+  'B737-800': ['B738','B738'],
+  'B737-900': ['B739'],
+  'B737 MAX 8': ['B38M','B7M8'],
+  'B737 MAX 9': ['B39M','B7M9'],
+  'B757': ['B752','B753','B757'],
+  'B767': ['B762','B763','B764','B767'],
+  'B777': ['B772','B773','B77L','B77W','B778','B779'],
+  'B787': ['B788','B789','B78X'],
+  'A320': ['A320','A319','A20N','A19N'],
+  'A321': ['A321','A21N'],
+  'A350': ['A359','A35K'],
+  'E190': ['E190','E195','E19N'],
+  'CRJ900': ['CRJ9','CL30'],
+};
 
 // ── FA data normalizer ────────────────────────────────────────────────────────
 function normalizeFAFlight(fa) {
@@ -326,9 +350,10 @@ export default function AerodyneFleetOps() {
         const res = await base44.functions.invoke('flightAwareProxy', { type: 'airline_flights', airline_icao: airline });
         results = (res.data?.flights || []).map(normalizeFAFlight);
       }
-      // Filter by fleet type
+      // Filter by fleet type using ICAO codes
       if (liveParams.fleetType !== 'All Types') {
-        results = results.filter(f => f.aircraft_type?.includes(liveParams.fleetType.replace('B','').replace('A','')));
+        const allowed = FLEET_ICAO_MAP[liveParams.fleetType] || [];
+        results = results.filter(f => allowed.some(code => f.aircraft_type?.toUpperCase().startsWith(code)));
       }
       setLiveFlights(results);
     } catch (e) {
@@ -348,22 +373,23 @@ export default function AerodyneFleetOps() {
     const s = f.status;
     const matchStatus =
       statusFilter === 'all'      ? true :
-      statusFilter === 'active'   ? ['boarding','departed','Departed','airborne','En_Route'].includes(s) :
-      statusFilter === 'airborne' ? ['airborne','En_Route'].includes(s) :
+      statusFilter === 'active'   ? isActive(s) :
+      statusFilter === 'airborne' ? isAirborne(s) :
       statusFilter === 'delayed'  ? (f.delay_minutes || 0) > 0 :
-      statusFilter === 'arrived'  ? ['arrived','landed','Arrived'].includes(s) : true;
+      statusFilter === 'arrived'  ? isArrived(s) : true;
     const q = search.toLowerCase();
     const matchSearch = !search ||
       f.flight_number?.toLowerCase().includes(q) ||
       f.origin?.toLowerCase().includes(q) ||
       f.destination?.toLowerCase().includes(q) ||
       f.aircraft_tail?.toLowerCase().includes(q) ||
-      f.airline?.toLowerCase().includes(q);
+      f.airline?.toLowerCase().includes(q) ||
+      f.aircraft_type?.toLowerCase().includes(q);
     return matchStatus && matchSearch;
   });
 
   // KPIs
-  const airborne  = filtered.filter(f => ['airborne','En_Route'].includes(f.status)).length;
+  const airborne  = filtered.filter(f => isAirborne(f.status)).length;
   const delayed   = filtered.filter(f => (f.delay_minutes||0) > 0).length;
   const onTime    = filtered.filter(f => (f.delay_minutes||0) === 0 && !['Cancelled','cancelled'].includes(f.status)).length;
   const otp       = filtered.length > 0 ? Math.round((onTime / filtered.length) * 100) : 0;
