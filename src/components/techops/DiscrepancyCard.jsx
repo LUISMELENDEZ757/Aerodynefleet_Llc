@@ -3,8 +3,9 @@ import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { base44 } from '@/api/base44Client';
 import {
   AlertTriangle, Wrench, Shield, CheckCircle, ChevronDown, ChevronUp,
-  Clock, User, Tag, RotateCcw, Play, Send, XCircle
+  Clock, User, Tag, RotateCcw, Play, Send, XCircle, Lock
 } from 'lucide-react';
+import DigitalSignaturePanel from '@/components/techops/DigitalSignaturePanel';
 import { cn } from '@/lib/utils';
 
 const STATE_CFG = {
@@ -50,8 +51,13 @@ export default function DiscrepancyCard({ entry, aircraftTail, userRole = 'techn
   const cfg = STATE_CFG[status] || STATE_CFG.OPEN;
   const StatusIcon = cfg.icon;
 
+  const isSigned = entry.is_signed || (Array.isArray(entry.digital_signatures) && entry.digital_signatures.length > 0);
+
   const updateMutation = useMutation({
-    mutationFn: (data) => base44.entities.LogbookEntry.update(entry.id, data),
+    mutationFn: (data) => {
+      if (isSigned) throw new Error('This entry is digitally signed and locked.');
+      return base44.entities.LogbookEntry.update(entry.id, data);
+    },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['logbook-entries'] });
       setAction(null);
@@ -298,19 +304,30 @@ export default function DiscrepancyCard({ entry, aircraftTail, userRole = 'techn
                   <SectionInput label="Reason for Reopen" rows={2} value={reopenForm.reopen_reason} onChange={e => setReopenForm(p => ({ ...p, reopen_reason: e.target.value }))} placeholder="State reason for reopening this discrepancy..." />
                   <div className="flex gap-2">
                     <button onClick={() => setAction(null)} className="flex-1 py-2.5 rounded-xl border border-white/15 text-sm font-bold text-gray-400 hover:bg-white/5 transition-colors">Cancel</button>
-                    <button onClick={handleReopen} disabled={updateMutation.isPending}
+                    <button onClick={handleReopen} disabled={updateMutation.isPending || isSigned}
                       className="flex-1 py-2.5 rounded-xl bg-orange-700 text-white text-sm font-extrabold hover:bg-orange-600 disabled:opacity-50 transition-colors">
                       <RotateCcw className="w-4 h-4 inline mr-1" /> REOPEN
                     </button>
                   </div>
                 </div>
               ) : (
-                <button onClick={() => setAction('reopen')} className="w-full py-2 rounded-xl border border-orange-500/30 bg-orange-900/10 text-orange-400 text-xs font-bold hover:bg-orange-900/20 transition-colors flex items-center justify-center gap-2">
+                <button onClick={() => setAction('reopen')} disabled={isSigned} className="w-full py-2 rounded-xl border border-orange-500/30 bg-orange-900/10 text-orange-400 text-xs font-bold hover:bg-orange-900/20 disabled:opacity-40 disabled:cursor-not-allowed transition-colors flex items-center justify-center gap-2">
                   <RotateCcw className="w-3.5 h-3.5" /> MCC REOPEN
                 </button>
               )}
             </div>
           )}
+
+          {/* ── DIGITAL SIGNATURE PANEL ── */}
+          <div className="border-t border-white/10 pt-4">
+            <p className="text-[10px] font-extrabold text-gray-500 uppercase tracking-widest mb-3 flex items-center gap-2">
+              <Lock className="w-3 h-3" /> Digital Signature & Audit Lock
+            </p>
+            <DigitalSignaturePanel
+              entry={entry}
+              onSigned={() => queryClient.invalidateQueries({ queryKey: ['logbook-entries'] })}
+            />
+          </div>
         </div>
       )}
     </div>

@@ -12,12 +12,10 @@
       "description": "Log page number e.g. LP#0001"
     },
     "flight_number": {
-      "type": "string",
-      "description": "Associated flight number"
+      "type": "string"
     },
     "station": {
-      "type": "string",
-      "description": "Station ICAO where entry was made"
+      "type": "string"
     },
     "entry_type": {
       "type": "string",
@@ -38,62 +36,48 @@
         "PENDING_RII",
         "CLOSED"
       ],
-      "default": "OPEN",
-      "description": "Lifecycle state of the discrepancy"
+      "default": "OPEN"
     },
     "ata_chapter": {
-      "type": "string",
-      "description": "ATA chapter e.g. 21-31"
+      "type": "string"
     },
     "description": {
-      "type": "string",
-      "description": "Full discrepancy or action description"
+      "type": "string"
     },
     "corrective_action": {
-      "type": "string",
-      "description": "Corrective action taken"
+      "type": "string"
     },
     "corrected_by": {
-      "type": "string",
-      "description": "Name of technician who performed the correction"
+      "type": "string"
     },
     "corrected_by_id": {
-      "type": "string",
-      "description": "Tech ID / License of correcting technician"
+      "type": "string"
     },
     "work_started_at": {
-      "type": "string",
-      "description": "ISO timestamp when work began (IN_PROGRESS)"
+      "type": "string"
     },
     "work_completed_at": {
-      "type": "string",
-      "description": "ISO timestamp when corrective action was submitted"
+      "type": "string"
     },
     "rii_required": {
       "type": "boolean",
-      "default": false,
-      "description": "Requires Required Inspection Item sign-off"
+      "default": false
     },
     "rii_inspector_name": {
-      "type": "string",
-      "description": "RII inspector name"
+      "type": "string"
     },
     "rii_inspector_id": {
-      "type": "string",
-      "description": "RII inspector license/ID"
+      "type": "string"
     },
     "rii_signed_at": {
-      "type": "string",
-      "description": "ISO timestamp of RII sign-off"
+      "type": "string"
     },
     "rii_rejected": {
       "type": "boolean",
-      "default": false,
-      "description": "RII inspector rejected the correction"
+      "default": false
     },
     "rii_rejection_reason": {
-      "type": "string",
-      "description": "Reason for RII rejection"
+      "type": "string"
     },
     "technician_name": {
       "type": "string"
@@ -106,8 +90,7 @@
       "default": false
     },
     "mel_reference": {
-      "type": "string",
-      "description": "MEL item reference if deferred"
+      "type": "string"
     },
     "mel_category": {
       "type": "string",
@@ -130,24 +113,19 @@
       "format": "date"
     },
     "reopened_by": {
-      "type": "string",
-      "description": "MCC user who reopened the discrepancy"
+      "type": "string"
     },
     "reopened_at": {
-      "type": "string",
-      "description": "ISO timestamp of reopen"
+      "type": "string"
     },
     "reopen_reason": {
-      "type": "string",
-      "description": "Reason for MCC reopen"
+      "type": "string"
     },
     "troubleshooting_notes": {
-      "type": "string",
-      "description": "Notes added during IN_PROGRESS phase"
+      "type": "string"
     },
     "parts_used": {
-      "type": "string",
-      "description": "Parts used during correction"
+      "type": "string"
     },
     "captain_signature": {
       "type": "string"
@@ -158,6 +136,60 @@
     },
     "notes": {
       "type": "string"
+    },
+    "is_signed": {
+      "type": "boolean",
+      "default": false,
+      "description": "True when at least one valid digital signature has been applied. Signed entries are locked from further modification."
+    },
+    "signature_hash": {
+      "type": "string",
+      "description": "SHA-256 hash of the entry content at the time of signing (hex string). Used to detect tampering."
+    },
+    "digital_signatures": {
+      "type": "array",
+      "description": "Immutable append-only array of digital signature records. Each entry is cryptographically tied to the record state at signing time.",
+      "items": {
+        "type": "object",
+        "properties": {
+          "signed_at": {
+            "type": "string",
+            "description": "ISO timestamp of signature"
+          },
+          "signer_email": {
+            "type": "string"
+          },
+          "signer_name": {
+            "type": "string"
+          },
+          "signer_role": {
+            "type": "string",
+            "description": "Role at time of signing e.g. technician, inspector_rii"
+          },
+          "signer_cert": {
+            "type": "string",
+            "description": "A&P / IA certificate number"
+          },
+          "signature_type": {
+            "type": "string",
+            "enum": [
+              "technician_signoff",
+              "rii_signoff",
+              "supervisor_approval",
+              "mcc_review"
+            ],
+            "description": "Type of signature"
+          },
+          "content_hash": {
+            "type": "string",
+            "description": "SHA-256 of the entry fields at signing time"
+          },
+          "hash_fields": {
+            "type": "string",
+            "description": "Comma-separated list of fields included in the hash"
+          }
+        }
+      }
     }
   },
   "required": [
