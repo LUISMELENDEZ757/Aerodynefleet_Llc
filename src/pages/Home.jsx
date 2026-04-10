@@ -73,12 +73,15 @@ export default function Home() {
           >
             <p className="text-xs font-extrabold text-primary uppercase tracking-widest">Founder Message</p>
             <p className="text-sm text-foreground leading-relaxed">
-              "Aerodyne Fleet was built to solve a critical problem in aviation: the disconnect between maintenance teams, dispatch, 
-              and regulatory oversight. We've combined 30+ years of aviation expertise with modern technology to create a system 
-              that makes maintenance data actionable, compliance automatic, and operations predictable. Every feature is designed 
-              by people who've worked the line, dispatched aircraft, and faced FAA audits."
+              I built Aerodyne Fleet because I have lived the challenges it solves. I have been the person in the room when a delay becomes a disruption, when a maintenance issue becomes a decision point, when a crew needs clarity, and when the operation needs answers fast.
             </p>
-            <p className="text-xs text-muted-foreground">— The Aerodyne Team</p>
+            <p className="text-sm text-foreground leading-relaxed">
+              Aviation deserves tools that match the stakes. Aerodyne Fleet is my commitment to that idea. It is a platform shaped by real operational experience, engineered with modern technology, and designed to give teams the confidence and situational awareness they need to run a safe and efficient airline.
+            </p>
+            <p className="text-sm text-foreground leading-relaxed">
+              This work has always been personal to me. Aerodyne Fleet reflects the standard I believe aviation software should meet. Practical, disciplined, and built with respect for the people who keep the system moving.
+            </p>
+            <p className="text-xs text-muted-foreground mt-4">Luis Melendez<br />Founder, Aerodyne Fleet</p>
           </motion.div>
 
           {/* CTA Buttons */}
