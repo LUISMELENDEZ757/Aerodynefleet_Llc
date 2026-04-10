@@ -197,7 +197,7 @@ export default function LiveAircraftMap({ flights = [] }) {
                   : 'bg-secondary border-border text-muted-foreground hover:text-foreground'
               )}
             >
-              All Airlines
+              All
             </button>
             <div className="space-y-2">
               {airlines.map(airline => (
