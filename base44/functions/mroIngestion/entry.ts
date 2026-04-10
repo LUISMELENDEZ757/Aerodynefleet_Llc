@@ -13,17 +13,18 @@ import { createClientFromRequest } from 'npm:@base44/sdk@0.8.23';
  *   file_url      {string?} - if ingesting from an uploaded CSV/JSON file
  */
 
+// Map source key → env secret name (fallback) AND OEMIntegration oem_id
 const SUPPORTED_SOURCES = {
-  amos:       { name: 'AMOS MRO',           category: 'mro' },
-  trax:       { name: 'TRAX MRO',           category: 'mro' },
-  sceptre:    { name: 'SCEPTRE MRO',        category: 'mro' },
-  boeing_ahm: { name: 'Boeing AHM/AHN',     category: 'oem' },
-  skywise:    { name: 'Airbus Skywise',      category: 'oem' },
-  rolls_royce:{ name: 'Rolls-Royce FAST',   category: 'engine' },
-  mhi:        { name: 'Mitsubishi MHI',      category: 'engine' },
-  cfm_snecma: { name: 'CFM / Snecma',       category: 'engine' },
-  honeywell:  { name: 'Honeywell MPM',       category: 'engine' },
-  embraer:    { name: 'Embraer Service Portal', category: 'oem' },
+  amos:        { name: 'AMOS MRO',               category: 'mro',    oem_id: 'amos' },
+  trax:        { name: 'TRAX MRO',               category: 'mro',    oem_id: 'trax' },
+  sceptre:     { name: 'SCEPTRE MRO',            category: 'mro',    oem_id: 'sceptre' },
+  boeing_ahm:  { name: 'Boeing AHM/AHN',         category: 'oem',    oem_id: 'boeing_ahm' },
+  skywise:     { name: 'Airbus Skywise',          category: 'oem',    oem_id: 'airbus_skywise' },
+  rolls_royce: { name: 'Rolls-Royce FAST',        category: 'engine', oem_id: 'rolls_royce' },
+  mhi:         { name: 'Mitsubishi MHI',          category: 'engine', oem_id: 'mhi' },
+  cfm_snecma:  { name: 'CFM / Snecma',            category: 'engine', oem_id: 'cfm_snecma' },
+  honeywell:   { name: 'Honeywell MPM',           category: 'engine', oem_id: 'honeywell' },
+  embraer:     { name: 'Embraer Service Portal',  category: 'oem',    oem_id: 'embraer' },
 };
 
 // ── Normalizers: map source-specific field names → canonical schema ─────────
@@ -168,6 +169,17 @@ Deno.serve(async (req) => {
         supported: Object.keys(SUPPORTED_SOURCES),
       }, { status: 400 });
     }
+
+    // ── Look up API key from OEMIntegration entity ────────────────────────────
+    let apiKey = null;
+    let baseUrl = null;
+    try {
+      const integrations = await base44.asServiceRole.entities.OEMIntegration.filter({ oem_id: sourceInfo.oem_id });
+      if (integrations.length > 0) {
+        apiKey = integrations[0].api_key_ref || null;  // stored in api_key_ref field
+        baseUrl = integrations[0].base_url || null;
+      }
+    } catch { /* no integration record — file upload only */ }
 
     // ── Handle file-based ingestion via AI extraction ────────────────────────
     let records = [];
