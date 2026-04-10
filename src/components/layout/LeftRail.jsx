@@ -69,6 +69,7 @@ const FLIGHT_DECK_ITEMS = [
   { label: 'Weather', path: '/Weather' },
   { label: 'Documents', path: '/Documents' },
   { label: 'Live Flights', path: '/LiveFlightTracker' },
+  { label: 'Fleet Ops Board', path: '/AerodyneFleetOps' },
 ];
 
 // ── WORKGROUP 5: ADMIN / SYSTEM ─────────────────────────────────────────────────

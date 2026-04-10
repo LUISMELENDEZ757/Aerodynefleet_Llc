@@ -86,6 +86,7 @@ const EngineRemovalInstallation = lazy(() => import('@/pages/EngineRemovalInstal
 const PassengerServiceSystem   = lazy(() => import('@/pages/PassengerServiceSystem'));
 const PartsSupplyDashboard     = lazy(() => import('@/pages/PartsSupplyDashboard'));
 const LiveFlightTracker        = lazy(() => import('@/pages/LiveFlightTracker'));
+const AerodyneFleetOps         = lazy(() => import('@/pages/AerodyneFleetOps'));
 const CrewPairingScheduler     = lazy(() => import('@/pages/CrewPairingScheduler'));
 const FAR117Calculator         = lazy(() => import('@/pages/FAR117Calculator'));
 const OTPDashboard             = lazy(() => import('@/pages/OTPDashboard'));
@@ -248,6 +249,7 @@ const AuthenticatedApp = () => {
         <Route path="/PSS" element={<PassengerServiceSystem />} />
         <Route path="/PartsSupply" element={<PartsSupplyDashboard />} />
         <Route path="/LiveFlightTracker" element={<LiveFlightTracker />} />
+        <Route path="/AerodyneFleetOps" element={<AerodyneFleetOps />} />
         <Route path="/CrewPairing" element={<CrewPairingScheduler />} />
         <Route path="/FAR117" element={<FAR117Calculator />} />
         <Route path="/OTPDashboard" element={<OTPDashboard />} />
