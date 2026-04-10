@@ -63,11 +63,12 @@ export default function LiveAircraftMapFilters({ aircraft, filters, setFilters, 
           <div>
             <div className="flex items-center justify-between mb-2">
               <label className="text-xs font-bold text-muted-foreground uppercase tracking-widest">Airline / Carrier</label>
-              {(filters.airline?.length || 0) > 0 && (
-                <button onClick={() => toggleAll('airline', airlines)} className="text-[10px] text-primary hover:underline">
-                  Clear
-                </button>
-              )}
+              <button
+                onClick={() => toggleAll('airline', airlines)}
+                className="text-[10px] text-primary hover:underline font-semibold"
+              >
+                {(filters.airline?.length || 0) === airlines.length ? 'Deselect All' : 'Select All'}
+              </button>
             </div>
             <div className="flex flex-wrap gap-2">
               {airlines.map(a => (
@@ -89,7 +90,15 @@ export default function LiveAircraftMapFilters({ aircraft, filters, setFilters, 
 
           {/* Aircraft Type */}
           <div>
-            <label className="text-xs font-bold text-muted-foreground uppercase tracking-widest block mb-2">Aircraft Type</label>
+            <div className="flex items-center justify-between mb-2">
+              <label className="text-xs font-bold text-muted-foreground uppercase tracking-widest">Aircraft Type</label>
+              <button
+                onClick={() => toggleAll('type', types)}
+                className="text-[10px] text-primary hover:underline font-semibold"
+              >
+                {(filters.type?.length || 0) === types.length ? 'Deselect All' : 'Select All'}
+              </button>
+            </div>
             <div className="flex flex-wrap gap-2">
               {types.map(t => (
                 <button
@@ -110,7 +119,15 @@ export default function LiveAircraftMapFilters({ aircraft, filters, setFilters, 
 
           {/* Origin Airport */}
           <div>
-            <label className="text-xs font-bold text-muted-foreground uppercase tracking-widest block mb-2">Origin Airport</label>
+            <div className="flex items-center justify-between mb-2">
+              <label className="text-xs font-bold text-muted-foreground uppercase tracking-widest">Origin Airport</label>
+              <button
+                onClick={() => toggleAll('origin', origins)}
+                className="text-[10px] text-primary hover:underline font-semibold"
+              >
+                {(filters.origin?.length || 0) === origins.length ? 'Deselect All' : 'Select All'}
+              </button>
+            </div>
             <div className="flex flex-wrap gap-2">
               {origins.map(o => (
                 <button
@@ -131,7 +148,15 @@ export default function LiveAircraftMapFilters({ aircraft, filters, setFilters, 
 
           {/* Destination Airport */}
           <div>
-            <label className="text-xs font-bold text-muted-foreground uppercase tracking-widest block mb-2">Destination Airport</label>
+            <div className="flex items-center justify-between mb-2">
+              <label className="text-xs font-bold text-muted-foreground uppercase tracking-widest">Destination Airport</label>
+              <button
+                onClick={() => toggleAll('destination', destinations)}
+                className="text-[10px] text-primary hover:underline font-semibold"
+              >
+                {(filters.destination?.length || 0) === destinations.length ? 'Deselect All' : 'Select All'}
+              </button>
+            </div>
             <div className="flex flex-wrap gap-2">
               {destinations.map(d => (
                 <button
@@ -152,7 +177,15 @@ export default function LiveAircraftMapFilters({ aircraft, filters, setFilters, 
 
           {/* Status */}
           <div>
-            <label className="text-xs font-bold text-muted-foreground uppercase tracking-widest block mb-2">Flight Status</label>
+            <div className="flex items-center justify-between mb-2">
+              <label className="text-xs font-bold text-muted-foreground uppercase tracking-widest">Flight Status</label>
+              <button
+                onClick={() => toggleAll('status', statuses)}
+                className="text-[10px] text-primary hover:underline font-semibold"
+              >
+                {(filters.status?.length || 0) === statuses.length ? 'Deselect All' : 'Select All'}
+              </button>
+            </div>
             <div className="flex flex-wrap gap-2">
               {statuses.map(s => (
                 <button
