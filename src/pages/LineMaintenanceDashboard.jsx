@@ -5,8 +5,10 @@ import { Link } from 'react-router-dom';
 import {
   Wrench, Plane, AlertTriangle, CheckCircle, Clock, Plus,
   RefreshCw, ChevronLeft, FileText, Package, Users, Zap,
-  BookOpen, Search, Filter, X, Send
+  BookOpen, Search, Filter, X, Send, Link2
 } from 'lucide-react';
+import InventoryPanel from '@/components/linemx/InventoryPanel';
+import LinkPartsModal from '@/components/linemx/LinkPartsModal';
 import { cn } from '@/lib/utils';
 
 const TODAY = new Date().toISOString().split('T')[0];
@@ -131,7 +133,7 @@ function NewTaskModal({ aircraft, onClose, onCreate }) {
 }
 
 // ── Task Card ───────────────────────────────────────────────────────────────
-function TaskCard({ entry, onUpdateStatus }) {
+function TaskCard({ entry, onUpdateStatus, onLinkParts }) {
   const isPriority = entry.notes?.includes('Priority:');
   const priority = entry.notes?.match(/Priority: (\w+)/)?.[1]?.toLowerCase() || 'medium';
   const priCfg = PRIORITY_CFG[priority] || PRIORITY_CFG.medium;
@@ -177,6 +179,10 @@ function TaskCard({ entry, onUpdateStatus }) {
                   Start Work
                 </button>
               )}
+              <button onClick={() => onLinkParts(entry)}
+                className="text-[10px] font-bold px-2.5 py-1 rounded-lg bg-purple-500/15 text-purple-400 hover:bg-purple-500/25 transition-colors flex items-center gap-1">
+                <Link2 className="w-2.5 h-2.5" /> Parts
+              </button>
               <button onClick={() => onUpdateStatus(entry.id, 'cleared')}
                 className="text-[10px] font-bold px-2.5 py-1 rounded-lg bg-green-500/15 text-green-400 hover:bg-green-500/25 transition-colors">
                 Complete
@@ -200,12 +206,14 @@ const TABS = [
   { id: 'aog',       label: 'AOG' },
   { id: 'completed', label: 'Completed' },
   { id: 'all',       label: 'All' },
+  { id: 'inventory', label: '📦 Inventory' },
 ];
 
 export default function LineMaintenanceDashboard() {
   const [showNew, setShowNew] = useState(false);
   const [search, setSearch] = useState('');
   const [tab, setTab] = useState('active');
+  const [linkPartsEntry, setLinkPartsEntry] = useState(null);
   const qc = useQueryClient();
 
   const { data: aircraft = [] } = useQuery({
@@ -381,7 +389,9 @@ export default function LineMaintenanceDashboard() {
         </div>
 
         {/* Task List */}
-        {isLoading ? (
+        {tab === 'inventory' ? (
+          <InventoryPanel />
+        ) : isLoading ? (
           <div className="text-center text-gray-600 text-sm py-12">Loading tasks…</div>
         ) : display.length === 0 ? (
           <div className="rounded-2xl bg-[#141922] border border-white/10 py-16 text-center space-y-3">
@@ -401,6 +411,7 @@ export default function LineMaintenanceDashboard() {
                 key={entry.id}
                 entry={entry}
                 onUpdateStatus={(id, type) => updateStatusMutation.mutate({ id, type })}
+                onLinkParts={setLinkPartsEntry}
               />
             ))}
           </div>
@@ -412,6 +423,12 @@ export default function LineMaintenanceDashboard() {
           aircraft={aircraft}
           onClose={() => setShowNew(false)}
           onCreate={(data) => createMutation.mutate(data)}
+        />
+      )}
+      {linkPartsEntry && (
+        <LinkPartsModal
+          entry={linkPartsEntry}
+          onClose={() => setLinkPartsEntry(null)}
         />
       )}
     </div>

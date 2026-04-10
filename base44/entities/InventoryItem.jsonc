@@ -1,0 +1,65 @@
+{
+  "name": "InventoryItem",
+  "type": "object",
+  "description": "Line maintenance parts inventory \u2014 tracks on-hand stock, reorder thresholds, and location for rapid part lookup during repairs.",
+  "properties": {
+    "part_number": {
+      "type": "string",
+      "description": "Manufacturer part number e.g. 65-48253-2"
+    },
+    "part_name": {
+      "type": "string",
+      "description": "Part description e.g. Oil Filter, Hydraulic Pump"
+    },
+    "ata_chapter": {
+      "type": "string",
+      "description": "ATA chapter e.g. 79"
+    },
+    "quantity_on_hand": {
+      "type": "number",
+      "default": 0,
+      "description": "Current stock count"
+    },
+    "min_quantity": {
+      "type": "number",
+      "default": 2,
+      "description": "Reorder threshold \u2014 alert triggers below this"
+    },
+    "unit": {
+      "type": "string",
+      "enum": [
+        "ea",
+        "qt",
+        "lbs",
+        "ft",
+        "kit"
+      ],
+      "default": "ea",
+      "description": "Unit of measure"
+    },
+    "location": {
+      "type": "string",
+      "description": "Bin/shelf location e.g. Tool Crib A - Bin 12"
+    },
+    "station": {
+      "type": "string",
+      "description": "Station ICAO where stock is held e.g. KEWR"
+    },
+    "unit_cost": {
+      "type": "number",
+      "description": "Cost per unit USD"
+    },
+    "supplier": {
+      "type": "string",
+      "description": "Primary supplier name"
+    },
+    "notes": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "part_number",
+    "part_name",
+    "quantity_on_hand"
+  ]
+}
