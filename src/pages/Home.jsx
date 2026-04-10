@@ -20,6 +20,10 @@ export default function Home() {
     }
   };
 
+  const handleRealEnvironment = () => {
+    localStorage.removeItem('demoMode');
+  };
+
   return (
     <div className="min-h-screen bg-gradient-to-b from-background via-background to-secondary/20 flex flex-col">
       {/* Navigation */}
@@ -110,6 +114,7 @@ export default function Home() {
           >
             <Link
               to="/OpsHub"
+              onClick={handleRealEnvironment}
               className="px-8 py-3 rounded-xl bg-primary text-primary-foreground text-sm font-extrabold hover:bg-primary/90 transition-colors"
             >
               Enter Dashboard
