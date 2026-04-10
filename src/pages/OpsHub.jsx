@@ -7,6 +7,7 @@ import { Link } from 'react-router-dom';
 import OpsAlertsPanel from '@/components/opshub/OpsAlertsPanel';
 import FlightMovementPanel from '@/components/opshub/FlightMovementPanel';
 import FleetHealthPanel from '@/components/opshub/FleetHealthPanel';
+import LiveAircraftMap from '@/components/map/LiveAircraftMap';
 import CrewStatusPanel from '@/components/opshub/CrewStatusPanel';
 import WeatherAtcPanel from '@/components/opshub/WeatherAtcPanel';
 import StationPerformancePanel from '@/components/opshub/StationPerformancePanel';
@@ -140,7 +141,16 @@ export default function OpsHub() {
           <StationPerformancePanel groundOps={groundOps} flights={flights} />
         </div>
 
-        {/* Row 5: Delay Probability + Predictive AI */}
+        {/* Row 5: Live Aircraft Map */}
+        <div className="h-96 bg-card border border-border rounded-2xl overflow-hidden">
+          <div className="px-5 py-3 border-b border-border bg-card">
+            <p className="text-xs font-extrabold text-foreground uppercase tracking-widest">Live Aircraft Positions</p>
+            <p className="text-[10px] text-muted-foreground mt-0.5">Real-time visualization of airborne flights</p>
+          </div>
+          <LiveAircraftMap flights={flights} />
+        </div>
+
+        {/* Row 6: Delay Probability + Predictive AI */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
           <DelayProbabilityWidget flights={flights} aircraft={aircraft} />
           <PredictiveAiPanel
@@ -151,7 +161,7 @@ export default function OpsHub() {
           />
         </div>
 
-        {/* Row 6: World Time Card (AOCS Hub) */}
+        {/* Row 7: World Time Card (AOCS Hub) */}
         <WorldTimeCard />
       </div>
     </div>
