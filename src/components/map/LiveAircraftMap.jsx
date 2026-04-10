@@ -157,20 +157,21 @@ export default function LiveAircraftMap({ flights = [] }) {
               {/* Aircraft marker */}
               <CircleMarker
                 center={[aircraft.latitude, aircraft.longitude]}
-                radius={8}
+                radius={selectedAirline ? 12 : 8}
                 fill
-                fillColor="#06b6d4"
-                color="#0891b2"
-                weight={2}
+                fillColor={selectedAirline ? '#f59e0b' : '#06b6d4'}
+                color={selectedAirline ? '#d97706' : '#0891b2'}
+                weight={selectedAirline ? 3 : 2}
                 opacity={1}
-                fillOpacity={0.9}
+                fillOpacity={selectedAirline ? 1 : 0.9}
               >
-                <Tooltip direction="top" permanent={false}>
+                <Tooltip direction="top" permanent={selectedAirline}>
                   <span className="text-xs font-bold">{aircraft.flight_number}</span>
                 </Tooltip>
                 <Popup>
                   <div className="text-xs space-y-1">
                     <p className="font-bold">{aircraft.flight_number}</p>
+                    <p className="text-[10px]">Airline: {AIRLINE_DISPLAY[aircraft.airline] || aircraft.airline}</p>
                     <p className="text-[10px]">Tail: {aircraft.tail}</p>
                     <p className="text-[10px]">{aircraft.origin} → {aircraft.destination}</p>
                     <p className="text-[10px]">Alt: {aircraft.altitude} ft</p>
