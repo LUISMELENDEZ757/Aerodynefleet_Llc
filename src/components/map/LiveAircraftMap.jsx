@@ -197,6 +197,7 @@ export default function LiveAircraftMap({ flights = [] }) {
               All
             </button>
             <div className="space-y-2">
+              <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest mb-2">Available Airlines</p>
               {airlines.map(airline => (
                 <button
                   key={airline}
