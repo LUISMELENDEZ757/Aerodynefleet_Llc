@@ -1,8 +1,25 @@
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
+import { useState } from 'react';
 import { Plane, Activity, Shield, BarChart3 } from 'lucide-react';
+import { base44 } from '@/api/base44Client';
 
 export default function Home() {
+  const [loading, setLoading] = useState(false);
+  const navigate = useNavigate();
+
+  const handleDemoMode = async () => {
+    setLoading(true);
+    try {
+      await base44.functions.invoke('seedDemoData', {});
+      localStorage.setItem('demoMode', 'true');
+      navigate('/OpsHub');
+    } catch (error) {
+      console.error('Failed to seed demo data:', error);
+      setLoading(false);
+    }
+  };
+
   return (
     <div className="min-h-screen bg-gradient-to-b from-background via-background to-secondary/20 flex flex-col">
       {/* Navigation */}
@@ -97,6 +114,13 @@ export default function Home() {
             >
               Enter Dashboard
             </Link>
+            <button
+              onClick={handleDemoMode}
+              disabled={loading}
+              className="px-8 py-3 rounded-xl bg-secondary text-foreground text-sm font-extrabold hover:bg-secondary/90 disabled:opacity-50 transition-colors"
+            >
+              {loading ? 'Loading Demo...' : 'Enter Demo Mode'}
+            </button>
             <a
               href="#features"
               className="px-8 py-3 rounded-xl border border-border text-foreground text-sm font-bold hover:bg-secondary/50 transition-colors"
