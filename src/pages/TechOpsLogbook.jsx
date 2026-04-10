@@ -54,7 +54,9 @@ function useElapsedTime() {
 }
 
 export default function TechOpsLogbook() {
-  const [selectedTail, setSelectedTail] = useState(null);
+  const urlParams = new URLSearchParams(window.location.search);
+  const tailParam = urlParams.get('tail');
+  const [selectedTail, setSelectedTail] = useState(tailParam || null);
   const [tailDropdown, setTailDropdown] = useState(false);
   const [showNewEntry, setShowNewEntry] = useState(false);
   const [showNewFault, setShowNewFault] = useState(false);
@@ -73,7 +75,7 @@ export default function TechOpsLogbook() {
 
   useEffect(() => {
     if (!selectedTail && aircraft.length > 0) setSelectedTail(aircraft[0].tail_number);
-  }, [aircraft]);
+  }, [aircraft, selectedTail]);
 
   const { data: entries = [] } = useQuery({
     queryKey: ['logbook-entries', selectedTail],
