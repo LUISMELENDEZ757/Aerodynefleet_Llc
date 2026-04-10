@@ -9,7 +9,15 @@ import { offlineStore } from '@/lib/offline-store';
 export default function useOfflineSync() {
   const [isOnline, setIsOnline] = useState(typeof navigator !== 'undefined' && navigator.onLine);
   const [syncInProgress, setSyncInProgress] = useState(false);
+  const [localMode, setLocalModeState] = useState(() => offlineStore.getLocalMode());
   const queryClient = useQueryClient();
+
+  const setLocalMode = (val) => {
+    offlineStore.setLocalMode(val);
+    setLocalModeState(val);
+    // When turning off local mode, trigger sync
+    if (!val && isOnline) setTimeout(() => syncOfflineQueue(), 500);
+  };
 
   // Monitor online/offline events
   useEffect(() => {
@@ -69,5 +77,5 @@ export default function useOfflineSync() {
     }
   };
 
-  return { isOnline, syncInProgress };
+  return { isOnline, syncInProgress, localMode, setLocalMode };
 }

@@ -8,6 +8,7 @@ import NotificationsBell from './NotificationsBell';
 import { TabHistoryProvider, useTabHistory } from '@/lib/TabHistoryContext';
 import PageTransition from '@/components/ui/PageTransition';
 import SupportButton from './SupportButton';
+import LocalModeToggle from './LocalModeToggle';
 
 // Syncs location changes into TabHistoryContext so lastPaths stays accurate
 function LocationSync() {
@@ -47,6 +48,7 @@ function AppContent() {
             <span className="text-xs font-extrabold text-primary tracking-widest uppercase">Aerodyne Fleet LLC</span>
             <span className="text-[10px] text-gray-500 tracking-widest uppercase">Aircraft Maintenance Management System</span>
           </div>
+          <LocalModeToggle />
           <WifiIndicator />
           <StarlinkIndicator />
           <NotificationsBell />

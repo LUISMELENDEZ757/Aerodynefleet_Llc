@@ -4,7 +4,8 @@
  */
 
 const OFFLINE_QUEUE_KEY = 'aerodyne_offline_queue';
-const QUERY_CACHE_KEY = 'aerodyne_query_cache';
+const QUERY_CACHE_KEY   = 'aerodyne_query_cache';
+const LOCAL_MODE_KEY    = 'aerodyne_local_mode';
 
 export const offlineStore = {
   // Persist query cache to localStorage
@@ -31,11 +32,7 @@ export const offlineStore = {
   queueMutation: (id, mutation) => {
     try {
       const queue = offlineStore.getQueue();
-      queue.push({
-        id,
-        mutation,
-        timestamp: new Date().toISOString(),
-      });
+      queue.push({ id, mutation, timestamp: new Date().toISOString() });
       localStorage.setItem(OFFLINE_QUEUE_KEY, JSON.stringify(queue));
     } catch (err) {
       console.warn('Failed to queue mutation:', err);
@@ -75,5 +72,15 @@ export const offlineStore = {
     } catch (err) {
       console.warn('Failed to clear queue:', err);
     }
+  },
+
+  // Local Mode helpers
+  getLocalMode: () => {
+    try { return localStorage.getItem(LOCAL_MODE_KEY) === 'true'; }
+    catch { return false; }
+  },
+  setLocalMode: (val) => {
+    try { localStorage.setItem(LOCAL_MODE_KEY, String(val)); }
+    catch { console.warn('Failed to set local mode'); }
   },
 };
