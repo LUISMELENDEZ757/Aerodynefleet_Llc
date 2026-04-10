@@ -6,6 +6,7 @@ import { ChevronLeft, Activity, Users } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import MccKpiBar from '@/components/mcc/MccKpiBar';
 import MccFleetStatus from '@/components/mcc/MccFleetStatus';
+import MROIntegrationHub from '@/components/mcc/MROIntegrationHub';
 import MccOosBoard from '@/components/mcc/MccOosBoard';
 import MccMelBoard from '@/components/mcc/MccMelBoard';
 import MccFaultBoard from '@/components/mcc/MccFaultBoard';
@@ -23,6 +24,7 @@ const TABS = [
   { id: 'tooling',  label: 'Tooling' },
   { id: 'technician', label: 'MC Tech' },
   { id: 'supervisor', label: 'MC Supervisor' },
+  { id: 'mro',      label: '🔗 MRO Integrations' },
 ];
 
 export default function MaintenanceControl() {
@@ -203,11 +205,10 @@ export default function MaintenanceControl() {
                 </div>
               </div>
             </div>
-            <div className="bg-card border border-border rounded-2xl p-5">
-              <p className="text-xs font-bold text-muted-foreground uppercase tracking-widest mb-3">Supervisor Dashboard</p>
-              <p className="text-sm text-muted-foreground">Team oversight, performance metrics, and escalation management.</p>
-            </div>
           </div>
+        )}
+        {activeTab === 'mro' && (
+          <MROIntegrationHub />
         )}
       </div>
     </div>
