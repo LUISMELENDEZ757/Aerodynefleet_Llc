@@ -142,10 +142,10 @@ export default function LiveAircraftMap({ flights = [] }) {
           const destCoords = AIRPORT_COORDS[aircraft.destination];
 
           return (
-            <div key={aircraft.id}>
-              {/* Flight path */}
+            <>
               {originCoords && destCoords && (
                 <Polyline
+                  key={`path-${aircraft.id}`}
                   positions={[originCoords, destCoords]}
                   color="#3b82f6"
                   weight={2}
@@ -153,9 +153,8 @@ export default function LiveAircraftMap({ flights = [] }) {
                   dashArray="5, 5"
                 />
               )}
-
-              {/* Aircraft marker */}
               <CircleMarker
+                key={`marker-${aircraft.id}`}
                 center={[aircraft.latitude, aircraft.longitude]}
                 radius={selectedAirline ? 12 : 8}
                 fill
@@ -180,7 +179,7 @@ export default function LiveAircraftMap({ flights = [] }) {
                   </div>
                 </Popup>
               </CircleMarker>
-            </div>
+            </>
           );
         })}
         </MapContainer>
