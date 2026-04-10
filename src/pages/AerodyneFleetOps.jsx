@@ -28,15 +28,12 @@ const AIRPORT_TZ = {
   YSSY:'Australia/Sydney', YMML:'Australia/Melbourne',
 };
 
-function localTime(isoOrShort, airportCode) {
+function localTime(isoOrShort) {
   if (!isoOrShort || isoOrShort === '—') return null;
-  const tz = AIRPORT_TZ[airportCode];
-  if (!tz) return null;
   try {
-    // Accept full ISO string directly
     const d = new Date(isoOrShort);
     if (isNaN(d.getTime())) return null;
-    return d.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', timeZone: tz, hour12: false });
+    return d.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: false });
   } catch { return null; }
 }
 
@@ -170,15 +167,15 @@ function FlightRow({ flight, isSelected, onClick }) {
         <div className="flex items-center justify-end gap-1.5">
           <div className="text-right">
             <p className="text-[10px] font-mono text-gray-400">{flight.scheduled_departure}</p>
-            {localTime(flight._raw_dep, flight.origin) && (
-              <p className="text-[9px] text-amber-400">{localTime(flight._raw_dep, flight.origin)} LT</p>
+            {localTime(flight._raw_dep) && (
+              <p className="text-[9px] text-amber-400">{localTime(flight._raw_dep)} LT</p>
             )}
           </div>
           <span className="text-gray-600">→</span>
           <div className="text-right">
             <p className="text-[10px] font-mono text-gray-400">{flight.scheduled_arrival}</p>
-            {localTime(flight._raw_arr, flight.destination) && (
-              <p className="text-[9px] text-amber-400">{localTime(flight._raw_arr, flight.destination)} LT</p>
+            {localTime(flight._raw_arr) && (
+              <p className="text-[9px] text-amber-400">{localTime(flight._raw_arr)} LT</p>
             )}
           </div>
         </div>
@@ -245,8 +242,8 @@ function FlightDetailPanel({ flight, aircraft }) {
           <p className="text-2xl font-black text-white">{flight.origin}</p>
           <p className="text-[10px] text-gray-500">Departure</p>
           <p className="text-xs font-mono text-primary">{flight.scheduled_departure}</p>
-          {localTime(flight._raw_dep, flight.origin) && (
-            <p className="text-[10px] text-amber-400">{localTime(flight._raw_dep, flight.origin)} LT</p>
+          {localTime(flight._raw_dep) && (
+            <p className="text-[10px] text-amber-400">{localTime(flight._raw_dep)} LT</p>
           )}
           {flight.actual_departure && <p className="text-[10px] text-green-400">ATD {flight.actual_departure}</p>}
         </div>
@@ -255,8 +252,8 @@ function FlightDetailPanel({ flight, aircraft }) {
           <p className="text-2xl font-black text-white">{flight.destination}</p>
           <p className="text-[10px] text-gray-500">Arrival</p>
           <p className="text-xs font-mono text-primary">{flight.scheduled_arrival}</p>
-          {localTime(flight._raw_arr, flight.destination) && (
-            <p className="text-[10px] text-amber-400">{localTime(flight._raw_arr, flight.destination)} LT</p>
+          {localTime(flight._raw_arr) && (
+            <p className="text-[10px] text-amber-400">{localTime(flight._raw_arr)} LT</p>
           )}
           {flight.actual_arrival && <p className="text-[10px] text-green-400">ATA {flight.actual_arrival}</p>}
         </div>
