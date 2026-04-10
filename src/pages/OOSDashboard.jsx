@@ -6,7 +6,8 @@ import { useOfflineTechnician } from '@/hooks/useOfflineTechnician';
 import OfflineQueueManager from '@/components/techops/OfflineQueueManager';
 import {
   Plus, CheckCircle, List, BookOpen, Droplets, Wind, Search, RotateCcw,
-  ChevronLeft, X, Send, Wrench, AlertTriangle, Printer, PlaneLanding
+  ChevronLeft, X, Send, Wrench, AlertTriangle, Printer, PlaneLanding,
+  ClipboardList, User
 } from 'lucide-react';
 import FlightAwarePanel from '@/components/techops/FlightAwarePanel';
 import { cn } from '@/lib/utils';
@@ -881,12 +882,134 @@ function OxygenServiceModal({ onClose }) {
   );
 }
 
+// ── My Tasks Modal ─────────────────────────────────────────────────────────
+function MyTasksModal({ onClose }) {
+  const STORAGE_KEY = 'tech_profile';
+  const saved = (() => { try { return JSON.parse(localStorage.getItem(STORAGE_KEY) || '{}'); } catch { return {}; } })();
+  const [profile, setProfile] = useState(saved);
+  const [editProfile, setEditProfile] = useState(!saved.name);
+  const [tempName, setTempName] = useState(saved.name || '');
+  const [tempStation, setTempStation] = useState(saved.station || '');
+
+  const { data: entries = [], isLoading } = useQuery({
+    queryKey: ['my-tasks', profile.name, profile.station],
+    queryFn: () => base44.entities.LogbookEntry.list('-created_date', 500),
+    enabled: !!profile.name,
+    select: (data) => data.filter(e => {
+      const matchTech = e.technician_name?.toLowerCase().includes(profile.name?.toLowerCase());
+      const matchStation = !profile.station || !e.station || e.station?.toUpperCase() === profile.station?.toUpperCase();
+      const isOpen = !e.is_cleared;
+      return matchTech && matchStation && isOpen;
+    }),
+    refetchInterval: 30000,
+  });
+
+  const saveProfile = () => {
+    if (!tempName) return;
+    const p = { name: tempName.trim(), station: tempStation.trim().toUpperCase() };
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(p));
+    setProfile(p);
+    setEditProfile(false);
+  };
+
+  const STATUS_CFG = {
+    OPEN:        { label: 'OPEN',        color: 'text-red-400',   bg: 'bg-red-500/15' },
+    IN_PROGRESS: { label: 'IN PROGRESS', color: 'text-amber-400', bg: 'bg-amber-500/15' },
+    PENDING_RII: { label: 'PENDING RII', color: 'text-violet-400',bg: 'bg-violet-500/15' },
+  };
+
+  return (
+    <Modal title="My Tasks" onClose={onClose}>
+      <div className="p-5 space-y-4">
+        {/* Profile bar */}
+        {!editProfile && profile.name ? (
+          <div className="flex items-center justify-between bg-[#1a1f2e] border border-white/10 rounded-xl px-4 py-3">
+            <div className="flex items-center gap-2">
+              <User className="w-4 h-4 text-primary" />
+              <span className="text-sm font-bold text-white">{profile.name}</span>
+              {profile.station && <span className="text-[10px] font-mono text-primary bg-primary/20 px-2 py-0.5 rounded-full">{profile.station}</span>}
+            </div>
+            <button onClick={() => { setTempName(profile.name); setTempStation(profile.station || ''); setEditProfile(true); }}
+              className="text-[10px] font-bold text-gray-400 hover:text-white px-2 py-1 rounded-lg hover:bg-white/10 transition-colors">
+              Change
+            </button>
+          </div>
+        ) : (
+          <div className="bg-[#1a1f2e] border border-primary/30 rounded-xl p-4 space-y-3">
+            <p className="text-xs font-bold text-primary uppercase tracking-widest">Set Your Profile</p>
+            <div className="grid grid-cols-2 gap-3">
+              <div>
+                <label className="text-[10px] font-bold text-gray-500 uppercase tracking-widest block mb-1">Your Name *</label>
+                <input value={tempName} onChange={e => setTempName(e.target.value)} placeholder="First Last"
+                  className={inputCls} />
+              </div>
+              <div>
+                <label className="text-[10px] font-bold text-gray-500 uppercase tracking-widest block mb-1">Station</label>
+                <input value={tempStation} onChange={e => setTempStation(e.target.value.toUpperCase())} placeholder="KEWR"
+                  className={inputCls} />
+              </div>
+            </div>
+            <button onClick={saveProfile} disabled={!tempName}
+              className="w-full py-2 rounded-xl bg-primary text-primary-foreground text-sm font-bold hover:bg-primary/90 disabled:opacity-50">
+              Save Profile
+            </button>
+          </div>
+        )}
+
+        {/* Task list */}
+        {profile.name && !editProfile && (
+          isLoading ? (
+            <p className="text-gray-500 text-sm text-center py-6">Loading…</p>
+          ) : entries.length === 0 ? (
+            <div className="text-center py-10">
+              <CheckCircle className="w-10 h-10 text-green-500/20 mx-auto mb-2" />
+              <p className="text-gray-500 text-sm">No open tasks assigned to you{profile.station ? ` at ${profile.station}` : ''}</p>
+            </div>
+          ) : (
+            <div className="space-y-2 max-h-80 overflow-y-auto pr-1">
+              <p className="text-[10px] font-bold text-gray-500 uppercase tracking-widest">{entries.length} open task{entries.length !== 1 ? 's' : ''}</p>
+              {entries.map(e => {
+                const status = e.discrepancy_status || 'OPEN';
+                const cfg = STATUS_CFG[status] || STATUS_CFG.OPEN;
+                return (
+                  <div key={e.id} className="bg-[#1a1f2e] border border-white/10 rounded-xl p-3 space-y-1">
+                    <div className="flex items-center justify-between gap-2">
+                      <div className="flex items-center gap-2">
+                        <span className={cn('text-[10px] font-extrabold px-2 py-0.5 rounded-full', cfg.bg, cfg.color)}>{cfg.label}</span>
+                        <span className="text-xs font-mono font-bold text-primary">{e.aircraft_tail || '—'}</span>
+                        {e.station && <span className="text-[10px] text-gray-500">{e.station}</span>}
+                      </div>
+                      {e.ata_chapter && <span className="text-[10px] text-gray-600">ATA {e.ata_chapter}</span>}
+                    </div>
+                    <p className="text-xs text-gray-300 leading-snug line-clamp-2">
+                      {e.description?.replace('[LINE MX]', '').replace('[TECH ASSIGNED]', '').split('\n')[0].trim()}
+                    </p>
+                    <p className="text-[10px] text-gray-600">{new Date(e.created_date).toLocaleString()}</p>
+                  </div>
+                );
+              })}
+            </div>
+          )
+        )}
+      </div>
+    </Modal>
+  );
+}
+
 // ── Main Page ───────────────────────────────────────────────────────────────
 export default function OOSDashboard() {
   const [modal, setModal] = useState(null); // 'new' | 'discrepancies' | 'close' | 'oil' | 'oxygen' | 'flightaware'
   const { queue, isOnline, isSyncing, syncError, queueOperation, syncQueue, clearQueue, pendingCount } = useOfflineTechnician();
 
+  const myTasksCount = (() => {
+    try {
+      const p = JSON.parse(localStorage.getItem('tech_profile') || '{}');
+      return p.name ? '?' : 0;
+    } catch { return 0; }
+  })();
+
   const ACTIONS = [
+    { icon: ClipboardList, label: 'My Tasks',              bg: 'bg-primary',      modal: 'my_tasks', highlight: true },
     { icon: Plus,          label: 'New Logbook Entry',    bg: 'bg-amber-500',    modal: 'new' },
     { icon: CheckCircle,   label: 'Close Task',           bg: 'bg-teal-600',     modal: 'close' },
     { icon: List,          label: 'Open Discrepancies',   bg: 'bg-[#1a1f2e]',   modal: 'discrepancies', border: true },
@@ -940,6 +1063,7 @@ export default function OOSDashboard() {
       {modal === 'oil'           && <OilServiceModal    onClose={() => setModal(null)} />}
       {modal === 'oxygen'        && <OxygenServiceModal onClose={() => setModal(null)} />}
       {modal === 'flightaware'   && <FlightAwarePanel   onClose={() => setModal(null)} />}
+      {modal === 'my_tasks'       && <MyTasksModal        onClose={() => setModal(null)} />}
       
       <OfflineQueueManager
         queue={queue}
