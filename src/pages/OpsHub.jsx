@@ -73,6 +73,15 @@ export default function OpsHub() {
     refetchInterval: 60000,
   });
 
+  const { data: flightAwarePositions = [] } = useQuery({
+    queryKey: ['ops-fa-positions'],
+    queryFn: async () => {
+      const res = await base44.functions.invoke('flightAwarePositions', {});
+      return res.data?.aircraft || [];
+    },
+    refetchInterval: 30000,
+  });
+
   const criticalAlerts = alerts.filter(a => a.severity === 'critical');
 
   return (

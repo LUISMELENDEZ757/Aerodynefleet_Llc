@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
-import { MapContainer, TileLayer, Marker, Popup, Polyline, CircleMarker } from 'react-leaflet';
+import { MapContainer, TileLayer, Marker, Popup, Polyline, CircleMarker, Tooltip } from 'react-leaflet';
 import L from 'leaflet';
+import { base44 } from '@/api/base44Client';
 import 'leaflet/dist/leaflet.css';
 
 // Airport coordinates (ICAO → [lat, lng])
@@ -26,42 +27,36 @@ const airportIcon = L.divIcon({
   className: 'airport-marker',
 });
 
-// Interpolate aircraft position along route
-function interpolatePosition(origin, dest, progress) {
-  if (!origin || !dest) return null;
-  const [o_lat, o_lng] = origin;
-  const [d_lat, d_lng] = dest;
-  return [o_lat + (d_lat - o_lat) * progress, o_lng + (d_lng - o_lng) * progress];
-}
-
-function getFlightProgress(flight) {
-  if (flight.status === 'airborne' || flight.status === 'En Route') {
-    // Estimate progress based on scheduled times
-    const now = new Date();
-    const dep = flight._raw_dep ? new Date(flight._raw_dep) : null;
-    const arr = flight._raw_arr ? new Date(flight._raw_arr) : null;
-    if (!dep || !arr) return 0.5;
-    const elapsed = now - dep;
-    const total = arr - dep;
-    return Math.max(0, Math.min(1, elapsed / total));
-  }
-  return flight.status === 'arrived' || flight.status === 'landed' ? 1 : 0;
-}
-
 export default function LiveAircraftMap({ flights = [] }) {
-  const [center, setCenter] = useState([39.8282, -98.5795]); // Center of USA
+  const [center, setCenter] = useState([39.8282, -98.5795]);
   const [zoom, setZoom] = useState(4);
+  const [aircraftPositions, setAircraftPositions] = useState([]);
+  const [loading, setLoading] = useState(false);
 
-  const airborneFlights = flights.filter(f => {
-    const s = f.status?.toLowerCase() || '';
-    return s.includes('airborne') || s.includes('en route') || s.includes('departed');
-  });
+  // Fetch real FlightAware positions
+  useEffect(() => {
+    const fetchPositions = async () => {
+      setLoading(true);
+      try {
+        const res = await base44.functions.invoke('flightAwarePositions', {});
+        setAircraftPositions(res.data?.aircraft || []);
+      } catch (e) {
+        console.error('Failed to fetch positions:', e);
+      } finally {
+        setLoading(false);
+      }
+    };
 
-  // Filter unique airports to show
+    fetchPositions();
+    const interval = setInterval(fetchPositions, 30000); // Refresh every 30s
+    return () => clearInterval(interval);
+  }, []);
+
+  // Filter unique airports
   const airportsToShow = new Set();
-  airborneFlights.forEach(f => {
-    if (f.origin) airportsToShow.add(f.origin);
-    if (f.destination) airportsToShow.add(f.destination);
+  aircraftPositions.forEach(a => {
+    if (a.origin) airportsToShow.add(a.origin);
+    if (a.destination) airportsToShow.add(a.destination);
   });
 
   return (
@@ -83,57 +78,50 @@ export default function LiveAircraftMap({ flights = [] }) {
           );
         })}
 
-        {/* Flight paths and aircraft */}
-        {airborneFlights.map(flight => {
-          const originCoords = AIRPORT_COORDS[flight.origin];
-          const destCoords = AIRPORT_COORDS[flight.destination];
-          if (!originCoords || !destCoords) return null;
-
-          const progress = getFlightProgress(flight);
-          const aircraftPos = interpolatePosition(originCoords, destCoords, progress);
-          const cfg = {
-            'airborne': { color: '#10b981', fillColor: '#10b981' },
-            'en route': { color: '#10b981', fillColor: '#10b981' },
-            'departed': { color: '#f59e0b', fillColor: '#f59e0b' },
-          }[flight.status?.toLowerCase()] || { color: '#6b7280', fillColor: '#6b7280' };
+        {/* Aircraft from FlightAware */}
+        {aircraftPositions.map(aircraft => {
+          if (!aircraft.latitude || !aircraft.longitude) return null;
+          const originCoords = AIRPORT_COORDS[aircraft.origin];
+          const destCoords = AIRPORT_COORDS[aircraft.destination];
 
           return (
-            <div key={flight.id}>
-              {/* Flight path line */}
-              <Polyline
-                positions={[originCoords, destCoords]}
-                color={cfg.color}
-                weight={2}
-                opacity={0.5}
-                dashArray="5, 5"
-              />
-
-              {/* Aircraft position */}
-              {aircraftPos && (
-                <CircleMarker
-                  center={aircraftPos}
-                  radius={6}
-                  fill
-                  fillColor={cfg.fillColor}
-                  color={cfg.color}
+            <div key={aircraft.id}>
+              {/* Flight path */}
+              {originCoords && destCoords && (
+                <Polyline
+                  positions={[originCoords, destCoords]}
+                  color="#3b82f6"
                   weight={2}
-                  opacity={1}
-                  fillOpacity={0.8}
-                >
-                  <Popup>
-                    <div className="text-xs font-bold space-y-1">
-                      <p>{flight.flight_number}</p>
-                      <p className="text-[10px] text-gray-600">
-                        {flight.origin} → {flight.destination}
-                      </p>
-                      <p className="text-[10px] text-gray-600">{flight.aircraft_tail}</p>
-                      {flight.delay_minutes > 0 && (
-                        <p className="text-[10px] text-red-600">+{flight.delay_minutes}m delay</p>
-                      )}
-                    </div>
-                  </Popup>
-                </CircleMarker>
+                  opacity={0.4}
+                  dashArray="5, 5"
+                />
               )}
+
+              {/* Aircraft marker */}
+              <CircleMarker
+                center={[aircraft.latitude, aircraft.longitude]}
+                radius={8}
+                fill
+                fillColor="#06b6d4"
+                color="#0891b2"
+                weight={2}
+                opacity={1}
+                fillOpacity={0.9}
+              >
+                <Tooltip direction="top" permanent={false}>
+                  <span className="text-xs font-bold">{aircraft.flight_number}</span>
+                </Tooltip>
+                <Popup>
+                  <div className="text-xs space-y-1">
+                    <p className="font-bold">{aircraft.flight_number}</p>
+                    <p className="text-[10px]">Tail: {aircraft.tail}</p>
+                    <p className="text-[10px]">{aircraft.origin} → {aircraft.destination}</p>
+                    <p className="text-[10px]">Alt: {aircraft.altitude} ft</p>
+                    <p className="text-[10px]">Speed: {aircraft.ground_speed} kts</p>
+                    <p className="text-[10px]">Hdg: {aircraft.heading}°</p>
+                  </div>
+                </Popup>
+              </CircleMarker>
             </div>
           );
         })}
