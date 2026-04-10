@@ -2,8 +2,8 @@ import { useState, useEffect } from 'react';
 import { MapContainer, TileLayer, Marker, Popup, Polyline, CircleMarker, Tooltip } from 'react-leaflet';
 import L from 'leaflet';
 import { base44 } from '@/api/base44Client';
-import { Filter, X } from 'lucide-react';
-import LiveAircraftMapFilters from './LiveAircraftMapFilters';
+import { X } from 'lucide-react';
+import { cn } from '@/lib/utils';
 import 'leaflet/dist/leaflet.css';
 
 // Airport coordinates (ICAO → [lat, lng])
@@ -34,15 +34,7 @@ export default function LiveAircraftMap({ flights = [] }) {
   const [zoom, setZoom] = useState(4);
   const [aircraftPositions, setAircraftPositions] = useState([]);
   const [loading, setLoading] = useState(false);
-  const [showFilters, setShowFilters] = useState(false);
-  const [filters, setFilters] = useState({
-    airline: [],
-    origin: [],
-    destination: [],
-    type: [],
-    status: [],
-    callsign: '',
-  });
+  const [selectedAirline, setSelectedAirline] = useState(null);
 
   // Fetch real FlightAware positions
   useEffect(() => {
@@ -63,16 +55,13 @@ export default function LiveAircraftMap({ flights = [] }) {
     return () => clearInterval(interval);
   }, []);
 
-  // Apply filters
-  const filteredAircraft = aircraftPositions.filter(a => {
-    if (filters.airline.length > 0 && !filters.airline.includes(a.airline)) return false;
-    if (filters.origin.length > 0 && !filters.origin.includes(a.origin)) return false;
-    if (filters.destination.length > 0 && !filters.destination.includes(a.destination)) return false;
-    if (filters.type.length > 0 && !filters.type.includes(a.aircraft_type)) return false;
-    if (filters.status.length > 0 && !filters.status.includes(a.status)) return false;
-    if (filters.callsign && !a.flight_number?.toUpperCase().includes(filters.callsign.toUpperCase())) return false;
-    return true;
-  });
+  // Get unique airlines
+  const airlines = [...new Set(aircraftPositions.map(a => a.airline).filter(Boolean))].sort();
+
+  // Apply airline filter
+  const filteredAircraft = selectedAirline
+    ? aircraftPositions.filter(a => a.airline === selectedAirline)
+    : aircraftPositions;
 
   // Filter unique airports
   const airportsToShow = new Set();
@@ -84,27 +73,34 @@ export default function LiveAircraftMap({ flights = [] }) {
   return (
     <div className="rounded-2xl overflow-hidden border border-border h-full bg-background flex flex-col">
       {/* Filter bar */}
-      <div className="flex items-center gap-2 px-4 py-2.5 border-b border-border bg-secondary/50 flex-shrink-0">
+      <div className="flex items-center gap-2 px-4 py-2.5 border-b border-border bg-secondary/50 flex-shrink-0 overflow-x-auto scrollbar-hide">
+        <span className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest flex-shrink-0">Airline:</span>
         <button
-          onClick={() => setShowFilters(true)}
-          className="flex items-center gap-2 text-[10px] font-bold px-3 py-1.5 rounded-lg bg-primary text-primary-foreground hover:bg-primary/90 transition-colors"
-        >
-          <Filter className="w-3.5 h-3.5" /> FILTERS
-          {Object.values(filters).reduce((s, v) => s + (Array.isArray(v) ? v.length : (v ? 1 : 0)), 0) > 0 && (
-            <span className="text-[9px] font-extrabold px-1.5 py-0.5 rounded-full bg-white/20">
-              {Object.values(filters).reduce((s, v) => s + (Array.isArray(v) ? v.length : (v ? 1 : 0)), 0)}
-            </span>
+          onClick={() => setSelectedAirline(null)}
+          className={cn(
+            'text-xs font-bold px-3 py-1.5 rounded-lg border transition-all flex-shrink-0',
+            !selectedAirline
+              ? 'bg-primary text-primary-foreground border-primary'
+              : 'bg-secondary border-border text-muted-foreground hover:text-foreground'
           )}
+        >
+          All
         </button>
-        <span className="text-[10px] text-muted-foreground">{filteredAircraft.length} aircraft shown</span>
-        {Object.values(filters).reduce((s, v) => s + (Array.isArray(v) ? v.length : (v ? 1 : 0)), 0) > 0 && (
+        {airlines.map(airline => (
           <button
-            onClick={() => setFilters({ airline: [], origin: [], destination: [], type: [], status: [], callsign: '' })}
-            className="ml-auto text-[10px] text-muted-foreground hover:text-foreground flex items-center gap-1"
+            key={airline}
+            onClick={() => setSelectedAirline(airline)}
+            className={cn(
+              'text-xs font-bold px-3 py-1.5 rounded-lg border transition-all flex-shrink-0',
+              selectedAirline === airline
+                ? 'bg-primary text-primary-foreground border-primary'
+                : 'bg-secondary border-border text-muted-foreground hover:text-foreground'
+            )}
           >
-            Clear <X className="w-3 h-3" />
+            {airline}
           </button>
-        )}
+        ))}
+        <span className="text-[10px] text-muted-foreground ml-auto flex-shrink-0">{filteredAircraft.length} aircraft</span>
       </div>
 
       <div className="flex-1">
@@ -174,16 +170,6 @@ export default function LiveAircraftMap({ flights = [] }) {
         })}
         </MapContainer>
       </div>
-
-      {/* Filter Modal */}
-      {showFilters && (
-        <LiveAircraftMapFilters
-          aircraft={aircraftPositions}
-          filters={filters}
-          setFilters={setFilters}
-          onClose={() => setShowFilters(false)}
-        />
-      )}
     </div>
   );
 }
