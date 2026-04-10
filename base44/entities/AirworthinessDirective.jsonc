@@ -1,0 +1,165 @@
+{
+  "name": "AirworthinessDirective",
+  "type": "object",
+  "description": "FAA / EASA Airworthiness Directive compliance tracking \u2014 mandatory corrective actions per tail number with due date, compliance status, and recurring interval tracking.",
+  "properties": {
+    "ad_number": {
+      "type": "string",
+      "description": "Official AD number e.g. 2024-12-05 (FAA) or EASA AD 2024-0123"
+    },
+    "issuing_authority": {
+      "type": "string",
+      "enum": [
+        "FAA",
+        "EASA",
+        "TCCA",
+        "ANAC",
+        "CAAC",
+        "DGCA",
+        "CASA",
+        "Other"
+      ],
+      "default": "FAA"
+    },
+    "title": {
+      "type": "string",
+      "description": "AD subject title"
+    },
+    "description": {
+      "type": "string",
+      "description": "Full description of the required corrective action"
+    },
+    "aircraft_tail": {
+      "type": "string",
+      "description": "Aircraft tail number this AD applies to"
+    },
+    "aircraft_type": {
+      "type": "string",
+      "description": "Applicable aircraft type(s) e.g. B737-800"
+    },
+    "ata_chapter": {
+      "type": "string",
+      "description": "ATA chapter e.g. 27"
+    },
+    "ad_type": {
+      "type": "string",
+      "enum": [
+        "one_time",
+        "recurring",
+        "on_condition"
+      ],
+      "default": "one_time",
+      "description": "Whether the AD requires a single fix or recurring inspections"
+    },
+    "compliance_method": {
+      "type": "string",
+      "enum": [
+        "inspection",
+        "modification",
+        "replacement",
+        "operational_procedure",
+        "software_update",
+        "other"
+      ],
+      "description": "How the AD is to be complied with"
+    },
+    "effective_date": {
+      "type": "string",
+      "format": "date",
+      "description": "Date AD became effective"
+    },
+    "compliance_due_date": {
+      "type": "string",
+      "format": "date",
+      "description": "Date by which initial compliance must be completed"
+    },
+    "compliance_due_hours": {
+      "type": "number",
+      "description": "Flight hours at which compliance is due"
+    },
+    "compliance_due_cycles": {
+      "type": "number",
+      "description": "Cycles at which compliance is due"
+    },
+    "recurring_interval_hours": {
+      "type": "number",
+      "description": "For recurring ADs: repeat interval in flight hours"
+    },
+    "recurring_interval_days": {
+      "type": "number",
+      "description": "For recurring ADs: repeat interval in calendar days"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "open",
+        "complied",
+        "overdue",
+        "not_applicable",
+        "deferred_alt_means"
+      ],
+      "default": "open",
+      "description": "Current compliance status"
+    },
+    "complied_date": {
+      "type": "string",
+      "format": "date",
+      "description": "Date of compliance accomplishment"
+    },
+    "complied_hours": {
+      "type": "number",
+      "description": "Flight hours at time of compliance"
+    },
+    "complied_cycles": {
+      "type": "number",
+      "description": "Cycles at time of compliance"
+    },
+    "next_due_date": {
+      "type": "string",
+      "format": "date",
+      "description": "Next due date for recurring ADs"
+    },
+    "next_due_hours": {
+      "type": "number",
+      "description": "Next due flight hours for recurring ADs"
+    },
+    "work_order_ref": {
+      "type": "string",
+      "description": "Associated work order or logbook entry reference"
+    },
+    "technician_name": {
+      "type": "string",
+      "description": "Technician who performed the compliance"
+    },
+    "technician_cert": {
+      "type": "string",
+      "description": "A&P certificate number"
+    },
+    "inspector_name": {
+      "type": "string",
+      "description": "RII inspector name if required"
+    },
+    "inspector_cert": {
+      "type": "string",
+      "description": "RII inspector certificate number"
+    },
+    "reference_document": {
+      "type": "string",
+      "description": "AMM / SB / SL reference used for compliance"
+    },
+    "parts_replaced": {
+      "type": "string",
+      "description": "P/N and S/N of parts replaced if applicable"
+    },
+    "notes": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "ad_number",
+    "title",
+    "aircraft_tail",
+    "status",
+    "effective_date"
+  ]
+}

@@ -4,28 +4,31 @@
   "properties": {
     "role": {
       "type": "string",
-      "description": "The role of the user in the app",
       "enum": [
         "admin",
-        "user"
-      ]
-    },
-    "approval_status": {
-      "type": "string",
-      "enum": [
-        "pending",
-        "approved",
-        "rejected"
+        "mcc_supervisor",
+        "dispatcher",
+        "technician",
+        "inspector_rii",
+        "engineer",
+        "crew",
+        "flight_attendant",
+        "viewer"
       ],
-      "default": "pending",
-      "description": "Access approval status for new users"
+      "default": "viewer",
+      "description": "User role controlling access permissions across the platform"
     },
-    "approval_note": {
+    "cert_number": {
       "type": "string",
-      "description": "Admin note on approval or rejection"
+      "description": "A&P, IA, or dispatch certificate/license number"
+    },
+    "station": {
+      "type": "string",
+      "description": "Home station ICAO e.g. KEWR"
+    },
+    "fleet_id": {
+      "type": "string",
+      "description": "Fleet/airline assignment"
     }
-  },
-  "required": [
-    "role"
-  ]
+  }
 }

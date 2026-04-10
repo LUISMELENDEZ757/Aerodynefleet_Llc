@@ -27,6 +27,8 @@ const TECHNICIAN_ITEMS = [
   { label: 'Engine Removal', path: '/EngineRemovalInstallation' },
   { label: 'Heavy MxMRO', path: '/HeavyMxMRO' },
   { label: 'ROB/BOR Operations', path: '/BORROB' },
+  { label: 'AD Tracking', path: '/ADTracking' },
+  { label: 'Component Traceability', path: '/ComponentTraceability' },
 ];
 
 // ── WORKGROUP 2: DISPATCH & OPERATIONS CONTROL ─────────────────────────────────

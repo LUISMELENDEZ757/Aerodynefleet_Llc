@@ -1,0 +1,172 @@
+{
+  "name": "TrackedComponent",
+  "type": "object",
+  "description": "Serialized component birth-to-death traceability \u2014 tracks every installation, removal, repair, and overhaul event. Supports FAA 8130-3 airworthiness approval tag generation.",
+  "properties": {
+    "part_number": {
+      "type": "string",
+      "description": "Manufacturer part number (P/N)"
+    },
+    "serial_number": {
+      "type": "string",
+      "description": "Manufacturer serial number (S/N)"
+    },
+    "part_name": {
+      "type": "string",
+      "description": "Part description e.g. Main Landing Gear Actuator"
+    },
+    "ata_chapter": {
+      "type": "string",
+      "description": "ATA chapter e.g. 32"
+    },
+    "manufacturer": {
+      "type": "string",
+      "description": "Part manufacturer name e.g. Parker Hannifin, Safran"
+    },
+    "cage_code": {
+      "type": "string",
+      "description": "Manufacturer CAGE code"
+    },
+    "current_aircraft_tail": {
+      "type": "string",
+      "description": "Aircraft tail this component is currently installed on"
+    },
+    "current_position": {
+      "type": "string",
+      "description": "Position on aircraft e.g. Left MLG, Engine 1, Position 3"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "serviceable",
+        "installed",
+        "unserviceable",
+        "in_repair",
+        "scrapped",
+        "quarantine"
+      ],
+      "default": "serviceable"
+    },
+    "condition": {
+      "type": "string",
+      "enum": [
+        "new",
+        "overhauled",
+        "serviceable_used",
+        "as_removed",
+        "repaired"
+      ],
+      "default": "new"
+    },
+    "total_time_hours": {
+      "type": "number",
+      "description": "Total accumulated flight hours on component"
+    },
+    "total_cycles": {
+      "type": "number",
+      "description": "Total accumulated cycles"
+    },
+    "life_limit_hours": {
+      "type": "number",
+      "description": "Hard life limit in flight hours (if life-limited part)"
+    },
+    "life_limit_cycles": {
+      "type": "number",
+      "description": "Hard life limit in cycles (if life-limited part)"
+    },
+    "overhaul_interval_hours": {
+      "type": "number",
+      "description": "Overhaul interval in flight hours"
+    },
+    "last_overhaul_date": {
+      "type": "string",
+      "format": "date"
+    },
+    "last_overhaul_shop": {
+      "type": "string",
+      "description": "MRO shop that performed last overhaul"
+    },
+    "next_overhaul_due_hours": {
+      "type": "number",
+      "description": "Computed next overhaul due at (hours)"
+    },
+    "form_8130_number": {
+      "type": "string",
+      "description": "FAA Form 8130-3 airworthiness approval tag number"
+    },
+    "form_8130_date": {
+      "type": "string",
+      "format": "date",
+      "description": "Date 8130-3 was issued"
+    },
+    "form_8130_issued_by": {
+      "type": "string",
+      "description": "DAR / DER / Repair Station who issued the 8130-3"
+    },
+    "repair_station_cert": {
+      "type": "string",
+      "description": "FAA Repair Station certificate number e.g. ABCD123B"
+    },
+    "installation_history": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "aircraft_tail": {
+            "type": "string"
+          },
+          "position": {
+            "type": "string"
+          },
+          "installed_date": {
+            "type": "string"
+          },
+          "removed_date": {
+            "type": "string"
+          },
+          "installed_by": {
+            "type": "string"
+          },
+          "removed_by": {
+            "type": "string"
+          },
+          "hours_at_install": {
+            "type": "number"
+          },
+          "hours_at_removal": {
+            "type": "number"
+          },
+          "reason_for_removal": {
+            "type": "string"
+          }
+        }
+      },
+      "description": "Full installation/removal history across all aircraft"
+    },
+    "traceability_docs": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "URLs to 8130-3 scans, C of C, repair orders"
+    },
+    "is_life_limited": {
+      "type": "boolean",
+      "default": false,
+      "description": "True if this is a life-limited part (LLP)"
+    },
+    "scrapped_reason": {
+      "type": "string",
+      "description": "Reason for scrapping if status = scrapped"
+    },
+    "notes": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "part_number",
+    "serial_number",
+    "part_name",
+    "status"
+  ]
+}
