@@ -83,7 +83,7 @@ const ADMIN_SYSTEM_ITEMS = [
 
 // ── HOME & CORE OPERATIONS (accessible to all) ──────────────────────────────────
 const CORE_ITEMS = [
-  { label: 'OPS HUB', path: '/Home' },
+  { label: 'OPS HUB', path: '/OpsHub' },
   { label: 'AOCS Hub', path: '/AocsDashboard' },
 ];
 

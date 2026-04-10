@@ -16,8 +16,8 @@ import useOfflineSync from '@/hooks/useOfflineSync';
 import { offlineStore } from '@/lib/offline-store';
 import OfflineBadge from '@/components/layout/OfflineBadge';
 
-const Landing              = lazy(() => import('@/pages/Landing'));
 const Home                  = lazy(() => import('@/pages/Home'));
+const OpsHub                = lazy(() => import('@/pages/OpsHub'));
 const Dashboard             = lazy(() => import('@/pages/Dashboard'));
 const OOSDetail             = lazy(() => import('@/pages/OOSDetail'));
 const NewOOS                = lazy(() => import('@/pages/NewOOS'));
@@ -185,10 +185,9 @@ const AuthenticatedApp = () => {
     <ChunkErrorBoundary>
     <Suspense fallback={<PageFallback />}>
     <Routes>
+      <Route path="/" element={<Home />} />
       <Route element={<AppLayout />}>
-        <Route path="/" element={<Landing />} />
-        <Route path="/Home" element={<Home />} />
-        <Route path="/Ops" element={<Home />} />
+        <Route path="/OpsHub" element={<OpsHub />} />
         <Route path="/Dashboard" element={<Dashboard />} />
         <Route path="/OOSDetail" element={<OOSDetail />} />
         <Route path="/NewOOS" element={<NewOOS />} />
