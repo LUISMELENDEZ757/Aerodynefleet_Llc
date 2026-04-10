@@ -2,9 +2,10 @@ import { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { base44 } from '@/api/base44Client';
 import { Link } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import {
   Globe, Plus, Search, ChevronLeft, Pencil, Trash2, X,
-  CheckCircle, Circle, RefreshCw, RotateCcw
+  CheckCircle, Circle, RefreshCw, RotateCcw, BarChart2
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
@@ -427,29 +428,35 @@ export default function GlobalStationManagement() {
                     </div>
 
                     <div className="flex items-center gap-2 flex-shrink-0">
-                      <span className={cn(
-                        'text-[10px] font-extrabold px-3 py-1 rounded-lg',
-                        station.is_active ? 'bg-green-600 text-white' : 'bg-gray-700 text-gray-300'
-                      )}>
-                        {station.is_active ? 'Active' : 'Inactive'}
-                      </span>
-                      <button
-                        onClick={() => setEditStation(station)}
-                        className="w-8 h-8 rounded-lg bg-white/5 hover:bg-primary/20 flex items-center justify-center transition-colors"
-                        title="Edit">
-                        <Pencil className="w-3.5 h-3.5 text-primary" />
-                      </button>
-                      <button
-                        onClick={() => setDeleteStation(station)}
-                        className="w-8 h-8 rounded-lg bg-white/5 hover:bg-red-500/20 flex items-center justify-center transition-colors"
-                        title="Delete">
-                        <Trash2 className="w-3.5 h-3.5 text-red-400" />
-                      </button>
+                    <button
+                     onClick={() => window.location.assign(`/StationDashboard?icao=${station.icao_code}`)}
+                     className="w-8 h-8 rounded-lg bg-white/5 hover:bg-blue-500/20 flex items-center justify-center transition-colors"
+                     title="View Dashboard">
+                     <BarChart2 className="w-3.5 h-3.5 text-blue-400" />
+                    </button>
+                    <span className={cn(
+                     'text-[10px] font-extrabold px-3 py-1 rounded-lg',
+                     station.is_active ? 'bg-green-600 text-white' : 'bg-gray-700 text-gray-300'
+                    )}>
+                     {station.is_active ? 'Active' : 'Inactive'}
+                    </span>
+                    <button
+                     onClick={() => setEditStation(station)}
+                     className="w-8 h-8 rounded-lg bg-white/5 hover:bg-primary/20 flex items-center justify-center transition-colors"
+                     title="Edit">
+                     <Pencil className="w-3.5 h-3.5 text-primary" />
+                    </button>
+                    <button
+                     onClick={() => setDeleteStation(station)}
+                     className="w-8 h-8 rounded-lg bg-white/5 hover:bg-red-500/20 flex items-center justify-center transition-colors"
+                     title="Delete">
+                     <Trash2 className="w-3.5 h-3.5 text-red-400" />
+                    </button>
                     </div>
-                  </div>
-                ))}
-              </div>
-            ))}
+                    </div>
+                    ))}
+                    </div>
+                    ))}
           </div>
         )}
       </div>
