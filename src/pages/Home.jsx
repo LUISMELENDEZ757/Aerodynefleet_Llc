@@ -54,13 +54,20 @@ function ZuluClock() {
     const t = setInterval(() => setTime(new Date()), 1000);
     return () => clearInterval(t);
   }, []);
-  const h = String(time.getUTCHours()).padStart(2, '0');
-  const m = String(time.getUTCMinutes()).padStart(2, '0');
-  const s = String(time.getUTCSeconds()).padStart(2, '0');
+  const zh = String(time.getUTCHours()).padStart(2, '0');
+  const zm = String(time.getUTCMinutes()).padStart(2, '0');
+  const zs = String(time.getUTCSeconds()).padStart(2, '0');
+  const lt = time.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: false });
   return (
-    <span className="font-mono text-sm font-extrabold text-primary tracking-widest">
-      {h}:{m}:{s} Z
-    </span>
+    <div className="flex items-center gap-3">
+      <span className="font-mono text-sm font-extrabold text-primary tracking-widest">
+        {zh}:{zm}:{zs} Z
+      </span>
+      <span className="text-gray-600">|</span>
+      <span className="font-mono text-sm font-extrabold text-amber-400 tracking-widest">
+        {lt} LT
+      </span>
+    </div>
   );
 }
 
