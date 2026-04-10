@@ -219,6 +219,8 @@ export default function MELDashboard() {
     .map(i => ({ ...i, computedStatus: computeStatus(i) }))
     .filter(i => !stationFilter || tailToStation[i.aircraft_tail] === stationFilter || i.station === stationFilter);
 
+  const expired  = enriched.filter(i => i.computedStatus === 'expired').length;
+  const expiring = enriched.filter(i => i.computedStatus === 'expiring_soon').length;
   const open     = enriched.filter(i => i.computedStatus === 'open').length;
   const cleared  = enriched.filter(i => i.computedStatus === 'cleared').length;
 
