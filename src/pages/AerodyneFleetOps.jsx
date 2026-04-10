@@ -1,10 +1,11 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { base44 } from '@/api/base44Client';
 import { Link } from 'react-router-dom';
 import {
   Plane, ChevronLeft, RefreshCw, AlertTriangle, CheckCircle,
-  Search, Radio, Database, MapPin, Building2, Filter, X
+  Search, Radio, Database, MapPin, Building2, Filter, X,
+  ChevronDown, ChevronUp, SlidersHorizontal, Bookmark, Layers, Clock
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
@@ -136,15 +137,23 @@ function FlightProgress({ flight }) {
 // ── Flight row ────────────────────────────────────────────────────────────────
 function FlightRow({ flight, isSelected, onClick }) {
   const cfg = getCfg(flight.status);
+  // Estimate ground time from scheduled block times if available
+  const gndTime = (() => {
+    if (!flight._raw_arr || !flight._raw_dep) return null;
+    const arr = new Date(flight._raw_arr);
+    const dep = new Date(flight._raw_dep);
+    const diff = Math.round((dep - arr) / 60000);
+    return diff > 0 && diff < 300 ? `${diff}m` : null;
+  })();
   return (
     <button
       onClick={onClick}
       className={cn(
-        'w-full text-left grid gap-3 px-4 py-3 border-b border-white/5 hover:bg-white/5 transition-colors',
+        'w-full text-left grid px-4 py-3 border-b border-white/5 hover:bg-white/5 transition-colors gap-2',
         isSelected && 'bg-primary/10 border-l-2 border-l-primary',
         flight.status === 'Cancelled' || flight.status === 'cancelled' ? 'opacity-50' : ''
       )}
-      style={{ gridTemplateColumns: '96px 1fr 120px 70px 60px 80px' }}
+      style={{ gridTemplateColumns: '90px 1fr 140px 55px 55px 70px 70px 55px 80px' }}
     >
       <div>
         <p className="text-sm font-extrabold text-white font-mono">{flight.flight_number}</p>
@@ -183,6 +192,15 @@ function FlightRow({ flight, isSelected, onClick }) {
         {flight.delay_minutes > 0
           ? <p className="text-xs font-extrabold text-red-400">+{flight.delay_minutes}m</p>
           : <p className="text-xs text-gray-600">—</p>}
+      </div>
+      <div className="text-center">
+        {gndTime ? <p className="text-[10px] font-bold text-cyan-400">{gndTime}</p> : <p className="text-[10px] text-gray-600">—</p>}
+      </div>
+      <div className="text-center">
+        <p className="text-[10px] font-mono text-gray-400 truncate">{flight.aircraft_type || '—'}</p>
+      </div>
+      <div className="text-center">
+        <p className="text-[10px] text-gray-600">—</p>
       </div>
       <div className="flex items-center justify-end">
         <span className={cn('flex items-center gap-1 text-[10px] font-extrabold px-2 py-1 rounded-full', cfg.bg, cfg.color)}>
@@ -295,6 +313,83 @@ function FlightDetailPanel({ flight, aircraft }) {
 
 // ── Live feed filter bar ──────────────────────────────────────────────────────
 const FLEET_TYPES = ['All Types','B737-700','B737-800','B737-900','B737 MAX 8','B737 MAX 9','B757','B767','B777','B787','A320','A321','A350','E190','CRJ900'];
+const PERIODS = ['1 HR','2 HRS','4 HRS','8 HRS','12 HRS','24 HRS'];
+
+const FILTER_CATEGORIES = [
+  { id: 'carrier',     label: 'Carrier',          options: ['UAL','AAL','DAL','SWA','JBU','ASA','FFT'] },
+  { id: 'fleetType',   label: 'Fleet / Sub-Fleet', options: FLEET_TYPES.slice(1) },
+  { id: 'flightStatus',label: 'Flight Status',     options: ['Scheduled','En Route','Departed','Arrived','Landed','Cancelled'] },
+  { id: 'melCode',     label: 'MEL Code',          options: ['Cat A','Cat B','Cat C','Cat D','None'] },
+  { id: 'irropEvents', label: 'IRROP Events',       options: ['Weather','Mechanical','Crew','ATC','Other'] },
+  { id: 'typeOfFlying',label: 'Type of Flying',    options: ['Mainline','Regional','Charter','Cargo'] },
+  { id: 'zoneGate',   label: 'Zone / Gate',        options: [] },
+];
+
+function FilterSidebar({ onClose, activeFilters, setActiveFilters }) {
+  const [expanded, setExpanded] = useState({ flightStatus: true, carrier: true });
+  const toggle = (id) => setExpanded(p => ({ ...p, [id]: !p[id] }));
+  const toggleOption = (catId, opt) => {
+    setActiveFilters(p => {
+      const cur = new Set(p[catId] || []);
+      cur.has(opt) ? cur.delete(opt) : cur.add(opt);
+      return { ...p, [catId]: [...cur] };
+    });
+  };
+  const totalActive = Object.values(activeFilters).reduce((s, a) => s + (a?.length || 0), 0);
+  return (
+    <div className="flex flex-col h-full bg-[#0d1117] border-r border-white/10 w-56 flex-shrink-0">
+      <div className="flex items-center justify-between px-4 py-3 border-b border-white/10">
+        <div className="flex items-center gap-2">
+          <SlidersHorizontal className="w-3.5 h-3.5 text-primary" />
+          <span className="text-xs font-extrabold text-white uppercase tracking-widest">Filters</span>
+          {totalActive > 0 && <span className="text-[9px] font-bold px-1.5 py-0.5 rounded-full bg-primary text-primary-foreground">{totalActive}</span>}
+        </div>
+        <button onClick={onClose} className="text-gray-500 hover:text-white"><X className="w-4 h-4" /></button>
+      </div>
+      <div className="flex gap-2 px-3 py-2 border-b border-white/8">
+        <input placeholder="Name Your View" className="flex-1 bg-[#111620] border border-white/10 rounded-lg px-2 py-1 text-[10px] text-white placeholder-gray-600 outline-none" />
+        <button className="text-[10px] font-bold px-2.5 py-1 rounded-lg bg-primary text-primary-foreground">Save</button>
+      </div>
+      <div className="flex gap-2 px-3 py-2 border-b border-white/8">
+        <button className="flex-1 text-[10px] font-bold py-1.5 rounded-lg bg-[#111620] border border-white/10 text-gray-400 hover:text-white">Reset</button>
+        <button className="flex-1 text-[10px] font-bold py-1.5 rounded-lg bg-primary/80 text-primary-foreground hover:bg-primary">Apply</button>
+      </div>
+      <div className="flex-1 overflow-y-auto scrollbar-hide">
+        {FILTER_CATEGORIES.map(cat => (
+          <div key={cat.id} className="border-b border-white/8">
+            <button onClick={() => toggle(cat.id)}
+              className="w-full flex items-center justify-between px-4 py-2.5 text-[11px] font-semibold text-gray-300 hover:text-white hover:bg-white/5 transition-colors">
+              <span>{cat.label}</span>
+              <div className="flex items-center gap-2">
+                {(activeFilters[cat.id]?.length > 0) && (
+                  <span className="text-[9px] text-primary font-bold">{activeFilters[cat.id].length}</span>
+                )}
+                {expanded[cat.id] ? <ChevronUp className="w-3 h-3 text-gray-500" /> : <ChevronDown className="w-3 h-3 text-gray-500" />}
+              </div>
+            </button>
+            {expanded[cat.id] && cat.options.length > 0 && (
+              <div className="px-4 pb-2 space-y-1">
+                {cat.options.map(opt => {
+                  const active = activeFilters[cat.id]?.includes(opt);
+                  return (
+                    <label key={opt} className="flex items-center gap-2 cursor-pointer group">
+                      <div onClick={() => toggleOption(cat.id, opt)}
+                        className={cn('w-3.5 h-3.5 rounded border flex items-center justify-center flex-shrink-0 transition-colors cursor-pointer',
+                          active ? 'bg-primary border-primary' : 'border-white/20 group-hover:border-white/40')}>
+                        {active && <CheckCircle className="w-2.5 h-2.5 text-primary-foreground" />}
+                      </div>
+                      <span className="text-[10px] text-gray-400 group-hover:text-gray-200">{opt}</span>
+                    </label>
+                  );
+                })}
+              </div>
+            )}
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
 
 function LiveFilterBar({ params, setParams, onFetch, loading }) {
   return (
@@ -364,6 +459,12 @@ export default function AerodyneFleetOps() {
   const [selected, setSelected] = useState(null);
   const [statusFilter, setStatusFilter] = useState('all');
   const [search, setSearch] = useState('');
+  const [showFilters, setShowFilters] = useState(false);
+  const [activeFilters, setActiveFilters] = useState({});
+  const [period, setPeriod] = useState('4 HRS');
+  const [showPeriod, setShowPeriod] = useState(false);
+  const [showMyViews, setShowMyViews] = useState(false);
+  const [showQuickViews, setShowQuickViews] = useState(false);
   const [liveFlights, setLiveFlights] = useState([]);
   const [liveLoading, setLiveLoading] = useState(false);
   const [liveError, setLiveError] = useState(null);
@@ -500,13 +601,75 @@ export default function AerodyneFleetOps() {
         </div>
       </div>
 
+      {/* ── Secondary toolbar: Filters, My Views, Quick Views, Period ── */}
+      <div className="flex items-center gap-2 px-4 py-2 border-b border-white/8 bg-[#0a0e18] flex-shrink-0 flex-wrap">
+        <button onClick={() => setShowFilters(v => !v)}
+          className={cn('flex items-center gap-1.5 text-[10px] font-extrabold px-3 py-2 rounded-lg border transition-all',
+            showFilters ? 'bg-primary text-primary-foreground border-primary' : 'border-white/15 text-gray-400 hover:text-white hover:border-white/30')}>
+          <SlidersHorizontal className="w-3 h-3" /> FILTERS
+          {Object.values(activeFilters).reduce((s, a) => s + (a?.length || 0), 0) > 0 && (
+            <span className="ml-1 text-[9px] font-bold px-1.5 py-0.5 rounded-full bg-white/20">{Object.values(activeFilters).reduce((s, a) => s + (a?.length || 0), 0)}</span>
+          )}
+        </button>
+
+        <div className="relative">
+          <button onClick={() => { setShowMyViews(v => !v); setShowQuickViews(false); }}
+            className="flex items-center gap-1 text-[10px] font-extrabold px-3 py-2 rounded-lg border border-white/15 text-gray-400 hover:text-white transition-all">
+            <Bookmark className="w-3 h-3" /> MY VIEWS <ChevronDown className="w-2.5 h-2.5" />
+          </button>
+          {showMyViews && (
+            <div className="absolute top-full left-0 mt-1 bg-[#141922] border border-white/10 rounded-xl shadow-2xl z-30 min-w-[160px] py-1">
+              <p className="px-3 py-2 text-[10px] text-gray-500">No saved views yet</p>
+            </div>
+          )}
+        </div>
+
+        <div className="relative">
+          <button onClick={() => { setShowQuickViews(v => !v); setShowMyViews(false); }}
+            className="flex items-center gap-1 text-[10px] font-extrabold px-3 py-2 rounded-lg border border-white/15 text-gray-400 hover:text-white transition-all">
+            <Layers className="w-3 h-3" /> QUICK VIEWS <ChevronDown className="w-2.5 h-2.5" />
+          </button>
+          {showQuickViews && (
+            <div className="absolute top-full left-0 mt-1 bg-[#141922] border border-white/10 rounded-xl shadow-2xl z-30 min-w-[200px] py-1">
+              {['Departures Next 2H','Arrivals Next 2H','Delayed Flights','AOG Aircraft','Active Airborne'].map(v => (
+                <button key={v} onClick={() => setShowQuickViews(false)}
+                  className="w-full text-left px-3 py-2 text-[10px] text-gray-300 hover:bg-white/5 hover:text-white">{v}</button>
+              ))}
+            </div>
+          )}
+        </div>
+
+        <div className="h-4 w-px bg-white/10" />
+
+        <div className="relative">
+          <button onClick={() => setShowPeriod(v => !v)}
+            className="flex items-center gap-1.5 text-[10px] font-extrabold px-3 py-2 rounded-lg border border-white/15 text-primary bg-primary/10 hover:bg-primary/20 transition-all">
+            <Clock className="w-3 h-3" /> {period} <ChevronDown className="w-2.5 h-2.5" />
+          </button>
+          {showPeriod && (
+            <div className="absolute top-full left-0 mt-1 bg-[#141922] border border-white/10 rounded-xl shadow-2xl z-30 min-w-[120px] py-1">
+              {PERIODS.map(p => (
+                <button key={p} onClick={() => { setPeriod(p); setShowPeriod(false); }}
+                  className={cn('w-full text-left px-3 py-2 text-[10px] font-bold hover:bg-white/5',
+                    period === p ? 'text-primary' : 'text-gray-300')}>{p}</button>
+              ))}
+            </div>
+          )}
+        </div>
+      </div>
+
       {/* ── Live filter bar (only in live mode) ── */}
       {mode === 'live' && (
         <LiveFilterBar params={liveParams} setParams={setLiveParams} onFetch={fetchLive} loading={liveLoading} />
       )}
 
       {/* ── Body ── */}
-      <div className="flex flex-1 overflow-hidden">
+      <div className="flex flex-1 overflow-hidden" onClick={() => { setShowMyViews(false); setShowQuickViews(false); setShowPeriod(false); }}>
+        {/* Filter sidebar */}
+        {showFilters && (
+          <FilterSidebar onClose={() => setShowFilters(false)} activeFilters={activeFilters} setActiveFilters={setActiveFilters} />
+        )}
+
         {/* Left: flight board */}
         <div className="flex flex-col flex-1 min-w-0 border-r border-white/8">
           {/* Search + status filters */}
@@ -530,9 +693,9 @@ export default function AerodyneFleetOps() {
           </div>
 
           {/* Column headers */}
-          <div className="grid gap-3 px-4 py-2 border-b border-white/8 text-[9px] font-extrabold text-gray-600 uppercase tracking-widest bg-[#0a0e18] flex-shrink-0"
-            style={{ gridTemplateColumns: '96px 1fr 120px 70px 60px 80px' }}>
-            <span>Flight</span><span>Route</span><span>STD → STA</span><span className="text-center">Gate</span><span className="text-center">Delay</span><span className="text-right">Status</span>
+          <div className="grid px-4 py-2 border-b border-white/8 text-[9px] font-extrabold text-gray-600 uppercase tracking-widest bg-[#0a0e18] flex-shrink-0 gap-2"
+            style={{ gridTemplateColumns: '90px 1fr 140px 55px 55px 70px 70px 55px 80px' }}>
+            <span>Flight</span><span>Route</span><span>STD → STA</span><span className="text-center">Gate</span><span className="text-center">Delay</span><span className="text-center">Gnd Time</span><span className="text-center">Fleet</span><span className="text-center">MEL</span><span className="text-right">Status</span>
           </div>
 
           {/* Flight list */}
@@ -574,6 +737,36 @@ export default function AerodyneFleetOps() {
             <FlightDetailPanel flight={selectedFlight} aircraft={aircraft} />
           </div>
         </div>
+      </div>
+
+      {/* ── Bottom Stats Bar ── */}
+      <div className="flex-shrink-0 border-t border-white/8 bg-[#080c12] px-4 py-2 flex items-center gap-4 overflow-x-auto scrollbar-hide">
+        {(() => {
+          const total = filtered.length;
+          const airborneCount = filtered.filter(f => isAirborne(f.status)).length;
+          const cancelledCount = filtered.filter(f => isCancelled(f.status)).length;
+          const arrivedCount = filtered.filter(f => isArrived(f.status)).length;
+          const delayedCount = filtered.filter(f => (f.delay_minutes||0) > 0).length;
+          const avgDelay = delayedCount > 0
+            ? Math.round(filtered.filter(f => (f.delay_minutes||0) > 0).reduce((s, f) => s + f.delay_minutes, 0) / delayedCount)
+            : 0;
+          const stats = [
+            { label: 'Total Flights', val: total },
+            { label: 'Airborne', val: airborneCount, color: 'text-green-400' },
+            { label: 'Arrived', val: arrivedCount },
+            { label: 'Cancelled', val: cancelledCount, color: cancelledCount > 0 ? 'text-red-400' : undefined },
+            { label: 'Delayed', val: delayedCount, color: delayedCount > 0 ? 'text-amber-400' : undefined },
+            { label: 'Avg Dep Delay', val: avgDelay > 0 ? `+${avgDelay}m` : '0m', color: avgDelay > 0 ? 'text-amber-400' : 'text-gray-500' },
+            { label: 'OTP', val: `${otp}%`, color: otp >= 85 ? 'text-green-400' : otp >= 70 ? 'text-amber-400' : 'text-red-400' },
+          ];
+          return stats.map(({ label, val, color }) => (
+            <div key={label} className="flex items-center gap-1.5 flex-shrink-0">
+              <span className="text-[10px] text-gray-600">{label}:</span>
+              <span className={cn('text-[10px] font-extrabold', color || 'text-white')}>{val}</span>
+              <span className="text-gray-700 ml-1">|</span>
+            </div>
+          ));
+        })()}
       </div>
     </div>
   );
