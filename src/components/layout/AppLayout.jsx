@@ -27,6 +27,12 @@ function AppContent() {
 
   const [isDemoMode, setIsDemoMode] = useState(false);
 
+  const exitDemoMode = () => {
+    localStorage.removeItem('demoMode');
+    setIsDemoMode(false);
+    window.location.reload();
+  };
+
   useEffect(() => {
     setIsDemoMode(localStorage.getItem('demoMode') === 'true');
     const root = document.getElementById('root');
@@ -52,7 +58,13 @@ function AppContent() {
             <span className="text-[10px] text-gray-500 tracking-widest uppercase">Aircraft Maintenance Management System</span>
           </div>
           {isDemoMode && (
-            <span className="text-[10px] font-extrabold px-2 py-1 rounded-full bg-orange-500/20 text-orange-400 border border-orange-500/30">DEMO</span>
+            <button
+              onClick={exitDemoMode}
+              className="text-[10px] font-extrabold px-2 py-1 rounded-full bg-orange-500/20 text-orange-400 border border-orange-500/30 hover:bg-orange-500/30 transition-colors cursor-pointer"
+              title="Click to exit demo mode"
+            >
+              DEMO
+            </button>
           )}
           <LocalModeToggle />
           <WifiIndicator />
