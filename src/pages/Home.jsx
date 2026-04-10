@@ -16,6 +16,7 @@ import useTieredPreload from '@/hooks/useTieredPreload';
 import FlightMovementPanel  from '@/components/opshub/FlightMovementPanel';
 import FleetHealthPanel     from '@/components/opshub/FleetHealthPanel';
 import CrewStatusPanel      from '@/components/opshub/CrewStatusPanel';
+import WorldTimeCard        from '@/components/aocs/WorldTimeCard';
 import WeatherAtcPanel      from '@/components/opshub/WeatherAtcPanel';
 import StationPerformancePanel from '@/components/opshub/StationPerformancePanel';
 import OpsAlertsPanel       from '@/components/opshub/OpsAlertsPanel';
@@ -226,7 +227,8 @@ export default function Home() {
         />
         </div>
 
-
+        {/* Row 6: World Time Card (AOCS Hub) */}
+        <WorldTimeCard />
       </div>
     </div>
   );
