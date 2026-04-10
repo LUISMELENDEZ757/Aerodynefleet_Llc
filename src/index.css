@@ -35,14 +35,7 @@
     --chart-4: 280 80% 50%;
     --chart-5: 0 84% 60%;
     --radius: 1rem;
-    --sidebar-background: 220 28% 16%;
-    --sidebar-foreground: 0 0% 90%;
-    --sidebar-primary: 45 95% 55%;
-    --sidebar-primary-foreground: 220 25% 12%;
-    --sidebar-accent: 220 20% 25%;
-    --sidebar-accent-foreground: 0 0% 90%;
-    --sidebar-border: 220 20% 30%;
-    --sidebar-ring: 45 95% 55%;
+    --sidebar-background: 220 35% 10%;
 
     /* Glass morphism utilities */
     --glass-bg: rgba(30, 41, 59, 0.4);
@@ -81,14 +74,7 @@
     --chart-3: 190 95% 45%;
     --chart-4: 280 80% 50%;
     --chart-5: 0 84% 60%;
-    --sidebar-background: 220 28% 16%;
-    --sidebar-foreground: 0 0% 90%;
-    --sidebar-primary: 45 95% 55%;
-    --sidebar-primary-foreground: 220 25% 12%;
-    --sidebar-accent: 220 20% 25%;
-    --sidebar-accent-foreground: 0 0% 90%;
-    --sidebar-border: 220 20% 30%;
-    --sidebar-ring: 45 95% 55%;
+    --sidebar-background: 220 35% 10%;
   }
 }
 
