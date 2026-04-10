@@ -8,6 +8,37 @@ import {
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
+// ── Airport timezone map (ICAO → IANA) ────────────────────────────────────────
+const AIRPORT_TZ = {
+  KEWR:'America/New_York', KJFK:'America/New_York', KLGA:'America/New_York',
+  KBOS:'America/New_York', KMIA:'America/New_York', KATL:'America/New_York',
+  KDCA:'America/New_York', KIAD:'America/New_York', KPHL:'America/New_York',
+  KORD:'America/Chicago',  KMDW:'America/Chicago',  KDFW:'America/Chicago',
+  KIAH:'America/Chicago',  KMSP:'America/Chicago',  KSTL:'America/Chicago',
+  KDEN:'America/Denver',   KSLC:'America/Denver',
+  KLAX:'America/Los_Angeles', KSFO:'America/Los_Angeles', KSEA:'America/Los_Angeles',
+  KLAS:'America/Los_Angeles', KPDX:'America/Los_Angeles', KPHX:'America/Phoenix',
+  PANC:'America/Anchorage', PHNL:'Pacific/Honolulu',
+  EGLL:'Europe/London', EGKK:'Europe/London', EDDF:'Europe/Berlin',
+  LFPG:'Europe/Paris', LEMD:'Europe/Madrid', LIRF:'Europe/Rome',
+  EHAM:'Europe/Amsterdam', LSZH:'Europe/Zurich',
+  OMDB:'Asia/Dubai', OERK:'Asia/Riyadh', VABB:'Asia/Kolkata', VIDP:'Asia/Kolkata',
+  RJTT:'Asia/Tokyo', RKSI:'Asia/Seoul', ZGGG:'Asia/Shanghai', ZBAA:'Asia/Shanghai',
+  YSSY:'Australia/Sydney', YMML:'Australia/Melbourne',
+};
+
+function localTime(utcStr, airportCode) {
+  if (!utcStr || utcStr === '—') return null;
+  const tz = AIRPORT_TZ[airportCode];
+  if (!tz) return null;
+  // utcStr is like "14:30Z" — build a full ISO today string
+  const today = new Date().toISOString().split('T')[0];
+  const iso = `${today}T${utcStr.replace('Z', '')}:00Z`;
+  try {
+    return new Date(iso).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', timeZone: tz, hour12: false });
+  } catch { return null; }
+}
+
 // ── Zulu clock ───────────────────────────────────────────────────────────────
 function ZuluClock() {
   const [t, setT] = useState(new Date());
@@ -125,8 +156,22 @@ function FlightRow({ flight, isSelected, onClick }) {
         <p className="text-[10px] text-gray-600 mt-1">{flight.aircraft_tail} · {flight.aircraft_type}</p>
       </div>
       <div className="text-right">
-        <p className="text-xs font-bold text-white font-mono">{flight.scheduled_departure} → {flight.scheduled_arrival}</p>
-        {flight.actual_departure && <p className="text-[10px] text-green-400 font-mono">ATD {flight.actual_departure}</p>}
+        <div className="flex items-center justify-end gap-1.5">
+          <div className="text-right">
+            <p className="text-[10px] font-mono text-gray-400">{flight.scheduled_departure}</p>
+            {localTime(flight.scheduled_departure, flight.origin) && (
+              <p className="text-[9px] text-gray-600">{localTime(flight.scheduled_departure, flight.origin)} LCL</p>
+            )}
+          </div>
+          <span className="text-gray-600">→</span>
+          <div className="text-right">
+            <p className="text-[10px] font-mono text-gray-400">{flight.scheduled_arrival}</p>
+            {localTime(flight.scheduled_arrival, flight.destination) && (
+              <p className="text-[9px] text-gray-600">{localTime(flight.scheduled_arrival, flight.destination)} LCL</p>
+            )}
+          </div>
+        </div>
+        {flight.actual_departure && <p className="text-[10px] text-green-400 font-mono mt-0.5">ATD {flight.actual_departure}</p>}
       </div>
       <div className="text-center">
         <p className="text-xs font-bold text-gray-300">{flight.gate || '—'}</p>
@@ -176,19 +221,25 @@ function FlightDetailPanel({ flight, aircraft }) {
 
       <div className="bg-[#0d1117] border border-white/8 rounded-2xl p-4">
         <div className="flex items-center justify-between mb-3">
-          <div className="text-center">
-            <p className="text-2xl font-black text-white">{flight.origin}</p>
-            <p className="text-[10px] text-gray-500">Departure</p>
-            <p className="text-xs font-mono text-primary">{flight.scheduled_departure}</p>
-            {flight.actual_departure && <p className="text-[10px] text-green-400">ATD {flight.actual_departure}</p>}
-          </div>
-          <div className="flex-1 mx-4"><FlightProgress flight={flight} /></div>
-          <div className="text-center">
-            <p className="text-2xl font-black text-white">{flight.destination}</p>
-            <p className="text-[10px] text-gray-500">Arrival</p>
-            <p className="text-xs font-mono text-primary">{flight.scheduled_arrival}</p>
-            {flight.actual_arrival && <p className="text-[10px] text-green-400">ATA {flight.actual_arrival}</p>}
-          </div>
+        <div className="text-center">
+          <p className="text-2xl font-black text-white">{flight.origin}</p>
+          <p className="text-[10px] text-gray-500">Departure</p>
+          <p className="text-xs font-mono text-primary">{flight.scheduled_departure}</p>
+          {localTime(flight.scheduled_departure, flight.origin) && (
+            <p className="text-[10px] text-amber-400">{localTime(flight.scheduled_departure, flight.origin)} LCL</p>
+          )}
+          {flight.actual_departure && <p className="text-[10px] text-green-400">ATD {flight.actual_departure}</p>}
+        </div>
+        <div className="flex-1 mx-4"><FlightProgress flight={flight} /></div>
+        <div className="text-center">
+          <p className="text-2xl font-black text-white">{flight.destination}</p>
+          <p className="text-[10px] text-gray-500">Arrival</p>
+          <p className="text-xs font-mono text-primary">{flight.scheduled_arrival}</p>
+          {localTime(flight.scheduled_arrival, flight.destination) && (
+            <p className="text-[10px] text-amber-400">{localTime(flight.scheduled_arrival, flight.destination)} LCL</p>
+          )}
+          {flight.actual_arrival && <p className="text-[10px] text-green-400">ATA {flight.actual_arrival}</p>}
+        </div>
         </div>
       </div>
 
