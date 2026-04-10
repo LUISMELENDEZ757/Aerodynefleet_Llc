@@ -1,0 +1,177 @@
+{
+  "name": "CertificateOfRelease",
+  "type": "object",
+  "description": "FAA Certificate of Release to Service (CRS) \u2014 formal aircraft return-to-service document issued after maintenance, inspection, or repair. Required per 14 CFR Part 43.9 / 43.11.",
+  "properties": {
+    "crs_number": {
+      "type": "string",
+      "description": "Sequential CRS document number e.g. CRS-2026-0042"
+    },
+    "aircraft_tail": {
+      "type": "string"
+    },
+    "aircraft_type": {
+      "type": "string"
+    },
+    "msn": {
+      "type": "string",
+      "description": "Manufacturer serial number"
+    },
+    "station": {
+      "type": "string",
+      "description": "Station ICAO where work was performed"
+    },
+    "work_order_ref": {
+      "type": "string",
+      "description": "Associated work order or log page reference"
+    },
+    "maintenance_type": {
+      "type": "string",
+      "enum": [
+        "line_maintenance",
+        "scheduled_inspection",
+        "unscheduled_repair",
+        "major_repair",
+        "major_alteration",
+        "ad_compliance",
+        "component_replacement",
+        "annual_inspection",
+        "100hr_inspection",
+        "other"
+      ],
+      "default": "line_maintenance"
+    },
+    "description_of_work": {
+      "type": "string",
+      "description": "Full description of maintenance performed"
+    },
+    "regulatory_reference": {
+      "type": "string",
+      "description": "14 CFR reference e.g. 14 CFR 43.9, AMM 27-11-00 Rev 5"
+    },
+    "parts_replaced": {
+      "type": "string",
+      "description": "P/N and S/N of all replaced parts"
+    },
+    "work_start_date": {
+      "type": "string",
+      "format": "date"
+    },
+    "work_end_date": {
+      "type": "string",
+      "format": "date"
+    },
+    "total_manhours": {
+      "type": "number",
+      "description": "Total man-hours expended"
+    },
+    "return_to_service_date": {
+      "type": "string",
+      "format": "date"
+    },
+    "return_to_service_time": {
+      "type": "string",
+      "description": "UTC time of release e.g. 14:30Z"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "draft",
+        "pending_rii",
+        "pending_supervisor",
+        "released",
+        "rejected",
+        "voided"
+      ],
+      "default": "draft"
+    },
+    "certifying_technician_name": {
+      "type": "string"
+    },
+    "certifying_technician_cert": {
+      "type": "string",
+      "description": "A&P certificate number"
+    },
+    "certifying_technician_signed_at": {
+      "type": "string"
+    },
+    "rii_inspector_name": {
+      "type": "string"
+    },
+    "rii_inspector_cert": {
+      "type": "string"
+    },
+    "rii_signed_at": {
+      "type": "string"
+    },
+    "rii_required": {
+      "type": "boolean",
+      "default": false
+    },
+    "supervisor_name": {
+      "type": "string"
+    },
+    "supervisor_cert": {
+      "type": "string"
+    },
+    "supervisor_signed_at": {
+      "type": "string"
+    },
+    "rejection_reason": {
+      "type": "string"
+    },
+    "void_reason": {
+      "type": "string"
+    },
+    "limitations": {
+      "type": "string",
+      "description": "Any operational limitations after release"
+    },
+    "next_inspection_due": {
+      "type": "string",
+      "format": "date"
+    },
+    "digital_signatures": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "signed_at": {
+            "type": "string"
+          },
+          "signer_name": {
+            "type": "string"
+          },
+          "signer_email": {
+            "type": "string"
+          },
+          "signer_role": {
+            "type": "string"
+          },
+          "signer_cert": {
+            "type": "string"
+          },
+          "signature_type": {
+            "type": "string"
+          },
+          "content_hash": {
+            "type": "string"
+          }
+        }
+      }
+    },
+    "is_signed": {
+      "type": "boolean",
+      "default": false
+    },
+    "notes": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "aircraft_tail",
+    "maintenance_type",
+    "description_of_work",
+    "return_to_service_date"
+  ]
+}

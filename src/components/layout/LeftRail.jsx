@@ -29,6 +29,8 @@ const TECHNICIAN_ITEMS = [
   { label: 'ROB/BOR Operations', path: '/BORROB' },
   { label: 'AD Tracking', path: '/ADTracking' },
   { label: 'Component Traceability', path: '/ComponentTraceability' },
+  { label: 'Certificate of Release', path: '/CRS' },
+  { label: 'Signature Audit', path: '/SignatureAudit' },
 ];
 
 // ── WORKGROUP 2: DISPATCH & OPERATIONS CONTROL ─────────────────────────────────

@@ -100,6 +100,8 @@ const LineMxTablet             = lazy(() => import('@/pages/LineMxTablet'));
 const BORROBDashboard          = lazy(() => import('@/pages/BORROBDashboard'));
 const ADTracking               = lazy(() => import('@/pages/ADTracking'));
 const ComponentTraceability    = lazy(() => import('@/pages/ComponentTraceability'));
+const CertificateOfRelease     = lazy(() => import('@/pages/CertificateOfRelease'));
+const SignatureAuditDashboard  = lazy(() => import('@/pages/SignatureAuditDashboard'));
 
 function PageFallback() {
   return (
@@ -261,6 +263,8 @@ const AuthenticatedApp = () => {
         <Route path="/WorkAssignments" element={<WorkAssignmentDashboard />} />
         <Route path="/ADTracking" element={<ADTracking />} />
         <Route path="/ComponentTraceability" element={<ComponentTraceability />} />
+        <Route path="/CRS" element={<CertificateOfRelease />} />
+        <Route path="/SignatureAudit" element={<SignatureAuditDashboard />} />
       </Route>
       <Route path="*" element={<PageNotFound />} />
     </Routes>
