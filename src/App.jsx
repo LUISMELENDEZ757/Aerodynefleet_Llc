@@ -104,6 +104,7 @@ const CertificateOfRelease     = lazy(() => import('@/pages/CertificateOfRelease
 const SignatureAuditDashboard  = lazy(() => import('@/pages/SignatureAuditDashboard'));
 const CrewChiefDashboard       = lazy(() => import('@/pages/CrewChiefDashboard'));
 const MxSupervisorDashboard    = lazy(() => import('@/pages/MaintenanceSupervisorDashboard'));
+const QCSupervisorDashboard    = lazy(() => import('@/pages/QCSupervisorDashboard'));
 
 function PageFallback() {
   return (
@@ -269,6 +270,7 @@ const AuthenticatedApp = () => {
         <Route path="/SignatureAudit" element={<SignatureAuditDashboard />} />
         <Route path="/CrewChief" element={<CrewChiefDashboard />} />
         <Route path="/MxSupervisor" element={<MxSupervisorDashboard />} />
+        <Route path="/QCSupervisor" element={<QCSupervisorDashboard />} />
       </Route>
       <Route path="*" element={<PageNotFound />} />
     </Routes>
