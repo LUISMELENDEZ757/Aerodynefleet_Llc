@@ -6,8 +6,8 @@ import { X } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import 'leaflet/dist/leaflet.css';
 
-// Airline name mapping
-const AIRLINE_NAMES = {
+// Airline display names
+const AIRLINE_DISPLAY = {
   'UAL': 'United (UAL)',
   'AAL': 'American (AA)',
   'JBU': 'Jet Blue',
@@ -64,11 +64,8 @@ export default function LiveAircraftMap({ flights = [] }) {
     return () => clearInterval(interval);
   }, []);
 
-  // Get unique airlines with display names
-  const airlines = [...new Set(aircraftPositions.map(a => {
-    const code = a.airline?.toUpperCase();
-    return AIRLINE_NAMES[code] || code;
-  }).filter(Boolean))].sort();
+  // Get unique airlines
+  const airlines = [...new Set(aircraftPositions.map(a => a.airline).filter(Boolean))].sort();
 
   // Apply airline filter
   const filteredAircraft = selectedAirline
@@ -209,7 +206,23 @@ export default function LiveAircraftMap({ flights = [] }) {
             </button>
             <div className="space-y-2">
               <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest mb-2">Available Airlines</p>
-  
+              {airlines.map(airline => (
+                <button
+                  key={airline}
+                  onClick={() => {
+                    setSelectedAirline(airline);
+                    setShowAirlineModal(false);
+                  }}
+                  className={cn(
+                    'w-full text-left text-xs font-bold px-3 py-2 rounded-lg border transition-all',
+                    selectedAirline === airline
+                      ? 'bg-primary text-primary-foreground border-primary'
+                      : 'bg-secondary border-border text-muted-foreground hover:text-foreground'
+                  )}
+                >
+                  {AIRLINE_DISPLAY[airline] || airline}
+                </button>
+              ))}
             </div>
           </div>
         </div>
