@@ -100,7 +100,7 @@ function NavGroup({ title, items, location }) {
         const isActive = location.pathname === path;
         return (
           <motion.div
-            key={path}
+            key={`${title}-${idx}`}
             initial={{ opacity: 0, x: -8 }}
             animate={{ opacity: 1, x: 0 }}
             transition={{ delay: idx * 0.02, duration: 0.3, ease: 'easeOut' }}
