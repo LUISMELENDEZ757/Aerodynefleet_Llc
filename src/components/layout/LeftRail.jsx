@@ -9,6 +9,7 @@ import { useRail } from '@/lib/RailContext';
 const TECHNICIAN_ITEMS = [
   { label: 'Production Control', path: '/ProductionControl' },
   { label: 'Work Assignments', path: '/WorkAssignments' },
+  { label: 'Line Maintenance', path: '/LineMaintenanceDashboard' },
   { label: 'Shift Handover', path: '/ShiftHandover' },
   { label: 'Engineering Calendar', path: '/EngCalendar' },
   { label: 'TechOps Dashboard', path: '/TechOps' },
