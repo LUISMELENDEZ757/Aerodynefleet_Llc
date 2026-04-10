@@ -14,6 +14,9 @@ const AIRLINE_DISPLAY = {
   'SWA': 'Southwest',
 };
 
+// Fallback airlines list
+const FALLBACK_AIRLINES = ['UAL', 'AAL', 'JBU', 'SWA', 'DAL', 'FDX', 'UPS'];
+
 // Airport coordinates (ICAO → [lat, lng])
 const AIRPORT_COORDS = {
   KEWR: [40.6895, -74.1745], KJFK: [40.6413, -73.7781], KLAX: [33.9425, -118.4081],
@@ -64,8 +67,10 @@ export default function LiveAircraftMap({ flights = [] }) {
     return () => clearInterval(interval);
   }, []);
 
-  // Get unique airlines
-  const airlines = [...new Set(aircraftPositions.map(a => a.airline).filter(Boolean))].sort();
+  // Get unique airlines, fallback to common airlines if none found
+  const airlines = aircraftPositions.length > 0
+    ? [...new Set(aircraftPositions.map(a => a.airline).filter(Boolean))].sort()
+    : FALLBACK_AIRLINES;
 
   // Apply airline filter
   const filteredAircraft = selectedAirline
