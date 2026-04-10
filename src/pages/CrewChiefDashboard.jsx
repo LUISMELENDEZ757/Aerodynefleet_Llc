@@ -129,7 +129,7 @@ function QuickAssignModal({ entry, onClose, onAssign }) {
   );
 }
 
-const TABS = ['discrepancies', 'faults', 'parts', 'handover'];
+const TABS = ['discrepancies', 'faults', 'parts', 'handover', 'work_assignments'];
 
 export default function CrewChiefDashboard() {
   const [tab, setTab] = useState('discrepancies');
@@ -164,6 +164,12 @@ export default function CrewChiefDashboard() {
   const { data: handovers = [] } = useQuery({
     queryKey: ['cc-handovers'],
     queryFn: () => base44.entities.ShiftHandover.list('-created_date', 10),
+    refetchInterval: 60000,
+  });
+
+  const { data: requisitions = [] } = useQuery({
+    queryKey: ['cc-requisitions'],
+    queryFn: () => base44.entities.SupplyRequisition.list('-created_date', 100),
     refetchInterval: 60000,
   });
 
@@ -266,6 +272,8 @@ export default function CrewChiefDashboard() {
             { id: 'faults', label: 'Faults', badge: faults.length },
             { id: 'parts', label: 'Parts & Tools', badge: lowStock.length + calDue.length },
             { id: 'handover', label: 'Shift Handover' },
+            { id: 'work_assignments', label: 'Work Assignments', badge: requisitions.filter(r => r.status === 'pending_approval').length },
+
           ].map(t => (
             <button key={t.id} onClick={() => setTab(t.id)}
               className={cn('flex items-center gap-1.5 px-4 py-2 rounded-xl text-xs font-bold whitespace-nowrap transition-all flex-shrink-0',
@@ -451,6 +459,65 @@ export default function CrewChiefDashboard() {
             ))}
             <Link to="/ShiftHandover" className="w-full flex items-center justify-center gap-2 py-3 rounded-xl border border-primary/30 bg-primary/10 text-primary text-sm font-bold hover:bg-primary/20 transition-colors">
               <Plus className="w-4 h-4" /> New Shift Handover
+            </Link>
+          </div>
+        )}
+
+        {/* WORK ASSIGNMENTS TAB */}
+        {tab === 'work_assignments' && (
+          <div className="space-y-4">
+            <div className="flex items-center justify-between">
+              <p className="text-sm font-bold text-foreground">Supply Requisitions & Work Orders</p>
+              <Link to="/WorkAssignments" className="flex items-center gap-1 text-xs text-primary font-bold hover:underline">
+                Full Dashboard <ChevronRight className="w-3 h-3" />
+              </Link>
+            </div>
+
+            {/* KPI strip */}
+            <div className="grid grid-cols-3 gap-3">
+              {[
+                { label: 'Pending Approval', value: requisitions.filter(r => r.status === 'pending_approval').length, color: 'text-amber-400' },
+                { label: 'AOG Priority', value: requisitions.filter(r => r.priority === 'aog').length, color: 'text-red-400' },
+                { label: 'In Transit', value: requisitions.filter(r => r.status === 'in_transit').length, color: 'text-blue-400' },
+              ].map(({ label, value, color }) => (
+                <div key={label} className="bg-card border border-border rounded-xl px-3 py-3 text-center">
+                  <p className={cn('text-2xl font-black', color)}>{value}</p>
+                  <p className="text-[10px] text-muted-foreground">{label}</p>
+                </div>
+              ))}
+            </div>
+
+            {/* Requisition list */}
+            {requisitions.length === 0 ? (
+              <div className="text-center py-12 text-muted-foreground text-sm">No work requisitions found</div>
+            ) : requisitions.slice(0, 10).map(req => {
+              const priColor = { aog: 'bg-red-700', critical: 'bg-orange-600', routine: 'bg-gray-600' }[req.priority] || 'bg-gray-600';
+              const stColor = {
+                pending_approval: 'text-amber-400 bg-amber-500/15',
+                approved: 'text-blue-400 bg-blue-500/15',
+                ordered: 'text-cyan-400 bg-cyan-500/15',
+                in_transit: 'text-purple-400 bg-purple-500/15',
+                received: 'text-green-400 bg-green-500/15',
+                cancelled: 'text-gray-400 bg-gray-500/10',
+              }[req.status] || 'text-gray-400 bg-gray-500/10';
+              return (
+                <div key={req.id} className="bg-card border border-border rounded-xl px-4 py-3 flex items-start gap-3">
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center gap-2 flex-wrap mb-1">
+                      <span className={cn('text-[10px] font-extrabold px-2 py-0.5 rounded text-white', priColor)}>{req.priority?.toUpperCase()}</span>
+                      <span className={cn('text-[10px] font-bold px-2 py-0.5 rounded-full', stColor)}>{req.status?.replace(/_/g, ' ').toUpperCase()}</span>
+                      {req.aircraft_tail && <span className="text-[10px] font-mono font-bold text-primary">{req.aircraft_tail}</span>}
+                    </div>
+                    <p className="text-sm font-bold text-foreground">{req.part_name}</p>
+                    <p className="text-[10px] text-muted-foreground font-mono">{req.part_number} · Qty: {req.quantity} · {req.station || '—'}</p>
+                    {req.reason && <p className="text-[10px] text-muted-foreground mt-0.5 line-clamp-1">{req.reason}</p>}
+                  </div>
+                </div>
+              );
+            })}
+
+            <Link to="/WorkAssignments" className="w-full flex items-center justify-center gap-2 py-3 rounded-xl border border-primary/30 bg-primary/10 text-primary text-sm font-bold hover:bg-primary/20 transition-colors">
+              View Full Work Assignment Dashboard <ChevronRight className="w-4 h-4" />
             </Link>
           </div>
         )}
