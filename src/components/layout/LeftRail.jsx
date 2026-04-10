@@ -107,10 +107,10 @@ function NavGroup({ title, items, location }) {
             <Link
               to={path}
               className={cn(
-                'flex items-center h-8 px-3 rounded-lg transition-all text-xs font-semibold tracking-wide whitespace-nowrap active:scale-95 mx-1',
+                'flex items-center h-8 px-3 rounded-lg transition-all text-xs font-bold tracking-wide whitespace-nowrap active:scale-95 mx-1',
                 isActive
-                  ? 'bg-primary/25 text-primary'
-                  : 'text-gray-500 hover:text-gray-300 hover:bg-white/5'
+                  ? 'bg-primary text-primary-foreground'
+                  : 'text-sidebar-foreground hover:text-white hover:bg-white/10'
               )}
             >
               {label}
@@ -126,13 +126,13 @@ const BrandHeader = ({ collapsed, onToggle }) => (
   <div className="flex items-center justify-between px-3 py-3 border-b border-white/10 flex-shrink-0">
     {!collapsed && (
       <div className="flex items-center gap-2.5">
-        <div className="w-9 h-9 rounded-xl bg-primary flex items-center justify-center flex-shrink-0">
-          <Plane className="w-5 h-5 text-[#0a0e18]" />
-        </div>
-        <div>
-          <p className="text-sm font-extrabold text-white tracking-widest uppercase leading-none">Aerodyne</p>
-          <p className="text-[10px] text-gray-500">Fleet Management</p>
-        </div>
+      <div className="w-9 h-9 rounded-xl bg-primary flex items-center justify-center flex-shrink-0">
+        <Plane className="w-5 h-5 text-sidebar-background" />
+      </div>
+      <div>
+        <p className="text-sm font-extrabold text-sidebar-foreground tracking-widest uppercase leading-none">Aerodyne</p>
+        <p className="text-[10px] text-sidebar-foreground/70">Fleet Management</p>
+      </div>
       </div>
     )}
     <button
@@ -155,14 +155,14 @@ export default function LeftRail({ onCollapsedChange }) {
 
   if (collapsed) {
     return (
-      <aside className="fixed left-0 top-0 h-full w-12 bg-card border-r border-border flex flex-col z-50">
+      <aside className="fixed left-0 top-0 h-full w-12 bg-sidebar border-r border-border flex flex-col z-50">
         <BrandHeader collapsed onToggle={() => toggle(false)} />
       </aside>
     );
   }
 
   return (
-    <aside className="fixed left-0 top-0 h-full w-48 bg-card border-r border-border flex flex-col z-50">
+    <aside className="fixed left-0 top-0 h-full w-48 bg-sidebar border-r border-border flex flex-col z-50">
       <BrandHeader collapsed={false} onToggle={() => toggle(true)} />
       <motion.nav 
         className="flex flex-col gap-0 flex-1 w-full overflow-y-auto scrollbar-hide py-2"
