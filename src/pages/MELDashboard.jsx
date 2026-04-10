@@ -7,8 +7,10 @@ import { differenceInDays, parseISO, addDays, format } from 'date-fns';
 import {
   Wrench, AlertTriangle, RefreshCw, Plus, CheckCircle,
   Search, Filter, X, Bell, Plane, ChevronDown, ChevronUp,
-  Clock, FileText, Eye
+  Clock, FileText, Eye, MapPin
 } from 'lucide-react';
+
+const STATIONS = ['All Stations','KEWR','KJFK','KLAX','KORD','KDFW','KATL','KMIA','KSFO','KBOS','KDEN','KPHX','KIAH','KLAS','KMCO'];
 // Fallback modals - component imports may fail
 const MELNewModal = ({ aircraft, onSave, onClose, isPending }) => (
   <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50">
@@ -175,6 +177,7 @@ export default function MELDashboard() {
   const [search, setSearch] = useState('');
   const [catFilter, setCatFilter] = useState('all');
   const [showCatFilter, setShowCatFilter] = useState(false);
+  const [station, setStation] = useState('All Stations');
   const qc = useQueryClient();
 
   const { data: items = [], refetch, isLoading } = useQuery({
@@ -204,10 +207,18 @@ export default function MELDashboard() {
     mutationFn: () => base44.functions.invoke('melAlertCheck', {}),
   });
 
-  const enriched = items.map(i => ({ ...i, computedStatus: computeStatus(i) }));
+  // Build tail→station map from aircraft data
+  const tailToStation = aircraft.reduce((acc, a) => {
+    if (a.tail_number && a.base_station) acc[a.tail_number] = a.base_station;
+    return acc;
+  }, {});
 
-  const expired  = enriched.filter(i => i.computedStatus === 'expired').length;
-  const expiring = enriched.filter(i => i.computedStatus === 'expiring_soon').length;
+  const stationFilter = station === 'All Stations' ? null : station;
+
+  const enriched = items
+    .map(i => ({ ...i, computedStatus: computeStatus(i) }))
+    .filter(i => !stationFilter || tailToStation[i.aircraft_tail] === stationFilter || i.station === stationFilter);
+
   const open     = enriched.filter(i => i.computedStatus === 'open').length;
   const cleared  = enriched.filter(i => i.computedStatus === 'cleared').length;
 
@@ -307,7 +318,14 @@ export default function MELDashboard() {
           ))}
         </div>
 
-        {/* Search + filters */}
+        {/* Station + Search + filters */}
+        <div className="flex items-center gap-2 mb-2">
+          <MapPin className="w-4 h-4 text-primary flex-shrink-0" />
+          <select value={station} onChange={e => setStation(e.target.value)}
+            className="flex-1 bg-card border border-border rounded-xl px-3 py-2.5 text-sm text-foreground outline-none focus:ring-1 focus:ring-primary font-bold">
+            {STATIONS.map(s => <option key={s} value={s}>{s}</option>)}
+          </select>
+        </div>
         <div className="flex gap-2">
           <div className="relative flex-1">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
