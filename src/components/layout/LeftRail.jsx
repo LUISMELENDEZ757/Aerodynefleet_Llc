@@ -7,6 +7,7 @@ import { useRail } from '@/lib/RailContext';
 
 // ── WORKGROUP 1: TECHNICIAN MODE (Line Maintenance / OOS / TechOps) ──────────
 const TECHNICIAN_ITEMS = [
+  { label: 'Crew Chief', path: '/CrewChief' },
   { label: 'Production Control', path: '/ProductionControl' },
   { label: 'Work Assignments', path: '/WorkAssignments' },
   { label: 'Line Maintenance', path: '/LineMaintenanceDashboard' },
