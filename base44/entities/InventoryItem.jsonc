@@ -1,11 +1,11 @@
 {
   "name": "InventoryItem",
   "type": "object",
-  "description": "Line maintenance parts inventory \u2014 tracks on-hand stock, reorder thresholds, and location for rapid part lookup during repairs.",
+  "description": "Line maintenance parts inventory \u2014 tracks on-hand stock, reorder thresholds, and location for rapid part lookup. Supports multiple airline part numbering systems including MFG P/N, M&E numbers, PCNs, and MRO system references (SCEPTRE, AMOS, TRAX).",
   "properties": {
     "part_number": {
       "type": "string",
-      "description": "Manufacturer part number e.g. 65-48253-2"
+      "description": "Primary manufacturer part number (MFG P/N) e.g. 65-48253-2"
     },
     "part_name": {
       "type": "string",
@@ -14,6 +14,41 @@
     "ata_chapter": {
       "type": "string",
       "description": "ATA chapter e.g. 79"
+    },
+    "me_number": {
+      "type": "string",
+      "description": "M&E (Maintenance & Engineering) internal part number used by the airline"
+    },
+    "pcn": {
+      "type": "string",
+      "description": "Part Control Number (PCN) \u2014 airline-specific inventory control number"
+    },
+    "alternate_part_numbers": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "List of interchangeable or alternate MFG part numbers"
+    },
+    "sceptre_id": {
+      "type": "string",
+      "description": "SCEPTRE MRO system item/part ID reference"
+    },
+    "amos_id": {
+      "type": "string",
+      "description": "AMOS MRO system part reference number"
+    },
+    "trax_id": {
+      "type": "string",
+      "description": "TRAX MRO system part number / task card reference"
+    },
+    "nsn": {
+      "type": "string",
+      "description": "NATO Stock Number (NSN) if applicable e.g. 2910-00-234-5678"
+    },
+    "cage_code": {
+      "type": "string",
+      "description": "CAGE (Commercial and Government Entity) manufacturer code"
     },
     "quantity_on_hand": {
       "type": "number",
@@ -32,7 +67,9 @@
         "qt",
         "lbs",
         "ft",
-        "kit"
+        "kit",
+        "set",
+        "box"
       ],
       "default": "ea",
       "description": "Unit of measure"
@@ -51,7 +88,7 @@
     },
     "supplier": {
       "type": "string",
-      "description": "Primary supplier name"
+      "description": "Primary supplier name e.g. Aviall, Boeing, Airbus, Heico"
     },
     "notes": {
       "type": "string"

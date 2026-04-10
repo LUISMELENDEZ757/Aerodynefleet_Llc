@@ -10,11 +10,17 @@ function AddItemModal({ onClose, onSave }) {
   const [form, setForm] = useState({
     part_number: '', part_name: '', ata_chapter: '', quantity_on_hand: 1,
     min_quantity: 2, unit: 'ea', location: '', station: '', unit_cost: '', supplier: '',
+    me_number: '', pcn: '', sceptre_id: '', amos_id: '', trax_id: '', nsn: '', cage_code: '',
   });
   const set = (k, v) => setForm(p => ({ ...p, [k]: v }));
   const handleSubmit = (e) => {
     e.preventDefault();
-    onSave({ ...form, quantity_on_hand: Number(form.quantity_on_hand), min_quantity: Number(form.min_quantity), unit_cost: form.unit_cost ? Number(form.unit_cost) : undefined });
+    onSave({
+      ...form,
+      quantity_on_hand: Number(form.quantity_on_hand),
+      min_quantity: Number(form.min_quantity),
+      unit_cost: form.unit_cost ? Number(form.unit_cost) : undefined,
+    });
     onClose();
   };
   return (
@@ -72,9 +78,41 @@ function AddItemModal({ onClose, onSave }) {
             </div>
             <div>
               <label className="text-[10px] font-bold text-gray-500 uppercase tracking-widest block mb-1">Supplier</label>
-              <input value={form.supplier} onChange={e => set('supplier', e.target.value)} placeholder="Aviall, Boeing…" className={inputCls} />
+              <input value={form.supplier} onChange={e => set('supplier', e.target.value)} placeholder="Aviall, Boeing, Heico…" className={inputCls} />
             </div>
           </div>
+
+          {/* Alternate numbering systems */}
+          <div className="border-t border-white/10 pt-3">
+            <p className="text-[10px] font-extrabold text-gray-500 uppercase tracking-widest mb-2">Airline & MRO System References</p>
+            <div className="grid grid-cols-2 gap-3">
+              <div>
+                <label className="text-[10px] font-bold text-gray-500 uppercase tracking-widest block mb-1">M&amp;E Number</label>
+                <input value={form.me_number} onChange={e => set('me_number', e.target.value)} placeholder="e.g. ME-00045321" className={inputCls} />
+              </div>
+              <div>
+                <label className="text-[10px] font-bold text-gray-500 uppercase tracking-widest block mb-1">PCN (Part Control #)</label>
+                <input value={form.pcn} onChange={e => set('pcn', e.target.value)} placeholder="e.g. PCN-88234" className={inputCls} />
+              </div>
+              <div>
+                <label className="text-[10px] font-bold text-gray-500 uppercase tracking-widest block mb-1">SCEPTRE ID</label>
+                <input value={form.sceptre_id} onChange={e => set('sceptre_id', e.target.value)} placeholder="SCEPTRE ref" className={inputCls} />
+              </div>
+              <div>
+                <label className="text-[10px] font-bold text-gray-500 uppercase tracking-widest block mb-1">AMOS ID</label>
+                <input value={form.amos_id} onChange={e => set('amos_id', e.target.value)} placeholder="AMOS ref" className={inputCls} />
+              </div>
+              <div>
+                <label className="text-[10px] font-bold text-gray-500 uppercase tracking-widest block mb-1">TRAX ID</label>
+                <input value={form.trax_id} onChange={e => set('trax_id', e.target.value)} placeholder="TRAX ref" className={inputCls} />
+              </div>
+              <div>
+                <label className="text-[10px] font-bold text-gray-500 uppercase tracking-widest block mb-1">NSN / CAGE Code</label>
+                <input value={form.nsn} onChange={e => set('nsn', e.target.value)} placeholder="NSN or CAGE" className={inputCls} />
+              </div>
+            </div>
+          </div>
+
           <div className="flex gap-3 pt-1">
             <button type="button" onClick={onClose} className="flex-1 py-2.5 rounded-xl border border-white/10 text-sm font-bold text-gray-400 hover:bg-white/5">Cancel</button>
             <button type="submit" className="flex-1 py-2.5 rounded-xl bg-primary text-primary-foreground text-sm font-bold hover:bg-primary/90">Add Item</button>
@@ -209,7 +247,12 @@ export default function InventoryPanel() {
                 <div className="flex-1 min-w-0">
                   <p className="text-sm font-bold text-white truncate">{item.part_name}</p>
                   <div className="flex flex-wrap gap-2 text-[10px] text-gray-500 mt-0.5">
-                    <span className="font-mono">{item.part_number}</span>
+                    <span className="font-mono text-white/70">{item.part_number}</span>
+                    {item.me_number && <span className="text-blue-400">M&amp;E: {item.me_number}</span>}
+                    {item.pcn && <span className="text-purple-400">PCN: {item.pcn}</span>}
+                    {item.sceptre_id && <span className="text-cyan-400">SCEPTRE: {item.sceptre_id}</span>}
+                    {item.amos_id && <span className="text-teal-400">AMOS: {item.amos_id}</span>}
+                    {item.trax_id && <span className="text-emerald-400">TRAX: {item.trax_id}</span>}
                     {item.ata_chapter && <span>ATA {item.ata_chapter}</span>}
                     {item.location && <span>📍 {item.location}</span>}
                     {item.station && <span>{item.station}</span>}

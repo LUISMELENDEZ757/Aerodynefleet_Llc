@@ -33,11 +33,18 @@ export default function LinkPartsModal({ entry, onClose }) {
     },
   });
 
+  const q = search.toLowerCase();
   const filteredInventory = inventory.filter(i =>
     !search ||
-    i.part_number?.toLowerCase().includes(search.toLowerCase()) ||
-    i.part_name?.toLowerCase().includes(search.toLowerCase()) ||
-    i.ata_chapter?.includes(search)
+    i.part_number?.toLowerCase().includes(q) ||
+    i.part_name?.toLowerCase().includes(q) ||
+    i.ata_chapter?.includes(q) ||
+    i.me_number?.toLowerCase().includes(q) ||
+    i.pcn?.toLowerCase().includes(q) ||
+    i.sceptre_id?.toLowerCase().includes(q) ||
+    i.amos_id?.toLowerCase().includes(q) ||
+    i.trax_id?.toLowerCase().includes(q) ||
+    i.nsn?.toLowerCase().includes(q)
   );
 
   const addPart = (item) => {
@@ -132,7 +139,16 @@ export default function LinkPartsModal({ entry, onClose }) {
                           <p className="text-xs font-bold text-white truncate">{item.part_name}</p>
                           {isLow && <AlertTriangle className="w-3 h-3 text-red-400 flex-shrink-0" />}
                         </div>
-                        <p className="text-[10px] text-gray-500 font-mono">{item.part_number} · ATA {item.ata_chapter || '—'} · {item.location || '—'}</p>
+                        <div className="flex flex-wrap gap-1.5 mt-0.5">
+                          <span className="text-[10px] text-gray-500 font-mono">{item.part_number}</span>
+                          {item.me_number && <span className="text-[10px] text-blue-400">M&amp;E: {item.me_number}</span>}
+                          {item.pcn && <span className="text-[10px] text-purple-400">PCN: {item.pcn}</span>}
+                          {item.sceptre_id && <span className="text-[10px] text-cyan-400">SCEPTRE: {item.sceptre_id}</span>}
+                          {item.amos_id && <span className="text-[10px] text-teal-400">AMOS: {item.amos_id}</span>}
+                          {item.trax_id && <span className="text-[10px] text-emerald-400">TRAX: {item.trax_id}</span>}
+                          {item.ata_chapter && <span className="text-[10px] text-gray-500">ATA {item.ata_chapter}</span>}
+                          {item.location && <span className="text-[10px] text-gray-500">📍 {item.location}</span>}
+                        </div>
                       </div>
                       <div className="text-right flex-shrink-0">
                         <p className={cn('text-sm font-black', isLow ? 'text-red-400' : 'text-green-400')}>{item.quantity_on_hand}</p>
