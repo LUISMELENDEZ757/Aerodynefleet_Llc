@@ -1,0 +1,73 @@
+{
+  "name": "OilServicingProfile",
+  "type": "object",
+  "description": "Oil servicing limits per powerplant model \u2014 capacity, min/max service levels, consumption rate.",
+  "properties": {
+    "powerplant_type_id": {
+      "type": "string",
+      "description": "FK to PowerplantType entity ID"
+    },
+    "powerplant_name": {
+      "type": "string",
+      "description": "Denormalized powerplant name for fast display"
+    },
+    "component_type": {
+      "type": "string",
+      "enum": [
+        "ENGINE",
+        "APU"
+      ],
+      "default": "ENGINE"
+    },
+    "capacity_value": {
+      "type": "number",
+      "description": "Full oil capacity e.g. 12"
+    },
+    "capacity_unit": {
+      "type": "string",
+      "enum": [
+        "QUARTS",
+        "LITERS"
+      ],
+      "default": "QUARTS"
+    },
+    "min_service_level": {
+      "type": "number",
+      "description": "Minimum acceptable oil level before service required"
+    },
+    "max_service_level": {
+      "type": "number",
+      "description": "Maximum fill level \u2014 do not exceed"
+    },
+    "max_single_addition": {
+      "type": "number",
+      "description": "Max quarts that can be added in a single service event"
+    },
+    "max_consumption_rate_value": {
+      "type": "number",
+      "description": "Max allowable consumption rate e.g. 0.8"
+    },
+    "max_consumption_rate_unit": {
+      "type": "string",
+      "enum": [
+        "QT_PER_HR",
+        "L_PER_HR"
+      ],
+      "default": "QT_PER_HR"
+    },
+    "amm_reference": {
+      "type": "string",
+      "description": "AMM section reference e.g. 79-00-00"
+    },
+    "notes": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "powerplant_type_id",
+    "component_type",
+    "capacity_value",
+    "min_service_level",
+    "max_service_level"
+  ]
+}

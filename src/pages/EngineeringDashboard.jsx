@@ -11,12 +11,14 @@ import EngineTrendAnalysis from '@/components/engineering/EngineTrendAnalysis';
 import OilServiceTrends from '@/components/engineering/OilServiceTrends';
 import ApuTrendDashboard from '@/components/engineering/ApuTrendDashboard';
 import MaintenanceForecastModule from '@/components/engineering/MaintenanceForecastModule';
+import OilServicingConfig from '@/components/engineering/OilServicingConfig';
 
 const TABS = [
-  { id: 'trends',   label: 'Engine Trend Analysis', icon: TrendingUp },
-  { id: 'oil',      label: 'Oil Servicing Trends',   icon: Droplets },
-  { id: 'apu',      label: 'APU Trends',             icon: Zap },
-  { id: 'forecast', label: 'Maintenance Forecast',   icon: CalendarDays },
+  { id: 'trends',    label: 'Engine Trend Analysis', icon: TrendingUp },
+  { id: 'oil',       label: 'Oil Servicing Trends',  icon: Droplets },
+  { id: 'apu',       label: 'APU Trends',            icon: Zap },
+  { id: 'forecast',  label: 'Maintenance Forecast',  icon: CalendarDays },
+  { id: 'oilconfig', label: 'Oil Servicing Config',  icon: Wrench },
   { id: 'telemetry', label: 'OEM Telemetry',         icon: Radio },
 ];
 
@@ -149,6 +151,7 @@ export default function EngineeringDashboard() {
         {activeTab === 'forecast' && (
           <MaintenanceForecastModule aircraft={aircraft} />
         )}
+        {activeTab === 'oilconfig' && <OilServicingConfig />}
         {activeTab === 'telemetry' && (
           <div className="rounded-2xl bg-card border border-border p-6 text-center space-y-3">
             <Radio className="w-10 h-10 text-primary/40 mx-auto" />

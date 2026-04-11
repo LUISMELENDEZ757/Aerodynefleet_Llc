@@ -1,0 +1,39 @@
+{
+  "name": "PowerplantType",
+  "type": "object",
+  "description": "Engine and APU model registry \u2014 defines powerplant models used across the fleet.",
+  "properties": {
+    "name": {
+      "type": "string",
+      "description": "Model name e.g. CFM56-7B27, LEAP-1B28, Honeywell 131-9B"
+    },
+    "oem": {
+      "type": "string",
+      "description": "Manufacturer e.g. CFM, GE, Pratt & Whitney, Honeywell, Safran"
+    },
+    "component_type": {
+      "type": "string",
+      "enum": [
+        "ENGINE",
+        "APU"
+      ],
+      "default": "ENGINE",
+      "description": "Whether this is a main engine or APU"
+    },
+    "applicable_aircraft_types": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "Aircraft types this powerplant is used on e.g. B737-800"
+    },
+    "notes": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "name",
+    "oem",
+    "component_type"
+  ]
+}

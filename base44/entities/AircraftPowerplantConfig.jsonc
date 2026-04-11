@@ -1,0 +1,62 @@
+{
+  "name": "AircraftPowerplantConfig",
+  "type": "object",
+  "description": "Tail-level powerplant configuration \u2014 links an aircraft tail to its specific engine and APU types, with optional per-tail limit overrides.",
+  "properties": {
+    "aircraft_tail": {
+      "type": "string",
+      "description": "Aircraft tail number e.g. N455GJ"
+    },
+    "aircraft_type": {
+      "type": "string",
+      "description": "Aircraft type for reference e.g. B737-800"
+    },
+    "engine_type_id": {
+      "type": "string",
+      "description": "FK to PowerplantType (ENGINE)"
+    },
+    "engine_type_name": {
+      "type": "string",
+      "description": "Denormalized engine model name"
+    },
+    "apu_type_id": {
+      "type": "string",
+      "description": "FK to PowerplantType (APU)"
+    },
+    "apu_type_name": {
+      "type": "string",
+      "description": "Denormalized APU model name"
+    },
+    "engine_count": {
+      "type": "number",
+      "default": 2,
+      "description": "Number of engines (1, 2, 3, 4)"
+    },
+    "override_engine_min": {
+      "type": "number",
+      "description": "Per-tail engine min service level override"
+    },
+    "override_engine_max": {
+      "type": "number",
+      "description": "Per-tail engine max service level override"
+    },
+    "override_apu_min": {
+      "type": "number",
+      "description": "Per-tail APU min service level override"
+    },
+    "override_apu_max": {
+      "type": "number",
+      "description": "Per-tail APU max service level override"
+    },
+    "override_max_consumption": {
+      "type": "number",
+      "description": "Per-tail max consumption override (qt/hr)"
+    },
+    "notes": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "aircraft_tail"
+  ]
+}
