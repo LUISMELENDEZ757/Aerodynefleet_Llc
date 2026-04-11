@@ -69,8 +69,8 @@ export default function GlobalFleetMap({ flights = [], aircraft = [], melItems =
     if (oosAircraft.has(tail)) status = 'red';
     else if (melByTail.has(tail)) status = 'yellow';
 
-    // Simulate lat/lng based on origin/destination (for demo)
-    const originMap = {
+    // Airport coordinates map
+    const airportMap = {
       KEWR: [40.6895, -74.1745],
       KJFK: [40.6413, -73.7781],
       KORD: [41.8742, -87.6278],
@@ -78,27 +78,21 @@ export default function GlobalFleetMap({ flights = [], aircraft = [], melItems =
       EGLL: [51.4701, -0.4543],
       CDMX: [25.2038, -99.0735],
       KMIA: [25.7959, -80.2870],
+      KATL: [33.6407, -84.4277],
+      KDFW: [32.8975, -97.0382],
+      KDEN: [39.8561, -104.6737],
+      KSFO: [37.6213, -122.3790],
+      KLAS: [36.0801, -115.1537],
     };
 
-    const destMap = {
-      KEWR: [40.6895, -74.1745],
-      KJFK: [40.6413, -73.7781],
-      KORD: [41.8742, -87.6278],
-      KLAX: [33.9425, -118.4081],
-      EGLL: [51.4701, -0.4543],
-      CDMX: [25.2038, -99.0735],
-      KMIA: [25.7959, -80.2870],
-    };
+    // Place aircraft at origin or destination based on flight status
+    const position = ['arrived', 'landed'].includes(f.status)
+      ? (airportMap[f.destination] || [35, -100])
+      : (airportMap[f.origin] || [40, -75]);
 
-    const originPos = originMap[f.origin] || [40, -75];
-    const destPos = destMap[f.destination] || [35, -100];
+    const station = ['arrived', 'landed'].includes(f.status) ? f.destination : f.origin;
 
-    // Interpolate position based on flight progress (0-1)
-    const progress = Math.random() * 0.8; // Demo: random progress
-    const lat = originPos[0] + (destPos[0] - originPos[0]) * progress;
-    const lng = originPos[1] + (destPos[1] - originPos[1]) * progress;
-
-    return { ...f, status, lat, lng };
+    return { ...f, status, lat: position[0], lng: position[1], station };
   });
 
   return (
