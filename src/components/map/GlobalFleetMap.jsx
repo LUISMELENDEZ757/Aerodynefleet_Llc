@@ -164,12 +164,31 @@ export default function GlobalFleetMap({ flights = [], aircraft = [], melItems =
   const melByTail = new Set(melItems.map(m => m.aircraft_tail));
   const oosAircraft = new Set(aircraft.filter(a => a.status === 'oos').map(a => a.tail_number));
 
-  // Enrich flights with status and position
+  // Enrich flights with status and position using airline-authentic logic
   const enrichedFlights = displayFlights.map(f => {
     const tail = f.aircraft_tail;
-    let status = 'green';
-    if (oosAircraft.has(tail)) status = 'red';
-    else if (melByTail.has(tail)) status = 'yellow';
+    
+    // 1. OUT OF SERVICE (Red) - Aircraft cannot legally fly
+    // - Unresolved discrepancy not deferred under MEL
+    // - Open AOG event
+    // - MEL expired
+    // - MCC has restricted aircraft
+    let status = 'green'; // Default: Airworthy
+    if (oosAircraft.has(tail)) {
+      status = 'red';
+    }
+    // 2. AIRWORTHY WITH MEL (Yellow) - Legally airworthy but restricted
+    // - Open discrepancy deferred under MEL/CDL
+    // - MEL within time limit
+    // - Dispatch restrictions apply
+    else if (melByTail.has(tail)) {
+      status = 'yellow';
+    }
+    // 3. AIRWORTHY (Green) - No restrictions
+    // - All inspections current
+    // - All maintenance signed off
+    // - No open discrepancies
+    // - MCC has not restricted aircraft
 
     // Airport coordinates map
     const airportMap = {
