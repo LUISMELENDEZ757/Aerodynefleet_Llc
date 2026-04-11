@@ -90,7 +90,7 @@ function normalizeFlightAwareData(faFlights = []) {
 
 export default function GlobalFleetMap({ flights = [], aircraft = [], melItems = [], enableLiveTracking = true }) {
   const [mapKey, setMapKey] = useState(0);
-  const [baseLayer, setBaseLayer] = useState('esri-ocean');
+  const [baseLayer, setBaseLayer] = useState('dark');
   const [showLayerPanel, setShowLayerPanel] = useState(false);
   const [selectedFlight, setSelectedFlight] = useState(null);
   const [overlays, setOverlays] = useState({
