@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
-import jsQR from 'https://esm.sh/jsqr@1.4.0';
+import jsQR from 'jsqr';
 import { X, QrCode, Camera, CheckCircle, AlertTriangle } from 'lucide-react';
 
 export default function AircraftQRScanner({ aircraft = [], onScan, onClose }) {
