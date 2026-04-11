@@ -16,25 +16,16 @@ Deno.serve(async (req) => {
       return Response.json({ error: 'Email required' }, { status: 400 });
     }
 
-    const supabaseUrl = Deno.env.get('VITE_SUPABASE_URL');
-    const supabaseKey = Deno.env.get('VITE_SUPABASE_ANON_KEY');
+    // Find the pending user in Base44
+    const users = await base44.entities.User.filter({ email });
+    const pendingUser = users.find(u => u.role === 'pending_access');
 
-    if (!supabaseUrl || !supabaseKey) {
-      return Response.json({ error: 'Supabase config missing' }, { status: 500 });
+    if (!pendingUser) {
+      return Response.json({ error: 'User not found' }, { status: 404 });
     }
 
-    const supabase = createClient(supabaseUrl, supabaseKey);
-
-    // Get the auth user
-    const { data: { users } } = await supabase.auth.admin.listUsers();
-    const authUser = users.find(u => u.email === email);
-
-    if (!authUser) {
-      return Response.json({ error: 'User not found in auth' }, { status: 404 });
-    }
-
-    // Delete the auth user
-    await supabase.auth.admin.deleteUser(authUser.id);
+    // Delete the pending user
+    await base44.entities.User.delete(pendingUser.id);
 
     return Response.json({ status: 'rejected', email });
   } catch (error) {

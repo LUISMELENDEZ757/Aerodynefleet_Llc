@@ -16,38 +16,16 @@ Deno.serve(async (req) => {
       return Response.json({ error: 'Email required' }, { status: 400 });
     }
 
-    const supabaseUrl = Deno.env.get('VITE_SUPABASE_URL');
-    const supabaseKey = Deno.env.get('VITE_SUPABASE_ANON_KEY');
+    // Find the pending user in Base44
+    const users = await base44.entities.User.filter({ email });
+    const pendingUser = users.find(u => u.role === 'pending_access');
 
-    if (!supabaseUrl || !supabaseKey) {
-      return Response.json({ error: 'Supabase config missing' }, { status: 500 });
+    if (!pendingUser) {
+      return Response.json({ error: 'User not found' }, { status: 404 });
     }
 
-    const supabase = createClient(supabaseUrl, supabaseKey);
-
-    // Get the auth user
-    const { data: { users } } = await supabase.auth.admin.listUsers();
-    const authUser = users.find(u => u.email === email);
-
-    if (!authUser) {
-      return Response.json({ error: 'User not found in auth' }, { status: 404 });
-    }
-
-    // Create Base44 User record
-    await base44.entities.User.create({
-      email: authUser.email,
-      full_name: authUser.user_metadata?.full_name || 'Unknown',
-      role: 'user',
-    });
-
-    // Update Supabase auth user metadata
-    await supabase.auth.admin.updateUserById(authUser.id, {
-      user_metadata: {
-        ...authUser.user_metadata,
-        access_request: false,
-        approved_at: new Date().toISOString(),
-      },
-    });
+    // Update role from pending_access to user
+    await base44.entities.User.update(pendingUser.id, { role: 'user' });
 
     return Response.json({ status: 'approved', email });
   } catch (error) {

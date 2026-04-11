@@ -10,26 +10,12 @@ Deno.serve(async (req) => {
       return Response.json({ error: 'Admin access required' }, { status: 403 });
     }
 
-    const supabaseUrl = Deno.env.get('VITE_SUPABASE_URL');
-    const supabaseKey = Deno.env.get('VITE_SUPABASE_ANON_KEY');
+    // Get all Base44 users
+    const allUsers = await base44.entities.User.list('-created_date', 1000);
+    const approvedEmails = new Set(allUsers.map(u => u.email));
 
-    if (!supabaseUrl || !supabaseKey) {
-      return Response.json({ error: 'Supabase config missing' }, { status: 500 });
-    }
-
-    const supabase = createClient(supabaseUrl, supabaseKey);
-
-    // Get all Supabase auth users
-    const { data: { users: authUsers = [] } } = await supabase.auth.admin.listUsers();
-
-    // Get all registered Base44 users
-    const registeredUsers = await base44.entities.User.list('-created_date', 1000);
-    const registeredEmails = new Set(registeredUsers.map(u => u.email));
-
-    // Filter for pending users (in auth but not in Base44 User entity)
-    const pendingRequests = authUsers.filter(u => 
-      u.email && !registeredEmails.has(u.email) && u.user_metadata?.access_request === true
-    );
+    // Get pending access requests from Base44 (users with pending_access role)
+    const pendingRequests = allUsers.filter(u => u.role === 'pending_access');
 
     return Response.json(pendingRequests);
   } catch (error) {
