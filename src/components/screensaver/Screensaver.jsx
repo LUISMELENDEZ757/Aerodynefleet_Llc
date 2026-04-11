@@ -76,6 +76,22 @@ const DEFAULT_SLIDES = [
     subtitle: 'Honeywell 131-9B · Ground Start Envelope',
     narration: 'The Auxiliary Power Unit provides bleed air for main engine start and ground electrical power. APU start is inhibited above 41,000 feet. Oil level must be checked within the approved servicing window — typically within 30 minutes of shutdown. An APU fire on the ground during boarding is a silent emergency; crew must initiate evacuation while APU fire suppression engages automatically.',
   },
+  {
+    id: 'default-9', order: 8, is_active: true, duration_seconds: 10, category: 'engine',
+    ata_chapter: '72', accent_color: '#f97316',
+    image_url: 'https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=1600&q=80',
+    title: 'GE90-115B — World’s Most Powerful Turbofan',
+    subtitle: 'Boeing 777-300ER · ATA 72 · 115,300 lbf Thrust',
+    narration: 'The GE90-115B holds the world record for highest thrust produced by a commercial jet engine at 127,900 lbf during certification testing. Its 128-inch composite fan — the largest in commercial aviation — delivers exceptional bypass efficiency at a 9:1 ratio. On-wing life monitoring via GE’s Flight Pulse system tracks EGT margins, vibration signatures, and LLP cycle counts in real time. Oil consumption trending above baseline on either module requires immediate borescope evaluation before the next revenue flight.',
+  },
+  {
+    id: 'default-10', order: 9, is_active: true, duration_seconds: 10, category: 'avionics',
+    ata_chapter: '31', accent_color: '#06b6d4',
+    image_url: 'https://images.unsplash.com/photo-1556388158-158ea5ccacbd?w=1600&q=80',
+    title: 'Boeing 787 Dreamliner Cockpit — ATA 31',
+    subtitle: 'Common Core System · Five 15.1" LCD Displays',
+    narration: 'The 787 flight deck introduces the Common Core System — a centralised computing architecture replacing traditional line-replaceable avionics boxes with a network of standardised blade servers. Five large-format LCD displays present primary flight, navigation, engine, and systems data with fully configurable crew formats. The dual Head-Up Displays provide primary flight reference down to CAT IIIa minimums. Electronic checklists, e-enabled maintenance access, and real-time Boeing Airplane Health Management data are all integrated through the aircraft’s IP-based avionics network.',
+  },
 ];
 
 function ProgressBar({ duration, onComplete, paused }) {
