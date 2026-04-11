@@ -182,10 +182,20 @@ export default function GlobalFleetMap({ flights = [], aircraft = [], melItems =
             {[
               { name: 'KEWR', lat: 40.6895, lng: -74.1745 },
               { name: 'KJFK', lat: 40.6413, lng: -73.7781 },
+              { name: 'KLGA', lat: 40.7769, lng: -73.8740 },
+              { name: 'KBOS', lat: 42.3656, lng: -71.0096 },
+              { name: 'KPHL', lat: 39.8716, lng: -75.2411 },
               { name: 'KORD', lat: 41.8742, lng: -87.6278 },
+              { name: 'KDFW', lat: 32.8975, lng: -97.0382 },
+              { name: 'KATL', lat: 33.6407, lng: -84.4277 },
+              { name: 'KMIA', lat: 25.7959, lng: -80.2870 },
               { name: 'KLAX', lat: 33.9425, lng: -118.4081 },
               { name: 'KSFO', lat: 37.6213, lng: -122.3790 },
-              { name: 'KDFW', lat: 32.8975, lng: -97.0382 },
+              { name: 'KSEA', lat: 47.4502, lng: -122.3088 },
+              { name: 'KDEN', lat: 39.8561, lng: -104.6737 },
+              { name: 'KLAS', lat: 36.0801, lng: -115.1537 },
+              { name: 'KPHX', lat: 33.4342, lng: -112.0116 },
+              { name: 'KAUS', lat: 30.1945, lng: -97.6699 },
             ].map(airport => (
               <Marker key={airport.name} position={[airport.lat, airport.lng]}>
                 <Popup>
