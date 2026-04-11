@@ -227,7 +227,7 @@ const AuthenticatedApp = () => {
         <Route path="/CommCenter" element={<CommCenter />} />
         <Route path="/Supervisor" element={<SupervisorDashboard />} />
         <Route path="/Dispatch" element={<DispatchWorkstation />} />
-        <Route path="/RetentionPolicy" element={<RecordRetentionPolicy />} />
+        <Route path="/RecordRetentionPolicy" element={<RecordRetentionPolicy />} />
         <Route path="/GroundOps" element={<GroundOpsPage />} />
         <Route path="/NOTAMs" element={<NOTAMsPage />} />
         <Route path="/CrewDirectory" element={<CrewDirectory />} />
