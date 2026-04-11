@@ -13,7 +13,8 @@
         "engineer",
         "crew",
         "flight_attendant",
-        "viewer"
+        "viewer",
+        "pending_access"
       ],
       "default": "viewer",
       "description": "User role controlling access permissions across the platform"
@@ -30,5 +31,6 @@
       "type": "string",
       "description": "Fleet/airline assignment"
     }
-  }
+  },
+  "required": []
 }
