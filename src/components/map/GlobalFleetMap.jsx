@@ -145,7 +145,7 @@ export default function GlobalFleetMap({ flights = [], aircraft = [], melItems =
         center={[37, -95]}
         zoom={4}
         className="w-full h-full"
-        style={{ filter: 'hue-rotate(200deg) saturate(1.5)' }}
+        style={{ filter: 'brightness(1.1) saturate(0.9) hue-rotate(10deg)' }}
       >
         {/* Base tile layer */}
         <TileLayer
