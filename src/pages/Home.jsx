@@ -106,7 +106,6 @@ export default function Home() {
           >
             <Link
               to="/OpsHub"
-              onClick={handleRealEnvironment}
               className="px-8 py-3 rounded-xl bg-primary text-primary-foreground text-sm font-extrabold hover:bg-primary/90 transition-colors"
             >
               Enter Dashboard
