@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { MapContainer, TileLayer, Marker, Popup, CircleMarker } from 'react-leaflet';
+import { MapContainer, TileLayer, Marker, Popup, CircleMarker, Polyline } from 'react-leaflet';
 import L from 'leaflet';
 import { Cloud, AlertTriangle, CheckCircle, ChevronDown } from 'lucide-react';
 import { cn } from '@/lib/utils';
@@ -195,6 +195,29 @@ export default function GlobalFleetMap({ flights = [], aircraft = [], melItems =
             ))}
           </>
         )}
+
+        {/* Flight route polylines */}
+        {enrichedFlights.map((flight, idx) => {
+          const airportMap = {
+            KEWR: [40.6895, -74.1745], KJFK: [40.6413, -73.7781], KORD: [41.8742, -87.6278],
+            KLAX: [33.9425, -118.4081], EGLL: [51.4701, -0.4543], CDMX: [25.2038, -99.0735],
+            KMIA: [25.7959, -80.2870], KATL: [33.6407, -84.4277], KDFW: [32.8975, -97.0382],
+            KDEN: [39.8561, -104.6737], KSFO: [37.6213, -122.3790], KLAS: [36.0801, -115.1537],
+          };
+          const origin = airportMap[flight.origin] || null;
+          const destination = airportMap[flight.destination] || null;
+          if (!origin || !destination) return null;
+          return (
+            <Polyline
+              key={`route-${flight.id}-${idx}`}
+              positions={[origin, destination]}
+              color={STATUS_COLORS[flight.status]?.bg || '#10b981'}
+              weight={2}
+              dashArray="5, 5"
+              opacity={0.6}
+            />
+          );
+        })}
 
         {/* Aircraft markers */}
         {enrichedFlights.map((flight, idx) => {
