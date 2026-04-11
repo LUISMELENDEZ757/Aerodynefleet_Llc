@@ -15,6 +15,7 @@ const DEFAULT_SLIDES = [
   {
     id: 'default-1', order: 0, is_active: true, duration_seconds: 9, category: 'engine',
     ata_chapter: '79', accent_color: '#f59e0b',
+    image_url: 'https://images.unsplash.com/photo-1540962351504-03099e0a754b?w=1600&q=80',
     title: 'Engine Oil System — ATA 79',
     subtitle: 'CFM56-7B Series',
     narration: 'Engine oil serves as the lifeblood of turbofan propulsion — lubricating bearings, cooling rotating components, and providing hydraulic pressure for variable stator actuators. Oil consumption above 0.8 qt/hr on the CFM56-7B warrants immediate investigation. Always verify oil level on cold engine soak; hot readings can deviate by up to 2 quarts due to thermal expansion.',
@@ -22,37 +23,58 @@ const DEFAULT_SLIDES = [
   {
     id: 'default-2', order: 1, is_active: true, duration_seconds: 9, category: 'safety',
     ata_chapter: '05', accent_color: '#ef4444',
+    image_url: 'https://images.unsplash.com/photo-1436491865332-7a61a109cc05?w=1600&q=80',
     title: 'Safety-First Culture',
     subtitle: 'FAA SMS & 14 CFR Part 5',
     narration: 'Safety Management Systems require every technician to report hazards without fear of reprisal. A single unresolved MEL item can cascade into an AOG event. Before signing any logbook entry, ask: "Would I put my family on this aircraft?" Your signature is your professional and legal commitment to airworthiness.',
   },
   {
-    id: 'default-3', order: 2, is_active: true, duration_seconds: 9, category: 'hydraulics',
-    ata_chapter: '29', accent_color: '#3b82f6',
-    title: 'Hydraulic System A & B — ATA 29',
-    subtitle: 'Boeing 737 Series',
-    narration: 'The 737NG operates three independent hydraulic systems (A, B, Standby) at 3,000 PSI. System A powers: ground spoilers, thrust reversers, nose wheel steering, and autopilot A. Loss of Sys A requires alternate nose wheel steering via differential braking. Always check reservoir quantity visually before dispatch — low-level sensors are MEL-able only with a maintenance action performed.',
+    id: 'default-3', order: 2, is_active: true, duration_seconds: 9, category: 'avionics',
+    ata_chapter: '34', accent_color: '#06b6d4',
+    image_url: 'https://images.unsplash.com/photo-1464037866556-6812c9d1c72e?w=1600&q=80',
+    title: 'CAT III Autoland — Low Visibility Operations',
+    subtitle: 'ILS CAT IIIb · RVR 75m',
+    narration: 'Category III ILS approaches allow landings in near-zero visibility conditions down to RVR 75 meters. Both autopilot channels must be operative with redundant radio altimeters and autobrake armed. Ground crews must maintain ILS critical area protection from outer marker inbound. A single avionics anomaly detected by the FCC during the approach will trigger an automatic go-around.',
   },
   {
-    id: 'default-4', order: 3, is_active: true, duration_seconds: 9, category: 'avionics',
-    ata_chapter: '34', accent_color: '#8b5cf6',
-    title: 'Navigation System Integrity — ATA 34',
-    subtitle: 'IRS / GPS / FMS',
-    narration: 'Modern FMS relies on a blended IRS + GPS solution for position accuracy. GPS provides ±3m accuracy, while IRS drifts approximately 1–2 NM/hr. Always verify FMS position against navaids during climb, particularly before oceanic entry. RNP AR approaches require both GPS receivers operative — check MEL 34-21-1 before dispatch to RNP-AR airports.',
+    id: 'default-4', order: 3, is_active: true, duration_seconds: 9, category: 'hydraulics',
+    ata_chapter: '29', accent_color: '#3b82f6',
+    image_url: 'https://images.unsplash.com/photo-1578615437406-511cafe4a5c7?w=1600&q=80',
+    title: 'Hydraulic System A & B — ATA 29',
+    subtitle: 'Boeing 737 Series · 3,000 PSI',
+    narration: 'The 737NG operates three independent hydraulic systems at 3,000 PSI. System A powers ground spoilers, thrust reversers, nose wheel steering, and autopilot A. Loss of System A requires alternate nose wheel steering via differential braking. Always check reservoir quantity visually before dispatch — low-level sensors are MEL-able only with a maintenance action performed.',
   },
   {
     id: 'default-5', order: 4, is_active: true, duration_seconds: 9, category: 'emergency',
     ata_chapter: '26', accent_color: '#f97316',
+    image_url: 'https://images.unsplash.com/photo-1530521954074-e64f6810b32d?w=1600&q=80',
     title: 'Fire Detection & Suppression — ATA 26',
     subtitle: 'Engine & APU Fire Systems',
-    narration: 'Engine fire bottles are single-shot, non-rechargeable. During an engine fire drill, confirm the warning light is illuminated before discharge. The fire handle performs four actions simultaneously: closes the fuel sov, closes bleed air, arms the bottles, and trips the generator. Time is critical — an uncontrolled engine fire can cause structural failure within 90 seconds.',
+    narration: 'Engine fire bottles are single-shot, non-rechargeable. During an engine fire drill, confirm the warning light is illuminated before discharge. The fire handle closes the fuel SOV, bleed air, arms the bottles, and trips the generator simultaneously. Time is critical — an uncontrolled engine fire can cause structural failure within 90 seconds.',
   },
   {
     id: 'default-6', order: 5, is_active: true, duration_seconds: 9, category: 'regulatory',
     ata_chapter: '05', accent_color: '#10b981',
-    title: 'Return to Service — 14 CFR 43.9',
-    subtitle: 'Certificate of Release',
-    narration: 'Every maintenance action on a U.S.-registered aircraft requires a signed return to service entry per 14 CFR 43.9. The entry must include: description of work, date, name and certificate number of the person approving, and whether the work was done in accordance with acceptable data. An incomplete entry can render the maintenance legally invalid — exposing both the technician and operator to certificate action.',
+    image_url: 'https://images.unsplash.com/photo-1474302770737-173ee21bab63?w=1600&q=80',
+    title: 'MRO Line Operations — Return to Service',
+    subtitle: '14 CFR 43.9 · Certificate of Release',
+    narration: 'Every maintenance action on a U.S.-registered aircraft requires a signed return to service entry per 14 CFR 43.9. MRO facilities must maintain complete traceability from part removal through overhaul, re-installation, and final sign-off. An incomplete entry can render the maintenance legally invalid — exposing both the technician and operator to certificate action.',
+  },
+  {
+    id: 'default-7', order: 6, is_active: true, duration_seconds: 9, category: 'flight_controls',
+    ata_chapter: '27', accent_color: '#8b5cf6',
+    image_url: 'https://images.unsplash.com/photo-1517479149777-5f3b1511d5ad?w=1600&q=80',
+    title: 'Departure — Flap & Slat Configuration',
+    subtitle: 'ATA 27 · Takeoff Configuration Warning',
+    narration: 'Takeoff configuration warnings exist because improper flap or slat settings are a leading cause of departure accidents. The TOCW system monitors flap position, stabilizer trim, speed brake, and parking brake before thrust application. Never silence a configuration warning without verifying the actual aircraft state. A rushed departure with flaps up has no survivable outcome below V1.',
+  },
+  {
+    id: 'default-8', order: 7, is_active: true, duration_seconds: 9, category: 'apu',
+    ata_chapter: '49', accent_color: '#eab308',
+    image_url: 'https://images.unsplash.com/photo-1542296332-2e4473faf563?w=1600&q=80',
+    title: 'APU Operations — ATA 49',
+    subtitle: 'Honeywell 131-9B · Ground Start Envelope',
+    narration: 'The Auxiliary Power Unit provides bleed air for main engine start and ground electrical power. APU start is inhibited above 41,000 feet. Oil level must be checked within the approved servicing window — typically within 30 minutes of shutdown. An APU fire on the ground during boarding is a silent emergency; crew must initiate evacuation while APU fire suppression engages automatically.',
   },
 ];
 
@@ -155,9 +177,16 @@ export default function Screensaver({ onDismiss }) {
       <div className="absolute inset-0 opacity-5"
         style={{ backgroundImage: 'linear-gradient(rgba(255,255,255,.3) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,.3) 1px, transparent 1px)', backgroundSize: '40px 40px' }} />
 
-      {/* Background image if set */}
+      {/* Background image */}
       {slide?.image_url && (
-        <div className="absolute inset-0 opacity-10 bg-cover bg-center" style={{ backgroundImage: `url(${slide.image_url})` }} />
+        <>
+          <div
+            className="absolute inset-0 bg-cover bg-center transition-all duration-1000"
+            style={{ backgroundImage: `url(${slide.image_url})`, opacity: 0.22 }}
+          />
+          {/* Dark gradient overlay for text legibility */}
+          <div className="absolute inset-0" style={{ background: 'linear-gradient(to top, #030508 30%, rgba(3,5,8,0.55) 70%, rgba(3,5,8,0.4) 100%)' }} />
+        </>
       )}
 
       {/* Accent glow */}
