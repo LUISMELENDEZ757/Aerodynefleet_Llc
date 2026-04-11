@@ -1,22 +1,111 @@
 import { useState, useRef } from 'react';
-import { X, Plane, AlertTriangle, Camera, Image, Upload, Info, ChevronDown, Flame } from 'lucide-react';
+import { X, Plane, AlertTriangle, Camera, Image, Upload, Info, ChevronDown, Flame, CheckCircle } from 'lucide-react';
 import ATAChapterSelector from './ATAChapterSelector';
 import { base44 } from '@/api/base44Client';
 import { cn } from '@/lib/utils';
 
-function OilInput({ value, onChange }) {
+function OilInput({ value, onChange, label, required }) {
   return (
-    <div className="relative">
-      <input
-        type="number"
-        step="0.1"
-        min="0"
-        placeholder="0.0"
-        value={value}
-        onChange={e => onChange(e.target.value)}
-        className="w-full bg-[#111827] border border-white/10 rounded-lg px-3 py-2.5 text-sm text-white placeholder-gray-600 outline-none focus:border-cyan-400 transition-colors pr-8"
-      />
-      <span className="absolute right-3 top-1/2 -translate-y-1/2 text-xs text-gray-500">qt</span>
+    <div>
+      <label className="text-[9px] font-bold text-gray-500 uppercase tracking-widest block mb-1">
+        {label}{required && <span className="text-cyan-400 ml-0.5">*</span>}
+      </label>
+      <div className="relative">
+        <input
+          type="number"
+          step="0.1"
+          min="0"
+          placeholder="0.0"
+          value={value}
+          onChange={e => onChange(e.target.value)}
+          className="w-full bg-[#111827] border border-white/10 rounded-lg px-3 py-2.5 text-sm text-white placeholder-gray-600 outline-none focus:border-cyan-400 transition-colors pr-8"
+        />
+        <span className="absolute right-3 top-1/2 -translate-y-1/2 text-xs text-gray-500">qt</span>
+      </div>
+    </div>
+  );
+}
+
+function OilBar({ title, before, added, after }) {
+  const b = parseFloat(before) || 0;
+  const a = parseFloat(after) || 0;
+  const d = parseFloat(added) || 0;
+  const hasAdded = d > 0;
+  const hasAfter = a > 0;
+  const isComplete = b > 0 && hasAfter;
+  const max = Math.max(b, a, 10);
+  const beforePct = Math.min((b / max) * 100, 100);
+  const afterPct = Math.min((a / max) * 100, 100);
+
+  if (!b && !hasAdded && !hasAfter) return null;
+
+  return (
+    <div className="pt-2 space-y-1.5">
+      {!hasAdded && !hasAfter ? (
+        // Only before filled — single bar
+        <>
+          <div className="flex items-center justify-between text-[10px] text-gray-500">
+            <span>Before</span>
+            <span className="text-green-400 font-bold">{b} qt</span>
+          </div>
+          <div className="h-2 bg-white/10 rounded-full overflow-hidden">
+            <div className="h-full bg-green-500 rounded-full transition-all duration-300" style={{ width: `${beforePct}%` }} />
+          </div>
+        </>
+      ) : (
+        // Before + added/after — dual bar
+        <div className="flex items-center gap-2">
+          <div className="flex-1 space-y-1">
+            <div className="flex items-center justify-between text-[10px]">
+              <span className="text-gray-500">Before</span>
+              <span className="text-yellow-400 font-bold">{b} qt</span>
+            </div>
+            <div className="h-2 bg-white/10 rounded-full overflow-hidden">
+              <div className="h-full bg-yellow-400 rounded-full transition-all duration-300" style={{ width: `${beforePct}%` }} />
+            </div>
+          </div>
+          <div className="text-[10px] font-bold text-cyan-400 flex-shrink-0 text-center">
+            {hasAdded ? `+${d}` : ''}
+          </div>
+          <div className="flex-1 space-y-1">
+            <div className="flex items-center justify-between text-[10px]">
+              <span className="text-gray-500">After</span>
+              <span className="text-green-400 font-bold">{hasAfter ? `${a} qt` : '—'}</span>
+            </div>
+            <div className="h-2 bg-white/10 rounded-full overflow-hidden">
+              <div className="h-full bg-green-500 rounded-full transition-all duration-300" style={{ width: `${afterPct}%` }} />
+            </div>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
+function OilCard({ title, bKey, aKey, dKey, oil, set }) {
+  const b = parseFloat(oil[bKey]) || 0;
+  const d = parseFloat(oil[dKey]) || 0;
+  const a = parseFloat(oil[aKey]) || 0;
+  const hasAdded = d > 0;
+  const isComplete = b > 0 && a > 0;
+  const required = hasAdded;
+
+  return (
+    <div className="bg-[#0d1423] border border-white/8 rounded-lg p-3 space-y-2">
+      <div className="flex items-center justify-between">
+        <p className="text-[10px] font-extrabold text-gray-500 uppercase tracking-widest">{title}</p>
+        {isComplete && (
+          <span className="flex items-center gap-1 text-[10px] font-bold text-green-400">
+            <CheckCircle className="w-3 h-3" /> Complete
+          </span>
+        )}
+      </div>
+      <div className="grid grid-cols-3 gap-2">
+        <OilInput label="BEFORE" value={oil[bKey]} onChange={v => set(bKey, v)} required={required} />
+        <OilInput label="ADDED" value={oil[dKey]} onChange={v => set(dKey, v)} />
+        <OilInput label="AFTER" value={oil[aKey]} onChange={v => set(aKey, v)} required={required} />
+      </div>
+      <OilBar before={oil[bKey]} added={oil[dKey]} after={oil[aKey]} />
     </div>
   );
 }
@@ -62,44 +151,9 @@ function OilServiceSection() {
               <span className="text-[10px] text-cyan-500/60 italic">Before &amp; After required when adding oil</span>
             </div>
 
-            {/* ENGINE 1 */}
-            <div className="bg-[#0d1423] border border-white/8 rounded-lg p-3 space-y-2">
-              <p className="text-[10px] font-extrabold text-gray-500 uppercase tracking-widest">Engine 1</p>
-              <div className="grid grid-cols-3 gap-2">
-                {[['BEFORE', 'e1_before'], ['ADDED', 'e1_added'], ['AFTER', 'e1_after']].map(([label, key]) => (
-                  <div key={key}>
-                    <label className="text-[9px] font-bold text-gray-600 uppercase tracking-widest block mb-1">{label}</label>
-                    <OilInput value={oil[key]} onChange={v => set(key, v)} />
-                  </div>
-                ))}
-              </div>
-            </div>
-
-            {/* ENGINE 2 */}
-            <div className="bg-[#0d1423] border border-white/8 rounded-lg p-3 space-y-2">
-              <p className="text-[10px] font-extrabold text-gray-500 uppercase tracking-widest">Engine 2</p>
-              <div className="grid grid-cols-3 gap-2">
-                {[['BEFORE', 'e2_before'], ['ADDED', 'e2_added'], ['AFTER', 'e2_after']].map(([label, key]) => (
-                  <div key={key}>
-                    <label className="text-[9px] font-bold text-gray-600 uppercase tracking-widest block mb-1">{label}</label>
-                    <OilInput value={oil[key]} onChange={v => set(key, v)} />
-                  </div>
-                ))}
-              </div>
-            </div>
-
-            {/* APU */}
-            <div className="bg-[#0d1423] border border-white/8 rounded-lg p-3 space-y-2">
-              <p className="text-[10px] font-extrabold text-gray-500 uppercase tracking-widest">APU</p>
-              <div className="grid grid-cols-3 gap-2">
-                {[['BEFORE', 'apu_before'], ['ADDED', 'apu_added'], ['AFTER', 'apu_after']].map(([label, key]) => (
-                  <div key={key}>
-                    <label className="text-[9px] font-bold text-gray-600 uppercase tracking-widest block mb-1">{label}</label>
-                    <OilInput value={oil[key]} onChange={v => set(key, v)} />
-                  </div>
-                ))}
-              </div>
-            </div>
+            <OilCard title="Engine 1" bKey="e1_before" dKey="e1_added" aKey="e1_after" oil={oil} set={set} />
+            <OilCard title="Engine 2" bKey="e2_before" dKey="e2_added" aKey="e2_after" oil={oil} set={set} />
+            <OilCard title="APU" bKey="apu_before" dKey="apu_added" aKey="apu_after" oil={oil} set={set} />
 
             {/* Oil Grade */}
             <div>
