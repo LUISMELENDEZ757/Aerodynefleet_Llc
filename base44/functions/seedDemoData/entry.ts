@@ -1,10 +1,5 @@
 import { createClientFromRequest } from 'npm:@base44/sdk@0.8.23';
 
-/**
- * seedDemoData
- * Populates the app with realistic demo data: 1000 aircraft + flights, logbook, faults, MEL, etc.
- */
-
 Deno.serve(async (req) => {
   try {
     const base44 = createClientFromRequest(req);
@@ -13,19 +8,57 @@ Deno.serve(async (req) => {
       return Response.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    // Aircraft types and their capabilities — 200 total
+    // Aircraft types config
     const AC_TYPES = [
       { type: 'B737-800', engine: 'CFM56-7B27', etops: 120, cat: 'CAT IIIa', qty: 250 },
       { type: 'B737-900', engine: 'CFM56-7B27', etops: 120, cat: 'CAT IIIa', qty: 125 },
       { type: 'B737 MAX 8', engine: 'LEAP-1B', etops: 180, cat: 'CAT IIIb', qty: 180 },
-      { type: 'B757', engine: 'RB211', etops: 120, cat: 'CAT IIIa', qty: 100 },
-      { type: 'B767', engine: 'CF6-80C2', etops: 180, cat: 'CAT IIIb', qty: 80 },
-      { type: 'B777', engine: 'GE90', etops: 370, cat: 'CAT IIIc', qty: 90 },
       { type: 'A320', engine: 'CFM56-5B4', etops: 180, cat: 'CAT IIIb', qty: 100 },
-      { type: 'A321', engine: 'CFM56-5B3', etops: 180, cat: 'CAT IIIb', qty: 50 },
-      { type: 'E190', engine: 'GE CF34-10E5', etops: 0, cat: 'CAT II', qty: 25 },
+      { type: 'B777', engine: 'GE90', etops: 370, cat: 'CAT IIIc', qty: 90 },
     ];
 
+    const routes = [
+      { origin: 'KEWR', destination: 'KJFK', distance: 120 },
+      { origin: 'KEWR', destination: 'KORD', distance: 720 },
+      { origin: 'KEWR', destination: 'KLAX', distance: 2460 },
+      { origin: 'KJFK', destination: 'KORD', distance: 720 },
+      { origin: 'KORD', destination: 'KLAX', distance: 1740 },
+    ];
+
+    const ataChapters = ['27', '29', '32', '72', '73', '74', '75', '76', '79'];
+    const discrepancies = [
+      'Oil quantity low on engine 1',
+      'Hydraulic pressure fluctuating',
+      'Landing gear warning light intermittent',
+      'Avionics display flicker',
+      'Brake pressure uneven',
+    ];
+
+    // Generate aircraft
+    const aircraft = [];
+    let tailCounter = 100;
+    for (const { type, engine, qty } of AC_TYPES) {
+      for (let i = 0; i < Math.min(qty, 50); i++) {
+        aircraft.push({
+          tail_number: `N${String(tailCounter++).padStart(5, '0')}`,
+          aircraft_type: type,
+          engine_type: engine,
+          status: ['active', 'maintenance', 'oos'][Math.floor(Math.random() * 3)],
+          base_station: ['KEWR', 'KJFK', 'KORD', 'KLAX'][Math.floor(Math.random() * 4)],
+        });
+      }
+    }
+
+    // Create aircraft in batches
+    for (let i = 0; i < aircraft.length; i += 50) {
+      const batch = aircraft.slice(i, i + 50);
+      await base44.entities.Aircraft.bulkCreate(batch);
+    }
+    console.log(`✈️ Created ${aircraft.length} aircraft`);
+
+    // Generate flights
+    const flights = [];
+    const today = new Date();
     for (let d = 0; d < 3; d++) {
       const flightDate = new Date(today);
       flightDate.setDate(flightDate.getDate() + d);
@@ -47,8 +80,6 @@ Deno.serve(async (req) => {
           scheduled_departure: `${String(stdHour).padStart(2, '0')}:${String(Math.floor(Math.random() * 60)).padStart(2, '0')}Z`,
           scheduled_arrival: `${String(staHour % 24).padStart(2, '0')}:${String(Math.floor(Math.random() * 60)).padStart(2, '0')}Z`,
           status: d === 0 ? (Math.random() > 0.8 ? 'delayed' : 'scheduled') : 'scheduled',
-          delay_minutes: Math.random() > 0.8 ? Math.floor(Math.random() * 120) : 0,
-          gate: String.fromCharCode(65 + Math.floor(Math.random() * 26)) + (1 + Math.floor(Math.random() * 30)),
         });
       }
     }
@@ -60,33 +91,17 @@ Deno.serve(async (req) => {
     console.log(`✈️ Created ${flights.length} flights`);
 
     // Generate logbook entries
-    console.log('Generating logbook entries...');
     const logbookEntries = [];
-    const ataChapters = ['27', '29', '32', '72', '73', '74', '75', '76', '79'];
-    const discrepancies = [
-      'Oil quantity low on engine 1',
-      'Hydraulic pressure fluctuating',
-      'Landing gear warning light intermittent',
-      'Avionics display flicker',
-      'Brake pressure uneven',
-      'Nose wheel shimmy on landing',
-      'Engine vibration on startup',
-      'Electrical system anomaly',
-    ];
-
     for (let i = 0; i < 100; i++) {
       const ac = aircraft[Math.floor(Math.random() * aircraft.length)];
-      const logPage = `LP#${String(i + 1).padStart(4, '0')}`;
       logbookEntries.push({
         aircraft_tail: ac.tail_number,
-        log_page: logPage,
+        log_page: `LP#${String(i + 1).padStart(4, '0')}`,
         entry_type: 'discrepancy',
         ata_chapter: ataChapters[Math.floor(Math.random() * ataChapters.length)],
         description: discrepancies[Math.floor(Math.random() * discrepancies.length)],
         discrepancy_status: ['OPEN', 'IN_PROGRESS', 'CLOSED'][Math.floor(Math.random() * 3)],
         technician_name: `Tech ${Math.floor(Math.random() * 100)}`,
-        is_deferred: Math.random() > 0.7,
-        mel_category: Math.random() > 0.7 ? ['A', 'B', 'C', 'D'][Math.floor(Math.random() * 4)] : null,
       });
     }
 
@@ -96,70 +111,11 @@ Deno.serve(async (req) => {
     }
     console.log(`📖 Created ${logbookEntries.length} logbook entries`);
 
-    // Generate fault messages
-    console.log('Generating fault messages...');
-    const faults = [];
-    const faultCodes = [
-      { code: 'E-A1-001', desc: 'Engine 1 Overheat' },
-      { code: 'E-A1-002', desc: 'Engine 1 Vibration High' },
-      { code: 'H-B2-003', desc: 'Hydraulic Sys B Pressure Low' },
-      { code: 'L-C3-004', desc: 'Landing Gear Unsafe' },
-      { code: 'A-D4-005', desc: 'Avionics Display Failure' },
-      { code: 'E-A1-006', desc: 'Engine 2 EGT High' },
-      { code: 'F-E5-007', desc: 'Fuel Pump Failure' },
-    ];
-
-    for (let i = 0; i < 50; i++) {
-      const ac = aircraft[Math.floor(Math.random() * aircraft.length)];
-      const fault = faultCodes[Math.floor(Math.random() * faultCodes.length)];
-      faults.push({
-        aircraft_tail: ac.tail_number,
-        fault_code: fault.code,
-        description: fault.desc,
-        system: ['engine', 'hydraulics', 'electrical', 'avionics'][Math.floor(Math.random() * 4)],
-        severity: ['warning', 'caution', 'advisory'][Math.floor(Math.random() * 3)],
-        status: Math.random() > 0.6 ? 'cleared' : 'active',
-        ata_chapter: ataChapters[Math.floor(Math.random() * ataChapters.length)],
-      });
-    }
-
-    for (let i = 0; i < faults.length; i += 50) {
-      const batch = faults.slice(i, i + 50);
-      await base44.entities.FaultMessage.bulkCreate(batch);
-    }
-    console.log(`⚠️ Created ${faults.length} fault messages`);
-
-    // Generate maintenance events
-    console.log('Generating maintenance events...');
-    const maintenanceEvents = [];
-    for (let i = 0; i < 60; i++) {
-      const ac = aircraft[Math.floor(Math.random() * aircraft.length)];
-      maintenanceEvents.push({
-        aircraft_tail: ac.tail_number,
-        event_type: ['inspection', 'repair', 'component_replacement'][Math.floor(Math.random() * 3)],
-        title: `Maintenance Event ${i + 1}`,
-        description: `Routine maintenance performed on ${ac.tail_number}`,
-        ata_chapter: ataChapters[Math.floor(Math.random() * ataChapters.length)],
-        work_hours: Math.floor(Math.random() * 40),
-        completed_date: new Date(Date.now() - Math.random() * 30 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
-        technician_name: `Tech ${Math.floor(Math.random() * 100)}`,
-        status: 'completed',
-      });
-    }
-
-    for (let i = 0; i < maintenanceEvents.length; i += 60) {
-      const batch = maintenanceEvents.slice(i, i + 60);
-      await base44.entities.MaintenanceEvent.bulkCreate(batch);
-    }
-    console.log(`🔧 Created ${maintenanceEvents.length} maintenance events`);
-
     return Response.json({
       status: 'success',
       aircraft: aircraft.length,
       flights: flights.length,
       logbookEntries: logbookEntries.length,
-      faults: faults.length,
-      maintenanceEvents: maintenanceEvents.length,
       message: 'Demo data seeded successfully',
     });
   } catch (error) {
