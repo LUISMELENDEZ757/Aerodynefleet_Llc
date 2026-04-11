@@ -8,12 +8,6 @@ export default function Home() {
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
 
-  useEffect(() => {
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      console.log('Supabase connected:', !!session);
-    });
-  }, []);
-
   const handleDemoMode = async () => {
     setLoading(true);
     try {
