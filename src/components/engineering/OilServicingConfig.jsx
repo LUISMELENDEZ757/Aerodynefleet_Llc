@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { base44 } from '@/api/base44Client';
-import { Plus, Pencil, Trash2, ChevronRight, Droplets, Cpu, Plane, Save, X, AlertTriangle } from 'lucide-react';
+import { Plus, Pencil, Trash2, Droplets, Cpu, Plane, Save, X, AlertTriangle, Zap } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
