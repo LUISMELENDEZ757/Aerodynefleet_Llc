@@ -303,7 +303,7 @@ export default function GlobalFleetMap({ flights = [], aircraft = [], melItems =
 
         {/* Aircraft markers */}
         {enrichedFlights.map((flight, idx) => {
-          const statusColor = STATUS_COLORS[flight.status];
+          const statusColor = STATUS_COLORS[flight.status] || STATUS_COLORS['green'];
           return (
             <Marker
               key={`${flight.id}-${idx}`}
