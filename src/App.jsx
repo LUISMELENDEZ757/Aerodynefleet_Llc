@@ -15,6 +15,7 @@ import { ROUTE_DEPTH } from '@/lib/NavigationStack';
 import useOfflineSync from '@/hooks/useOfflineSync';
 import { offlineStore } from '@/lib/offline-store';
 import OfflineBadge from '@/components/layout/OfflineBadge';
+import ScreensaverController from '@/components/screensaver/ScreensaverController';
 
 const Home                  = lazy(() => import('@/pages/Home'));
 const OpsHub                = lazy(() => import('@/pages/OpsHub'));
@@ -112,6 +113,7 @@ const StationDashboard         = lazy(() => import('@/pages/StationDashboard'));
 const AircraftMaintenanceTracking = lazy(() => import('@/pages/AircraftMaintenanceTracking'));
 const IntegrationHub           = lazy(() => import('@/pages/IntegrationHub'));
 const MaintenanceLogbook       = lazy(() => import('@/pages/MaintenanceLogbook'));
+const ScreensaverAdmin         = lazy(() => import('@/pages/ScreensaverAdmin'));
 
 function PageFallback() {
   return (
@@ -284,6 +286,7 @@ const AuthenticatedApp = () => {
         <Route path="/MxTracking" element={<AircraftMaintenanceTracking />} />
         <Route path="/IntegrationHub" element={<IntegrationHub />} />
         <Route path="/MaintenanceLogbook" element={<MaintenanceLogbook />} />
+        <Route path="/ScreensaverAdmin" element={<ScreensaverAdmin />} />
       </Route>
       <Route path="*" element={<PageNotFound />} />
     </Routes>
@@ -305,6 +308,7 @@ function App() {
           <AuthenticatedApp />
         </Router>
         <OfflineBadge />
+        <ScreensaverController />
         <Toaster />
         </FleetProvider>
       </QueryClientProvider>

@@ -1,0 +1,67 @@
+{
+  "name": "ScreensaverSlide",
+  "type": "object",
+  "description": "Screensaver slides for the Aerodyne Fleet OS \u2014 safety narration, aircraft systems education, and operational reminders.",
+  "properties": {
+    "order": {
+      "type": "number",
+      "description": "Display order (ascending)",
+      "default": 0
+    },
+    "title": {
+      "type": "string",
+      "description": "Slide headline e.g. 'Engine Oil Monitoring \u2014 ATA 79'"
+    },
+    "subtitle": {
+      "type": "string",
+      "description": "Secondary line e.g. 'CFM56-7B Series'"
+    },
+    "narration": {
+      "type": "string",
+      "description": "Full narration body text displayed on the slide"
+    },
+    "category": {
+      "type": "string",
+      "enum": [
+        "safety",
+        "engine",
+        "hydraulics",
+        "avionics",
+        "flight_controls",
+        "apu",
+        "fuel",
+        "emergency",
+        "regulatory",
+        "general"
+      ],
+      "default": "safety"
+    },
+    "ata_chapter": {
+      "type": "string",
+      "description": "ATA chapter reference e.g. 79"
+    },
+    "image_url": {
+      "type": "string",
+      "description": "Optional background image URL"
+    },
+    "accent_color": {
+      "type": "string",
+      "description": "Hex accent color for the slide e.g. #f59e0b",
+      "default": "#f59e0b"
+    },
+    "duration_seconds": {
+      "type": "number",
+      "description": "Seconds to display this slide before advancing",
+      "default": 8
+    },
+    "is_active": {
+      "type": "boolean",
+      "default": true,
+      "description": "Whether this slide is included in the screensaver rotation"
+    }
+  },
+  "required": [
+    "title",
+    "narration"
+  ]
+}

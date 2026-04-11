@@ -79,6 +79,7 @@ const ADMIN_SYSTEM_ITEMS = [
   { label: 'Fleet Management', path: '/FleetDashboard' },
   { label: 'User Management', path: '/UserManagement' },
   { label: 'Settings', path: '/Settings' },
+  { label: 'Screensaver Editor', path: '/ScreensaverAdmin' },
   { label: 'Audit Logs', path: '/AuditLog' },
 ];
 

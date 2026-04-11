@@ -1,0 +1,284 @@
+import { useState, useEffect, useCallback, useRef } from 'react';
+import { useQuery } from '@tanstack/react-query';
+import { base44 } from '@/api/base44Client';
+import { motion, AnimatePresence } from 'framer-motion';
+import { Plane, Shield, X, ChevronLeft, ChevronRight, Volume2, VolumeX } from 'lucide-react';
+import { cn } from '@/lib/utils';
+
+const CATEGORY_ICONS = {
+  safety: '🛡️', engine: '⚙️', hydraulics: '🔧', avionics: '📡',
+  flight_controls: '🕹️', apu: '⚡', fuel: '⛽', emergency: '🚨',
+  regulatory: '📋', general: '✈️',
+};
+
+const DEFAULT_SLIDES = [
+  {
+    id: 'default-1', order: 0, is_active: true, duration_seconds: 9, category: 'engine',
+    ata_chapter: '79', accent_color: '#f59e0b',
+    title: 'Engine Oil System — ATA 79',
+    subtitle: 'CFM56-7B Series',
+    narration: 'Engine oil serves as the lifeblood of turbofan propulsion — lubricating bearings, cooling rotating components, and providing hydraulic pressure for variable stator actuators. Oil consumption above 0.8 qt/hr on the CFM56-7B warrants immediate investigation. Always verify oil level on cold engine soak; hot readings can deviate by up to 2 quarts due to thermal expansion.',
+  },
+  {
+    id: 'default-2', order: 1, is_active: true, duration_seconds: 9, category: 'safety',
+    ata_chapter: '05', accent_color: '#ef4444',
+    title: 'Safety-First Culture',
+    subtitle: 'FAA SMS & 14 CFR Part 5',
+    narration: 'Safety Management Systems require every technician to report hazards without fear of reprisal. A single unresolved MEL item can cascade into an AOG event. Before signing any logbook entry, ask: "Would I put my family on this aircraft?" Your signature is your professional and legal commitment to airworthiness.',
+  },
+  {
+    id: 'default-3', order: 2, is_active: true, duration_seconds: 9, category: 'hydraulics',
+    ata_chapter: '29', accent_color: '#3b82f6',
+    title: 'Hydraulic System A & B — ATA 29',
+    subtitle: 'Boeing 737 Series',
+    narration: 'The 737NG operates three independent hydraulic systems (A, B, Standby) at 3,000 PSI. System A powers: ground spoilers, thrust reversers, nose wheel steering, and autopilot A. Loss of Sys A requires alternate nose wheel steering via differential braking. Always check reservoir quantity visually before dispatch — low-level sensors are MEL-able only with a maintenance action performed.',
+  },
+  {
+    id: 'default-4', order: 3, is_active: true, duration_seconds: 9, category: 'avionics',
+    ata_chapter: '34', accent_color: '#8b5cf6',
+    title: 'Navigation System Integrity — ATA 34',
+    subtitle: 'IRS / GPS / FMS',
+    narration: 'Modern FMS relies on a blended IRS + GPS solution for position accuracy. GPS provides ±3m accuracy, while IRS drifts approximately 1–2 NM/hr. Always verify FMS position against navaids during climb, particularly before oceanic entry. RNP AR approaches require both GPS receivers operative — check MEL 34-21-1 before dispatch to RNP-AR airports.',
+  },
+  {
+    id: 'default-5', order: 4, is_active: true, duration_seconds: 9, category: 'emergency',
+    ata_chapter: '26', accent_color: '#f97316',
+    title: 'Fire Detection & Suppression — ATA 26',
+    subtitle: 'Engine & APU Fire Systems',
+    narration: 'Engine fire bottles are single-shot, non-rechargeable. During an engine fire drill, confirm the warning light is illuminated before discharge. The fire handle performs four actions simultaneously: closes the fuel sov, closes bleed air, arms the bottles, and trips the generator. Time is critical — an uncontrolled engine fire can cause structural failure within 90 seconds.',
+  },
+  {
+    id: 'default-6', order: 5, is_active: true, duration_seconds: 9, category: 'regulatory',
+    ata_chapter: '05', accent_color: '#10b981',
+    title: 'Return to Service — 14 CFR 43.9',
+    subtitle: 'Certificate of Release',
+    narration: 'Every maintenance action on a U.S.-registered aircraft requires a signed return to service entry per 14 CFR 43.9. The entry must include: description of work, date, name and certificate number of the person approving, and whether the work was done in accordance with acceptable data. An incomplete entry can render the maintenance legally invalid — exposing both the technician and operator to certificate action.',
+  },
+];
+
+function ProgressBar({ duration, onComplete, paused }) {
+  const [pct, setPct] = useState(0);
+  const startRef = useRef(Date.now());
+  const pausedRef = useRef(0);
+  const pauseStartRef = useRef(null);
+
+  useEffect(() => {
+    setPct(0);
+    startRef.current = Date.now();
+    pausedRef.current = 0;
+    pauseStartRef.current = null;
+  }, [duration, onComplete]);
+
+  useEffect(() => {
+    if (paused) {
+      pauseStartRef.current = Date.now();
+    } else if (pauseStartRef.current) {
+      pausedRef.current += Date.now() - pauseStartRef.current;
+      pauseStartRef.current = null;
+    }
+  }, [paused]);
+
+  useEffect(() => {
+    const tick = () => {
+      if (paused) return;
+      const elapsed = Date.now() - startRef.current - pausedRef.current;
+      const p = Math.min((elapsed / (duration * 1000)) * 100, 100);
+      setPct(p);
+      if (p >= 100) onComplete();
+    };
+    const id = setInterval(tick, 50);
+    return () => clearInterval(id);
+  }, [duration, onComplete, paused]);
+
+  return (
+    <div className="h-0.5 bg-white/10 rounded-full overflow-hidden">
+      <div className="h-full bg-primary transition-none rounded-full" style={{ width: `${pct}%` }} />
+    </div>
+  );
+}
+
+export default function Screensaver({ onDismiss }) {
+  const [idx, setIdx] = useState(0);
+  const [paused, setPaused] = useState(false);
+  const [muted, setMuted] = useState(false);
+  const utterRef = useRef(null);
+
+  const { data: dbSlides = [] } = useQuery({
+    queryKey: ['screensaver-slides'],
+    queryFn: () => base44.entities.ScreensaverSlide.list('order', 200),
+  });
+
+  const slides = (dbSlides.filter(s => s.is_active).length > 0
+    ? [...dbSlides.filter(s => s.is_active)].sort((a, b) => (a.order ?? 0) - (b.order ?? 0))
+    : DEFAULT_SLIDES);
+
+  const slide = slides[idx] || slides[0];
+
+  // Text-to-speech narration
+  const narrate = useCallback((text) => {
+    if (muted || !window.speechSynthesis) return;
+    window.speechSynthesis.cancel();
+    const u = new SpeechSynthesisUtterance(text);
+    u.rate = 0.88;
+    u.pitch = 1;
+    u.volume = 0.9;
+    utterRef.current = u;
+    window.speechSynthesis.speak(u);
+  }, [muted]);
+
+  useEffect(() => {
+    if (slide) narrate(slide.narration);
+    return () => window.speechSynthesis?.cancel();
+  }, [idx, slide, narrate]);
+
+  useEffect(() => {
+    if (muted) window.speechSynthesis?.cancel();
+    else if (slide) narrate(slide.narration);
+  }, [muted]);
+
+  const next = useCallback(() => setIdx(i => (i + 1) % slides.length), [slides.length]);
+  const prev = useCallback(() => setIdx(i => (i - 1 + slides.length) % slides.length), [slides.length]);
+
+  const accent = slide?.accent_color || '#f59e0b';
+  const catIcon = CATEGORY_ICONS[slide?.category] || '✈️';
+
+  return (
+    <motion.div
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      exit={{ opacity: 0 }}
+      transition={{ duration: 0.6 }}
+      className="fixed inset-0 z-[9999] bg-[#030508] flex flex-col overflow-hidden cursor-pointer select-none"
+      onClick={onDismiss}
+    >
+      {/* Background subtle grid */}
+      <div className="absolute inset-0 opacity-5"
+        style={{ backgroundImage: 'linear-gradient(rgba(255,255,255,.3) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,.3) 1px, transparent 1px)', backgroundSize: '40px 40px' }} />
+
+      {/* Background image if set */}
+      {slide?.image_url && (
+        <div className="absolute inset-0 opacity-10 bg-cover bg-center" style={{ backgroundImage: `url(${slide.image_url})` }} />
+      )}
+
+      {/* Accent glow */}
+      <div className="absolute inset-0 pointer-events-none"
+        style={{ background: `radial-gradient(ellipse 60% 50% at 50% 100%, ${accent}22 0%, transparent 70%)` }} />
+
+      {/* Top bar */}
+      <div className="flex items-center justify-between px-8 pt-6 pb-2 flex-shrink-0 relative z-10">
+        <div className="flex items-center gap-3">
+          <div className="w-8 h-8 rounded-lg flex items-center justify-center" style={{ background: `${accent}33` }}>
+            <Plane className="w-4 h-4" style={{ color: accent }} />
+          </div>
+          <div>
+            <p className="text-xs font-extrabold text-white/80 uppercase tracking-[0.2em]">Aerodyne Fleet OS</p>
+            <p className="text-[10px] text-white/30 tracking-widest">Safety & Systems Knowledge</p>
+          </div>
+        </div>
+        <div className="flex items-center gap-3">
+          <button
+            onClick={e => { e.stopPropagation(); setMuted(m => !m); }}
+            className="w-8 h-8 rounded-lg bg-white/8 flex items-center justify-center hover:bg-white/15 transition-colors"
+          >
+            {muted ? <VolumeX className="w-4 h-4 text-white/40" /> : <Volume2 className="w-4 h-4 text-white/60" />}
+          </button>
+          <button
+            onClick={e => { e.stopPropagation(); onDismiss(); }}
+            className="w-8 h-8 rounded-lg bg-white/8 flex items-center justify-center hover:bg-white/15 transition-colors"
+          >
+            <X className="w-4 h-4 text-white/60" />
+          </button>
+        </div>
+      </div>
+
+      {/* Slide progress dots */}
+      <div className="flex items-center justify-center gap-1.5 pt-2 flex-shrink-0 relative z-10">
+        {slides.map((_, i) => (
+          <button
+            key={i}
+            onClick={e => { e.stopPropagation(); setIdx(i); }}
+            className="rounded-full transition-all"
+            style={{
+              width: i === idx ? 20 : 6, height: 6,
+              background: i === idx ? accent : 'rgba(255,255,255,0.15)',
+            }}
+          />
+        ))}
+      </div>
+
+      {/* Main content */}
+      <div className="flex-1 flex items-center justify-center px-8 relative z-10">
+        <AnimatePresence mode="wait">
+          <motion.div
+            key={idx}
+            initial={{ opacity: 0, y: 24 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -16 }}
+            transition={{ duration: 0.5, ease: 'easeOut' }}
+            className="max-w-3xl w-full text-center space-y-6"
+            onClick={e => e.stopPropagation()}
+          >
+            {/* Category badge */}
+            <div className="flex items-center justify-center gap-2">
+              <span className="text-xl">{catIcon}</span>
+              <span className="text-xs font-extrabold uppercase tracking-[0.25em]"
+                style={{ color: accent }}>
+                {slide?.category?.replace(/_/g, ' ')}
+                {slide?.ata_chapter ? ` · ATA ${slide.ata_chapter}` : ''}
+              </span>
+            </div>
+
+            {/* Title */}
+            <div>
+              <h1 className="text-4xl md:text-5xl font-black text-white leading-tight tracking-tight">
+                {slide?.title}
+              </h1>
+              {slide?.subtitle && (
+                <p className="text-lg font-semibold mt-2" style={{ color: accent }}>{slide.subtitle}</p>
+              )}
+            </div>
+
+            {/* Divider */}
+            <div className="flex items-center justify-center gap-4">
+              <div className="flex-1 max-w-16 h-px" style={{ background: `${accent}40` }} />
+              <Shield className="w-4 h-4 opacity-40" style={{ color: accent }} />
+              <div className="flex-1 max-w-16 h-px" style={{ background: `${accent}40` }} />
+            </div>
+
+            {/* Narration */}
+            <p className="text-base md:text-lg text-white/75 leading-relaxed font-light max-w-2xl mx-auto">
+              {slide?.narration}
+            </p>
+          </motion.div>
+        </AnimatePresence>
+      </div>
+
+      {/* Bottom controls */}
+      <div className="flex-shrink-0 px-8 pb-8 relative z-10 space-y-4">
+        {/* Progress bar */}
+        <div className="max-w-xl mx-auto">
+          <ProgressBar
+            key={`${idx}-${slide?.duration_seconds}`}
+            duration={slide?.duration_seconds || 8}
+            onComplete={next}
+            paused={paused}
+          />
+        </div>
+
+        <div className="flex items-center justify-between max-w-xl mx-auto">
+          <button onClick={e => { e.stopPropagation(); prev(); }}
+            className="flex items-center gap-2 text-xs font-bold text-white/40 hover:text-white/80 transition-colors">
+            <ChevronLeft className="w-4 h-4" /> Prev
+          </button>
+          <p className="text-[10px] text-white/25 tracking-widest uppercase">
+            Click anywhere to dismiss · {idx + 1} / {slides.length}
+          </p>
+          <button onClick={e => { e.stopPropagation(); next(); }}
+            className="flex items-center gap-2 text-xs font-bold text-white/40 hover:text-white/80 transition-colors">
+            Next <ChevronRight className="w-4 h-4" />
+          </button>
+        </div>
+      </div>
+    </motion.div>
+  );
+}
