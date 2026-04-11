@@ -9,6 +9,7 @@ import { FleetProvider } from '@/lib/FleetContext';
 import UserNotRegisteredError from '@/components/UserNotRegisteredError';
 import { Navigate } from 'react-router-dom';
 import { lazy, Suspense, useState, useEffect } from 'react';
+import { base44 } from '@/api/base44Client';
 import SplashScreen from '@/components/SplashScreen';
 import AppLayout from '@/components/layout/AppLayout';
 import { ROUTE_DEPTH } from '@/lib/NavigationStack';
@@ -163,7 +164,18 @@ class ChunkErrorBoundary extends React.Component {
 
 const AuthenticatedApp = () => {
   const { isLoadingAuth, isLoadingPublicSettings, authError, navigateToLogin } = useAuth();
+  const [hasRequestedAccess, setHasRequestedAccess] = useState(false);
   useOfflineSync(); // Enable offline sync
+
+  // Request access on first login
+  useEffect(() => {
+    if (!isLoadingAuth && authError?.type !== 'auth_required' && !hasRequestedAccess) {
+      base44.functions.invoke('requestAccessOnFirstLogin', {}).catch(err => {
+        console.error('Failed to request access:', err);
+      });
+      setHasRequestedAccess(true);
+    }
+  }, [isLoadingAuth, authError, hasRequestedAccess]);
 
   // Show loading spinner while checking app public settings or auth
   if (isLoadingPublicSettings || isLoadingAuth) {
