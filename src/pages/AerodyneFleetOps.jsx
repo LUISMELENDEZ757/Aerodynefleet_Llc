@@ -348,8 +348,8 @@ function FilterSidebar({ onClose, activeFilters, setActiveFilters }) {
         <button className="text-[10px] font-bold px-2.5 py-1 rounded-lg bg-primary text-primary-foreground">Save</button>
       </div>
       <div className="flex gap-2 px-3 py-2 border-b border-white/8">
-        <button className="flex-1 text-[10px] font-bold py-1.5 rounded-lg bg-[#111620] border border-white/10 text-gray-400 hover:text-white">Reset</button>
-        <button className="flex-1 text-[10px] font-bold py-1.5 rounded-lg bg-primary/80 text-primary-foreground hover:bg-primary">Apply</button>
+        <button onClick={() => setActiveFilters({})} className="flex-1 text-[10px] font-bold py-1.5 rounded-lg bg-[#111620] border border-white/10 text-gray-400 hover:text-white">Reset</button>
+        <button onClick={onClose} className="flex-1 text-[10px] font-bold py-1.5 rounded-lg bg-primary/80 text-primary-foreground hover:bg-primary">Apply</button>
       </div>
       <div className="flex-1 overflow-y-auto scrollbar-hide">
         {FILTER_CATEGORIES.map(cat => (
