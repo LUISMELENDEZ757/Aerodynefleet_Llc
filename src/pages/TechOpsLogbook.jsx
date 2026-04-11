@@ -2,10 +2,11 @@ import { useState, useEffect } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { base44 } from '@/api/base44Client';
 import { Link } from 'react-router-dom';
+import AircraftQRScanner from '@/components/techops/AircraftQRScanner';
 import {
   BookOpen, Plane, AlertTriangle, ChevronDown, Plus,
   Printer, Clock, CheckCircle, XCircle, Wrench, Zap,
-  Radio, Flame, Wind, Settings, Shield, ChevronRight, FilePlus
+  Radio, Flame, Wind, Settings, Shield, ChevronRight, FilePlus, QrCode
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import NewLogEntryModal from '@/components/techops/NewLogEntryModal';
@@ -60,6 +61,7 @@ export default function TechOpsLogbook() {
   const [tailDropdown, setTailDropdown] = useState(false);
   const [showNewEntry, setShowNewEntry] = useState(false);
   const [showNewFault, setShowNewFault] = useState(false);
+  const [showQRScanner, setShowQRScanner] = useState(false);
   const [faultTab, setFaultTab] = useState('active');
   const [logTab, setLogTab] = useState('entries');
   const [entryPreset, setEntryPreset] = useState(null);
@@ -253,6 +255,9 @@ export default function TechOpsLogbook() {
               </div>
             )}
           </div>
+          <button onClick={() => setShowQRScanner(true)} title="Scan Aircraft QR" className="w-9 h-9 bg-[#1a1f2e] border border-white/10 rounded-xl flex items-center justify-center hover:bg-primary/20 transition-colors">
+            <QrCode className="w-4 h-4 text-primary" />
+          </button>
           <button onClick={handlePrint} title="Print Logbook" className="w-9 h-9 bg-[#1a1f2e] border border-white/10 rounded-xl flex items-center justify-center hover:bg-primary/20 transition-colors">
             <Printer className="w-4 h-4 text-primary" />
           </button>
@@ -551,6 +556,14 @@ export default function TechOpsLogbook() {
           </div>
         </div>
       </div>
+
+      {showQRScanner && (
+        <AircraftQRScanner
+          aircraft={aircraft}
+          onScan={(tail) => setSelectedTail(tail)}
+          onClose={() => setShowQRScanner(false)}
+        />
+      )}
 
       {showNewEntry && (
         <NewLogEntryModal
