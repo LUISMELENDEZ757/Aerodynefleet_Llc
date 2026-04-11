@@ -4,10 +4,36 @@ import ATAChapterSelector from './ATAChapterSelector';
 import { base44 } from '@/api/base44Client';
 import { cn } from '@/lib/utils';
 
+function OilInput({ value, onChange }) {
+  return (
+    <div className="relative">
+      <input
+        type="number"
+        step="0.1"
+        min="0"
+        placeholder="0.0"
+        value={value}
+        onChange={e => onChange(e.target.value)}
+        className="w-full bg-[#111827] border border-white/10 rounded-lg px-3 py-2.5 text-sm text-white placeholder-gray-600 outline-none focus:border-cyan-400 transition-colors pr-8"
+      />
+      <span className="absolute right-3 top-1/2 -translate-y-1/2 text-xs text-gray-500">qt</span>
+    </div>
+  );
+}
+
 function OilServiceSection() {
   const [expanded, setExpanded] = useState(false);
+  const [oil, setOil] = useState({
+    e1_before: '', e1_added: '', e1_after: '',
+    e2_before: '', e2_added: '', e2_after: '',
+    apu_before: '', apu_added: '', apu_after: '',
+    grade: 'MIL-PRF-7808',
+  });
+  const set = (k, v) => setOil(p => ({ ...p, [k]: v }));
+
   return (
     <div className="border border-dashed border-cyan-500/30 rounded-xl overflow-hidden">
+      {/* Header toggle */}
       <button
         type="button"
         onClick={() => setExpanded(o => !o)}
@@ -15,24 +41,77 @@ function OilServiceSection() {
       >
         <div className="flex items-center gap-2">
           <Flame className="w-4 h-4 text-cyan-400" />
-          <span className="text-[11px] font-extrabold text-cyan-400 uppercase tracking-widest">Engine &amp; APU Oil Service Tracking</span>
+          <span className="text-[11px] font-extrabold text-cyan-400 uppercase tracking-widest">Engine &amp; APU Oil Service — ATA 79</span>
         </div>
         <div className="flex items-center gap-2">
-          <span className="text-[10px] text-gray-500 italic">Optional — tap to expand</span>
+          <span className="text-[10px] text-cyan-500/70 italic">Leave blank if not serviced this entry</span>
           <ChevronDown className={cn('w-4 h-4 text-gray-500 transition-transform', expanded && 'rotate-180')} />
         </div>
       </button>
+
       {expanded && (
-        <div className="px-4 pb-4 grid grid-cols-2 gap-3 border-t border-cyan-500/20 pt-3">
-          {['Engine 1 Oil Added (qt)', 'Engine 2 Oil Added (qt)', 'APU Oil Added (qt)', 'Oil Type / Spec'].map(label => (
-            <div key={label}>
-              <label className="text-[10px] font-bold text-gray-500 uppercase tracking-widest block mb-1.5">{label}</label>
+        <div className="border-t border-cyan-500/20 bg-[#0d1423] p-4 space-y-4">
+          {/* Inner card */}
+          <div className="bg-[#111827] border border-white/8 rounded-xl p-4 space-y-4">
+            {/* Sub-header */}
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <Flame className="w-3.5 h-3.5 text-cyan-400" />
+                <span className="text-[10px] font-extrabold text-cyan-400 uppercase tracking-widest">Engine &amp; APU Oil Service — ATA 79</span>
+              </div>
+              <span className="text-[10px] text-cyan-500/60 italic">Before &amp; After required when adding oil</span>
+            </div>
+
+            {/* ENGINE 1 */}
+            <div className="bg-[#0d1423] border border-white/8 rounded-lg p-3 space-y-2">
+              <p className="text-[10px] font-extrabold text-gray-500 uppercase tracking-widest">Engine 1</p>
+              <div className="grid grid-cols-3 gap-2">
+                {[['BEFORE', 'e1_before'], ['ADDED', 'e1_added'], ['AFTER', 'e1_after']].map(([label, key]) => (
+                  <div key={key}>
+                    <label className="text-[9px] font-bold text-gray-600 uppercase tracking-widest block mb-1">{label}</label>
+                    <OilInput value={oil[key]} onChange={v => set(key, v)} />
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* ENGINE 2 */}
+            <div className="bg-[#0d1423] border border-white/8 rounded-lg p-3 space-y-2">
+              <p className="text-[10px] font-extrabold text-gray-500 uppercase tracking-widest">Engine 2</p>
+              <div className="grid grid-cols-3 gap-2">
+                {[['BEFORE', 'e2_before'], ['ADDED', 'e2_added'], ['AFTER', 'e2_after']].map(([label, key]) => (
+                  <div key={key}>
+                    <label className="text-[9px] font-bold text-gray-600 uppercase tracking-widest block mb-1">{label}</label>
+                    <OilInput value={oil[key]} onChange={v => set(key, v)} />
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* APU */}
+            <div className="bg-[#0d1423] border border-white/8 rounded-lg p-3 space-y-2">
+              <p className="text-[10px] font-extrabold text-gray-500 uppercase tracking-widest">APU</p>
+              <div className="grid grid-cols-3 gap-2">
+                {[['BEFORE', 'apu_before'], ['ADDED', 'apu_added'], ['AFTER', 'apu_after']].map(([label, key]) => (
+                  <div key={key}>
+                    <label className="text-[9px] font-bold text-gray-600 uppercase tracking-widest block mb-1">{label}</label>
+                    <OilInput value={oil[key]} onChange={v => set(key, v)} />
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* Oil Grade */}
+            <div>
+              <label className="text-[10px] font-bold text-gray-500 uppercase tracking-widest block mb-1.5">Oil Grade / Specification</label>
               <input
-                placeholder="—"
-                className="w-full bg-[#1a2035] border border-white/10 rounded-lg px-3 py-2.5 text-sm text-white placeholder-gray-600 outline-none focus:border-cyan-400 transition-colors"
+                value={oil.grade}
+                onChange={e => set('grade', e.target.value)}
+                placeholder="e.g. MIL-PRF-7808"
+                className="w-full bg-[#0d1423] border border-white/10 rounded-lg px-3 py-2.5 text-sm text-white placeholder-gray-600 outline-none focus:border-cyan-400 transition-colors"
               />
             </div>
-          ))}
+          </div>
         </div>
       )}
     </div>
