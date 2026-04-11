@@ -106,7 +106,7 @@ export default function GlobalFleetMap({ flights = [], aircraft = [], melItems =
       >
         {/* Base tile layer */}
         <TileLayer
-          url="https://{s}.basemaps.cartocdn.com/light_nolabels/{z}/{x}/{y}{r}.png"
+          url="https://{s}.basemaps.cartocdn.com/voyager_nolabels/{z}/{x}/{y}{r}.png"
           attribution='&copy; CartoDB'
           maxZoom={18}
         />
