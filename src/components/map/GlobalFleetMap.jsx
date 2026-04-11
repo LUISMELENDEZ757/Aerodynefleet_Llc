@@ -342,7 +342,7 @@ export default function GlobalFleetMap({ flights = [], aircraft = [], melItems =
                 <X className="w-5 h-5" />
               </button>
             </div>
-            <div className="p-4 space-y-4">
+            <div className="p-4 space-y-4 overflow-y-auto max-h-[calc(100%-60px)]">
               <div className="grid grid-cols-2 gap-3">
                 <div className="bg-background/50 rounded-lg p-3">
                   <p className="text-[10px] text-muted-foreground uppercase font-bold mb-1">From</p>
