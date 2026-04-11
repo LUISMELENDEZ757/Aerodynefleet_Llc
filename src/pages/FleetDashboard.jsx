@@ -20,6 +20,14 @@ import AddAircraftWizard from '@/components/fleet/AddAircraftWizard';
 
 const STATUS_OPTIONS = ['All Status', 'active', 'oos', 'maintenance', 'retired'];
 
+// Airline-authentic three-state maintenance status system
+const MAINTENANCE_STATUS = {
+  airworthy:    { label: 'AIRWORTHY',           bg: 'bg-green-600',  icon: CheckCircle },
+  mel:          { label: 'AIRWORTHY WITH MEL',  bg: 'bg-yellow-500', icon: AlertTriangle },
+  oos:          { label: 'OUT OF SERVICE',      bg: 'bg-red-600',    icon: Wrench },
+};
+
+// Legacy status mapping for compatibility
 const STATUS_STYLES = {
   active:      { label: 'RELEASED',      bg: 'bg-green-600',  icon: CheckCircle },
   oos:         { label: 'OUT OF SERVICE', bg: 'bg-red-600',    icon: Wrench },
@@ -378,8 +386,8 @@ function DiscrepancyBadges({ discrepancies }) {
 }
 
 // ── Aircraft Card ────────────────────────────────────────────────────────────
-function AircraftCard({ aircraft, onSelect, discrepancies }) {
-  const status = STATUS_STYLES[aircraft.status] || STATUS_STYLES.active;
+function AircraftCard({ aircraft, onSelect, discrepancies, maintenanceStatus }) {
+  const status = MAINTENANCE_STATUS[maintenanceStatus] || MAINTENANCE_STATUS.airworthy;
   const StatusIcon = status.icon;
   const hasDiscrepancies = discrepancies && discrepancies.length > 0;
   return (
@@ -411,8 +419,8 @@ function AircraftCard({ aircraft, onSelect, discrepancies }) {
   );
 }
 
-function AircraftRow({ aircraft, onSelect, discrepancies }) {
-  const status = STATUS_STYLES[aircraft.status] || STATUS_STYLES.active;
+function AircraftRow({ aircraft, onSelect, discrepancies, maintenanceStatus }) {
+  const status = MAINTENANCE_STATUS[maintenanceStatus] || MAINTENANCE_STATUS.airworthy;
   const StatusIcon = status.icon;
   const count = discrepancies?.length || 0;
   return (
@@ -489,11 +497,21 @@ export default function FleetDashboard() {
     }
     return acc;
   }, {});
+  
+  const oosAircraft = new Set(aircraft.filter(a => a.status === 'oos').map(a => a.tail_number));
+  const melByTail = new Set(melItems.map(m => m.aircraft_tail));
 
   const total       = aircraft.length;
-  const inService   = aircraft.filter(a => a.status === 'active').length;
-  const inWork      = aircraft.filter(a => a.status === 'maintenance').length;
-  const outOfSvc    = aircraft.filter(a => a.status === 'oos').length;
+  const airworthy   = aircraft.filter(a => !oosAircraft.has(a.tail_number) && !melByTail.has(a.tail_number)).length;
+  const withMel     = aircraft.filter(a => melByTail.has(a.tail_number)).length;
+  const outOfSvc    = aircraft.filter(a => oosAircraft.has(a.tail_number)).length;
+
+  // Determine maintenance status using three-state logic
+  const getMaintenanceStatus = (tail) => {
+    if (oosAircraft.has(tail)) return 'oos';      // RED: Out of Service
+    if (melByTail.has(tail)) return 'mel';        // YELLOW: Airworthy with MEL
+    return 'airworthy';                            // GREEN: Airworthy
+  };
 
   const filtered = aircraft.filter(a => {
     const matchesSearch =
@@ -584,22 +602,22 @@ export default function FleetDashboard() {
             onClick={() => setKpiFilter(kpiFilter === null ? null : null)}
           />
           <KpiCard
-            label="In Service"
-            value={isLoading ? '…' : inService.toLocaleString()}
-            sublabel="Active Operations"
+            label="Airworthy"
+            value={isLoading ? '…' : airworthy.toLocaleString()}
+            sublabel="No Restrictions"
             valueColor="text-green-400"
             icon={CheckCircle}
             iconColor="text-green-400"
-            onClick={() => setKpiFilter(kpiFilter === 'active' ? null : 'active')}
+            onClick={() => setKpiFilter(kpiFilter === 'airworthy' ? null : 'airworthy')}
           />
           <KpiCard
-            label="In Work"
-            value={isLoading ? '…' : inWork.toLocaleString()}
-            sublabel="Under Maintenance"
-            valueColor="text-primary"
-            icon={Wrench}
-            iconColor="text-primary"
-            onClick={() => setKpiFilter(kpiFilter === 'maintenance' ? null : 'maintenance')}
+            label="Airworthy with MEL"
+            value={isLoading ? '…' : withMel.toLocaleString()}
+            sublabel="Dispatch Restricted"
+            valueColor="text-yellow-400"
+            icon={AlertTriangle}
+            iconColor="text-yellow-400"
+            onClick={() => setKpiFilter(kpiFilter === 'mel' ? null : 'mel')}
           />
           <KpiCard
             label="Out of Service"
@@ -665,7 +683,7 @@ export default function FleetDashboard() {
             <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-6 gap-3">
               {filtered.map(a => (
                 <div key={a.id} className="relative">
-                  <AircraftCard aircraft={a} onSelect={setSelectedAircraft} discrepancies={discrepanciesByTail[a.tail_number]} />
+                  <AircraftCard aircraft={a} onSelect={setSelectedAircraft} discrepancies={discrepanciesByTail[a.tail_number]} maintenanceStatus={getMaintenanceStatus(a.tail_number)} />
                 </div>
               ))}
             </div>
@@ -673,7 +691,7 @@ export default function FleetDashboard() {
             <div className="flex flex-col gap-1.5">
               {filtered.map(a => (
                 <div key={a.id} className="relative">
-                  <AircraftRow aircraft={a} onSelect={setSelectedAircraft} discrepancies={discrepanciesByTail[a.tail_number]} />
+                  <AircraftRow aircraft={a} onSelect={setSelectedAircraft} discrepancies={discrepanciesByTail[a.tail_number]} maintenanceStatus={getMaintenanceStatus(a.tail_number)} />
                 </div>
               ))}
             </div>
