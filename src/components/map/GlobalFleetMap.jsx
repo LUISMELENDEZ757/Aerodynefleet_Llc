@@ -8,11 +8,11 @@ import { base44 } from '@/api/base44Client';
 import { cn } from '@/lib/utils';
 import 'leaflet/dist/leaflet.css';
 
-// Status color mapping
+// Status color mapping - Airline-authentic three-state system
 const STATUS_COLORS = {
   green: { bg: '#10b981', icon: '🟢', label: 'Airworthy' },
-  yellow: { bg: '#f59e0b', icon: '🟡', label: 'MEL Item' },
-  red: { bg: '#ef4444', icon: '🔴', label: 'OOS' },
+  yellow: { bg: '#f59e0b', icon: '🟡', label: 'Airworthy with MEL' },
+  red: { bg: '#ef4444', icon: '🔴', label: 'Out of Service' },
 };
 
 // Create custom icons
@@ -164,31 +164,19 @@ export default function GlobalFleetMap({ flights = [], aircraft = [], melItems =
   const melByTail = new Set(melItems.map(m => m.aircraft_tail));
   const oosAircraft = new Set(aircraft.filter(a => a.status === 'oos').map(a => a.tail_number));
 
-  // Enrich flights with status and position using airline-authentic logic
+  // Enrich flights with airline-authentic three-state status
   const enrichedFlights = displayFlights.map(f => {
     const tail = f.aircraft_tail;
+    let status = 'green'; // Default: AIRWORTHY - No issues, can fly
     
-    // 1. OUT OF SERVICE (Red) - Aircraft cannot legally fly
-    // - Unresolved discrepancy not deferred under MEL
-    // - Open AOG event
-    // - MEL expired
-    // - MCC has restricted aircraft
-    let status = 'green'; // Default: Airworthy
     if (oosAircraft.has(tail)) {
+      // RED: OUT OF SERVICE - Cannot legally fly
       status = 'red';
-    }
-    // 2. AIRWORTHY WITH MEL (Yellow) - Legally airworthy but restricted
-    // - Open discrepancy deferred under MEL/CDL
-    // - MEL within time limit
-    // - Dispatch restrictions apply
-    else if (melByTail.has(tail)) {
+    } else if (melByTail.has(tail)) {
+      // YELLOW: AIRWORTHY WITH MEL - Deferred under MEL/CDL, can fly with restrictions
       status = 'yellow';
     }
-    // 3. AIRWORTHY (Green) - No restrictions
-    // - All inspections current
-    // - All maintenance signed off
-    // - No open discrepancies
-    // - MCC has not restricted aircraft
+    // GREEN: AIRWORTHY - No restrictions, can fly
 
     // Airport coordinates map
     const airportMap = {
