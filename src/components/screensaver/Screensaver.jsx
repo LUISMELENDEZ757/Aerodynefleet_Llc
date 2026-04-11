@@ -2,7 +2,7 @@ import { useState, useEffect, useCallback, useRef } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { base44 } from '@/api/base44Client';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Plane, Shield, X, ChevronLeft, ChevronRight, Volume2, VolumeX } from 'lucide-react';
+import { Plane, Shield, X, ChevronLeft, ChevronRight } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 const CATEGORY_ICONS = {
@@ -138,8 +138,6 @@ function ProgressBar({ duration, onComplete, paused }) {
 export default function Screensaver({ onDismiss }) {
   const [idx, setIdx] = useState(0);
   const [paused, setPaused] = useState(false);
-  const [muted, setMuted] = useState(false);
-  const utterRef = useRef(null);
 
   const { data: dbSlides = [] } = useQuery({
     queryKey: ['screensaver-slides'],
@@ -151,28 +149,6 @@ export default function Screensaver({ onDismiss }) {
     : DEFAULT_SLIDES);
 
   const slide = slides[idx] || slides[0];
-
-  // Text-to-speech narration
-  const narrate = useCallback((text) => {
-    if (muted || !window.speechSynthesis) return;
-    window.speechSynthesis.cancel();
-    const u = new SpeechSynthesisUtterance(text);
-    u.rate = 0.88;
-    u.pitch = 1;
-    u.volume = 0.9;
-    utterRef.current = u;
-    window.speechSynthesis.speak(u);
-  }, [muted]);
-
-  useEffect(() => {
-    if (slide) narrate(slide.narration);
-    return () => window.speechSynthesis?.cancel();
-  }, [idx, slide, narrate]);
-
-  useEffect(() => {
-    if (muted) window.speechSynthesis?.cancel();
-    else if (slide) narrate(slide.narration);
-  }, [muted]);
 
   const next = useCallback(() => setIdx(i => (i + 1) % slides.length), [slides.length]);
   const prev = useCallback(() => setIdx(i => (i - 1 + slides.length) % slides.length), [slides.length]);
@@ -221,12 +197,7 @@ export default function Screensaver({ onDismiss }) {
           </div>
         </div>
         <div className="flex items-center gap-3">
-          <button
-            onClick={e => { e.stopPropagation(); setMuted(m => !m); }}
-            className="w-8 h-8 rounded-lg bg-white/8 flex items-center justify-center hover:bg-white/15 transition-colors"
-          >
-            {muted ? <VolumeX className="w-4 h-4 text-white/40" /> : <Volume2 className="w-4 h-4 text-white/60" />}
-          </button>
+
           <button
             onClick={e => { e.stopPropagation(); onDismiss(); }}
             className="w-8 h-8 rounded-lg bg-white/8 flex items-center justify-center hover:bg-white/15 transition-colors"
