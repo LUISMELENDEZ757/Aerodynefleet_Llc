@@ -1,8 +1,13 @@
-import { useState } from 'react';
-import { X } from 'lucide-react';
+import { useState, useRef } from 'react';
+import { X, Plane, AlertTriangle, Camera, Image, Upload, Info } from 'lucide-react';
 import ATAChapterSelector from './ATAChapterSelector';
+import { base44 } from '@/api/base44Client';
+import { cn } from '@/lib/utils';
 
 export default function NewLogEntryModal({ aircraftTail, nextLogPage, preset, onClose, onSave }) {
+  const today = new Date().toISOString().split('T')[0];
+  const now = new Date().toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' });
+
   const [form, setForm] = useState({
     aircraft_tail: aircraftTail,
     log_page: nextLogPage,
@@ -19,134 +24,328 @@ export default function NewLogEntryModal({ aircraftTail, nextLogPage, preset, on
     mel_category: '',
     flight_number: '',
     station: '',
+    entry_date: today,
+    entry_time: now,
   });
+
+  const [attachments, setAttachments] = useState([]);
+  const [uploading, setUploading] = useState(false);
+  const [dragOver, setDragOver] = useState(false);
+  const photoInputRef = useRef(null);
+  const imageInputRef = useRef(null);
+  const docInputRef = useRef(null);
 
   const set = (k, v) => setForm(p => ({ ...p, [k]: v }));
 
-  const handleSubmit = (e) => {
-    e.preventDefault();
-    onSave(form);
+  const handleFiles = async (files) => {
+    const fileArr = Array.from(files);
+    if (attachments.length + fileArr.length > 10) return;
+    setUploading(true);
+    for (const file of fileArr) {
+      const { file_url } = await base44.integrations.Core.UploadFile({ file });
+      setAttachments(prev => [...prev, { name: file.name, url: file_url, type: file.type }]);
+    }
+    setUploading(false);
   };
 
+  const handleDrop = (e) => {
+    e.preventDefault();
+    setDragOver(false);
+    handleFiles(e.dataTransfer.files);
+  };
+
+  const handleSubmit = (e) => {
+    e.preventDefault();
+    onSave({ ...form, notes: attachments.map(a => a.url).join('\n') });
+  };
+
+  const entryLabel = {
+    discrepancy: 'Discrepancy',
+    corrective_action: 'Corrective Action',
+    deferred: 'Deferred',
+    cleared: 'Cleared',
+    info: 'Info',
+  }[form.entry_type] || 'Entry';
+
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 p-4">
-      <div className="w-full max-w-lg bg-[#141922] border border-white/10 rounded-2xl overflow-hidden shadow-2xl">
-        <div className="flex items-center justify-between px-5 py-4 border-b border-white/10">
-          <p className="font-extrabold text-white tracking-wide">NEW LOG ENTRY</p>
-          <button onClick={onClose} className="w-8 h-8 rounded-lg bg-white/10 flex items-center justify-center hover:bg-white/20 transition-colors">
-            <X className="w-4 h-4" />
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 p-4">
+      <div className="w-full max-w-2xl bg-[#0f1623] border border-white/10 rounded-2xl shadow-2xl overflow-hidden">
+
+        {/* Header */}
+        <div className="flex items-center justify-between px-6 py-5 border-b border-white/10">
+          <div className="flex items-center gap-4">
+            <h2 className="text-xl font-extrabold text-white tracking-tight">
+              {entryLabel} — {nextLogPage}
+            </h2>
+            <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg border-2 border-primary bg-primary/10">
+              <Plane className="w-3.5 h-3.5 text-primary" />
+              <span className="text-sm font-extrabold text-primary tracking-widest">{aircraftTail}</span>
+            </div>
+          </div>
+          <button onClick={onClose} className="w-8 h-8 rounded-lg bg-white/5 flex items-center justify-center hover:bg-white/15 transition-colors">
+            <X className="w-4 h-4 text-gray-400" />
           </button>
         </div>
 
-        <form onSubmit={handleSubmit} className="p-5 space-y-4 overflow-y-auto max-h-[70vh]">
-          <div className="grid grid-cols-2 gap-3">
-            <div>
-              <label className="text-[10px] font-bold text-gray-500 uppercase tracking-widest block mb-1">Log Page</label>
-              <input value={form.log_page} onChange={e => set('log_page', e.target.value)}
-                className="w-full bg-[#1a1f2e] border border-white/10 rounded-lg px-3 py-2 text-sm font-mono text-white outline-none focus:border-primary" />
-            </div>
-            <div>
-              <label className="text-[10px] font-bold text-gray-500 uppercase tracking-widest block mb-1">Entry Type</label>
-              <select value={form.entry_type} onChange={e => set('entry_type', e.target.value)}
-                className="w-full bg-[#1a1f2e] border border-white/10 rounded-lg px-3 py-2 text-sm text-white outline-none focus:border-primary">
-                <option value="discrepancy">Discrepancy</option>
-                <option value="corrective_action">Corrective Action</option>
-                <option value="deferred">Deferred</option>
-                <option value="cleared">Cleared</option>
-                <option value="info">Info</option>
-              </select>
-            </div>
-          </div>
+        <form onSubmit={handleSubmit} className="overflow-y-auto max-h-[80vh]">
+          <div className="px-6 py-5 space-y-5">
 
-          <div className="grid grid-cols-2 gap-3">
-            <div>
-              <label className="text-[10px] font-bold text-gray-500 uppercase tracking-widest block mb-1">ATA Chapter</label>
-              <ATAChapterSelector value={form.ata_chapter} onChange={v => set('ata_chapter', v)} dark={true} />
+            {/* Row 1: Date | Time | ATA Chapter | Station */}
+            <div className="grid grid-cols-4 gap-3">
+              <div>
+                <label className="text-[10px] font-bold text-gray-500 uppercase tracking-widest block mb-1.5">Date</label>
+                <input
+                  type="date"
+                  value={form.entry_date}
+                  onChange={e => set('entry_date', e.target.value)}
+                  className="w-full bg-[#1a2035] border border-white/10 rounded-lg px-3 py-2.5 text-sm text-white outline-none focus:border-primary transition-colors"
+                />
+              </div>
+              <div>
+                <label className="text-[10px] font-bold text-gray-500 uppercase tracking-widest block mb-1.5">Time</label>
+                <input
+                  type="time"
+                  value={form.entry_time}
+                  onChange={e => set('entry_time', e.target.value)}
+                  className="w-full bg-[#1a2035] border border-white/10 rounded-lg px-3 py-2.5 text-sm text-white outline-none focus:border-primary transition-colors"
+                />
+              </div>
+              <div>
+                <label className="text-[10px] font-bold text-gray-500 uppercase tracking-widest block mb-1.5">ATA Chapter</label>
+                <ATAChapterSelector value={form.ata_chapter} onChange={v => set('ata_chapter', v)} dark={true} />
+              </div>
+              <div>
+                <label className="text-[10px] font-bold text-gray-500 uppercase tracking-widest block mb-1.5">Station</label>
+                <input
+                  placeholder="KDEN"
+                  value={form.station}
+                  onChange={e => set('station', e.target.value)}
+                  className="w-full bg-[#1a2035] border border-white/10 rounded-lg px-3 py-2.5 text-sm text-white placeholder-gray-600 outline-none focus:border-primary transition-colors"
+                />
+              </div>
             </div>
-            <div>
-              <label className="text-[10px] font-bold text-gray-500 uppercase tracking-widest block mb-1">Station</label>
-              <input placeholder="e.g. KDAL" value={form.station} onChange={e => set('station', e.target.value)}
-                className="w-full bg-[#1a1f2e] border border-white/10 rounded-lg px-3 py-2 text-sm text-white placeholder-gray-600 outline-none focus:border-primary" />
+
+            {/* Entry type selector (small row) */}
+            <div className="flex gap-2 flex-wrap">
+              {['discrepancy','corrective_action','deferred','cleared','info'].map(t => (
+                <button
+                  key={t}
+                  type="button"
+                  onClick={() => set('entry_type', t)}
+                  className={cn(
+                    'px-3 py-1 rounded-full text-[11px] font-bold border transition-all',
+                    form.entry_type === t
+                      ? 'bg-primary text-primary-foreground border-primary'
+                      : 'border-white/10 text-gray-400 hover:text-white hover:border-white/20'
+                  )}
+                >
+                  {t.replace('_', ' ').replace(/\b\w/g, c => c.toUpperCase())}
+                </button>
+              ))}
             </div>
-          </div>
 
-          <div>
-            <label className="text-[10px] font-bold text-gray-500 uppercase tracking-widest block mb-1">Discrepancy / Description *</label>
-            <textarea required rows={3} value={form.description} onChange={e => set('description', e.target.value)}
-              placeholder="Describe the discrepancy or event..."
-              className="w-full bg-[#1a1f2e] border border-white/10 rounded-lg px-3 py-2 text-sm text-white placeholder-gray-600 outline-none focus:border-primary resize-none" />
-          </div>
-
-          <div className="grid grid-cols-2 gap-3">
+            {/* Description */}
             <div>
-              <label className="text-[10px] font-bold text-gray-500 uppercase tracking-widest block mb-1">Technician Name</label>
-              <input value={form.technician_name} onChange={e => set('technician_name', e.target.value)}
-                className="w-full bg-[#1a1f2e] border border-white/10 rounded-lg px-3 py-2 text-sm text-white outline-none focus:border-primary" />
+              <label className="text-[10px] font-bold text-gray-500 uppercase tracking-widest block mb-1.5">
+                Technician Discrepancy / Write-Up *
+              </label>
+              <textarea
+                required
+                rows={5}
+                value={form.description}
+                onChange={e => set('description', e.target.value)}
+                placeholder="Describe the discrepancy found during maintenance inspection or operation..."
+                className="w-full bg-[#1a2035] border border-white/10 rounded-xl px-4 py-3 text-sm text-white placeholder-gray-600 outline-none focus:border-primary transition-colors resize-none"
+              />
             </div>
+
+            {/* Deferred toggle */}
+            <button
+              type="button"
+              onClick={() => set('is_deferred', !form.is_deferred)}
+              className={cn(
+                'flex items-center gap-2 px-4 py-2 rounded-full border text-sm font-bold transition-all',
+                form.is_deferred
+                  ? 'bg-amber-500/20 border-amber-500/50 text-amber-400'
+                  : 'border-white/15 text-gray-400 hover:text-white hover:border-white/25'
+              )}
+            >
+              <AlertTriangle className="w-4 h-4" />
+              Deferred Item
+            </button>
+
+            {/* MEL fields (shown when deferred) */}
+            {form.is_deferred && (
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="text-[10px] font-bold text-gray-500 uppercase tracking-widest block mb-1.5">MEL Reference</label>
+                  <input
+                    value={form.mel_reference}
+                    onChange={e => set('mel_reference', e.target.value)}
+                    placeholder="e.g. MEL 32-40-1"
+                    className="w-full bg-[#1a2035] border border-white/10 rounded-lg px-3 py-2.5 text-sm text-white placeholder-gray-600 outline-none focus:border-primary transition-colors"
+                  />
+                </div>
+                <div>
+                  <label className="text-[10px] font-bold text-gray-500 uppercase tracking-widest block mb-1.5">MEL Category</label>
+                  <select
+                    value={form.mel_category}
+                    onChange={e => set('mel_category', e.target.value)}
+                    className="w-full bg-[#1a2035] border border-white/10 rounded-lg px-3 py-2.5 text-sm text-white outline-none focus:border-primary transition-colors"
+                  >
+                    <option value="">Select</option>
+                    <option value="A">A — ASAP</option>
+                    <option value="B">B — 3 Days</option>
+                    <option value="C">C — 10 Days</option>
+                    <option value="D">D — 120 Days</option>
+                  </select>
+                </div>
+              </div>
+            )}
+
+            {/* Photo / Document Attachments */}
             <div>
-              <label className="text-[10px] font-bold text-gray-500 uppercase tracking-widest block mb-1">Tech ID / License</label>
-              <input value={form.technician_id} onChange={e => set('technician_id', e.target.value)}
-                className="w-full bg-[#1a1f2e] border border-white/10 rounded-lg px-3 py-2 text-sm text-white outline-none focus:border-primary" />
+              <div className="flex items-center justify-between mb-2">
+                <label className="text-[10px] font-bold text-gray-500 uppercase tracking-widest flex items-center gap-1.5">
+                  <Camera className="w-3 h-3" />
+                  Photo / Document Attachments — Damage, Work Area, Supporting Docs
+                </label>
+                <span className="text-[10px] text-gray-600">{attachments.length}/10</span>
+              </div>
+
+              <div
+                onDrop={handleDrop}
+                onDragOver={e => { e.preventDefault(); setDragOver(true); }}
+                onDragLeave={() => setDragOver(false)}
+                className={cn(
+                  'border-2 border-dashed rounded-xl p-4 transition-colors',
+                  dragOver ? 'border-primary/60 bg-primary/5' : 'border-white/10'
+                )}
+              >
+                <div className="flex gap-2 mb-3">
+                  {/* Take Photo (camera capture) */}
+                  <button
+                    type="button"
+                    onClick={() => photoInputRef.current?.click()}
+                    className="flex-1 flex items-center justify-center gap-2 py-3 rounded-xl bg-primary text-primary-foreground font-bold text-sm hover:bg-primary/90 transition-colors"
+                  >
+                    <Camera className="w-4 h-4" /> Take Photo
+                  </button>
+                  <input ref={photoInputRef} type="file" accept="image/*" capture="environment" className="hidden" onChange={e => handleFiles(e.target.files)} />
+
+                  {/* Photo/Image from library */}
+                  <button
+                    type="button"
+                    onClick={() => imageInputRef.current?.click()}
+                    className="flex-1 flex items-center justify-center gap-2 py-3 rounded-xl bg-[#1a2035] border border-white/10 text-white font-bold text-sm hover:bg-white/5 transition-colors"
+                  >
+                    <Image className="w-4 h-4 text-purple-400" /> Photo/Image
+                  </button>
+                  <input ref={imageInputRef} type="file" accept="image/*" multiple className="hidden" onChange={e => handleFiles(e.target.files)} />
+
+                  {/* Document */}
+                  <button
+                    type="button"
+                    onClick={() => docInputRef.current?.click()}
+                    className="flex-1 flex items-center justify-center gap-2 py-3 rounded-xl bg-[#1a2035] border border-white/10 text-white font-bold text-sm hover:bg-white/5 transition-colors"
+                  >
+                    <Upload className="w-4 h-4 text-blue-400" /> Document
+                  </button>
+                  <input ref={docInputRef} type="file" accept=".pdf,.doc,.docx,.txt" multiple className="hidden" onChange={e => handleFiles(e.target.files)} />
+                </div>
+
+                <p className="text-xs text-gray-600 text-center">Or drag &amp; drop images / PDFs here</p>
+
+                {/* Preview thumbnails */}
+                {attachments.length > 0 && (
+                  <div className="flex flex-wrap gap-2 mt-3">
+                    {attachments.map((att, i) => (
+                      <div key={i} className="relative group">
+                        {att.type?.startsWith('image/') ? (
+                          <img src={att.url} alt={att.name} className="w-14 h-14 object-cover rounded-lg border border-white/10" />
+                        ) : (
+                          <div className="w-14 h-14 bg-[#1a2035] border border-white/10 rounded-lg flex items-center justify-center">
+                            <Upload className="w-5 h-5 text-blue-400" />
+                          </div>
+                        )}
+                        <button
+                          type="button"
+                          onClick={() => setAttachments(prev => prev.filter((_, idx) => idx !== i))}
+                          className="absolute -top-1.5 -right-1.5 w-5 h-5 rounded-full bg-red-600 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"
+                        >
+                          <X className="w-3 h-3 text-white" />
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+                )}
+
+                {uploading && <p className="text-xs text-primary text-center mt-2 animate-pulse">Uploading…</p>}
+              </div>
+
+              {/* Info banner */}
+              <div className="flex items-start gap-3 mt-2 bg-blue-500/8 border border-blue-500/20 rounded-xl px-4 py-3">
+                <Camera className="w-4 h-4 text-blue-400 flex-shrink-0 mt-0.5" />
+                <p className="text-xs text-gray-400">
+                  Attach photos of damage, work area, or supporting documents for FAA record keeping.{' '}
+                  <span className="text-blue-400 font-semibold">Works with smartphone &amp; tablet camera.</span>
+                </p>
+              </div>
             </div>
-          </div>
 
-          <div>
-            <label className="text-[10px] font-bold text-gray-500 uppercase tracking-widest block mb-1">Corrective Action</label>
-            <textarea rows={2} value={form.corrective_action} onChange={e => set('corrective_action', e.target.value)}
-              placeholder="Corrective action taken (if any)..."
-              className="w-full bg-[#1a1f2e] border border-white/10 rounded-lg px-3 py-2 text-sm text-white placeholder-gray-600 outline-none focus:border-primary resize-none" />
-          </div>
-
-          <div className="grid grid-cols-2 gap-3">
-            <div>
-              <label className="text-[10px] font-bold text-gray-500 uppercase tracking-widest block mb-1">Corrected By</label>
-              <input value={form.corrected_by || ''} onChange={e => set('corrected_by', e.target.value)}
-                placeholder="Technician name"
-                className="w-full bg-[#1a1f2e] border border-white/10 rounded-lg px-3 py-2 text-sm text-white placeholder-gray-600 outline-none focus:border-primary" />
-            </div>
-            <div>
-              <label className="text-[10px] font-bold text-gray-500 uppercase tracking-widest block mb-1">Tech ID / License</label>
-              <input value={form.corrected_by_id || ''} onChange={e => set('corrected_by_id', e.target.value)}
-                placeholder="e.g. AMT-12345"
-                className="w-full bg-[#1a1f2e] border border-white/10 rounded-lg px-3 py-2 text-sm text-white placeholder-gray-600 outline-none focus:border-primary" />
-            </div>
-          </div>
-
-          <div className="flex items-center gap-3 bg-[#1a1f2e] border border-white/10 rounded-lg px-4 py-3">
-            <input type="checkbox" id="deferred" checked={form.is_deferred} onChange={e => set('is_deferred', e.target.checked)}
-              className="w-4 h-4 rounded cursor-pointer" />
-            <label htmlFor="deferred" className="text-sm font-semibold text-white cursor-pointer">Deferred (MEL/CDL)</label>
-          </div>
-
-          {form.is_deferred && (
+            {/* Technician Name + Cert */}
             <div className="grid grid-cols-2 gap-3">
               <div>
-                <label className="text-[10px] font-bold text-gray-500 uppercase tracking-widest block mb-1">MEL Reference</label>
-                <input value={form.mel_reference} onChange={e => set('mel_reference', e.target.value)}
-                  className="w-full bg-[#1a1f2e] border border-white/10 rounded-lg px-3 py-2 text-sm text-white outline-none focus:border-primary" />
+                <label className="text-[10px] font-bold text-gray-500 uppercase tracking-widest block mb-1.5">Technician Name *</label>
+                <input
+                  required
+                  placeholder="First Last"
+                  value={form.technician_name}
+                  onChange={e => set('technician_name', e.target.value)}
+                  className="w-full bg-[#1a2035] border border-white/10 rounded-lg px-3 py-2.5 text-sm text-white placeholder-gray-600 outline-none focus:border-primary transition-colors"
+                />
               </div>
               <div>
-                <label className="text-[10px] font-bold text-gray-500 uppercase tracking-widest block mb-1">MEL Category</label>
-                <select value={form.mel_category} onChange={e => set('mel_category', e.target.value)}
-                  className="w-full bg-[#1a1f2e] border border-white/10 rounded-lg px-3 py-2 text-sm text-white outline-none focus:border-primary">
-                  <option value="">Select</option>
-                  <option value="A">A — ASAP</option>
-                  <option value="B">B — 3 Days</option>
-                  <option value="C">C — 10 Days</option>
-                  <option value="D">D — 120 Days</option>
-                </select>
+                <label className="text-[10px] font-bold text-gray-500 uppercase tracking-widest block mb-1.5">A&amp;P / IA Cert # / Emp #</label>
+                <input
+                  placeholder="AMT-XXXXX"
+                  value={form.technician_id}
+                  onChange={e => set('technician_id', e.target.value)}
+                  className="w-full bg-[#1a2035] border border-white/10 rounded-lg px-3 py-2.5 text-sm text-white placeholder-gray-600 outline-none focus:border-primary transition-colors"
+                />
               </div>
             </div>
-          )}
 
-          <div className="flex gap-3 pt-2">
-            <button type="button" onClick={onClose}
-              className="flex-1 py-2.5 rounded-xl border border-white/10 text-sm font-bold text-gray-400 hover:bg-white/5 transition-colors">
-              CANCEL
+            {/* Corrective Action (optional) */}
+            {(form.entry_type === 'corrective_action' || form.entry_type === 'cleared') && (
+              <div>
+                <label className="text-[10px] font-bold text-gray-500 uppercase tracking-widest block mb-1.5">Corrective Action</label>
+                <textarea
+                  rows={3}
+                  value={form.corrective_action}
+                  onChange={e => set('corrective_action', e.target.value)}
+                  placeholder="Corrective action taken..."
+                  className="w-full bg-[#1a2035] border border-white/10 rounded-xl px-4 py-3 text-sm text-white placeholder-gray-600 outline-none focus:border-primary transition-colors resize-none"
+                />
+              </div>
+            )}
+          </div>
+
+          {/* Footer */}
+          <div className="flex gap-3 px-6 pb-6">
+            <button
+              type="button"
+              onClick={onClose}
+              className="flex-1 py-3 rounded-xl border border-white/10 text-sm font-bold text-gray-400 hover:bg-white/5 transition-colors"
+            >
+              Cancel
             </button>
-            <button type="submit"
-              className="flex-1 py-2.5 rounded-xl bg-primary text-primary-foreground text-sm font-bold hover:bg-primary/90 transition-colors">
-              SAVE ENTRY
+            <button
+              type="submit"
+              disabled={uploading}
+              className="flex-1 py-3 rounded-xl bg-primary text-primary-foreground text-sm font-bold hover:bg-primary/90 disabled:opacity-50 transition-colors"
+            >
+              Save Entry
             </button>
           </div>
         </form>
