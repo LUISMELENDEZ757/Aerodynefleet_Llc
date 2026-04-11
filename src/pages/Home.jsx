@@ -49,35 +49,40 @@ export default function Home() {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.1, duration: 0.6 }}
-            className="space-y-3"
+            className="space-y-4"
           >
             <h1 className="text-4xl md:text-5xl font-black tracking-tight text-foreground leading-tight">
-              Aircraft Maintenance at the Speed of Flight
+              Aerodyne Fleet OS — The Digital Evolution of Aircraft Operations
             </h1>
             <p className="text-lg text-muted-foreground leading-relaxed">
-              Aerodyne Fleet is a real-time maintenance management system built for modern aviation operations.
-              From TechOps to Dispatch, we streamline every phase of aircraft maintenance with live data, regulatory compliance, and predictive insights.
+              Aerodyne Fleet is a software-native operating system that replaces paper-based maintenance workflows with real-time digital intelligence. By moving entirely to electronic logbooks, automated compliance tracking, live aircraft health monitoring, and AI-driven predictive maintenance, we eliminate delays, reduce human error, and maximize dispatch reliability.
+            </p>
+            <p className="text-base text-muted-foreground leading-relaxed">
+              Every technician, engineer, dispatcher, and crew member operates from a single source of truth — live fleet data, instant notifications, digital signatures, and integrated regulatory compliance. No more hunting for documents. No more manual data entry. No more surprises at the gate.
             </p>
           </motion.div>
 
-          {/* Feature Highlights */}
+          {/* Core Pillars */}
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.2, duration: 0.6 }}
-            className="grid grid-cols-1 sm:grid-cols-3 gap-4"
+            className="space-y-4"
           >
-            {[
-              { icon: Activity, title: 'Real-Time Ops', desc: 'Live fleet status, MEL tracking, and maintenance workflows' },
-              { icon: Shield, title: 'Regulatory Ready', desc: 'FAA compliance, digital signatures, and audit trails' },
-              { icon: BarChart3, title: 'Predictive Insights', desc: 'AI-powered maintenance forecasting and delay prediction' },
-            ].map(({ icon: Icon, title, desc }) => (
-              <div key={title} className="bg-card border border-border rounded-2xl p-4 space-y-2">
-                <Icon className="w-6 h-6 text-primary mx-auto lg:mx-0" />
-                <p className="text-sm font-bold text-foreground">{title}</p>
-                <p className="text-xs text-muted-foreground">{desc}</p>
-              </div>
-            ))}
+            <p className="text-sm font-bold text-primary uppercase tracking-widest">How We Boost Efficiency</p>
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+              {[
+                { icon: Activity, title: 'Electronic Workflows', desc: 'Digital logbooks replace paper. Instant notifications replace memos. Real-time dashboards replace status meetings.' },
+                { icon: Shield, title: 'Regulatory Automation', desc: 'Compliance checks run continuously. Digital signatures are legally binding. Audit trails auto-generate instantly.' },
+                { icon: BarChart3, title: 'Predictive Intelligence', desc: 'AI forecasts maintenance windows. Component health predicts failures. Delays prevented before they happen.' },
+              ].map(({ icon: Icon, title, desc }) => (
+                <div key={title} className="bg-card border border-border rounded-2xl p-4 space-y-2">
+                  <Icon className="w-6 h-6 text-primary mx-auto lg:mx-0" />
+                  <p className="text-sm font-bold text-foreground">{title}</p>
+                  <p className="text-xs text-muted-foreground">{desc}</p>
+                </div>
+              ))}
+            </div>
           </motion.div>
 
           {/* Founder Message */}
@@ -120,6 +125,34 @@ export default function Home() {
           </motion.div>
         </div>
       </motion.div>
+
+      {/* Why Electronic Systems Matter */}
+      <section className="px-5 py-16 bg-secondary/40 border-t border-border">
+        <div className="max-w-3xl mx-auto space-y-8">
+          <div className="text-center">
+            <h2 className="text-2xl font-black text-foreground mb-2">Why Electronics > Paper</h2>
+            <p className="text-muted-foreground">The operational truth behind moving to software-based systems</p>
+          </div>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            {[
+              { emoji: '⚡', title: 'Speed', desc: 'Instant data access across the entire operation. No searching for logbooks or files.' },
+              { emoji: '🎯', title: 'Accuracy', desc: 'Automated compliance checks prevent human error. Calculations are instant and verified.' },
+              { emoji: '🔒', title: 'Security', desc: 'Digital signatures are legally binding and tamper-proof. Complete audit trails for every action.' },
+              { emoji: '📊', title: 'Intelligence', desc: 'Real-time analytics predict maintenance needs before they become AOG events.' },
+              { emoji: '🌐', title: 'Integration', desc: 'Every system connects to every other system. No data silos, no manual transfer.' },
+              { emoji: '💰', title: 'Cost Savings', desc: 'Fewer delays, shorter maintenance windows, optimized parts ordering, reduced crew fatigue.' },
+            ].map(({ emoji, title, desc }) => (
+              <div key={title} className="bg-card border border-border rounded-xl p-4 space-y-2">
+                <div className="flex items-center gap-2">
+                  <span className="text-2xl">{emoji}</span>
+                  <p className="font-bold text-foreground">{title}</p>
+                </div>
+                <p className="text-xs text-muted-foreground leading-relaxed">{desc}</p>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
 
       {/* Features Section */}
       <section id="features" className="px-5 py-20 bg-secondary/30 border-t border-border">
