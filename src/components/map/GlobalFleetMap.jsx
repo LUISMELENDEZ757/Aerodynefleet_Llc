@@ -71,14 +71,19 @@ export default function GlobalFleetMap({ flights = [], aircraft = [], melItems =
 
   const tileLayers = {
     'esri-ocean': {
-      url: 'https://server.arcgisonline.com/ArcGIS/rest/services/World_Ocean_Base/MapServer/tile/{z}/{y}/{x}',
+      url: 'https://server.arcgisonline.com/ArcGIS/rest/services/Ocean_Basemap/MapServer/tile/{z}/{y}/{x}',
       label: 'Ocean Base',
-      attribution: '&copy; Esri',
+      attribution: 'Tiles &copy; Esri',
     },
     'dark': {
-      url: 'https://{s}.basemaps.cartocdn.com/dark_nolabels/{z}/{x}/{y}{r}.png',
+      url: 'https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png',
       label: 'Dark',
       attribution: '&copy; CartoDB',
+    },
+    'satellite': {
+      url: 'https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}',
+      label: 'Satellite',
+      attribution: 'Tiles &copy; Esri',
     },
   };
 
