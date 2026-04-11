@@ -12,6 +12,7 @@ import { cn } from '@/lib/utils';
 import NewLogEntryModal from '@/components/techops/NewLogEntryModal';
 import NewFaultModal from '@/components/techops/NewFaultModal';
 import DiscrepancyCard from '@/components/techops/DiscrepancyCard';
+import RIISignOffModal from '@/components/techops/RIISignOffModal';
 
 const STATUS_STYLES = {
   active:      { label: 'IN SERVICE',  bg: 'bg-green-600',  dot: 'bg-green-400' },
@@ -65,8 +66,14 @@ export default function TechOpsLogbook() {
   const [faultTab, setFaultTab] = useState('active');
   const [logTab, setLogTab] = useState('entries');
   const [entryPreset, setEntryPreset] = useState(null);
+  const [riiEntry, setRiiEntry] = useState(null);
   const elapsed = useElapsedTime();
   const queryClient = useQueryClient();
+  
+  const { data: currentUser } = useQuery({
+    queryKey: ['current-user'],
+    queryFn: () => base44.auth.me(),
+  });
 
   const { data: aircraft = [] } = useQuery({
     queryKey: ['logbook-aircraft'],
@@ -124,6 +131,15 @@ export default function TechOpsLogbook() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['logbook-entries'] });
+    },
+  });
+
+  const signRIIMutation = useMutation({
+    mutationFn: ({ entry_id, inspector_cert }) =>
+      base44.functions.invoke('signRIIInspection', { entry_id, inspector_cert }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['logbook-entries', selectedTail] });
+      setRiiEntry(null);
     },
   });
 
@@ -506,10 +522,10 @@ export default function TechOpsLogbook() {
             ) : (
               <div className="p-4 space-y-3">
                 {entries.map((entry) => {
-                  if (entry.entry_type === 'discrepancy') {
-                    return (
-                      <DiscrepancyCard key={entry.id} entry={entry} aircraftTail={selectedTail} />
-                    );
+                   if (entry.entry_type === 'discrepancy') {
+                     return (
+                       <DiscrepancyCard key={entry.id} entry={entry} aircraftTail={selectedTail} onRequestRII={() => setRiiEntry(entry)} />
+                     );
                   }
                   const style = ENTRY_STYLES[entry.entry_type] || ENTRY_STYLES.discrepancy;
                   return (
@@ -580,6 +596,16 @@ export default function TechOpsLogbook() {
           aircraftTail={selectedTail}
           onClose={() => setShowNewFault(false)}
           onSave={(data) => createFaultMutation.mutate(data)}
+        />
+      )}
+
+      {riiEntry && (
+        <RIISignOffModal
+          entry={riiEntry}
+          inspector={currentUser}
+          onClose={() => setRiiEntry(null)}
+          onSign={(signData) => signRIIMutation.mutate({ entry_id: riiEntry.id, inspector_cert: signData.inspector_cert })}
+          isPending={signRIIMutation.isPending}
         />
       )}
     </div>
