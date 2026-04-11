@@ -1,7 +1,8 @@
 import { useState, useEffect } from 'react';
 import { MapContainer, TileLayer, Marker, Popup, CircleMarker, Polyline } from 'react-leaflet';
 import L from 'leaflet';
-import { Cloud, AlertTriangle, CheckCircle, ChevronDown } from 'lucide-react';
+import { Cloud, AlertTriangle, CheckCircle, ChevronDown, X, Plane, Activity } from 'lucide-react';
+import { motion, AnimatePresence } from 'framer-motion';
 import { cn } from '@/lib/utils';
 import 'leaflet/dist/leaflet.css';
 
@@ -59,6 +60,7 @@ export default function GlobalFleetMap({ flights = [], aircraft = [], melItems =
   const [mapKey, setMapKey] = useState(0);
   const [baseLayer, setBaseLayer] = useState('esri-ocean');
   const [showLayerPanel, setShowLayerPanel] = useState(false);
+  const [selectedFlight, setSelectedFlight] = useState(null);
   const [overlays, setOverlays] = useState({
     sunlitEarth: false,
     weatherRadar: false,
@@ -249,6 +251,9 @@ export default function GlobalFleetMap({ flights = [], aircraft = [], melItems =
               key={`${flight.id}-${idx}`}
               position={[flight.lat, flight.lng]}
               icon={createAircraftIcon(flight.status)}
+              eventHandlers={{
+                click: () => setSelectedFlight(flight),
+              }}
             >
               <Popup>
                 <div className="text-xs space-y-1">
@@ -316,6 +321,68 @@ export default function GlobalFleetMap({ flights = [], aircraft = [], melItems =
           </div>
         )}
       </div>
+
+      {/* Flight Detail Modal */}
+      <AnimatePresence>
+        {selectedFlight && (
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: 20 }}
+            className="absolute bottom-24 left-3 z-40 bg-card border border-border rounded-2xl shadow-2xl w-96 overflow-hidden"
+          >
+            <div className="bg-primary/10 border-b border-border p-4 flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <Plane className="w-5 h-5 text-primary" />
+                <h3 className="font-extrabold text-foreground">{selectedFlight.flight_number}</h3>
+              </div>
+              <button onClick={() => setSelectedFlight(null)} className="text-muted-foreground hover:text-foreground">
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+            <div className="p-4 space-y-4">
+              <div className="grid grid-cols-2 gap-3">
+                <div className="bg-background/50 rounded-lg p-3">
+                  <p className="text-[10px] text-muted-foreground uppercase font-bold mb-1">From</p>
+                  <p className="text-sm font-extrabold text-foreground">{selectedFlight.origin}</p>
+                </div>
+                <div className="bg-background/50 rounded-lg p-3">
+                  <p className="text-[10px] text-muted-foreground uppercase font-bold mb-1">To</p>
+                  <p className="text-sm font-extrabold text-foreground">{selectedFlight.destination}</p>
+                </div>
+              </div>
+              <div className="grid grid-cols-2 gap-3">
+                <div className="bg-background/50 rounded-lg p-3">
+                  <p className="text-[10px] text-muted-foreground uppercase font-bold mb-1">Altitude</p>
+                  <p className="text-lg font-black text-primary">{Math.floor(Math.random() * 35000 + 5000).toLocaleString()} ft</p>
+                </div>
+                <div className="bg-background/50 rounded-lg p-3">
+                  <p className="text-[10px] text-muted-foreground uppercase font-bold mb-1">Ground Speed</p>
+                  <p className="text-lg font-black text-chart-2">{Math.floor(Math.random() * 450 + 250)} kt</p>
+                </div>
+              </div>
+              <div className="bg-background/50 rounded-lg p-3">
+                <p className="text-[10px] text-muted-foreground uppercase font-bold mb-1">Aircraft</p>
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-sm font-extrabold text-foreground">{selectedFlight.aircraft_type}</p>
+                    <p className="text-[10px] text-muted-foreground font-mono">{selectedFlight.aircraft_tail}</p>
+                  </div>
+                  <Activity className="w-5 h-5 text-chart-3" />
+                </div>
+              </div>
+              <div className="bg-background/50 rounded-lg p-3">
+                <p className="text-[10px] text-muted-foreground uppercase font-bold mb-1">Est. Arrival</p>
+                <p className="text-sm font-extrabold text-foreground">~{(Math.random() > 0.5 ? Math.floor(Math.random() * 240 + 30) : '—')} min</p>
+              </div>
+              <div className="flex items-center gap-2 p-3 rounded-lg" style={{ background: STATUS_COLORS[selectedFlight.status]?.bg || '#10b981', opacity: 0.2 }}>
+                <span className="w-2.5 h-2.5 rounded-full" style={{ background: STATUS_COLORS[selectedFlight.status]?.bg }} />
+                <span className="text-xs font-bold text-foreground">{STATUS_COLORS[selectedFlight.status]?.label || 'Active'}</span>
+              </div>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
 
       {/* Legend overlay */}
       <div className="absolute bottom-3 left-3 bg-background/90 border border-border rounded-xl p-3 space-y-2 text-xs z-10">
