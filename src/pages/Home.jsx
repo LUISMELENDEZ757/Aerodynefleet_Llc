@@ -69,7 +69,7 @@ export default function Home() {
             transition={{ delay: 0.2, duration: 0.6 }}
             className="space-y-4"
           >
-            <p className="text-sm font-bold text-primary uppercase tracking-widest">How We Boost Efficiency</p>
+            <p className="text-sm font-extrabold text-primary uppercase tracking-widest">How We Boost Efficiency</p>
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
               {[
                 { icon: Activity, title: 'Electronic Workflows', desc: 'Digital logbooks replace paper. Instant notifications replace memos. Real-time dashboards replace status meetings.' },
@@ -142,10 +142,10 @@ export default function Home() {
               { emoji: '🌐', title: 'Integration', desc: 'Every system connects to every other system. No data silos, no manual transfer.' },
               { emoji: '💰', title: 'Cost Savings', desc: 'Fewer delays, shorter maintenance windows, optimized parts ordering, reduced crew fatigue.' },
             ].map(({ emoji, title, desc }) => (
-              <div key={title} className="bg-card border border-amber-400/30 rounded-xl p-4 space-y-2">
+              <div key={title} className="bg-card border border-amber-400/30 rounded-xl p-6 space-y-2">
                 <div className="flex items-center gap-2">
                   <span className="text-2xl">{emoji}</span>
-                  <p className="font-bold text-foreground">{title}</p>
+                  <p className="font-extrabold text-foreground">{title}</p>
                 </div>
                 <p className="text-xs text-muted-foreground leading-relaxed">{desc}</p>
               </div>
