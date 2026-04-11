@@ -70,7 +70,7 @@ export default function AircraftQRScanner({ aircraft = [], onScan, onClose }) {
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 p-4">
+    <div className="fixed inset-0 z-50 flex items-start justify-center bg-black/80 p-4" style={{ paddingTop: '1in' }}>
       <div className="w-full max-w-sm bg-[#141922] border border-white/10 rounded-2xl overflow-hidden shadow-2xl">
         {/* Header */}
         <div className="flex items-center justify-between px-4 py-3 border-b border-white/10">
