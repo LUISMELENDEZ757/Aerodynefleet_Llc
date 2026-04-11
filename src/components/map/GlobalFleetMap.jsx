@@ -329,7 +329,9 @@ export default function GlobalFleetMap({ flights = [], aircraft = [], melItems =
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: 20 }}
-            className="absolute bottom-24 left-3 z-40 bg-card border border-border rounded-2xl shadow-2xl w-48 overflow-hidden"
+            drag
+            dragElastic={0.2}
+            className="absolute bottom-24 left-3 z-40 bg-card border border-border rounded-2xl shadow-2xl w-48 overflow-hidden cursor-grab active:cursor-grabbing"
           >
             <div className="bg-primary/10 border-b border-border p-4 flex items-center justify-between">
               <div className="flex items-center gap-2">
