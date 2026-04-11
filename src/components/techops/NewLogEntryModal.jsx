@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { X } from 'lucide-react';
+import ATAChapterSelector from './ATAChapterSelector';
 
 export default function NewLogEntryModal({ aircraftTail, nextLogPage, preset, onClose, onSave }) {
   const [form, setForm] = useState({
@@ -60,8 +61,7 @@ export default function NewLogEntryModal({ aircraftTail, nextLogPage, preset, on
           <div className="grid grid-cols-2 gap-3">
             <div>
               <label className="text-[10px] font-bold text-gray-500 uppercase tracking-widest block mb-1">ATA Chapter</label>
-              <input placeholder="e.g. 21-31" value={form.ata_chapter} onChange={e => set('ata_chapter', e.target.value)}
-                className="w-full bg-[#1a1f2e] border border-white/10 rounded-lg px-3 py-2 text-sm text-white placeholder-gray-600 outline-none focus:border-primary" />
+              <ATAChapterSelector value={form.ata_chapter} onChange={v => set('ata_chapter', v)} dark={true} />
             </div>
             <div>
               <label className="text-[10px] font-bold text-gray-500 uppercase tracking-widest block mb-1">Station</label>
