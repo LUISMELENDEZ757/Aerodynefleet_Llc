@@ -27,7 +27,7 @@ function OilServiceSection() {
     e1_before: '', e1_added: '', e1_after: '',
     e2_before: '', e2_added: '', e2_after: '',
     apu_before: '', apu_added: '', apu_after: '',
-    grade: 'MIL-PRF-7808',
+    grade: '',
   });
   const set = (k, v) => setOil(p => ({ ...p, [k]: v }));
 
