@@ -7,7 +7,7 @@ import { Link } from 'react-router-dom';
 import OpsAlertsPanel from '@/components/opshub/OpsAlertsPanel';
 import FlightMovementPanel from '@/components/opshub/FlightMovementPanel';
 import FleetHealthPanel from '@/components/opshub/FleetHealthPanel';
-import LiveAircraftMap from '@/components/map/LiveAircraftMap';
+import GlobalFleetMap from '@/components/map/GlobalFleetMap';
 import CrewStatusPanel from '@/components/opshub/CrewStatusPanel';
 import WeatherAtcPanel from '@/components/opshub/WeatherAtcPanel';
 import StationPerformancePanel from '@/components/opshub/StationPerformancePanel';
@@ -150,13 +150,13 @@ export default function OpsHub() {
           <StationPerformancePanel groundOps={groundOps} flights={flights} />
         </div>
 
-        {/* Row 5: Live Aircraft Map */}
+        {/* Row 5: Global Fleet Map */}
         <div className="h-96 bg-card border border-border rounded-2xl overflow-hidden">
           <div className="px-5 py-3 border-b border-border bg-card">
-            <p className="text-xs font-extrabold text-foreground uppercase tracking-widest">Live Aircraft Positions</p>
-            <p className="text-[10px] text-muted-foreground mt-0.5">Real-time visualization of airborne flights</p>
+            <p className="text-xs font-extrabold text-foreground uppercase tracking-widest">Global Fleet Status Map</p>
+            <p className="text-[10px] text-muted-foreground mt-0.5">Live positions · Weather patterns · Maintenance status (🟢 Airworthy 🟡 MEL 🔴 OOS)</p>
           </div>
-          <LiveAircraftMap flights={flights} />
+          <GlobalFleetMap flights={flights} aircraft={aircraft} melItems={melItems} />
         </div>
 
         {/* Row 6: Delay Probability + Predictive AI */}
