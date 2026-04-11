@@ -314,17 +314,18 @@ export default function GlobalFleetMap({ flights = [], aircraft = [], melItems =
               }}
             >
               <Popup>
-                <div className="text-xs space-y-1">
+                <div className="text-xs space-y-2">
+                  <div className="flex items-center gap-2 pb-2 border-b border-gray-200">
+                    <span
+                      className="w-3 h-3 rounded-full flex-shrink-0"
+                      style={{ background: statusColor.bg }}
+                    />
+                    <span className="font-bold text-[11px] uppercase tracking-wide">{statusColor.label}</span>
+                  </div>
                   <p className="font-bold">{flight.flight_number}</p>
                   <p className="text-[10px]">{flight.origin} → {flight.destination}</p>
                   <p className="text-[10px] text-gray-600">{flight.aircraft_tail}</p>
-                  <div className="flex items-center gap-1 mt-2">
-                    <span
-                      className="w-2 h-2 rounded-full"
-                      style={{ background: statusColor.bg }}
-                    />
-                    <span className="text-[10px] font-semibold">{statusColor.label}</span>
-                  </div>
+                  <p className="text-[10px] text-gray-600">{flight.aircraft_type}</p>
                 </div>
               </Popup>
             </Marker>
