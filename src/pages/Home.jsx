@@ -18,11 +18,13 @@ export default function Home() {
   const handleDemoMode = async () => {
     setLoading(true);
     try {
-      await base44.functions.invoke('seedDemoData', {});
+      const res = await base44.functions.invoke('seedDemoData', {});
+      console.log('Demo data seeded:', res.data);
       localStorage.setItem('demoMode', 'true');
       navigate('/OpsHub');
     } catch (error) {
       console.error('Failed to seed demo data:', error);
+      alert(`Error seeding demo: ${error.message}`);
       setLoading(false);
     }
   };

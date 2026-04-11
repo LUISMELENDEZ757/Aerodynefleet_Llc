@@ -1,69 +1,218 @@
 import { createClientFromRequest } from 'npm:@base44/sdk@0.8.23';
 
+/**
+ * seedDemoData
+ * Populates the app with realistic demo data: 1000 aircraft + flights, logbook, faults, MEL, etc.
+ */
+
 Deno.serve(async (req) => {
   try {
     const base44 = createClientFromRequest(req);
     const user = await base44.auth.me();
-
     if (!user) {
       return Response.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    // Demo fleet data
-    const fleets = [
-      { name: 'Aerodyne Express', icao_code: 'AEX', iata_code: 'AX', callsign: 'AERODYNE', hub_station: 'KEWR', fleet_type: 'mainline', aircraft_types: ['B737-800', 'B757'], color: '#3b82f6', total_aircraft: 12, status: 'active' },
-      { name: 'Regional Partners', icao_code: 'RPA', iata_code: 'RP', callsign: 'REGIONAL', hub_station: 'KDFW', fleet_type: 'regional', aircraft_types: ['E190', 'CRJ900'], color: '#8b5cf6', total_aircraft: 8, status: 'active' },
+    // Aircraft types and their capabilities
+    const AC_TYPES = [
+      { type: 'B737-800', engine: 'CFM56-7B27', etops: 120, cat: 'CAT IIIa', qty: 250 },
+      { type: 'B737-900', engine: 'CFM56-7B27', etops: 120, cat: 'CAT IIIa', qty: 120 },
+      { type: 'B737 MAX 8', engine: 'LEAP-1B', etops: 180, cat: 'CAT IIIb', qty: 180 },
+      { type: 'B757', engine: 'RB211', etops: 120, cat: 'CAT IIIa', qty: 100 },
+      { type: 'B767', engine: 'CF6-80C2', etops: 180, cat: 'CAT IIIb', qty: 80 },
+      { type: 'B777', engine: 'GE90', etops: 370, cat: 'CAT IIIc', qty: 90 },
+      { type: 'A320', engine: 'CFM56-5B4', etops: 180, cat: 'CAT IIIb', qty: 200 },
+      { type: 'A321', engine: 'CFM56-5B3', etops: 180, cat: 'CAT IIIb', qty: 100 },
+      { type: 'E190', engine: 'GE CF34-10E5', etops: 0, cat: 'CAT II', qty: 80 },
     ];
 
-    // Demo aircraft
-    const aircraftData = [
-      { tail_number: 'N455GJ', fleet_id: '', airline: 'Aerodyne Express', aircraft_type: 'B737-800', msn: '28000', line_number: '1234', base_station: 'KEWR', status: 'active', delivery_date: '2015-03-20', engine_type: 'CFM56-7B27', mtow_variant: '79.0t', etops_approval: 180, cat_approval: 'CAT II', rvsm_approved: true, rnp_capability: 'RNP 0.3' },
-      { tail_number: 'N789HK', fleet_id: '', airline: 'Aerodyne Express', aircraft_type: 'B737-800', msn: '28001', line_number: '1235', base_station: 'KEWR', status: 'active', delivery_date: '2015-04-10', engine_type: 'CFM56-7B27', mtow_variant: '79.0t', etops_approval: 180, cat_approval: 'CAT II', rvsm_approved: true, rnp_capability: 'RNP 0.3' },
-      { tail_number: 'N123AB', fleet_id: '', airline: 'Regional Partners', aircraft_type: 'E190', msn: '19000045', line_number: '4500', base_station: 'KDFW', status: 'active', delivery_date: '2018-06-15', engine_type: 'GE CF34-10E7', mtow_variant: '50.3t', etops_approval: 120, cat_approval: 'CAT I', rvsm_approved: true, rnp_capability: 'RNP 1.0' },
-      { tail_number: 'N456CD', fleet_id: '', airline: 'Aerodyne Express', aircraft_type: 'B757', msn: '25000', line_number: '2000', base_station: 'KEWR', status: 'oos', delivery_date: '2008-02-01', engine_type: 'RB211-535', mtow_variant: '86.2t', etops_approval: 370, cat_approval: 'CAT III', rvsm_approved: true, rnp_capability: 'RNP 0.3' },
+    const BASES = ['KEWR', 'KJFK', 'KBOS', 'KORD', 'KDFW', 'KIAH', 'KLAX', 'KSFO', 'KSLC', 'KDEN'];
+    const STATUSES = ['active', 'oos', 'maintenance', 'retired'];
+
+    // Generate 1000 aircraft
+    console.log('Generating 1000 aircraft...');
+    const aircraft = [];
+    let tailCounter = 1;
+    for (const acDef of AC_TYPES) {
+      for (let i = 0; i < acDef.qty; i++) {
+        const tail = `N${String(tailCounter).padStart(5, '0')}X`;
+        aircraft.push({
+          tail_number: tail,
+          aircraft_type: acDef.type,
+          msn: String(Math.floor(Math.random() * 50000)).padStart(5, '0'),
+          airline: 'Aerodyne Express',
+          base_station: BASES[Math.floor(Math.random() * BASES.length)],
+          status: STATUSES[Math.floor(Math.random() * STATUSES.length)],
+          delivery_date: new Date(2015 + Math.random() * 8).toISOString().split('T')[0],
+          engine_type: acDef.engine,
+          etops_approval: acDef.etops,
+          cat_approval: acDef.cat,
+          rvsm_approved: true,
+          rnp_capability: 'RNP 0.3',
+        });
+        tailCounter++;
+      }
+    }
+
+    // Bulk insert aircraft
+    for (let i = 0; i < aircraft.length; i += 500) {
+      const batch = aircraft.slice(i, i + 500);
+      await Promise.all(batch.map(a => base44.entities.Aircraft.create(a)));
+    }
+    console.log(`✈️ Created ${aircraft.length} aircraft`);
+
+    // Generate flights for next 7 days
+    console.log('Generating flights...');
+    const flights = [];
+    const today = new Date();
+    const routes = [
+      { origin: 'KEWR', destination: 'KJFK', distance: 200 },
+      { origin: 'KJFK', destination: 'KORD', distance: 800 },
+      { origin: 'KEWR', destination: 'KLAX', distance: 2450 },
+      { origin: 'KORD', destination: 'KSFO', distance: 1750 },
+      { origin: 'KLAX', destination: 'KEWR', distance: 2450 },
+      { origin: 'KDFW', destination: 'KEWR', distance: 1400 },
+      { origin: 'KBOS', destination: 'KORD', distance: 900 },
     ];
 
-    // Demo flights for today
-    const today = new Date().toISOString().split('T')[0];
-    const flightsData = [
-      { flight_number: 'AEX101', fleet_id: '', airline: 'Aerodyne Express', aircraft_tail: 'N455GJ', aircraft_type: 'B737-800', origin: 'KEWR', destination: 'KLAX', flight_date: today, status: 'airborne', scheduled_departure: '10:00', scheduled_arrival: '13:00', actual_departure: '10:05', gate: 'B12', delay_minutes: 5 },
-      { flight_number: 'AEX102', fleet_id: '', airline: 'Aerodyne Express', aircraft_tail: 'N789HK', aircraft_type: 'B737-800', origin: 'KEWR', destination: 'KORD', flight_date: today, status: 'scheduled', scheduled_departure: '14:30', scheduled_arrival: '15:45', gate: 'B15', delay_minutes: 0 },
-      { flight_number: 'RPA201', fleet_id: '', airline: 'Regional Partners', aircraft_tail: 'N123AB', aircraft_type: 'E190', origin: 'KDFW', destination: 'KATL', flight_date: today, status: 'departed', scheduled_departure: '08:00', scheduled_arrival: '09:30', actual_departure: '08:00', delay_minutes: 0 },
-      { flight_number: 'AEX103', fleet_id: '', airline: 'Aerodyne Express', aircraft_tail: 'N456CD', aircraft_type: 'B757', origin: 'KEWR', destination: 'KBOS', flight_date: today, status: 'delayed', scheduled_departure: '09:00', scheduled_arrival: '10:15', delay_minutes: 45, delay_reason: 'Maintenance check' },
+    for (let d = 0; d < 7; d++) {
+      const flightDate = new Date(today);
+      flightDate.setDate(flightDate.getDate() + d);
+      const dateStr = flightDate.toISOString().split('T')[0];
+
+      for (let f = 0; f < 50; f++) {
+        const route = routes[Math.floor(Math.random() * routes.length)];
+        const acIdx = Math.floor(Math.random() * aircraft.length);
+        const stdHour = 6 + Math.floor(Math.random() * 16);
+        const staHour = stdHour + Math.floor(route.distance / 450);
+
+        flights.push({
+          aircraft_tail: aircraft[acIdx].tail_number,
+          aircraft_type: aircraft[acIdx].aircraft_type,
+          flight_number: `AE${String(f + 1).padStart(4, '0')}`,
+          origin: route.origin,
+          destination: route.destination,
+          flight_date: dateStr,
+          scheduled_departure: `${String(stdHour).padStart(2, '0')}:${String(Math.floor(Math.random() * 60)).padStart(2, '0')}Z`,
+          scheduled_arrival: `${String(staHour % 24).padStart(2, '0')}:${String(Math.floor(Math.random() * 60)).padStart(2, '0')}Z`,
+          status: d === 0 ? (Math.random() > 0.8 ? 'delayed' : 'scheduled') : 'scheduled',
+          delay_minutes: Math.random() > 0.8 ? Math.floor(Math.random() * 120) : 0,
+          gate: String.fromCharCode(65 + Math.floor(Math.random() * 26)) + (1 + Math.floor(Math.random() * 30)),
+        });
+      }
+    }
+
+    for (let i = 0; i < flights.length; i += 500) {
+      const batch = flights.slice(i, i + 500);
+      await Promise.all(batch.map(f => base44.entities.Flight.create(f)));
+    }
+    console.log(`✈️ Created ${flights.length} flights`);
+
+    // Generate logbook entries
+    console.log('Generating logbook entries...');
+    const logbookEntries = [];
+    const ataChapters = ['27', '29', '32', '72', '73', '74', '75', '76', '79'];
+    const discrepancies = [
+      'Oil quantity low on engine 1',
+      'Hydraulic pressure fluctuating',
+      'Landing gear warning light intermittent',
+      'Avionics display flicker',
+      'Brake pressure uneven',
+      'Nose wheel shimmy on landing',
+      'Engine vibration on startup',
+      'Electrical system anomaly',
     ];
 
-    // Demo logbook entries
-    const logbookData = [
-      { aircraft_tail: 'N455GJ', entry_type: 'discrepancy', description: '[LINE MX] APU bleed air valve slow to open - discrepancy logged', ata_chapter: '49', discrepancy_status: 'OPEN', technician_name: 'John Smith', station: 'KEWR' },
-      { aircraft_tail: 'N789HK', entry_type: 'discrepancy', description: '[LINE MX] Right hand engine oil pressure fluctuating - requires investigation', ata_chapter: '79', discrepancy_status: 'IN_PROGRESS', technician_name: 'Maria Garcia', station: 'KEWR' },
-      { aircraft_tail: 'N123AB', entry_type: 'corrective_action', description: '[LINE MX] Replaced faulty proximity switch on landing gear - tested and cleared', ata_chapter: '32', discrepancy_status: 'CLOSED', technician_name: 'Robert Chen', station: 'KDFW' },
+    for (let i = 0; i < 500; i++) {
+      const ac = aircraft[Math.floor(Math.random() * aircraft.length)];
+      const logPage = `LP#${String(i + 1).padStart(4, '0')}`;
+      logbookEntries.push({
+        aircraft_tail: ac.tail_number,
+        log_page: logPage,
+        entry_type: 'discrepancy',
+        ata_chapter: ataChapters[Math.floor(Math.random() * ataChapters.length)],
+        description: discrepancies[Math.floor(Math.random() * discrepancies.length)],
+        discrepancy_status: ['OPEN', 'IN_PROGRESS', 'CLOSED'][Math.floor(Math.random() * 3)],
+        technician_name: `Tech ${Math.floor(Math.random() * 100)}`,
+        is_deferred: Math.random() > 0.7,
+        mel_category: Math.random() > 0.7 ? ['A', 'B', 'C', 'D'][Math.floor(Math.random() * 4)] : null,
+      });
+    }
+
+    for (let i = 0; i < logbookEntries.length; i += 500) {
+      const batch = logbookEntries.slice(i, i + 500);
+      await Promise.all(batch.map(e => base44.entities.LogbookEntry.create(e)));
+    }
+    console.log(`📖 Created ${logbookEntries.length} logbook entries`);
+
+    // Generate fault messages
+    console.log('Generating fault messages...');
+    const faults = [];
+    const faultCodes = [
+      { code: 'E-A1-001', desc: 'Engine 1 Overheat' },
+      { code: 'E-A1-002', desc: 'Engine 1 Vibration High' },
+      { code: 'H-B2-003', desc: 'Hydraulic Sys B Pressure Low' },
+      { code: 'L-C3-004', desc: 'Landing Gear Unsafe' },
+      { code: 'A-D4-005', desc: 'Avionics Display Failure' },
+      { code: 'E-A1-006', desc: 'Engine 2 EGT High' },
+      { code: 'F-E5-007', desc: 'Fuel Pump Failure' },
     ];
 
-    // Demo MEL items
-    const melData = [
-      { aircraft_tail: 'N455GJ', description: 'One air conditioning pack inoperative', category: 'B', mel_reference: 'MEL 21-2', flight_restrictions: 'Single pack operations only, max 35,000 ft', deferred_date: new Date().toISOString().split('T')[0], status: 'open', expiry_date: new Date(Date.now() + 3 * 86400000).toISOString().split('T')[0] },
-      { aircraft_tail: 'N789HK', description: 'Standby attitude indicator inoperative', category: 'C', mel_reference: 'MEL 31-1', flight_restrictions: 'None - autopilot must be functional', deferred_date: new Date().toISOString().split('T')[0], status: 'open', expiry_date: new Date(Date.now() + 10 * 86400000).toISOString().split('T')[0] },
-    ];
+    for (let i = 0; i < 200; i++) {
+      const ac = aircraft[Math.floor(Math.random() * aircraft.length)];
+      const fault = faultCodes[Math.floor(Math.random() * faultCodes.length)];
+      faults.push({
+        aircraft_tail: ac.tail_number,
+        fault_code: fault.code,
+        description: fault.desc,
+        system: ['engine', 'hydraulics', 'electrical', 'avionics'][Math.floor(Math.random() * 4)],
+        severity: ['warning', 'caution', 'advisory'][Math.floor(Math.random() * 3)],
+        status: Math.random() > 0.6 ? 'cleared' : 'active',
+        ata_chapter: ataChapters[Math.floor(Math.random() * ataChapters.length)],
+      });
+    }
 
-    // Demo alerts
-    const alertsData = [
-      { alert_type: 'mx', severity: 'warning', title: 'N456CD OOS - Scheduled C-Check', message: 'Aircraft N456CD out of service for 40-hour C-check. Expected RTS 2026-04-15.', aircraft_tail: 'N456CD', target_roles: ['dispatcher', 'all'], is_read: false, is_dismissed: false },
-      { alert_type: 'flight_status', severity: 'info', title: 'AEX101 Airborne', message: 'Flight AEX101 (KEWR-KLAX) departed on schedule, now en route.', flight_number: 'AEX101', aircraft_tail: 'N455GJ', target_roles: ['dispatcher', 'all'], is_read: false, is_dismissed: false },
-    ];
+    for (let i = 0; i < faults.length; i += 200) {
+      const batch = faults.slice(i, i + 200);
+      await Promise.all(batch.map(f => base44.entities.FaultMessage.create(f)));
+    }
+    console.log(`⚠️ Created ${faults.length} fault messages`);
 
-    // Bulk create all demo data
-    await Promise.all([
-      base44.asServiceRole.entities.Fleet.bulkCreate(fleets),
-      base44.asServiceRole.entities.Aircraft.bulkCreate(aircraftData),
-      base44.asServiceRole.entities.Flight.bulkCreate(flightsData),
-      base44.asServiceRole.entities.LogbookEntry.bulkCreate(logbookData),
-      base44.asServiceRole.entities.MELItem.bulkCreate(melData),
-      base44.asServiceRole.entities.OpsAlert.bulkCreate(alertsData),
-    ]);
+    // Generate maintenance events
+    console.log('Generating maintenance events...');
+    const maintenanceEvents = [];
+    for (let i = 0; i < 300; i++) {
+      const ac = aircraft[Math.floor(Math.random() * aircraft.length)];
+      maintenanceEvents.push({
+        aircraft_tail: ac.tail_number,
+        event_type: ['inspection', 'repair', 'component_replacement'][Math.floor(Math.random() * 3)],
+        title: `Maintenance Event ${i + 1}`,
+        description: `Routine maintenance performed on ${ac.tail_number}`,
+        ata_chapter: ataChapters[Math.floor(Math.random() * ataChapters.length)],
+        work_hours: Math.floor(Math.random() * 40),
+        completed_date: new Date(Date.now() - Math.random() * 30 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
+        technician_name: `Tech ${Math.floor(Math.random() * 100)}`,
+        status: 'completed',
+      });
+    }
 
-    return Response.json({ success: true, message: 'Demo data seeded successfully' });
+    for (let i = 0; i < maintenanceEvents.length; i += 150) {
+      const batch = maintenanceEvents.slice(i, i + 150);
+      await Promise.all(batch.map(e => base44.entities.MaintenanceEvent.create(e)));
+    }
+    console.log(`🔧 Created ${maintenanceEvents.length} maintenance events`);
+
+    return Response.json({
+      status: 'success',
+      aircraft: aircraft.length,
+      flights: flights.length,
+      logbookEntries: logbookEntries.length,
+      faults: faults.length,
+      maintenanceEvents: maintenanceEvents.length,
+      message: 'Demo data seeded successfully',
+    });
   } catch (error) {
-    console.error('Error seeding demo data:', error);
+    console.error('seedDemoData error:', error);
     return Response.json({ error: error.message }, { status: 500 });
   }
 });
