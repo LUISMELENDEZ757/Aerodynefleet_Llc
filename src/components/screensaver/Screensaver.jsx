@@ -172,9 +172,11 @@ export default function Screensaver({ onDismiss }) {
       {/* Background image */}
       {slide?.image_url && (
         <>
-          <div
-            className="absolute inset-0 bg-cover bg-center transition-all duration-1000"
-            style={{ backgroundImage: `url(${slide.image_url})`, opacity: 0.22 }}
+          <img
+            src={slide.image_url}
+            alt="Slide background"
+            className="absolute inset-0 w-full h-full object-cover opacity-20 transition-opacity duration-1000"
+            onError={e => e.currentTarget.style.display = 'none'}
           />
           {/* Dark gradient overlay for text legibility */}
           <div className="absolute inset-0" style={{ background: 'linear-gradient(to top, #030508 30%, rgba(3,5,8,0.55) 70%, rgba(3,5,8,0.4) 100%)' }} />
