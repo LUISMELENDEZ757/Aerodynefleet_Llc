@@ -34,7 +34,7 @@ Deno.serve(async (req) => {
 
     // Demo logbook entries
     const logbookData = [
-      { aircraft_tail: 'N455GJ', entry_type: 'discrepancy', description: '[LINE MX] APU bleed air valve slow to open - squawk logged', ata_chapter: '49', discrepancy_status: 'OPEN', technician_name: 'John Smith', station: 'KEWR' },
+      { aircraft_tail: 'N455GJ', entry_type: 'discrepancy', description: '[LINE MX] APU bleed air valve slow to open - discrepancy logged', ata_chapter: '49', discrepancy_status: 'OPEN', technician_name: 'John Smith', station: 'KEWR' },
       { aircraft_tail: 'N789HK', entry_type: 'discrepancy', description: '[LINE MX] Right hand engine oil pressure fluctuating - requires investigation', ata_chapter: '79', discrepancy_status: 'IN_PROGRESS', technician_name: 'Maria Garcia', station: 'KEWR' },
       { aircraft_tail: 'N123AB', entry_type: 'corrective_action', description: '[LINE MX] Replaced faulty proximity switch on landing gear - tested and cleared', ata_chapter: '32', discrepancy_status: 'CLOSED', technician_name: 'Robert Chen', station: 'KDFW' },
     ];
