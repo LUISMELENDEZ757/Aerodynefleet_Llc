@@ -28,14 +28,13 @@ export default function Home() {
     <div className="min-h-screen bg-gradient-to-b from-background via-background to-secondary/20 flex flex-col">
       {/* Navigation */}
       <nav className="sticky top-0 z-50 border-b border-border bg-card/95 backdrop-blur-md px-5 h-12 flex items-center">
-        <div className="max-w-7xl mx-auto w-full flex items-center justify-between">
+        <div className="max-w-7xl mx-auto w-full flex items-center">
           <div className="flex items-center gap-2">
             <div className="w-8 h-8 rounded-lg bg-primary flex items-center justify-center">
               <Plane className="w-4 h-4 text-primary-foreground" />
             </div>
             <span className="text-base font-extrabold text-foreground tracking-widest uppercase">Aerodyne Fleet</span>
           </div>
-
         </div>
       </nav>
 
@@ -44,9 +43,24 @@ export default function Home() {
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.6 }}
-        className="flex-1 flex flex-col items-center justify-center px-5 py-20 text-center"
+        className="flex-1 flex flex-col lg:flex-row items-center justify-center px-5 py-16 gap-12 max-w-7xl mx-auto w-full"
       >
-        <div className="max-w-3xl space-y-6">
+        {/* Left: Marketing Image */}
+        <motion.div
+          initial={{ opacity: 0, x: -30 }}
+          animate={{ opacity: 1, x: 0 }}
+          transition={{ delay: 0.2, duration: 0.7 }}
+          className="flex-shrink-0 w-full max-w-xs lg:max-w-sm xl:max-w-md"
+        >
+          <img
+            src="https://media.base44.com/images/public/69bac7d10515c7cd49590072/e594107ab_image.png"
+            alt="Aerodyne Fleet LLC"
+            className="w-full rounded-2xl shadow-2xl"
+          />
+        </motion.div>
+
+        {/* Right: Content */}
+        <div className="flex-1 max-w-2xl space-y-6 text-center lg:text-left">
           {/* Main Title */}
           <motion.div
             initial={{ opacity: 0, y: 20 }}
@@ -54,11 +68,11 @@ export default function Home() {
             transition={{ delay: 0.1, duration: 0.6 }}
             className="space-y-3"
           >
-            <h1 className="text-5xl md:text-6xl font-black tracking-tight text-foreground leading-tight">
+            <h1 className="text-4xl md:text-5xl font-black tracking-tight text-foreground leading-tight">
               Aircraft Maintenance at the Speed of Flight
             </h1>
-            <p className="text-lg md:text-xl text-muted-foreground leading-relaxed">
-              Aerodyne Fleet is a real-time maintenance management system built for modern aviation operations. 
+            <p className="text-lg text-muted-foreground leading-relaxed">
+              Aerodyne Fleet is a real-time maintenance management system built for modern aviation operations.
               From TechOps to Dispatch, we streamline every phase of aircraft maintenance with live data, regulatory compliance, and predictive insights.
             </p>
           </motion.div>
@@ -68,7 +82,7 @@ export default function Home() {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.2, duration: 0.6 }}
-            className="grid grid-cols-1 md:grid-cols-3 gap-4 my-8"
+            className="grid grid-cols-1 sm:grid-cols-3 gap-4"
           >
             {[
               { icon: Activity, title: 'Real-Time Ops', desc: 'Live fleet status, MEL tracking, and maintenance workflows' },
@@ -76,7 +90,7 @@ export default function Home() {
               { icon: BarChart3, title: 'Predictive Insights', desc: 'AI-powered maintenance forecasting and delay prediction' },
             ].map(({ icon: Icon, title, desc }) => (
               <div key={title} className="bg-card border border-border rounded-2xl p-4 space-y-2">
-                <Icon className="w-6 h-6 text-primary mx-auto" />
+                <Icon className="w-6 h-6 text-primary mx-auto lg:mx-0" />
                 <p className="text-sm font-bold text-foreground">{title}</p>
                 <p className="text-xs text-muted-foreground">{desc}</p>
               </div>
@@ -88,17 +102,14 @@ export default function Home() {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.3, duration: 0.6 }}
-            className="bg-secondary/50 border border-border rounded-2xl p-6 space-y-3 my-8"
+            className="bg-secondary/50 border border-border rounded-2xl p-6 space-y-3"
           >
             <p className="text-xs font-extrabold text-primary uppercase tracking-widest">Founder Message</p>
             <p className="text-sm text-foreground leading-relaxed">
               I built Aerodyne Fleet because I have lived the challenges it solves. I have been the person in the room when a delay becomes a disruption, when a maintenance issue becomes a decision point, when a crew needs clarity, and when the operation needs answers fast.
             </p>
             <p className="text-sm text-foreground leading-relaxed">
-              Aviation deserves tools that match the stakes. Aerodyne Fleet is my commitment to that idea. It is a platform shaped by real operational experience, engineered with modern technology, and designed to give teams the confidence and situational awareness they need to run a safe and efficient airline.
-            </p>
-            <p className="text-sm text-foreground leading-relaxed">
-              This work has always been personal to me. Aerodyne Fleet reflects the standard I believe aviation software should meet. Practical, disciplined, and built with respect for the people who keep the system moving.
+              Aviation deserves tools that match the stakes. Aerodyne Fleet is my commitment to that idea — a platform shaped by real operational experience, engineered with modern technology, and designed to give teams the confidence and situational awareness they need.
             </p>
             <p className="text-xs text-muted-foreground mt-4">Luis Melendez<br />Founder, Aerodyne Fleet</p>
           </motion.div>
@@ -108,7 +119,7 @@ export default function Home() {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.4, duration: 0.6 }}
-            className="flex flex-col sm:flex-row items-center justify-center gap-4"
+            className="flex flex-col sm:flex-row items-center lg:items-start justify-center lg:justify-start gap-4"
           >
             <Link
               to="/OpsHub"
