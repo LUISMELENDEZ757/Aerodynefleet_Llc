@@ -15,61 +15,15 @@ Deno.serve(async (req) => {
 
     // Aircraft types and their capabilities — 200 total
     const AC_TYPES = [
-      { type: 'B737-800', engine: 'CFM56-7B27', etops: 120, cat: 'CAT IIIa', qty: 50 },
-      { type: 'B737-900', engine: 'CFM56-7B27', etops: 120, cat: 'CAT IIIa', qty: 25 },
-      { type: 'B737 MAX 8', engine: 'LEAP-1B', etops: 180, cat: 'CAT IIIb', qty: 36 },
-      { type: 'B757', engine: 'RB211', etops: 120, cat: 'CAT IIIa', qty: 20 },
-      { type: 'B767', engine: 'CF6-80C2', etops: 180, cat: 'CAT IIIb', qty: 16 },
-      { type: 'B777', engine: 'GE90', etops: 370, cat: 'CAT IIIc', qty: 18 },
-      { type: 'A320', engine: 'CFM56-5B4', etops: 180, cat: 'CAT IIIb', qty: 20 },
-      { type: 'A321', engine: 'CFM56-5B3', etops: 180, cat: 'CAT IIIb', qty: 10 },
-      { type: 'E190', engine: 'GE CF34-10E5', etops: 0, cat: 'CAT II', qty: 5 },
-    ];
-
-    const BASES = ['KEWR', 'KJFK', 'KBOS', 'KORD', 'KDFW', 'KIAH', 'KLAX', 'KSFO', 'KSLC', 'KDEN'];
-    const STATUSES = ['active', 'oos', 'maintenance', 'retired'];
-
-    // Generate 200 aircraft
-    console.log('Generating 200 aircraft...');
-    const aircraft = [];
-    let tailCounter = 1;
-    for (const acDef of AC_TYPES) {
-      for (let i = 0; i < acDef.qty; i++) {
-        const tail = `N${String(tailCounter).padStart(5, '0')}X`;
-        aircraft.push({
-          tail_number: tail,
-          aircraft_type: acDef.type,
-          msn: String(Math.floor(Math.random() * 50000)).padStart(5, '0'),
-          airline: 'Aerodyne Express',
-          base_station: BASES[Math.floor(Math.random() * BASES.length)],
-          status: STATUSES[Math.floor(Math.random() * STATUSES.length)],
-          delivery_date: new Date(2015 + Math.random() * 8).toISOString().split('T')[0],
-          engine_type: acDef.engine,
-          etops_approval: acDef.etops,
-          cat_approval: acDef.cat,
-          rvsm_approved: true,
-          rnp_capability: 'RNP 0.3',
-        });
-        tailCounter++;
-      }
-    }
-
-    // Bulk insert aircraft
-    await base44.entities.Aircraft.bulkCreate(aircraft);
-    console.log(`✈️ Created ${aircraft.length} aircraft`);
-
-    // Generate flights for next 7 days
-    console.log('Generating flights...');
-    const flights = [];
-    const today = new Date();
-    const routes = [
-      { origin: 'KEWR', destination: 'KJFK', distance: 200 },
-      { origin: 'KJFK', destination: 'KORD', distance: 800 },
-      { origin: 'KEWR', destination: 'KLAX', distance: 2450 },
-      { origin: 'KORD', destination: 'KSFO', distance: 1750 },
-      { origin: 'KLAX', destination: 'KEWR', distance: 2450 },
-      { origin: 'KDFW', destination: 'KEWR', distance: 1400 },
-      { origin: 'KBOS', destination: 'KORD', distance: 900 },
+      { type: 'B737-800', engine: 'CFM56-7B27', etops: 120, cat: 'CAT IIIa', qty: 250 },
+      { type: 'B737-900', engine: 'CFM56-7B27', etops: 120, cat: 'CAT IIIa', qty: 125 },
+      { type: 'B737 MAX 8', engine: 'LEAP-1B', etops: 180, cat: 'CAT IIIb', qty: 180 },
+      { type: 'B757', engine: 'RB211', etops: 120, cat: 'CAT IIIa', qty: 100 },
+      { type: 'B767', engine: 'CF6-80C2', etops: 180, cat: 'CAT IIIb', qty: 80 },
+      { type: 'B777', engine: 'GE90', etops: 370, cat: 'CAT IIIc', qty: 90 },
+      { type: 'A320', engine: 'CFM56-5B4', etops: 180, cat: 'CAT IIIb', qty: 100 },
+      { type: 'A321', engine: 'CFM56-5B3', etops: 180, cat: 'CAT IIIb', qty: 50 },
+      { type: 'E190', engine: 'GE CF34-10E5', etops: 0, cat: 'CAT II', qty: 25 },
     ];
 
     for (let d = 0; d < 3; d++) {
