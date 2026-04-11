@@ -3,13 +3,6 @@ import { createClient } from 'npm:@supabase/supabase-js@2.103.0';
 
 Deno.serve(async (req) => {
   try {
-    const base44 = createClientFromRequest(req);
-    const user = await base44.auth.me();
-
-    if (!user || user.role !== 'admin') {
-      return Response.json({ error: 'Admin access required' }, { status: 403 });
-    }
-
     // Get Supabase credentials from env
     const supabaseUrl = Deno.env.get('VITE_SUPABASE_URL');
     const supabaseKey = Deno.env.get('VITE_SUPABASE_ANON_KEY');
@@ -19,6 +12,17 @@ Deno.serve(async (req) => {
     }
 
     const supabase = createClient(supabaseUrl, supabaseKey);
+
+    // Get user from Supabase auth
+    const { data: { user } } = await supabase.auth.getUser();
+    console.log('USER:', user);
+
+    if (!user) {
+      return Response.json({ error: 'User not authenticated' }, { status: 401 });
+    }
+
+    // Get Base44 client for aircraft data
+    const base44 = createClientFromRequest(req);
 
     // Fetch all aircraft from Base44
     const aircraft = await base44.entities.Aircraft.list('tail_number', 1000);
@@ -68,6 +72,7 @@ Deno.serve(async (req) => {
       status: 'success',
       message: `Synced ${aircraft.length} aircraft to Supabase`,
       count: aircraft.length,
+      user: user.email,
     });
   } catch (error) {
     console.error('Sync error:', error);
