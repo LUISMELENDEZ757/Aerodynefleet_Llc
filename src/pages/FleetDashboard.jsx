@@ -1,6 +1,6 @@
 import { useState, useCallback } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import db from '@/lib/supabaseDataLayer';
+import { base44 } from '@/api/base44Client';
 import { Link } from 'react-router-dom';
 import { useFleet } from '@/lib/FleetContext';
 import { FleetBadge } from '@/components/fleet/FleetSwitcher';
@@ -56,7 +56,7 @@ function AircraftDetailOverlay({ aircraft: initialAircraft, onClose }) {
 
   const { data: logEntries = [] } = useQuery({
     queryKey: ['fleet-logbook', aircraft.tail_number],
-    queryFn: () => db.logbookEntry.filter({ aircraft_tail: aircraft.tail_number }),
+    queryFn: () => base44.entities.LogbookEntry.filter({ aircraft_tail: aircraft.tail_number }),
   });
 
   // Derive max CAT capability from aircraft type
@@ -108,7 +108,7 @@ function AircraftDetailOverlay({ aircraft: initialAircraft, onClose }) {
   const [showPlaceOOSModal, setShowPlaceOOSModal] = useState(false);
 
   const createEntryMutation = useMutation({
-    mutationFn: (data) => db.logbookEntry.create(data),
+    mutationFn: (data) => base44.entities.LogbookEntry.create(data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['fleet-logbook', aircraft.tail_number] });
       setShowAddEventModal(false);
@@ -121,7 +121,7 @@ function AircraftDetailOverlay({ aircraft: initialAircraft, onClose }) {
     queryClient.setQueryData(['fleet-aircraft'], (old = []) =>
       old.map(a => a.tail_number === aircraft.tail_number ? { ...a, status: 'oos' } : a)
     );
-    db.aircraft.update(aircraft.id, { status: 'oos' }).then(() => {
+    base44.entities.Aircraft.update(aircraft.id, { status: 'oos' }).then(() => {
       queryClient.invalidateQueries({ queryKey: ['fleet-aircraft'] });
     });
     setShowPlaceOOSModal(false);
