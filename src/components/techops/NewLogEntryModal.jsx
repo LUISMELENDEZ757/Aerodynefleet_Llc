@@ -1,8 +1,43 @@
 import { useState, useRef } from 'react';
-import { X, Plane, AlertTriangle, Camera, Image, Upload, Info } from 'lucide-react';
+import { X, Plane, AlertTriangle, Camera, Image, Upload, Info, ChevronDown, Flame } from 'lucide-react';
 import ATAChapterSelector from './ATAChapterSelector';
 import { base44 } from '@/api/base44Client';
 import { cn } from '@/lib/utils';
+
+function OilServiceSection() {
+  const [expanded, setExpanded] = useState(false);
+  return (
+    <div className="border border-dashed border-cyan-500/30 rounded-xl overflow-hidden">
+      <button
+        type="button"
+        onClick={() => setExpanded(o => !o)}
+        className="w-full flex items-center justify-between px-4 py-3 hover:bg-cyan-500/5 transition-colors"
+      >
+        <div className="flex items-center gap-2">
+          <Flame className="w-4 h-4 text-cyan-400" />
+          <span className="text-[11px] font-extrabold text-cyan-400 uppercase tracking-widest">Engine &amp; APU Oil Service Tracking</span>
+        </div>
+        <div className="flex items-center gap-2">
+          <span className="text-[10px] text-gray-500 italic">Optional — tap to expand</span>
+          <ChevronDown className={cn('w-4 h-4 text-gray-500 transition-transform', expanded && 'rotate-180')} />
+        </div>
+      </button>
+      {expanded && (
+        <div className="px-4 pb-4 grid grid-cols-2 gap-3 border-t border-cyan-500/20 pt-3">
+          {['Engine 1 Oil Added (qt)', 'Engine 2 Oil Added (qt)', 'APU Oil Added (qt)', 'Oil Type / Spec'].map(label => (
+            <div key={label}>
+              <label className="text-[10px] font-bold text-gray-500 uppercase tracking-widest block mb-1.5">{label}</label>
+              <input
+                placeholder="—"
+                className="w-full bg-[#1a2035] border border-white/10 rounded-lg px-3 py-2.5 text-sm text-white placeholder-gray-600 outline-none focus:border-cyan-400 transition-colors"
+              />
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
 
 export default function NewLogEntryModal({ aircraftTail, nextLogPage, preset, onClose, onSave }) {
   const today = new Date().toISOString().split('T')[0];
@@ -316,6 +351,9 @@ export default function NewLogEntryModal({ aircraftTail, nextLogPage, preset, on
               </div>
             </div>
 
+            {/* Engine & APU Oil Service Tracking */}
+            <OilServiceSection />
+
             {/* Corrective Action (optional) */}
             {(form.entry_type === 'corrective_action' || form.entry_type === 'cleared') && (
               <div>
@@ -332,20 +370,20 @@ export default function NewLogEntryModal({ aircraftTail, nextLogPage, preset, on
           </div>
 
           {/* Footer */}
-          <div className="flex gap-3 px-6 pb-6">
+          <div className="flex items-center justify-end gap-3 px-6 pb-6 pt-2">
             <button
               type="button"
               onClick={onClose}
-              className="flex-1 py-3 rounded-xl border border-white/10 text-sm font-bold text-gray-400 hover:bg-white/5 transition-colors"
+              className="px-6 py-2.5 rounded-xl border border-white/15 text-sm font-bold text-gray-300 hover:bg-white/5 transition-colors"
             >
               Cancel
             </button>
             <button
               type="submit"
               disabled={uploading}
-              className="flex-1 py-3 rounded-xl bg-primary text-primary-foreground text-sm font-bold hover:bg-primary/90 disabled:opacity-50 transition-colors"
+              className="flex items-center gap-2 px-6 py-2.5 rounded-xl bg-primary text-primary-foreground text-sm font-bold hover:bg-primary/90 disabled:opacity-50 transition-colors"
             >
-              Save Entry
+              <Upload className="w-4 h-4" /> Save Entry
             </button>
           </div>
         </form>
