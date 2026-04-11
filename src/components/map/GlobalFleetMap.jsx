@@ -3,6 +3,8 @@ import { MapContainer, TileLayer, Marker, Popup, CircleMarker, Polyline } from '
 import L from 'leaflet';
 import { Cloud, AlertTriangle, CheckCircle, ChevronDown, X, Plane, Activity } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
+import { useQuery } from '@tanstack/react-query';
+import { base44 } from '@/api/base44Client';
 import { cn } from '@/lib/utils';
 import 'leaflet/dist/leaflet.css';
 
@@ -56,7 +58,37 @@ function WeatherGrid({ bounds }) {
   );
 }
 
-export default function GlobalFleetMap({ flights = [], aircraft = [], melItems = [] }) {
+// Normalize FlightAware data to match internal format
+function normalizeFlightAwareData(faFlights = []) {
+  const airportMap = {
+    KEWR: [40.6895, -74.1745], KJFK: [40.6413, -73.7781], KORD: [41.8742, -87.6278],
+    KLAX: [33.9425, -118.4081], KSFO: [37.6213, -122.3790], KSEA: [47.4502, -122.3088],
+    KDEN: [39.8561, -104.6737], KDFW: [32.8975, -97.0382], KIAH: [29.9844, -95.3414],
+    KATL: [33.6407, -84.4277], KMIA: [25.7959, -80.2870], EGLL: [51.4701, -0.4543],
+  };
+
+  return faFlights.map(f => {
+    const origin = airportMap[f.origin?.code_iata || f.origin?.code || 'KEWR'] || [40, -75];
+    const destination = airportMap[f.destination?.code_iata || f.destination?.code || 'KJFK'] || [40, -75];
+    const position = ['Arrived', 'arrived', 'Landed', 'landed'].includes(f.status)
+      ? destination
+      : origin;
+
+    return {
+      id: f.fa_flight_id || f.ident,
+      flight_number: f.ident_iata || f.ident || '—',
+      origin: f.origin?.code_iata || f.origin?.code || '—',
+      destination: f.destination?.code_iata || f.destination?.code || '—',
+      aircraft_tail: f.registration || '—',
+      aircraft_type: f.aircraft_type || '—',
+      status: f.status || 'Scheduled',
+      lat: position[0],
+      lng: position[1],
+    };
+  });
+}
+
+export default function GlobalFleetMap({ flights = [], aircraft = [], melItems = [], enableLiveTracking = true }) {
   const [mapKey, setMapKey] = useState(0);
   const [baseLayer, setBaseLayer] = useState('esri-ocean');
   const [showLayerPanel, setShowLayerPanel] = useState(false);
@@ -103,12 +135,31 @@ export default function GlobalFleetMap({ flights = [], aircraft = [], melItems =
     setOverlays(prev => ({ ...prev, [key]: !prev[key] }));
   };
 
+  // Fetch live FlightAware data for airborne flights
+  const { data: liveFlights = [] } = useQuery({
+    queryKey: ['map-live-flights'],
+    queryFn: async () => {
+      try {
+        const res = await base44.functions.invoke('flightAwarePositions', {});
+        return normalizeFlightAwareData(res.data?.aircraft || []);
+      } catch (error) {
+        console.error('Failed to fetch live flights:', error);
+        return [];
+      }
+    },
+    refetchInterval: 30000,
+    enabled: enableLiveTracking,
+  });
+
+  // Merge live flights with provided flights, prioritizing live data
+  const displayFlights = enableLiveTracking && liveFlights.length > 0 ? liveFlights : flights;
+
   // Build maintenance status map
   const melByTail = new Set(melItems.map(m => m.aircraft_tail));
   const oosAircraft = new Set(aircraft.filter(a => a.status === 'oos').map(a => a.tail_number));
 
   // Enrich flights with status and position
-  const enrichedFlights = flights.map(f => {
+  const enrichedFlights = displayFlights.map(f => {
     const tail = f.aircraft_tail;
     let status = 'green';
     if (oosAircraft.has(tail)) status = 'red';
