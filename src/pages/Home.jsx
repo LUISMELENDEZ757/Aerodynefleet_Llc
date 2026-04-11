@@ -1,6 +1,6 @@
 import { Link, useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { Plane, Activity, Shield, BarChart3 } from 'lucide-react';
 import { base44 } from '@/api/base44Client';
 
