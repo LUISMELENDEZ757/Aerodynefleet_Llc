@@ -164,18 +164,14 @@ class ChunkErrorBoundary extends React.Component {
 
 const AuthenticatedApp = () => {
   const { isLoadingAuth, isLoadingPublicSettings, authError, navigateToLogin } = useAuth();
-  const [hasRequestedAccess, setHasRequestedAccess] = useState(false);
   useOfflineSync(); // Enable offline sync
 
-  // Request access on first login
+  // Auto-request access on first login
   useEffect(() => {
-    if (!isLoadingAuth && authError?.type !== 'auth_required' && !hasRequestedAccess) {
-      base44.functions.invoke('requestAccessOnFirstLogin', {}).catch(err => {
-        console.error('Failed to request access:', err);
-      });
-      setHasRequestedAccess(true);
+    if (!isLoadingAuth && !authError) {
+      base44.functions.invoke('requestAccessOnFirstLogin', {}).catch(() => {});
     }
-  }, [isLoadingAuth, authError, hasRequestedAccess]);
+  }, [isLoadingAuth]);
 
   // Show loading spinner while checking app public settings or auth
   if (isLoadingPublicSettings || isLoadingAuth) {
