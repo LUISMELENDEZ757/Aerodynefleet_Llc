@@ -196,6 +196,7 @@ export default function GlobalFleetMap({ flights = [], aircraft = [], melItems =
               { name: 'KLAS', lat: 36.0801, lng: -115.1537 },
               { name: 'KPHX', lat: 33.4342, lng: -112.0116 },
               { name: 'KAUS', lat: 30.1945, lng: -97.6699 },
+              { name: 'KIAH', lat: 29.9844, lng: -95.3414 },
             ].map(airport => (
               <Marker key={airport.name} position={[airport.lat, airport.lng]}>
                 <Popup>
@@ -213,7 +214,7 @@ export default function GlobalFleetMap({ flights = [], aircraft = [], melItems =
             KEWR: [40.6895, -74.1745], KJFK: [40.6413, -73.7781], KLGA: [40.7769, -73.8740],
             KORD: [41.8742, -87.6278], KMDW: [41.7861, -87.7521],
             KLAX: [33.9425, -118.4081], KSFO: [37.6213, -122.3790], KSEA: [47.4502, -122.3088],
-            KDEN: [39.8561, -104.6737], KDFW: [32.8975, -97.0382], KDAL: [32.8471, -96.8519],
+            KDEN: [39.8561, -104.6737], KDFW: [32.8975, -97.0382], KDAL: [32.8471, -96.8519], KIAH: [29.9844, -95.3414],
             KATL: [33.6407, -84.4277], KMIA: [25.7959, -80.2870], KBOS: [42.3656, -71.0096],
             KLAS: [36.0801, -115.1537], KPHX: [33.4342, -112.0116], KAUS: [30.1945, -97.6699],
             KMSP: [44.8848, -93.2224], KDCA: [38.8521, -77.0377], KIAD: [38.8951, -77.0375],
