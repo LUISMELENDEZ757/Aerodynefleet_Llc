@@ -102,7 +102,7 @@ export default function GlobalFleetMap({ flights = [], aircraft = [], melItems =
         center={[37, -95]}
         zoom={4}
         className="w-full h-full"
-        style={{ minHeight: '400px' }}
+        style={{ height: '100%', minHeight: '400px' }}
       >
         {/* Base tile layer */}
         <TileLayer
