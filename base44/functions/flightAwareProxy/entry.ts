@@ -53,8 +53,9 @@ Deno.serve(async (req) => {
 
     // Parse response based on type
     let result = {};
-    if (type === 'airport_arrivals' || type === 'airport_departures') {
+    if (type === 'airport_arrivals') {
       result.arrivals = data.AirportBoardsResult?.arrivals || [];
+    } else if (type === 'airport_departures') {
       result.departures = data.AirportBoardsResult?.departures || [];
     } else if (type === 'airline_flights') {
       result.flights = data.AirlineFlightSchedulesResult?.next || [];
