@@ -28,6 +28,7 @@ const AirportBriefing       = lazy(() => import('@/components/efb/AirportBriefin
 const ETOPSDriftDown        = lazy(() => import('@/components/efb/ETOPSDriftDown'));
 const QRScanPanel           = lazy(() => import('@/components/efb/QRScanPanel'));
 const FlightTimesPanel      = lazy(() => import('@/components/flightcrew/FlightTimesPanel'));
+const DocumentsTab          = lazy(() => import('@/components/efb/DocumentsTab'));
 
 const TODAY = new Date().toISOString().split('T')[0];
 
@@ -308,40 +309,7 @@ function PerformanceTab({ flights }) {
   );
 }
 
-// ─── DOCUMENTS ────────────────────────────────────────────────────────────
-function DocumentsTab() {
-  const DOCS = [
-    { cat: 'Regulatory', items: ['FCOM Vol. 1', 'FCOM Vol. 2', 'QRH', 'FCTM', 'DDG'] },
-    { cat: 'Operational', items: ['MEL/CDL', 'Ops Specs', 'GOM', 'Company Bulletins', 'Crew Notices'] },
-    { cat: 'Manuals', items: ['Weight & Balance Manual', 'Fuel Policy Manual', 'Security Manual', 'Emergency Response'] },
-  ];
-  return (
-    <div className="space-y-4">
-      {DOCS.map(({ cat, items }) => (
-        <div key={cat} className="rounded-xl bg-card border border-border overflow-hidden">
-          <div className="px-4 py-3 border-b border-border bg-secondary/60">
-            <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">{cat}</p>
-          </div>
-          <div className="divide-y divide-border/50">
-            {items.map(item => (
-              <div key={item} className="flex items-center justify-between px-4 py-3 hover:bg-secondary/30 transition-colors">
-                <div className="flex items-center gap-3">
-                  <FileText className="w-4 h-4 text-primary" />
-                  <span className="text-sm font-medium text-foreground">{item}</span>
-                </div>
-                <div className="flex items-center gap-2">
-                  <span className="text-xs text-muted-foreground bg-secondary px-2 py-0.5 rounded">PDF</span>
-                  <Lock className="w-3.5 h-3.5 text-muted-foreground" />
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
-      ))}
-      <p className="text-xs text-muted-foreground text-center py-2">Documents are synced from Ops Control. Contact your dispatcher for access issues.</p>
-    </div>
-  );
-}
+
 
 // ─── BRIEFING ─────────────────────────────────────────────────────────────
 function BriefingTab({ flights, releases }) {
@@ -560,7 +528,7 @@ export default function EFB() {
         <div className="flex-1 p-5 space-y-4 overflow-y-auto scrollbar-hide">
           {activeTab === 'overview'    && <OverviewTab flights={flights} releases={releases} crew={crew} />}
           {activeTab === 'weather'     && <Suspense fallback={<TabLoading />}><WeatherPanel flights={flights} /></Suspense>}
-          {activeTab === 'documents'   && <DocumentsTab />}
+          {activeTab === 'documents'   && <Suspense fallback={<TabLoading />}><DocumentsTab /></Suspense>}
           {activeTab === 'performance' && <PerformanceTab flights={flights} />}
           {activeTab === 'briefing'    && <BriefingTab flights={flights} releases={releases} />}
           {activeTab === 'airports'    && <Suspense fallback={<TabLoading />}><AirportBriefing flights={flights} /></Suspense>}
