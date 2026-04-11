@@ -102,10 +102,11 @@ export default function GlobalFleetMap({ flights = [], aircraft = [], melItems =
         center={[37, -95]}
         zoom={4}
         className="w-full h-full"
+        style={{ filter: 'hue-rotate(200deg) saturate(1.5)' }}
       >
         {/* Base tile layer */}
         <TileLayer
-          url="https://{s}.basemaps.cartocdn.com/voyager_nolabels/{z}/{x}/{y}{r}.png"
+          url="https://{s}.basemaps.cartocdn.com/dark_nolabels/{z}/{x}/{y}{r}.png"
           attribution='&copy; CartoDB'
           maxZoom={18}
         />
