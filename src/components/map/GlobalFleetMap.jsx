@@ -96,13 +96,12 @@ export default function GlobalFleetMap({ flights = [], aircraft = [], melItems =
   });
 
   return (
-    <div className="relative w-full h-full bg-background rounded-xl overflow-hidden">
+    <div className="relative w-full h-96 bg-background rounded-xl overflow-hidden">
       <MapContainer
         key={mapKey}
         center={[37, -95]}
         zoom={4}
         className="w-full h-full"
-        style={{ height: '100%', minHeight: '400px' }}
       >
         {/* Base tile layer */}
         <TileLayer
