@@ -188,21 +188,28 @@ export default function Screensaver({ onDismiss }) {
         style={{ background: `radial-gradient(ellipse 60% 50% at 50% 100%, ${accent}22 0%, transparent 70%)` }} />
 
       {/* Top bar */}
-      <div className="flex items-center justify-between px-8 pt-6 pb-2 flex-shrink-0 relative z-10">
+      <div className="flex items-center justify-between px-8 pt-6 pb-2 flex-shrink-0 relative z-10 border-b border-white/10">
         <div className="flex items-center gap-3">
           <div className="w-8 h-8 rounded-lg flex items-center justify-center" style={{ background: `${accent}33` }}>
             <Plane className="w-4 h-4" style={{ color: accent }} />
           </div>
           <div>
-            <p className="text-xs font-extrabold text-white/80 uppercase tracking-[0.2em]">Aerodyne Fleet OS</p>
-            <p className="text-[10px] text-white/30 tracking-widest">Safety & Systems Knowledge</p>
+            <p className="text-xs font-extrabold text-white/80 uppercase tracking-[0.2em]">Aerodyne Fleet OS v2.1</p>
+            <p className="text-[10px] text-white/30 tracking-widest">Safety & Systems Knowledge Database</p>
           </div>
         </div>
-        <div className="flex items-center gap-3">
-
+        <div className="flex items-center gap-4">
+          <div className="flex items-center gap-2 text-[10px]">
+            <span className="w-2 h-2 rounded-full bg-green-400 animate-pulse" />
+            <span className="text-white/50">SYSTEM OK</span>
+          </div>
+          <div className="flex items-center gap-2 text-[10px]">
+            <span className="w-2 h-2 rounded-full bg-cyan-400" />
+            <span className="text-white/50">DATA SYNC</span>
+          </div>
           <button
             onClick={e => { e.stopPropagation(); onDismiss(); }}
-            className="w-8 h-8 rounded-lg bg-white/8 flex items-center justify-center hover:bg-white/15 transition-colors"
+            className="w-8 h-8 rounded-lg bg-white/8 flex items-center justify-center hover:bg-white/15 transition-colors flex-shrink-0"
           >
             <X className="w-4 h-4 text-white/60" />
           </button>
@@ -269,6 +276,19 @@ export default function Screensaver({ onDismiss }) {
             </p>
           </motion.div>
         </AnimatePresence>
+      </div>
+
+      {/* System status bar */}
+      <div className="flex-shrink-0 px-8 py-3 relative z-10 border-t border-white/10 bg-white/5">
+        <div className="max-w-3xl mx-auto flex items-center justify-between text-[9px] text-white/40 tracking-widest uppercase">
+          <span>Fleet Status: OPERATIONAL</span>
+          <span>·</span>
+          <span>Maintenance Data: SYNCED</span>
+          <span>·</span>
+          <span>Compliance: 98.7%</span>
+          <span>·</span>
+          <span>Last Update: Live</span>
+        </div>
       </div>
 
       {/* Bottom controls */}
