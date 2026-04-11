@@ -1,12 +1,19 @@
 import { Link, useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import { supabase } from '@/lib/supabaseClient';
 import { Plane, Activity, Shield, BarChart3 } from 'lucide-react';
 import { base44 } from '@/api/base44Client';
 
 export default function Home() {
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
+
+  useEffect(() => {
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      console.log('Supabase connected:', !!session);
+    });
+  }, []);
 
   const handleDemoMode = async () => {
     setLoading(true);
