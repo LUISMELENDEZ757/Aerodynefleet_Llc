@@ -35,9 +35,7 @@ export default function Home() {
             </div>
             <span className="text-base font-extrabold text-foreground tracking-widest uppercase">Aerodyne</span>
           </div>
-          <Link to="/OpsHub" className="px-5 py-2 rounded-lg bg-primary text-primary-foreground text-sm font-bold hover:bg-primary/90 transition-colors">
-            Launch App
-          </Link>
+
         </div>
       </nav>
 
