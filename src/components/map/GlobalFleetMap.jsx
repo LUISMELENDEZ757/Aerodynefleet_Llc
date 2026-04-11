@@ -154,8 +154,47 @@ export default function GlobalFleetMap({ flights = [], aircraft = [], melItems =
           maxZoom={18}
         />
 
-        {/* Weather overlay */}
-        <WeatherGrid />
+        {/* Sunlit Earth overlay */}
+        {overlays.sunlitEarth && (
+          <TileLayer
+            url="https://map1.vis.earthdata.nasa.gov/wmts-webmerc/VIIRS_CityLights_2012/default//GoogleMapsCompatible_Level8/{z}/{y}/{x}.jpg"
+            attribution="NASA VIIRS"
+            opacity={0.5}
+            maxZoom={8}
+          />
+        )}
+
+        {/* Weather Radar overlay */}
+        {overlays.weatherRadar && (
+          <TileLayer
+            url="https://mesonet.agron.iastate.edu/cache/tile.py/1.0.0/nexrad-n0q-900913/{z}/{x}/{y}.png"
+            attribution="IEM"
+            opacity={0.6}
+          />
+        )}
+
+        {/* Worldwide Weather overlay */}
+        {overlays.worldwideWeather && <WeatherGrid />}
+
+        {/* Nearby Airports overlay */}
+        {overlays.nearbyAirports && (
+          <>
+            {[
+              { name: 'KEWR', lat: 40.6895, lng: -74.1745 },
+              { name: 'KJFK', lat: 40.6413, lng: -73.7781 },
+              { name: 'KORD', lat: 41.8742, lng: -87.6278 },
+              { name: 'KLAX', lat: 33.9425, lng: -118.4081 },
+              { name: 'KSFO', lat: 37.6213, lng: -122.3790 },
+              { name: 'KDFW', lat: 32.8975, lng: -97.0382 },
+            ].map(airport => (
+              <Marker key={airport.name} position={[airport.lat, airport.lng]}>
+                <Popup>
+                  <p className="text-xs font-bold">{airport.name}</p>
+                </Popup>
+              </Marker>
+            ))}
+          </>
+        )}
 
         {/* Aircraft markers */}
         {enrichedFlights.map((flight, idx) => {
