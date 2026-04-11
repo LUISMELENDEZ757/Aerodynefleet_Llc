@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { MapContainer, TileLayer, Marker, Popup, CircleMarker } from 'react-leaflet';
 import L from 'leaflet';
-import { Cloud, AlertTriangle, CheckCircle } from 'lucide-react';
+import { Cloud, AlertTriangle, CheckCircle, ChevronDown } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import 'leaflet/dist/leaflet.css';
 
@@ -57,6 +57,44 @@ function WeatherGrid({ bounds }) {
 
 export default function GlobalFleetMap({ flights = [], aircraft = [], melItems = [] }) {
   const [mapKey, setMapKey] = useState(0);
+  const [baseLayer, setBaseLayer] = useState('esri-ocean');
+  const [showLayerPanel, setShowLayerPanel] = useState(false);
+  const [overlays, setOverlays] = useState({
+    sunlitEarth: false,
+    weatherRadar: false,
+    worldwideWeather: false,
+    nearbyAirports: true,
+    nearbyFlights: true,
+    arrivals: true,
+    departures: true,
+  });
+
+  const tileLayers = {
+    'esri-ocean': {
+      url: 'https://server.arcgisonline.com/ArcGIS/rest/services/World_Ocean_Base/MapServer/tile/{z}/{y}/{x}',
+      label: 'Ocean Base',
+      attribution: '&copy; Esri',
+    },
+    'dark': {
+      url: 'https://{s}.basemaps.cartocdn.com/dark_nolabels/{z}/{x}/{y}{r}.png',
+      label: 'Dark',
+      attribution: '&copy; CartoDB',
+    },
+  };
+
+  const overlayOptions = [
+    { key: 'sunlitEarth', label: 'Sunlit Earth' },
+    { key: 'weatherRadar', label: 'Weather Radar' },
+    { key: 'worldwideWeather', label: 'Worldwide Weather' },
+    { key: 'nearbyAirports', label: 'Nearby Airports 🛬' },
+    { key: 'nearbyFlights', label: 'Nearby Flights' },
+    { key: 'arrivals', label: 'Arrivals' },
+    { key: 'departures', label: 'Departures' },
+  ];
+
+  const toggleOverlay = (key) => {
+    setOverlays(prev => ({ ...prev, [key]: !prev[key] }));
+  };
 
   // Build maintenance status map
   const melByTail = new Set(melItems.map(m => m.aircraft_tail));
@@ -106,8 +144,8 @@ export default function GlobalFleetMap({ flights = [], aircraft = [], melItems =
       >
         {/* Base tile layer */}
         <TileLayer
-          url="https://{s}.basemaps.cartocdn.com/dark_nolabels/{z}/{x}/{y}{r}.png"
-          attribution='&copy; CartoDB'
+          url={tileLayers[baseLayer].url}
+          attribution={tileLayers[baseLayer].attribution}
           maxZoom={18}
         />
 
@@ -141,6 +179,54 @@ export default function GlobalFleetMap({ flights = [], aircraft = [], melItems =
           );
         })}
       </MapContainer>
+
+      {/* Layer control panel */}
+      <div className="absolute top-3 right-3 z-20">
+        <button
+          onClick={() => setShowLayerPanel(!showLayerPanel)}
+          className="bg-blue-900 text-white px-4 py-2 rounded-t-lg font-bold flex items-center gap-2 border-b-2 border-blue-800"
+        >
+          BASE LAYER
+          <ChevronDown className="w-3 h-3" />
+        </button>
+        {showLayerPanel && (
+          <div className="bg-blue-900 border border-blue-800 text-white shadow-lg">
+            <div className="border-b border-blue-800 px-4 py-2 bg-gray-100 text-blue-900 font-bold text-xs">
+              CLICK TO CHANGE
+            </div>
+            <div className="px-4 py-3 space-y-2">
+              {Object.entries(tileLayers).map(([key, { label }]) => (
+                <button
+                  key={key}
+                  onClick={() => { setBaseLayer(key); setShowLayerPanel(false); }}
+                  className={cn(
+                    'block w-full text-left text-xs py-1.5 px-2 rounded',
+                    baseLayer === key ? 'bg-blue-700 font-bold' : 'hover:bg-blue-800'
+                  )}
+                >
+                  {label}
+                </button>
+              ))}
+            </div>
+            <div className="border-t border-blue-800 px-4 py-2 bg-gray-100">
+              <p className="text-blue-900 font-bold text-xs mb-2">OVERLAYS</p>
+              <div className="space-y-1.5">
+                {overlayOptions.map(({ key, label }) => (
+                  <label key={key} className="flex items-center gap-2 text-xs text-blue-900 cursor-pointer">
+                    <input
+                      type="checkbox"
+                      checked={overlays[key]}
+                      onChange={() => toggleOverlay(key)}
+                      className="w-3 h-3"
+                    />
+                    <span>{label}</span>
+                  </label>
+                ))}
+              </div>
+            </div>
+          </div>
+        )}
+      </div>
 
       {/* Legend overlay */}
       <div className="absolute bottom-3 left-3 bg-background/90 border border-border rounded-xl p-3 space-y-2 text-xs z-10">
