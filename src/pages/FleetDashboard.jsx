@@ -471,13 +471,13 @@ export default function FleetDashboard() {
 
   const { data: aircraft = [], isLoading } = useQuery({
     queryKey: ['fleet-aircraft'],
-    queryFn: () => db.aircraft.list('-created_date', 1000),
+    queryFn: () => base44.entities.Aircraft.list('-created_date', 1000),
     refetchInterval: 60000,
   });
 
   const { data: openDiscrepancies = [] } = useQuery({
     queryKey: ['fleet-open-discrepancies'],
-    queryFn: () => db.logbookEntry.filter({ entry_type: 'discrepancy' }),
+    queryFn: () => base44.entities.LogbookEntry.filter({ entry_type: 'discrepancy' }),
     refetchInterval: 60000,
   });
 
