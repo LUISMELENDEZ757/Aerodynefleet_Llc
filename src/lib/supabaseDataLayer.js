@@ -1,4 +1,6 @@
-import { supabase } from './supabaseClient';
+import { getSupabase } from './supabaseClient';
+
+const getClient = async () => getSupabase();
 
 /**
  * Supabase Data Layer
@@ -9,6 +11,7 @@ const db = {
   // AIRCRAFT
   aircraft: {
     list: async (orderBy = 'tail_number', limit = 500) => {
+      const supabase = await getClient();
       const { data, error } = await supabase
         .from('Aircraft')
         .select('*')

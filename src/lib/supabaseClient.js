@@ -1,13 +1,32 @@
 import { createClient } from "@supabase/supabase-js";
 
-const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
-const supabaseKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
+let supabase = null;
 
-if (!supabaseUrl) {
-  throw new Error('Missing VITE_SUPABASE_URL environment variable. Set it in Dashboard → Settings → Environment Variables.');
-}
-if (!supabaseKey) {
-  throw new Error('Missing VITE_SUPABASE_ANON_KEY environment variable. Set it in Dashboard → Settings → Environment Variables.');
-}
+const initSupabase = async () => {
+  if (supabase) return supabase;
 
-export const supabase = createClient(supabaseUrl, supabaseKey);
+  try {
+    // Try frontend env vars first
+    const url = import.meta.env.VITE_SUPABASE_URL;
+    const key = import.meta.env.VITE_SUPABASE_ANON_KEY;
+    
+    if (url && key) {
+      supabase = createClient(url, key);
+      return supabase;
+    }
+
+    // Fall back to backend config
+    const res = await fetch('/api/functions/getSupabaseConfig');
+    const { supabaseUrl, supabaseKey } = await res.json();
+    
+    if (!supabaseUrl || !supabaseKey) throw new Error('No Supabase config available');
+    supabase = createClient(supabaseUrl, supabaseKey);
+    return supabase;
+  } catch (error) {
+    console.error('Failed to initialize Supabase:', error);
+    throw error;
+  }
+};
+
+export { initSupabase };
+export const getSupabase = () => supabase || initSupabase();
