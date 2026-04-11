@@ -10,7 +10,7 @@ export default function Home() {
   return (
     <div className="min-h-screen bg-background flex flex-col">
       {/* Navigation */}
-      <nav className="sticky top-0 z-50 border-b border-border bg-card/95 backdrop-blur-md px-5 h-12 flex items-center">
+      <nav className="sticky top-0 z-50 border-b border-amber-400/30 bg-card/95 backdrop-blur-md px-5 h-12 flex items-center">
         <div className="max-w-7xl mx-auto w-full flex items-center">
           <div className="flex items-center gap-2">
             <div className="w-8 h-8 rounded-lg bg-primary flex items-center justify-center">
@@ -76,7 +76,7 @@ export default function Home() {
                 { icon: Shield, title: 'Regulatory Automation', desc: 'Compliance checks run continuously. Digital signatures are legally binding. Audit trails auto-generate instantly.' },
                 { icon: BarChart3, title: 'Predictive Intelligence', desc: 'AI forecasts maintenance windows. Component health predicts failures. Delays prevented before they happen.' },
               ].map(({ icon: Icon, title, desc }) => (
-                <div key={title} className="bg-card border border-border rounded-2xl p-4 space-y-2">
+                <div key={title} className="bg-card border border-amber-400/30 rounded-2xl p-4 space-y-2">
                   <Icon className="w-6 h-6 text-primary mx-auto lg:mx-0" />
                   <p className="text-sm font-bold text-foreground">{title}</p>
                   <p className="text-xs text-muted-foreground">{desc}</p>
@@ -90,7 +90,7 @@ export default function Home() {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.3, duration: 0.6 }}
-            className="bg-secondary/50 border border-border rounded-2xl p-6 space-y-3"
+            className="bg-secondary/50 border border-amber-400/30 rounded-2xl p-6 space-y-3"
           >
             <p className="text-xs font-extrabold text-primary uppercase tracking-widest">Founder Message</p>
             <p className="text-sm text-foreground leading-relaxed">
@@ -118,7 +118,7 @@ export default function Home() {
 
             <a
               href="#features"
-              className="px-8 py-3 rounded-xl border border-border text-foreground text-sm font-bold hover:bg-secondary/50 transition-colors"
+              className="px-8 py-3 rounded-xl border border-amber-400/30 text-foreground text-sm font-bold hover:bg-secondary/50 transition-colors"
             >
               Learn More
             </a>
@@ -127,7 +127,7 @@ export default function Home() {
       </motion.div>
 
       {/* Why Electronic Systems Matter */}
-      <section className="px-5 py-16 bg-secondary/40 border-t border-border">
+      <section className="px-5 py-16 bg-secondary/40 border-t border-amber-400/30">
         <div className="max-w-3xl mx-auto space-y-8">
           <div className="text-center">
             <h2 className="text-2xl font-black text-foreground mb-2">Why Electronics > Paper</h2>
@@ -142,7 +142,7 @@ export default function Home() {
               { emoji: '🌐', title: 'Integration', desc: 'Every system connects to every other system. No data silos, no manual transfer.' },
               { emoji: '💰', title: 'Cost Savings', desc: 'Fewer delays, shorter maintenance windows, optimized parts ordering, reduced crew fatigue.' },
             ].map(({ emoji, title, desc }) => (
-              <div key={title} className="bg-card border border-border rounded-xl p-4 space-y-2">
+              <div key={title} className="bg-card border border-amber-400/30 rounded-xl p-4 space-y-2">
                 <div className="flex items-center gap-2">
                   <span className="text-2xl">{emoji}</span>
                   <p className="font-bold text-foreground">{title}</p>
@@ -155,7 +155,7 @@ export default function Home() {
       </section>
 
       {/* Features Section */}
-      <section id="features" className="px-5 py-20 bg-secondary/30 border-t border-border">
+      <section id="features" className="px-5 py-20 bg-secondary/30 border-t border-amber-400/30">
         <div className="max-w-3xl mx-auto space-y-12">
           <div className="text-center">
             <h2 className="text-3xl font-black text-foreground mb-3">Built for Modern Aviation</h2>
@@ -167,7 +167,7 @@ export default function Home() {
               { title: 'Regulatory Ready', items: ['FAA compliance', 'Digital signatures', 'Audit trails', 'CRS documentation'] },
               { title: 'Integrated Data', items: ['Component traceability', 'AD compliance tracking', 'Engine health analytics', 'Cost per flight'] },
             ].map(({ title, items }) => (
-              <div key={title} className="bg-card border border-border rounded-2xl p-6 space-y-4">
+              <div key={title} className="bg-card border border-amber-400/30 rounded-2xl p-6 space-y-4">
                 <h3 className="text-lg font-bold text-foreground">{title}</h3>
                 <ul className="text-sm text-muted-foreground space-y-2">
                   {items.map((item) => (
@@ -184,7 +184,7 @@ export default function Home() {
       </section>
 
       {/* Footer */}
-      <footer className="border-t border-border bg-card/50 px-5 py-4 text-center text-xs text-muted-foreground">
+      <footer className="border-t border-amber-400/30 bg-card/50 px-5 py-4 text-center text-xs text-muted-foreground">
         <p>Aerodyne Fleet LLC — Aircraft Maintenance Management System</p>
       </footer>
     </div>
