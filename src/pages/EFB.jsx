@@ -3,9 +3,10 @@ import { useQuery } from '@tanstack/react-query';
 import { base44 } from '@/api/base44Client';
 import { useDynamicPolling } from '@/hooks/useDynamicPolling';
 import {
-  BookOpen, Cloud, Calculator, ClipboardList, FileText,
-  RefreshCw, Scale, Fuel, Map, Radio, AlertTriangle,
-  Users, Send, Plane, PenLine, Navigation2, MapPin, Zap, QrCode
+  LayoutDashboard, Cloud, FileText, Calculator, BookOpen,
+  MapPin, Map, History, Settings, Plane, RefreshCw,
+  Scale, Fuel, AlertTriangle, Radio, Users, Navigation2,
+  Zap, QrCode, ChevronRight, Lock, PenLine
 } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { cn } from '@/lib/utils';
@@ -38,152 +39,25 @@ function TabLoading() {
   );
 }
 
+// 9 canonical EFB tabs
 const TABS = [
-  { key: 'qrscan',      label: 'QR / Photos',     icon: QrCode },
-  { key: 'brief',       label: 'Flight Brief',    icon: BookOpen },
-  { key: 'release',     label: 'Release Sign-Off', icon: PenLine },
-  { key: 'map',         label: 'Live Map',        icon: Navigation2 },
-  { key: 'airport',     label: 'Airport Brief',   icon: MapPin },
-  { key: 'etops',       label: 'ETOPS / Escape',  icon: Zap },
-  { key: 'wb',          label: 'W&B',             icon: Scale },
-  { key: 'perf',        label: 'Performance',     icon: Calculator },
-  { key: 'fuel',        label: 'Fuel',            icon: Fuel },
-  { key: 'runway',      label: 'Runway',          icon: Map },
-  { key: 'wx',          label: 'WX',              icon: Cloud },
-  { key: 'notams',      label: 'NOTAMs',          icon: AlertTriangle },
-  { key: 'crew',        label: 'Crew / FAR 117',  icon: Users },
-  { key: 'acars',       label: 'ACARS',           icon: Radio },
-  { key: 'postflight',  label: 'Postflight',      icon: Send },
+  { key: 'overview',     label: 'Overview',     icon: LayoutDashboard },
+  { key: 'weather',      label: 'Weather',       icon: Cloud },
+  { key: 'documents',    label: 'Documents',     icon: FileText },
+  { key: 'performance',  label: 'Performance',   icon: Calculator },
+  { key: 'briefing',     label: 'Briefing',      icon: BookOpen },
+  { key: 'airports',     label: 'Airports',      icon: MapPin },
+  { key: 'charts',       label: 'Charts',        icon: Map },
+  { key: 'history',      label: 'History',       icon: History },
+  { key: 'settings',     label: 'Settings',      icon: Settings },
 ];
 
-// ─── PERFORMANCE CALCULATOR ──────────────────────────────────────────────────
-function PerformanceCalc({ flightData = [] }) {
-  const AC_TYPES_PERF = ['B737-700', 'B737-800', 'B737-900', 'B737 MAX 8', 'B737 MAX 9'];
-  const [acType, setAcType] = useState('B737-800');
-  const [form, setForm] = useState({
-    oat: 15, pressure_alt: 0, weight: 155000,
-    wind_dir: 270, wind_spd: 10, rwy_hdg: 280,
-  });
-  const [result, setResult] = useState(null);
-
-  const set = (k, v) => setForm(prev => ({ ...prev, [k]: Number(v) || 0 }));
-
-  const calculate = () => {
-    const { oat, pressure_alt, weight, wind_dir, wind_spd, rwy_hdg } = form;
-    const angle = ((wind_dir - rwy_hdg) * Math.PI) / 180;
-    const hwc = Math.round(wind_spd * Math.cos(angle));
-
-    // 737-family performance reference values
-    const AC_PERF = {
-      'B737-700':  { baseV1: 130, baseTOR: 5200, baseN1: 91, vmca: 108 },
-      'B737-800':  { baseV1: 138, baseTOR: 6100, baseN1: 92, vmca: 112 },
-      'B737-900':  { baseV1: 142, baseTOR: 6600, baseN1: 93, vmca: 114 },
-      'B737 MAX 8':{ baseV1: 136, baseTOR: 5300, baseN1: 88, vmca: 110 },  // LEAP-1B higher thrust efficiency, shorter field
-      'B737 MAX 9':{ baseV1: 140, baseTOR: 5700, baseN1: 89, vmca: 112 },  // LEAP-1B higher thrust efficiency, shorter field
-    };
-    const perf = AC_PERF[acType] || AC_PERF['B737-800'];
-    const wtDelta = (weight - 140000) / 1000;
-    const baseTOR = perf.baseTOR + wtDelta * 40 + pressure_alt * 0.35 + (oat - 15) * 18 - hwc * 35;
-    const v1 = Math.round(Math.max(110, perf.baseV1 + wtDelta * 0.8 + pressure_alt / 1000 * 1.5 - hwc * 0.3));
-    const vr = v1 + 4;
-    const v2 = vr + 7;
-    const n1 = Math.min(100, Math.round(perf.baseN1 + (oat - 15) * 0.08 + pressure_alt / 1000 * 0.4));
-    const vmca = perf.vmca;
-    const vapp = Math.round(132 + wtDelta * 0.6);
-
-    setResult({ tor: Math.round(baseTOR), v1, vr, v2, n1, hwc, vmca, vapp });
-  };
-
-  return (
-    <div className="space-y-4">
-      <div className="rounded-xl bg-card border border-border overflow-hidden">
-        <div className="px-4 py-3 border-b border-border bg-secondary/60">
-          <p className="text-xs font-mono font-semibold text-muted-foreground uppercase tracking-wider">Takeoff Performance — 737 Family</p>
-        </div>
-        <div className="p-4 space-y-3">
-          <div className="flex gap-2 flex-wrap" role="group" aria-label="Aircraft type selection">
-            {AC_TYPES_PERF.map(t => (
-              <button 
-                key={t} 
-                onClick={() => setAcType(t)}
-                aria-pressed={acType === t}
-                aria-label={`Select ${t}${acType === t ? ' - currently selected' : ''}`}
-                className={cn('px-3 py-1.5 rounded-lg text-xs font-bold transition-all border focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-1',
-                  acType === t ? 'bg-primary text-primary-foreground border-primary' : 'border-border text-muted-foreground hover:text-foreground'
-                )}>{t}</button>
-            ))}
-          </div>
-          <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
-            {[
-              { label: 'OAT (°C)', key: 'oat' },
-              { label: 'Press. Alt (ft)', key: 'pressure_alt' },
-              { label: 'Gross Weight (lbs)', key: 'weight' },
-              { label: 'Wind Direction (°)', key: 'wind_dir' },
-              { label: 'Wind Speed (kt)', key: 'wind_spd' },
-              { label: 'Runway Heading (°)', key: 'rwy_hdg' },
-            ].map(({ label, key }) => (
-              <div key={key}>
-                <label htmlFor={`perf-${key}`} className="text-xs text-muted-foreground block mb-1">{label}</label>
-                <input 
-                  id={`perf-${key}`}
-                  type="number" 
-                  value={form[key]} 
-                  onChange={e => set(key, e.target.value)}
-                  aria-label={label}
-                  className="w-full h-9 bg-secondary border border-border rounded-lg px-3 text-sm font-mono text-foreground focus:outline-none focus:ring-1 focus:ring-primary" 
-                />
-              </div>
-            ))}
-          </div>
-          <button 
-            onClick={calculate}
-            aria-label="Calculate takeoff performance with current parameters"
-            className="w-full h-10 bg-primary text-primary-foreground font-bold text-sm rounded-lg hover:bg-primary/90 transition-colors focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-1"
-          >
-            Compute Takeoff Performance
-          </button>
-          <p className="text-xs text-muted-foreground">Aircraft: <span className="text-foreground font-semibold">{acType}</span></p>
-        </div>
-      </div>
-
-      {result && (
-        <div className="rounded-xl bg-card border border-border overflow-hidden">
-          <div className="px-4 py-3 border-b border-border bg-secondary/60">
-            <p className="text-xs font-mono font-semibold text-muted-foreground uppercase tracking-wider">Computed V-Speeds & Performance</p>
-          </div>
-          <div className="p-4 grid grid-cols-3 sm:grid-cols-4 gap-2">
-            {[
-              { label: 'V1',   value: `${result.v1} kt`,  color: 'text-primary' },
-              { label: 'VR',   value: `${result.vr} kt`,  color: 'text-primary' },
-              { label: 'V2',   value: `${result.v2} kt`,  color: 'text-primary' },
-              { label: 'VAPP', value: `${result.vapp} kt`,color: 'text-blue-400' },
-              { label: 'VMCA', value: `${result.vmca} kt`,color: 'text-orange-400' },
-              { label: 'N1',   value: `${result.n1}%`,    color: 'text-green-400' },
-              { label: 'HWC',  value: `${result.hwc >= 0 ? '+' : ''}${result.hwc} kt`, color: result.hwc >= 0 ? 'text-green-400' : 'text-orange-400' },
-              { label: 'TOFL', value: `${result.tor.toLocaleString()} ft`, color: result.tor > 7000 ? 'text-orange-400' : 'text-foreground' },
-            ].map(({ label, value, color }) => (
-              <div key={label} className="bg-background/40 rounded-lg px-3 py-3 text-center">
-                <p className="text-xs text-muted-foreground mb-1">{label}</p>
-                <p className={cn('text-lg font-extrabold font-mono', color)}>{value}</p>
-              </div>
-            ))}
-          </div>
-          <p className="px-4 pb-3 text-xs text-muted-foreground">⚠ Demo only — always use approved AFM/QRH data for actual operations.</p>
-        </div>
-      )}
-    </div>
-  );
-}
-
-// ─── FLIGHT BRIEF ─────────────────────────────────────────────────────────
-function FlightBrief({ flights, releases, crew }) {
-  if (flights.length === 0) {
-    return (
-      <div className="rounded-xl bg-card border border-border px-4 py-10 text-center text-sm text-muted-foreground">
-        No flights loaded for today
-      </div>
-    );
-  }
+// ─── OVERVIEW ─────────────────────────────────────────────────────────────
+function OverviewTab({ flights, releases, crew }) {
+  const todayFlights = flights.filter(f => f.flight_date === TODAY);
+  const airborne = todayFlights.filter(f => ['airborne', 'departed'].includes(f.status));
+  const delayed  = todayFlights.filter(f => f.status === 'delayed' || (f.delay_minutes || 0) >= 15);
+  const rel = releases[0];
 
   const STATUS_COLORS = {
     scheduled: { label: 'Scheduled', color: 'text-muted-foreground', bg: 'bg-muted' },
@@ -196,31 +70,50 @@ function FlightBrief({ flights, releases, crew }) {
   };
 
   return (
-    <div className="space-y-3">
-      {flights.map(f => {
-        const rel = releases.find(r => r.flight_number === f.flight_number);
-        const fc = crew.filter(c => c.flight_number === f.flight_number && (c.role === 'captain' || c.role === 'first_officer'));
-        const cfg = STATUS_COLORS[f.status] || STATUS_COLORS.scheduled;
+    <div className="space-y-4">
+      {/* Status tiles */}
+      <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+        {[
+          { label: 'Flights Today', value: todayFlights.length, color: 'text-foreground' },
+          { label: 'Airborne',      value: airborne.length,     color: 'text-green-400' },
+          { label: 'Delayed',       value: delayed.length,      color: delayed.length > 0 ? 'text-orange-400' : 'text-muted-foreground' },
+          { label: 'Crew Assigned', value: crew.length,         color: 'text-blue-400' },
+        ].map(({ label, value, color }) => (
+          <div key={label} className="bg-card border border-border rounded-xl px-4 py-3 text-center">
+            <p className={cn('text-2xl font-extrabold font-mono', color)}>{value}</p>
+            <p className="text-xs text-muted-foreground mt-1">{label}</p>
+          </div>
+        ))}
+      </div>
 
+      {/* Flight summary cards */}
+      {todayFlights.length === 0 ? (
+        <div className="rounded-xl bg-card border border-border px-4 py-10 text-center text-sm text-muted-foreground">
+          No flights loaded for today
+        </div>
+      ) : todayFlights.map(f => {
+        const cfg = STATUS_COLORS[f.status] || STATUS_COLORS.scheduled;
+        const fc = crew.filter(c => c.flight_number === f.flight_number);
+        const frel = releases.find(r => r.flight_number === f.flight_number);
         return (
-           <div key={f.id} className="rounded-xl bg-card border border-border overflow-hidden" role="article" aria-label={`Flight ${f.flight_number} from ${f.origin} to ${f.destination} - ${cfg.label}`}>
-             <div className="px-4 py-3 bg-secondary/40 flex items-center justify-between border-b border-border/50">
-               <div className="flex items-center gap-3">
-                 <Plane className="w-4 h-4 text-primary" aria-hidden="true" />
-                 <div>
-                   <p className="text-sm font-mono font-bold text-foreground">{f.flight_number}</p>
-                   <p className="text-xs text-muted-foreground">{f.origin} → {f.destination} · {f.aircraft_tail} {f.aircraft_type ? `(${f.aircraft_type})` : ''}</p>
-                 </div>
-               </div>
-               <span className={cn('text-xs font-semibold px-2.5 py-1 rounded-full', cfg.bg, cfg.color)}>{cfg.label}</span>
-             </div>
+          <div key={f.id} className="rounded-xl bg-card border border-border overflow-hidden">
+            <div className="px-4 py-3 bg-secondary/40 flex items-center justify-between border-b border-border/50">
+              <div className="flex items-center gap-3">
+                <Plane className="w-4 h-4 text-primary" />
+                <div>
+                  <p className="text-sm font-mono font-bold">{f.flight_number}</p>
+                  <p className="text-xs text-muted-foreground">{f.origin} → {f.destination} · {f.aircraft_tail} {f.aircraft_type ? `(${f.aircraft_type})` : ''}</p>
+                </div>
+              </div>
+              <span className={cn('text-xs font-semibold px-2.5 py-1 rounded-full', cfg.bg, cfg.color)}>{cfg.label}</span>
+            </div>
             <div className="p-4 space-y-3">
               <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
                 {[
                   { label: 'Gate', value: f.gate || '—' },
-                  { label: 'STD', value: f.scheduled_departure || '--:--' },
-                  { label: 'STA', value: f.scheduled_arrival || '--:--' },
-                  { label: 'Delay', value: f.delay_minutes > 0 ? `+${f.delay_minutes} min` : 'None', warn: f.delay_minutes > 0 },
+                  { label: 'STD',  value: f.scheduled_departure || '--:--' },
+                  { label: 'STA',  value: f.scheduled_arrival || '--:--' },
+                  { label: 'Delay',value: f.delay_minutes > 0 ? `+${f.delay_minutes}m` : 'None', warn: f.delay_minutes > 0 },
                 ].map(({ label, value, warn }) => (
                   <div key={label} className={cn('bg-background/40 rounded-lg px-3 py-2', warn && 'bg-orange-500/10')}>
                     <p className="text-xs text-muted-foreground">{label}</p>
@@ -228,76 +121,39 @@ function FlightBrief({ flights, releases, crew }) {
                   </div>
                 ))}
               </div>
-
               {fc.length > 0 && (
-                <div>
-                  <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-2">Flight Crew</p>
-                  <div className="flex flex-wrap gap-2">
-                    {fc.map(c => (
-                      <div key={c.id} className="flex items-center gap-2 bg-background/40 rounded-lg px-3 py-1.5">
-                        <span className="text-xs font-semibold text-foreground">{c.crew_name}</span>
-                        <span className="text-xs text-muted-foreground">{c.role === 'captain' ? 'CPT' : 'F/O'}</span>
-                        <span className={cn('text-xs font-bold px-1.5 py-0.5 rounded-full',
-                          c.legal_status === 'legal' ? 'text-green-400 bg-green-500/15' :
-                          c.legal_status === 'near_limit' ? 'text-orange-400 bg-orange-500/15' :
-                          'text-destructive bg-destructive/15'
-                        )}>
-                          {c.legal_status === 'legal' ? '✓ Legal' : c.legal_status === 'near_limit' ? 'Near' : 'ILLEGAL'}
-                        </span>
-                      </div>
-                    ))}
-                  </div>
+                <div className="flex flex-wrap gap-2">
+                  {fc.map(c => (
+                    <div key={c.id} className="flex items-center gap-2 bg-background/40 rounded-lg px-3 py-1.5">
+                      <Users className="w-3 h-3 text-muted-foreground" />
+                      <span className="text-xs font-semibold">{c.crew_name}</span>
+                      <span className="text-xs text-muted-foreground">{c.role === 'captain' ? 'CPT' : 'F/O'}</span>
+                    </div>
+                  ))}
                 </div>
               )}
-
-              {rel && (
-                <div>
-                  <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-2 flex items-center gap-1.5">
-                    <FileText className="w-3.5 h-3.5" /> Dispatch Release
-                  </p>
-                  <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+              {frel && (
+                <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
+                  {frel.fuel_on_board != null && (
                     <div className="bg-background/40 rounded-lg px-3 py-2">
-                      <p className="text-xs text-muted-foreground">Status</p>
-                      <p className={cn('text-sm font-bold', rel.release_status === 'released' ? 'text-green-400' : 'text-orange-400')}>
-                        {rel.release_status?.toUpperCase()}
-                      </p>
+                      <p className="text-xs text-muted-foreground">Fuel OB</p>
+                      <p className="text-sm font-mono font-bold">{frel.fuel_on_board?.toLocaleString()} lbs</p>
                     </div>
-                    {rel.fuel_on_board != null && (
-                      <div className="bg-background/40 rounded-lg px-3 py-2">
-                        <p className="text-xs text-muted-foreground">Fuel OB</p>
-                        <p className="text-sm font-mono font-bold text-foreground">{rel.fuel_on_board.toLocaleString()} lbs</p>
-                      </div>
-                    )}
-                    {rel.min_fuel_required != null && (
-                      <div className="bg-background/40 rounded-lg px-3 py-2">
-                        <p className="text-xs text-muted-foreground">Min Req</p>
-                        <p className="text-sm font-mono font-bold text-foreground">{rel.min_fuel_required.toLocaleString()} lbs</p>
-                      </div>
-                    )}
-                    {rel.alternate && (
-                      <div className="bg-background/40 rounded-lg px-3 py-2">
-                        <p className="text-xs text-muted-foreground">Alternate</p>
-                        <p className="text-sm font-mono font-bold text-foreground">{rel.alternate}</p>
-                      </div>
-                    )}
+                  )}
+                  {frel.alternate && (
+                    <div className="bg-background/40 rounded-lg px-3 py-2">
+                      <p className="text-xs text-muted-foreground">Alternate</p>
+                      <p className="text-sm font-mono font-bold">{frel.alternate}</p>
+                    </div>
+                  )}
+                  <div className="bg-background/40 rounded-lg px-3 py-2">
+                    <p className="text-xs text-muted-foreground">Release</p>
+                    <p className={cn('text-sm font-bold', frel.release_status === 'released' ? 'text-green-400' : 'text-orange-400')}>
+                      {frel.release_status?.toUpperCase() || '—'}
+                    </p>
                   </div>
-                  {rel.notams && (
-                    <div className="mt-2">
-                      <p className="text-xs font-semibold text-muted-foreground mb-1">NOTAMs (Release)</p>
-                      <p className="text-xs font-mono text-foreground bg-background/40 rounded-lg px-3 py-2 whitespace-pre-wrap">{rel.notams}</p>
-                    </div>
-                  )}
-                  {rel.remarks && (
-                    <p className="text-xs text-foreground bg-background/40 rounded-lg px-3 py-2 mt-2">{rel.remarks}</p>
-                  )}
                 </div>
               )}
-
-              {f.notes && (
-                <p className="text-xs text-foreground bg-background/40 rounded-lg px-3 py-2">{f.notes}</p>
-              )}
-
-              {/* OUT / IN compact widget */}
               <Suspense fallback={null}>
                 <FlightTimesPanel flight={f} compact={true} />
               </Suspense>
@@ -309,10 +165,324 @@ function FlightBrief({ flights, releases, crew }) {
   );
 }
 
+// ─── PERFORMANCE ──────────────────────────────────────────────────────────
+function PerformanceTab({ flights }) {
+  const [perfSection, setPerfSection] = useState('takeoff');
+  const AC_TYPES_PERF = ['B737-700', 'B737-800', 'B737-900', 'B737 MAX 8', 'B737 MAX 9'];
+  const [acType, setAcType] = useState('B737-800');
+  const [form, setForm] = useState({ oat: 15, pressure_alt: 0, weight: 155000, wind_dir: 270, wind_spd: 10, rwy_hdg: 280 });
+  const [result, setResult] = useState(null);
+  const set = (k, v) => setForm(prev => ({ ...prev, [k]: Number(v) || 0 }));
+
+  const calculate = () => {
+    const { oat, pressure_alt, weight, wind_dir, wind_spd, rwy_hdg } = form;
+    const angle = ((wind_dir - rwy_hdg) * Math.PI) / 180;
+    const hwc = Math.round(wind_spd * Math.cos(angle));
+    const AC_PERF = {
+      'B737-700':  { baseV1: 130, baseTOR: 5200, baseN1: 91, vmca: 108 },
+      'B737-800':  { baseV1: 138, baseTOR: 6100, baseN1: 92, vmca: 112 },
+      'B737-900':  { baseV1: 142, baseTOR: 6600, baseN1: 93, vmca: 114 },
+      'B737 MAX 8':{ baseV1: 136, baseTOR: 5300, baseN1: 88, vmca: 110 },
+      'B737 MAX 9':{ baseV1: 140, baseTOR: 5700, baseN1: 89, vmca: 112 },
+    };
+    const perf = AC_PERF[acType] || AC_PERF['B737-800'];
+    const wtDelta = (weight - 140000) / 1000;
+    const baseTOR = perf.baseTOR + wtDelta * 40 + pressure_alt * 0.35 + (oat - 15) * 18 - hwc * 35;
+    const v1 = Math.round(Math.max(110, perf.baseV1 + wtDelta * 0.8 + pressure_alt / 1000 * 1.5 - hwc * 0.3));
+    const vr = v1 + 4, v2 = vr + 7;
+    const n1 = Math.min(100, Math.round(perf.baseN1 + (oat - 15) * 0.08 + pressure_alt / 1000 * 0.4));
+    const vapp = Math.round(132 + wtDelta * 0.6);
+    setResult({ tor: Math.round(baseTOR), v1, vr, v2, n1, hwc, vmca: perf.vmca, vapp });
+  };
+
+  const PERF_SECTIONS = [
+    { key: 'takeoff', label: 'Takeoff' },
+    { key: 'landing', label: 'Landing' },
+    { key: 'runway',  label: 'Runway Analysis' },
+    { key: 'wb',      label: 'Weight & Balance' },
+  ];
+
+  return (
+    <div className="space-y-4">
+      {/* Section sub-tabs */}
+      <div className="flex gap-2 flex-wrap">
+        {PERF_SECTIONS.map(s => (
+          <button key={s.key} onClick={() => setPerfSection(s.key)}
+            className={cn('px-4 py-2 rounded-lg text-xs font-bold border transition-all',
+              perfSection === s.key ? 'bg-primary text-primary-foreground border-primary' : 'border-border text-muted-foreground hover:text-foreground'
+            )}>
+            {s.label}
+          </button>
+        ))}
+      </div>
+
+      {perfSection === 'takeoff' && (
+        <div className="space-y-4">
+          <div className="rounded-xl bg-card border border-border overflow-hidden">
+            <div className="px-4 py-3 border-b border-border bg-secondary/60">
+              <p className="text-xs font-mono font-semibold text-muted-foreground uppercase tracking-wider">Takeoff Performance — 737 Family</p>
+            </div>
+            <div className="p-4 space-y-3">
+              <div className="flex gap-2 flex-wrap">
+                {AC_TYPES_PERF.map(t => (
+                  <button key={t} onClick={() => setAcType(t)}
+                    className={cn('px-3 py-1.5 rounded-lg text-xs font-bold transition-all border',
+                      acType === t ? 'bg-primary text-primary-foreground border-primary' : 'border-border text-muted-foreground hover:text-foreground'
+                    )}>{t}</button>
+                ))}
+              </div>
+              <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
+                {[
+                  { label: 'OAT (°C)', key: 'oat' },
+                  { label: 'Press. Alt (ft)', key: 'pressure_alt' },
+                  { label: 'Gross Weight (lbs)', key: 'weight' },
+                  { label: 'Wind Direction (°)', key: 'wind_dir' },
+                  { label: 'Wind Speed (kt)', key: 'wind_spd' },
+                  { label: 'Runway Heading (°)', key: 'rwy_hdg' },
+                ].map(({ label, key }) => (
+                  <div key={key}>
+                    <label className="text-xs text-muted-foreground block mb-1">{label}</label>
+                    <input type="number" value={form[key]} onChange={e => set(key, e.target.value)}
+                      className="w-full h-9 bg-secondary border border-border rounded-lg px-3 text-sm font-mono text-foreground focus:outline-none focus:ring-1 focus:ring-primary" />
+                  </div>
+                ))}
+              </div>
+              <button onClick={calculate}
+                className="w-full h-10 bg-primary text-primary-foreground font-bold text-sm rounded-lg hover:bg-primary/90 transition-colors">
+                Compute Takeoff Performance
+              </button>
+            </div>
+          </div>
+          {result && (
+            <div className="rounded-xl bg-card border border-border overflow-hidden">
+              <div className="px-4 py-3 border-b border-border bg-secondary/60">
+                <p className="text-xs font-mono font-semibold text-muted-foreground uppercase tracking-wider">Computed V-Speeds & Performance</p>
+              </div>
+              <div className="p-4 grid grid-cols-3 sm:grid-cols-4 gap-2">
+                {[
+                  { label: 'V1',   value: `${result.v1} kt`,  color: 'text-primary' },
+                  { label: 'VR',   value: `${result.vr} kt`,  color: 'text-primary' },
+                  { label: 'V2',   value: `${result.v2} kt`,  color: 'text-primary' },
+                  { label: 'VAPP', value: `${result.vapp} kt`,color: 'text-blue-400' },
+                  { label: 'VMCA', value: `${result.vmca} kt`,color: 'text-orange-400' },
+                  { label: 'N1',   value: `${result.n1}%`,    color: 'text-green-400' },
+                  { label: 'HWC',  value: `${result.hwc >= 0 ? '+' : ''}${result.hwc} kt`, color: result.hwc >= 0 ? 'text-green-400' : 'text-orange-400' },
+                  { label: 'TOFL', value: `${result.tor.toLocaleString()} ft`, color: result.tor > 7000 ? 'text-orange-400' : 'text-foreground' },
+                ].map(({ label, value, color }) => (
+                  <div key={label} className="bg-background/40 rounded-lg px-3 py-3 text-center">
+                    <p className="text-xs text-muted-foreground mb-1">{label}</p>
+                    <p className={cn('text-lg font-extrabold font-mono', color)}>{value}</p>
+                  </div>
+                ))}
+              </div>
+              <p className="px-4 pb-3 text-xs text-muted-foreground">⚠ Demo only — always use approved AFM/QRH data for actual operations.</p>
+            </div>
+          )}
+        </div>
+      )}
+
+      {perfSection === 'landing' && (
+        <div className="rounded-xl bg-card border border-border p-6 text-center space-y-3">
+          <Calculator className="w-10 h-10 text-muted-foreground mx-auto" />
+          <p className="text-sm font-bold text-foreground">Landing Performance</p>
+          <p className="text-xs text-muted-foreground">VREF, landing field length, brake energy limits, and autobrake settings. Full module with approved data required for line ops.</p>
+          <div className="grid grid-cols-3 gap-3 mt-4">
+            {['VREF', 'LFL', 'VAPP'].map(v => (
+              <div key={v} className="bg-secondary rounded-lg px-3 py-3 text-center">
+                <p className="text-xs text-muted-foreground">{v}</p>
+                <p className="text-lg font-mono font-extrabold text-muted-foreground">—</p>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {perfSection === 'runway' && (
+        <Suspense fallback={<TabLoading />}><RunwayAnalysis flightData={flights} /></Suspense>
+      )}
+
+      {perfSection === 'wb' && (
+        <Suspense fallback={<TabLoading />}><WeightBalance flightData={flights} /></Suspense>
+      )}
+    </div>
+  );
+}
+
+// ─── DOCUMENTS ────────────────────────────────────────────────────────────
+function DocumentsTab() {
+  const DOCS = [
+    { cat: 'Regulatory', items: ['FCOM Vol. 1', 'FCOM Vol. 2', 'QRH', 'FCTM', 'DDG'] },
+    { cat: 'Operational', items: ['MEL/CDL', 'Ops Specs', 'GOM', 'Company Bulletins', 'Crew Notices'] },
+    { cat: 'Manuals', items: ['Weight & Balance Manual', 'Fuel Policy Manual', 'Security Manual', 'Emergency Response'] },
+  ];
+  return (
+    <div className="space-y-4">
+      {DOCS.map(({ cat, items }) => (
+        <div key={cat} className="rounded-xl bg-card border border-border overflow-hidden">
+          <div className="px-4 py-3 border-b border-border bg-secondary/60">
+            <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">{cat}</p>
+          </div>
+          <div className="divide-y divide-border/50">
+            {items.map(item => (
+              <div key={item} className="flex items-center justify-between px-4 py-3 hover:bg-secondary/30 transition-colors">
+                <div className="flex items-center gap-3">
+                  <FileText className="w-4 h-4 text-primary" />
+                  <span className="text-sm font-medium text-foreground">{item}</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <span className="text-xs text-muted-foreground bg-secondary px-2 py-0.5 rounded">PDF</span>
+                  <Lock className="w-3.5 h-3.5 text-muted-foreground" />
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      ))}
+      <p className="text-xs text-muted-foreground text-center py-2">Documents are synced from Ops Control. Contact your dispatcher for access issues.</p>
+    </div>
+  );
+}
+
+// ─── BRIEFING ─────────────────────────────────────────────────────────────
+function BriefingTab({ flights, releases }) {
+  return (
+    <div className="space-y-4">
+      <Suspense fallback={<TabLoading />}>
+        <FlightReleaseSignOff />
+      </Suspense>
+      <Suspense fallback={<TabLoading />}>
+        <NotamViewer />
+      </Suspense>
+      <div className="rounded-xl bg-card border border-border overflow-hidden">
+        <div className="px-4 py-3 border-b border-border bg-secondary/60">
+          <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Threats & Mitigations</p>
+        </div>
+        <div className="p-4 space-y-2">
+          {[
+            { threat: 'Weather deviation possible at FL350', mitigation: 'Request block altitude FL330-370', level: 'medium' },
+            { threat: 'NOTAM: Taxiway B closed at destination', mitigation: 'Coordinate with ground for alternative routing', level: 'low' },
+            { threat: 'Crew rest < 10h prior segment', mitigation: 'Monitor fatigue indicators, contact Crew Scheduling', level: 'high' },
+          ].map((t, i) => (
+            <div key={i} className={cn('rounded-lg px-3 py-2.5 border text-xs',
+              t.level === 'high'   ? 'bg-red-500/10 border-red-500/20' :
+              t.level === 'medium' ? 'bg-amber-500/10 border-amber-500/20' :
+              'bg-green-500/10 border-green-500/20'
+            )}>
+              <p className="font-bold text-foreground">{t.threat}</p>
+              <p className="text-muted-foreground mt-0.5">✓ {t.mitigation}</p>
+            </div>
+          ))}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ─── CHARTS ───────────────────────────────────────────────────────────────
+function ChartsTab() {
+  const CHART_TYPES = [
+    { key: 'sid',      label: 'SID',      desc: 'Standard Instrument Departures' },
+    { key: 'star',     label: 'STAR',     desc: 'Standard Terminal Arrival Routes' },
+    { key: 'approach', label: 'Approach', desc: 'ILS, VOR, RNAV approach plates' },
+    { key: 'taxi',     label: 'Taxi',     desc: 'Airport ground movement charts' },
+    { key: 'enroute',  label: 'Enroute',  desc: 'High/low altitude enroute charts' },
+  ];
+  return (
+    <div className="space-y-3">
+      <div className="rounded-xl bg-amber-500/10 border border-amber-500/20 px-4 py-3">
+        <p className="text-xs font-bold text-amber-400">Charts Subscription Required</p>
+        <p className="text-xs text-muted-foreground mt-1">Connect a Jeppesen or LIDO subscription to load navigational charts. Contact your Chief Pilot for access.</p>
+      </div>
+      {CHART_TYPES.map(({ key, label, desc }) => (
+        <div key={key} className="flex items-center justify-between bg-card border border-border rounded-xl px-4 py-3 hover:bg-secondary/30 transition-colors">
+          <div className="flex items-center gap-3">
+            <Map className="w-4 h-4 text-primary" />
+            <div>
+              <p className="text-sm font-bold text-foreground">{label}</p>
+              <p className="text-xs text-muted-foreground">{desc}</p>
+            </div>
+          </div>
+          <ChevronRight className="w-4 h-4 text-muted-foreground" />
+        </div>
+      ))}
+    </div>
+  );
+}
+
+// ─── SETTINGS ─────────────────────────────────────────────────────────────
+function SettingsTab() {
+  const [units, setUnits] = useState('imperial');
+  const [sync, setSync] = useState(true);
+
+  return (
+    <div className="space-y-4">
+      <div className="rounded-xl bg-card border border-border overflow-hidden">
+        <div className="px-4 py-3 border-b border-border bg-secondary/60">
+          <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Units & Display</p>
+        </div>
+        <div className="p-4 space-y-3">
+          <div>
+            <label className="text-xs text-muted-foreground block mb-2">Units System</label>
+            <div className="flex gap-2">
+              {['imperial', 'metric'].map(u => (
+                <button key={u} onClick={() => setUnits(u)}
+                  className={cn('px-4 py-2 rounded-lg text-xs font-bold border capitalize transition-all',
+                    units === u ? 'bg-primary text-primary-foreground border-primary' : 'border-border text-muted-foreground hover:text-foreground'
+                  )}>{u}</button>
+              ))}
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div className="rounded-xl bg-card border border-border overflow-hidden">
+        <div className="px-4 py-3 border-b border-border bg-secondary/60">
+          <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Sync & Connectivity</p>
+        </div>
+        <div className="p-4 space-y-3">
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-sm font-medium text-foreground">Auto-Sync</p>
+              <p className="text-xs text-muted-foreground">Sync EFB data every 60 seconds</p>
+            </div>
+            <button onClick={() => setSync(!sync)}
+              className={cn('w-10 h-6 rounded-full transition-all relative',
+                sync ? 'bg-primary' : 'bg-secondary border border-border'
+              )}>
+              <span className={cn('absolute top-1 w-4 h-4 bg-white rounded-full transition-all', sync ? 'left-5' : 'left-1')} />
+            </button>
+          </div>
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-sm font-medium text-foreground">ACARS Integration</p>
+              <p className="text-xs text-muted-foreground">Datalink messaging</p>
+            </div>
+            <span className="text-xs font-bold text-green-400 bg-green-500/10 px-2 py-0.5 rounded">Active</span>
+          </div>
+        </div>
+      </div>
+
+      <div className="rounded-xl bg-card border border-border overflow-hidden">
+        <div className="px-4 py-3 border-b border-border bg-secondary/60">
+          <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Account</p>
+        </div>
+        <div className="p-4 space-y-2">
+          {['Certificate Number', 'Base', 'Fleet Type', 'EFB Version'].map(f => (
+            <div key={f} className="flex justify-between items-center py-1">
+              <p className="text-xs text-muted-foreground">{f}</p>
+              <p className="text-xs font-mono text-muted-foreground">—</p>
+            </div>
+          ))}
+        </div>
+      </div>
+    </div>
+  );
+}
+
 // ─── MAIN EFB ─────────────────────────────────────────────────────────────
 export default function EFB() {
-  const [activeTab, setActiveTab] = useState('brief');
-  const pollingInterval = useDynamicPolling(60000, 300000); // 60s active, 5min hidden
+  const [activeTab, setActiveTab] = useState('overview');
+  const pollingInterval = useDynamicPolling(60000, 300000);
 
   const { data: flights = [], refetch } = useQuery({
     queryKey: ['efb-flights', TODAY],
@@ -340,9 +510,9 @@ export default function EFB() {
       <div className="border-b border-border bg-card px-5 pt-5 pb-4 sticky top-0 z-20">
         <div className="flex items-start justify-between gap-4">
           <div className="flex items-center gap-3">
-            <Link to="/Home" aria-label="Go to Home" className="w-10 h-10 rounded-xl bg-primary/20 flex items-center justify-center flex-shrink-0 hover:bg-primary/30 transition-colors focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-1">
-              <BookOpen className="w-5 h-5 text-primary" />
-            </Link>
+            <div className="w-10 h-10 rounded-xl bg-primary/20 flex items-center justify-center flex-shrink-0">
+              <Plane className="w-5 h-5 text-primary" />
+            </div>
             <div>
               <h1 className="text-lg font-extrabold text-foreground tracking-wide">EFB</h1>
               <p className="text-xs font-mono text-primary tracking-widest uppercase">Electronic Flight Bag</p>
@@ -353,23 +523,19 @@ export default function EFB() {
             <p className="text-xs text-muted-foreground">{dateStr}</p>
           </div>
         </div>
-        <button 
-          onClick={refetch}
-          aria-label="Sync EFB data from server"
-          className="mt-3 flex items-center gap-1.5 text-xs text-muted-foreground hover:text-foreground transition-colors focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-1 rounded px-2 py-1"
-        >
-           <RefreshCw className="w-3 h-3" aria-hidden="true" /> Sync
-         </button>
+        <button onClick={refetch}
+          className="mt-3 flex items-center gap-1.5 text-xs text-muted-foreground hover:text-foreground transition-colors rounded px-2 py-1">
+          <RefreshCw className="w-3 h-3" /> Sync
+        </button>
       </div>
 
-      {/* Body: left rail tabs + content */}
+      {/* Body: left rail + content */}
       <div className="flex flex-1 overflow-hidden">
-        {/* Left vertical tab rail */}
         <RovingTabindexList
           items={TABS}
-          ariaLabel="EFB module navigation with keyboard support"
+          ariaLabel="EFB module navigation"
           role="tablist"
-          className="w-48 flex-shrink-0 glass-strong border-r border-border flex flex-col py-3 overflow-y-auto scrollbar-hide"
+          className="w-44 flex-shrink-0 glass-strong border-r border-border flex flex-col py-3 overflow-y-auto scrollbar-hide"
           renderItem={({ key, label, icon: Icon }, index, { focusedIndex, handleKeyDown, getTabIndex, registerRef }) => (
             <button
               key={key}
@@ -379,36 +545,28 @@ export default function EFB() {
               onKeyDown={handleKeyDown}
               role="tab"
               aria-selected={activeTab === key}
-              aria-label={`${label}${activeTab === key ? ' - currently selected' : ''}`}
               className={cn(
                 'flex items-center gap-2.5 px-3 py-2.5 mx-2 rounded-lg text-xs font-semibold transition-all text-left focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2',
                 activeTab === key ? 'bg-primary text-primary-foreground' : 'text-muted-foreground hover:text-foreground hover:bg-secondary/50',
                 focusedIndex === index && 'ring-2 ring-primary ring-offset-2'
               )}
             >
-              <Icon className="w-4 h-4 flex-shrink-0" aria-hidden="true" />
+              <Icon className="w-4 h-4 flex-shrink-0" />
               <span className="leading-tight">{label}</span>
             </button>
           )}
         />
 
-        {/* Content area — scrolls independently so tab clicks don't jump to top */}
         <div className="flex-1 p-5 space-y-4 overflow-y-auto scrollbar-hide">
-          {activeTab === 'qrscan'     && <Suspense fallback={<TabLoading />}><QRScanPanel /></Suspense>}
-           {activeTab === 'brief'      && <FlightBrief flights={flights} releases={releases} crew={crew} />}
-           {activeTab === 'release'    && <Suspense fallback={<TabLoading />}><FlightReleaseSignOff /></Suspense>}
-           {activeTab === 'map'        && <Suspense fallback={<TabLoading />}><LiveMap flights={flights} /></Suspense>}
-           {activeTab === 'airport'    && <Suspense fallback={<TabLoading />}><AirportBriefing flights={flights} /></Suspense>}
-           {activeTab === 'etops'      && <Suspense fallback={<TabLoading />}><ETOPSDriftDown /></Suspense>}
-           {activeTab === 'wb'         && <Suspense fallback={<TabLoading />}><WeightBalance flightData={flights} /></Suspense>}
-           {activeTab === 'perf'       && <PerformanceCalc flightData={flights} />}
-           {activeTab === 'fuel'       && <Suspense fallback={<TabLoading />}><FuelPlanning flightData={flights} /></Suspense>}
-           {activeTab === 'runway'     && <Suspense fallback={<TabLoading />}><RunwayAnalysis flightData={flights} /></Suspense>}
-           {activeTab === 'wx'         && <Suspense fallback={<TabLoading />}><WeatherPanel flights={flights} /></Suspense>}
-           {activeTab === 'notams'     && <Suspense fallback={<TabLoading />}><NotamViewer /></Suspense>}
-           {activeTab === 'crew'       && <Suspense fallback={<TabLoading />}><CrewLegality /></Suspense>}
-           {activeTab === 'acars'      && <Suspense fallback={<TabLoading />}><AcarsMessaging /></Suspense>}
-           {activeTab === 'postflight' && <Suspense fallback={<TabLoading />}><PostflightReport /></Suspense>}
+          {activeTab === 'overview'    && <OverviewTab flights={flights} releases={releases} crew={crew} />}
+          {activeTab === 'weather'     && <Suspense fallback={<TabLoading />}><WeatherPanel flights={flights} /></Suspense>}
+          {activeTab === 'documents'   && <DocumentsTab />}
+          {activeTab === 'performance' && <PerformanceTab flights={flights} />}
+          {activeTab === 'briefing'    && <BriefingTab flights={flights} releases={releases} />}
+          {activeTab === 'airports'    && <Suspense fallback={<TabLoading />}><AirportBriefing flights={flights} /></Suspense>}
+          {activeTab === 'charts'      && <ChartsTab />}
+          {activeTab === 'history'     && <Suspense fallback={<TabLoading />}><PostflightReport /></Suspense>}
+          {activeTab === 'settings'    && <SettingsTab />}
         </div>
       </div>
     </div>
