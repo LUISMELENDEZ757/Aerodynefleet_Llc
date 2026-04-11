@@ -110,6 +110,7 @@ const QCSupervisorDashboard    = lazy(() => import('@/pages/QCSupervisorDashboar
 const GlobalStationMgmt        = lazy(() => import('@/pages/GlobalStationManagement'));
 const StationDashboard         = lazy(() => import('@/pages/StationDashboard'));
 const AircraftMaintenanceTracking = lazy(() => import('@/pages/AircraftMaintenanceTracking'));
+const IntegrationHub           = lazy(() => import('@/pages/IntegrationHub'));
 
 function PageFallback() {
   return (
@@ -280,6 +281,7 @@ const AuthenticatedApp = () => {
         <Route path="/GlobalStations" element={<GlobalStationMgmt />} />
         <Route path="/StationDashboard" element={<StationDashboard />} />
         <Route path="/MxTracking" element={<AircraftMaintenanceTracking />} />
+        <Route path="/IntegrationHub" element={<IntegrationHub />} />
       </Route>
       <Route path="*" element={<PageNotFound />} />
     </Routes>
