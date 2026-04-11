@@ -13,24 +13,24 @@ Deno.serve(async (req) => {
       return Response.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    // Aircraft types and their capabilities
+    // Aircraft types and their capabilities — 200 total
     const AC_TYPES = [
-      { type: 'B737-800', engine: 'CFM56-7B27', etops: 120, cat: 'CAT IIIa', qty: 250 },
-      { type: 'B737-900', engine: 'CFM56-7B27', etops: 120, cat: 'CAT IIIa', qty: 120 },
-      { type: 'B737 MAX 8', engine: 'LEAP-1B', etops: 180, cat: 'CAT IIIb', qty: 180 },
-      { type: 'B757', engine: 'RB211', etops: 120, cat: 'CAT IIIa', qty: 100 },
-      { type: 'B767', engine: 'CF6-80C2', etops: 180, cat: 'CAT IIIb', qty: 80 },
-      { type: 'B777', engine: 'GE90', etops: 370, cat: 'CAT IIIc', qty: 90 },
-      { type: 'A320', engine: 'CFM56-5B4', etops: 180, cat: 'CAT IIIb', qty: 200 },
-      { type: 'A321', engine: 'CFM56-5B3', etops: 180, cat: 'CAT IIIb', qty: 100 },
-      { type: 'E190', engine: 'GE CF34-10E5', etops: 0, cat: 'CAT II', qty: 80 },
+      { type: 'B737-800', engine: 'CFM56-7B27', etops: 120, cat: 'CAT IIIa', qty: 50 },
+      { type: 'B737-900', engine: 'CFM56-7B27', etops: 120, cat: 'CAT IIIa', qty: 25 },
+      { type: 'B737 MAX 8', engine: 'LEAP-1B', etops: 180, cat: 'CAT IIIb', qty: 36 },
+      { type: 'B757', engine: 'RB211', etops: 120, cat: 'CAT IIIa', qty: 20 },
+      { type: 'B767', engine: 'CF6-80C2', etops: 180, cat: 'CAT IIIb', qty: 16 },
+      { type: 'B777', engine: 'GE90', etops: 370, cat: 'CAT IIIc', qty: 18 },
+      { type: 'A320', engine: 'CFM56-5B4', etops: 180, cat: 'CAT IIIb', qty: 20 },
+      { type: 'A321', engine: 'CFM56-5B3', etops: 180, cat: 'CAT IIIb', qty: 10 },
+      { type: 'E190', engine: 'GE CF34-10E5', etops: 0, cat: 'CAT II', qty: 5 },
     ];
 
     const BASES = ['KEWR', 'KJFK', 'KBOS', 'KORD', 'KDFW', 'KIAH', 'KLAX', 'KSFO', 'KSLC', 'KDEN'];
     const STATUSES = ['active', 'oos', 'maintenance', 'retired'];
 
-    // Generate 1000 aircraft
-    console.log('Generating 1000 aircraft...');
+    // Generate 200 aircraft
+    console.log('Generating 200 aircraft...');
     const aircraft = [];
     let tailCounter = 1;
     for (const acDef of AC_TYPES) {
@@ -55,10 +55,7 @@ Deno.serve(async (req) => {
     }
 
     // Bulk insert aircraft
-    for (let i = 0; i < aircraft.length; i += 500) {
-      const batch = aircraft.slice(i, i + 500);
-      await Promise.all(batch.map(a => base44.entities.Aircraft.create(a)));
-    }
+    await base44.entities.Aircraft.bulkCreate(aircraft);
     console.log(`✈️ Created ${aircraft.length} aircraft`);
 
     // Generate flights for next 7 days
@@ -75,12 +72,12 @@ Deno.serve(async (req) => {
       { origin: 'KBOS', destination: 'KORD', distance: 900 },
     ];
 
-    for (let d = 0; d < 7; d++) {
+    for (let d = 0; d < 3; d++) {
       const flightDate = new Date(today);
       flightDate.setDate(flightDate.getDate() + d);
       const dateStr = flightDate.toISOString().split('T')[0];
 
-      for (let f = 0; f < 50; f++) {
+      for (let f = 0; f < 10; f++) {
         const route = routes[Math.floor(Math.random() * routes.length)];
         const acIdx = Math.floor(Math.random() * aircraft.length);
         const stdHour = 6 + Math.floor(Math.random() * 16);
@@ -102,9 +99,9 @@ Deno.serve(async (req) => {
       }
     }
 
-    for (let i = 0; i < flights.length; i += 500) {
-      const batch = flights.slice(i, i + 500);
-      await Promise.all(batch.map(f => base44.entities.Flight.create(f)));
+    for (let i = 0; i < flights.length; i += 100) {
+      const batch = flights.slice(i, i + 100);
+      await base44.entities.Flight.bulkCreate(batch);
     }
     console.log(`✈️ Created ${flights.length} flights`);
 
@@ -123,7 +120,7 @@ Deno.serve(async (req) => {
       'Electrical system anomaly',
     ];
 
-    for (let i = 0; i < 500; i++) {
+    for (let i = 0; i < 100; i++) {
       const ac = aircraft[Math.floor(Math.random() * aircraft.length)];
       const logPage = `LP#${String(i + 1).padStart(4, '0')}`;
       logbookEntries.push({
@@ -139,9 +136,9 @@ Deno.serve(async (req) => {
       });
     }
 
-    for (let i = 0; i < logbookEntries.length; i += 500) {
-      const batch = logbookEntries.slice(i, i + 500);
-      await Promise.all(batch.map(e => base44.entities.LogbookEntry.create(e)));
+    for (let i = 0; i < logbookEntries.length; i += 100) {
+      const batch = logbookEntries.slice(i, i + 100);
+      await base44.entities.LogbookEntry.bulkCreate(batch);
     }
     console.log(`📖 Created ${logbookEntries.length} logbook entries`);
 
@@ -158,7 +155,7 @@ Deno.serve(async (req) => {
       { code: 'F-E5-007', desc: 'Fuel Pump Failure' },
     ];
 
-    for (let i = 0; i < 200; i++) {
+    for (let i = 0; i < 50; i++) {
       const ac = aircraft[Math.floor(Math.random() * aircraft.length)];
       const fault = faultCodes[Math.floor(Math.random() * faultCodes.length)];
       faults.push({
@@ -172,16 +169,16 @@ Deno.serve(async (req) => {
       });
     }
 
-    for (let i = 0; i < faults.length; i += 200) {
-      const batch = faults.slice(i, i + 200);
-      await Promise.all(batch.map(f => base44.entities.FaultMessage.create(f)));
+    for (let i = 0; i < faults.length; i += 50) {
+      const batch = faults.slice(i, i + 50);
+      await base44.entities.FaultMessage.bulkCreate(batch);
     }
     console.log(`⚠️ Created ${faults.length} fault messages`);
 
     // Generate maintenance events
     console.log('Generating maintenance events...');
     const maintenanceEvents = [];
-    for (let i = 0; i < 300; i++) {
+    for (let i = 0; i < 60; i++) {
       const ac = aircraft[Math.floor(Math.random() * aircraft.length)];
       maintenanceEvents.push({
         aircraft_tail: ac.tail_number,
@@ -196,9 +193,9 @@ Deno.serve(async (req) => {
       });
     }
 
-    for (let i = 0; i < maintenanceEvents.length; i += 150) {
-      const batch = maintenanceEvents.slice(i, i + 150);
-      await Promise.all(batch.map(e => base44.entities.MaintenanceEvent.create(e)));
+    for (let i = 0; i < maintenanceEvents.length; i += 60) {
+      const batch = maintenanceEvents.slice(i, i + 60);
+      await base44.entities.MaintenanceEvent.bulkCreate(batch);
     }
     console.log(`🔧 Created ${maintenanceEvents.length} maintenance events`);
 
