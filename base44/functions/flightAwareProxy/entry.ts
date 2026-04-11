@@ -1,61 +1,68 @@
 import { createClientFromRequest } from 'npm:@base44/sdk@0.8.23';
 
-const FA_BASE = 'https://aeroapi.flightaware.com/aeroapi';
-const API_KEY = Deno.env.get('FLIGHTAWARE_API_KEY');
-
-async function faFetch(path) {
-  const res = await fetch(`${FA_BASE}${path}`, {
-    headers: { 'x-apikey': API_KEY, 'Accept': 'application/json' },
-  });
-  if (!res.ok) {
-    const text = await res.text();
-    throw new Error(`FlightAware API error ${res.status}: ${text}`);
-  }
-  return res.json();
-}
-
 Deno.serve(async (req) => {
   try {
     const base44 = createClientFromRequest(req);
     const user = await base44.auth.me();
-    if (!user) return Response.json({ error: 'Unauthorized' }, { status: 401 });
 
-    const body = await req.json();
-    const { type, ident, airport, airline_icao } = body;
-
-    // type: 'flight' | 'airport_arrivals' | 'airport_departures' | 'airline_flights' | 'tail'
-    if (type === 'flight' && ident) {
-      // Live flight info for a specific flight number or tail
-      const data = await faFetch(`/flights/${encodeURIComponent(ident)}?max_pages=1`);
-      return Response.json({ flights: data.flights || [] });
+    if (!user) {
+      return Response.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    if (type === 'tail' && ident) {
-      // Flights for a specific tail number
-      const data = await faFetch(`/flights/${encodeURIComponent(ident)}?max_pages=1`);
-      return Response.json({ flights: data.flights || [] });
+    const { type, airport, airline_icao, airline } = await req.json();
+    const apiKey = Deno.env.get('FLIGHTAWARE_API_KEY');
+
+    if (!apiKey) {
+      return Response.json({ error: 'FlightAware API key not configured' }, { status: 500 });
     }
 
-    if (type === 'airport_arrivals' && airport) {
-      const suffix = airline_icao ? `&airline=${encodeURIComponent(airline_icao)}` : '';
-      const data = await faFetch(`/airports/${encodeURIComponent(airport)}/flights/arrivals?max_pages=1${suffix}`);
-      return Response.json({ arrivals: data.arrivals || [] });
+    const baseUrl = 'https://apc.flightaware.com/apc/v3';
+    let url = '';
+    let params = { apikey: apiKey };
+
+    if (type === 'airport_arrivals') {
+      url = `${baseUrl}/json/AirportBoards/${airport}/arrivals`;
+      params.howManyBefore = '10';
+      if (airline_icao) params.filter = airline_icao;
+    } else if (type === 'airport_departures') {
+      url = `${baseUrl}/json/AirportBoards/${airport}/departures`;
+      params.howManyBefore = '10';
+      if (airline_icao) params.filter = airline_icao;
+    } else if (type === 'airline_flights') {
+      url = `${baseUrl}/json/AirlineFlightSchedules/${airline_icao}/departures`;
+      params.howMany = '50';
+    } else {
+      return Response.json({ error: 'Invalid request type' }, { status: 400 });
     }
 
-    if (type === 'airport_departures' && airport) {
-      const suffix = airline_icao ? `&airline=${encodeURIComponent(airline_icao)}` : '';
-      const data = await faFetch(`/airports/${encodeURIComponent(airport)}/flights/departures?max_pages=1${suffix}`);
-      return Response.json({ departures: data.departures || [] });
+    // Build query string
+    const queryStr = new URLSearchParams(params).toString();
+    const fullUrl = `${url}?${queryStr}`;
+
+    const response = await fetch(fullUrl, {
+      method: 'GET',
+      headers: { 'Accept': 'application/json' },
+    });
+
+    if (!response.ok) {
+      console.error(`FlightAware API error: ${response.status} ${response.statusText}`);
+      return Response.json({ error: `FlightAware API error: ${response.statusText}` }, { status: response.status });
     }
 
-    if (type === 'airline_flights' && airline_icao) {
-      // Get scheduled flights for an airline
-      const data = await faFetch(`/operators/${encodeURIComponent(airline_icao)}/flights?max_pages=1`);
-      return Response.json({ flights: data.flights || [] });
+    const data = await response.json();
+
+    // Parse response based on type
+    let result = {};
+    if (type === 'airport_arrivals' || type === 'airport_departures') {
+      result.arrivals = data.AirportBoardsResult?.arrivals || [];
+      result.departures = data.AirportBoardsResult?.departures || [];
+    } else if (type === 'airline_flights') {
+      result.flights = data.AirlineFlightSchedulesResult?.next || [];
     }
 
-    return Response.json({ error: 'Invalid request type or missing params' }, { status: 400 });
+    return Response.json(result);
   } catch (error) {
+    console.error('flightAwareProxy error:', error);
     return Response.json({ error: error.message }, { status: 500 });
   }
 });
