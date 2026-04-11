@@ -90,7 +90,7 @@ function normalizeFlightAwareData(faFlights = []) {
 
 export default function GlobalFleetMap({ flights = [], aircraft = [], melItems = [], enableLiveTracking = true }) {
   const [mapKey, setMapKey] = useState(0);
-  const [baseLayer, setBaseLayer] = useState('dark');
+  const [baseLayer, setBaseLayer] = useState('blue');
   const [showLayerPanel, setShowLayerPanel] = useState(false);
   const [selectedFlight, setSelectedFlight] = useState(null);
   const [overlays, setOverlays] = useState({
@@ -104,6 +104,12 @@ export default function GlobalFleetMap({ flights = [], aircraft = [], melItems =
   });
 
   const tileLayers = {
+    'blue': {
+      url: 'https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Light_Gray_Base/MapServer/tile/{z}/{y}/{x}',
+      label: 'Blue Operational',
+      attribution: 'Tiles &copy; Esri',
+      style: { filter: 'hue-rotate(200deg) saturate(1.3) brightness(0.9)' },
+    },
     'esri-ocean': {
       url: 'https://server.arcgisonline.com/ArcGIS/rest/services/Ocean_Basemap/MapServer/tile/{z}/{y}/{x}',
       label: 'Ocean Base',
@@ -205,6 +211,7 @@ export default function GlobalFleetMap({ flights = [], aircraft = [], melItems =
           url={tileLayers[baseLayer].url}
           attribution={tileLayers[baseLayer].attribution}
           maxZoom={18}
+          style={tileLayers[baseLayer].style}
         />
 
         {/* Sunlit Earth overlay */}
