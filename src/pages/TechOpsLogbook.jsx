@@ -215,6 +215,82 @@ function NewFaultForm({ aircraftTail, onClose, onSave }) {
   );
 }
 
+// ── Entry Card (clickable for corrective action) ────────────────────────────
+function EntryCard({ entry, style, onUpdate }) {
+  const queryClient = useQueryClient();
+  const [open, setOpen] = useState(false);
+  const [correction, setCorrection] = useState('');
+  const [techName, setTechName] = useState('');
+
+  const correctMutation = useMutation({
+    mutationFn: () => base44.entities.LogbookEntry.update(entry.id, {
+      corrective_action: correction,
+      technician_name: techName || entry.technician_name,
+      discrepancy_status: 'CLOSED',
+      is_cleared: true,
+      work_completed_at: new Date().toISOString(),
+    }),
+    onSuccess: () => { setOpen(false); onUpdate(); },
+  });
+
+  const canCorrect = entry.entry_type === 'discrepancy' && !entry.is_cleared;
+
+  return (
+    <div className={cn('border-l-2 rounded-xl bg-black/20 transition-colors', style.border, canCorrect && 'cursor-pointer hover:bg-white/5')}>
+      <div onClick={() => canCorrect && setOpen(v => !v)} className="px-4 py-3">
+        <div className="flex items-start justify-between gap-3">
+          <div className="flex-1 min-w-0">
+            <div className="flex items-center gap-2 mb-1 flex-wrap">
+              <span className={cn('text-[10px] font-bold tracking-widest', style.color)}>{style.label}</span>
+              {entry.log_page && (
+                <span className="text-[10px] font-mono font-bold text-sky-400 bg-sky-500/15 border border-sky-500/30 px-2 py-0.5 rounded">{entry.log_page}</span>
+              )}
+              {entry.ata_chapter && <span className="text-[10px] text-gray-600">ATA {entry.ata_chapter}</span>}
+              {canCorrect && (
+                <span className="text-[10px] font-bold text-primary bg-primary/10 border border-primary/30 px-2 py-0.5 rounded ml-auto">
+                  {open ? '▲ Close' : '▼ Correct'}
+                </span>
+              )}
+            </div>
+            <p className="text-sm text-gray-200">{entry.description}</p>
+            {entry.corrective_action && <p className="text-xs text-green-400 mt-1">✓ {entry.corrective_action}</p>}
+            <div className="flex items-center gap-3 mt-1 flex-wrap">
+              {entry.technician_name && <span className="text-[10px] text-gray-600 flex items-center gap-1"><Wrench className="w-2.5 h-2.5" />{entry.technician_name}</span>}
+              {entry.is_deferred && !entry.is_cleared && (
+                <span className="text-[10px] font-bold text-amber-400 bg-amber-500/10 px-2 py-0.5 rounded">MEL {entry.mel_category} — {entry.mel_reference}</span>
+              )}
+              {entry.is_cleared && <span className="text-[10px] font-bold text-green-400 flex items-center gap-1"><CheckCircle className="w-2.5 h-2.5" />CLOSED</span>}
+              {entry.is_signed && <span className="text-[10px] font-bold text-primary flex items-center gap-1"><Shield className="w-2.5 h-2.5" />SIGNED</span>}
+            </div>
+          </div>
+          <div className="text-right flex-shrink-0">
+            <p className="text-[10px] font-mono text-gray-600">{new Date(entry.created_date).toLocaleDateString()}</p>
+            <p className="text-[10px] font-mono text-gray-600">{new Date(entry.created_date).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: false })}</p>
+          </div>
+        </div>
+      </div>
+      {open && canCorrect && (
+        <div className="px-4 pb-4 pt-1 border-t border-white/10 space-y-3 bg-green-950/20">
+          <p className="text-[10px] font-bold text-green-400 uppercase tracking-widest">Corrective Action Sign-Off</p>
+          <textarea rows={3} value={correction} onChange={e => setCorrection(e.target.value)}
+            placeholder="Describe corrective action performed…"
+            className="w-full bg-[#0d1117] border border-white/10 rounded-xl px-3 py-2 text-sm text-white outline-none resize-none" />
+          <div className="flex items-center gap-2">
+            <input value={techName} onChange={e => setTechName(e.target.value)}
+              placeholder={entry.technician_name || 'Technician name / cert'}
+              className="flex-1 bg-[#0d1117] border border-white/10 rounded-xl px-3 py-2 text-sm text-white outline-none" />
+            <button onClick={() => setOpen(false)} className="px-4 py-2 rounded-xl border border-white/15 text-xs font-bold text-gray-400 hover:bg-white/5">Cancel</button>
+            <button disabled={!correction || correctMutation.isPending} onClick={() => correctMutation.mutate()}
+              className="px-4 py-2 rounded-xl bg-green-700 text-white text-xs font-bold disabled:opacity-40 hover:bg-green-600">
+              {correctMutation.isPending ? 'Saving…' : 'Sign Off'}
+            </button>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
 // ── Main Page ─────────────────────────────────────────────────────────────────
 export default function TechOpsLogbook() {
   const urlParams = new URLSearchParams(window.location.search);
@@ -488,33 +564,12 @@ export default function TechOpsLogbook() {
               {entries.map(entry => {
                 const style = ENTRY_STYLES[entry.entry_type] || ENTRY_STYLES.discrepancy;
                 return (
-                  <div key={entry.id} className={cn('px-4 py-3 border-l-2 rounded-xl bg-black/20 hover:bg-white/5 transition-colors', style.border)}>
-                    <div className="flex items-start justify-between gap-3">
-                      <div className="flex-1 min-w-0">
-                        <div className="flex items-center gap-2 mb-1 flex-wrap">
-                          <span className={cn('text-[10px] font-bold tracking-widest', style.color)}>{style.label}</span>
-                          {entry.log_page && (
-                            <span className="text-[10px] font-mono font-bold text-sky-400 bg-sky-500/15 border border-sky-500/30 px-2 py-0.5 rounded">{entry.log_page}</span>
-                          )}
-                          {entry.ata_chapter && <span className="text-[10px] text-gray-600">ATA {entry.ata_chapter}</span>}
-                        </div>
-                        <p className="text-sm text-gray-200">{entry.description}</p>
-                        {entry.corrective_action && <p className="text-xs text-green-400 mt-1">✓ {entry.corrective_action}</p>}
-                        <div className="flex items-center gap-3 mt-1 flex-wrap">
-                          {entry.technician_name && <span className="text-[10px] text-gray-600 flex items-center gap-1"><Wrench className="w-2.5 h-2.5" />{entry.technician_name}</span>}
-                          {entry.is_deferred && !entry.is_cleared && (
-                            <span className="text-[10px] font-bold text-amber-400 bg-amber-500/10 px-2 py-0.5 rounded">MEL {entry.mel_category} — {entry.mel_reference}</span>
-                          )}
-                          {entry.is_cleared && <span className="text-[10px] font-bold text-green-400 flex items-center gap-1"><CheckCircle className="w-2.5 h-2.5" />CLEARED</span>}
-                          {entry.is_signed && <span className="text-[10px] font-bold text-primary flex items-center gap-1"><Shield className="w-2.5 h-2.5" />SIGNED</span>}
-                        </div>
-                      </div>
-                      <div className="text-right flex-shrink-0">
-                        <p className="text-[10px] font-mono text-gray-600">{new Date(entry.created_date).toLocaleDateString()}</p>
-                        <p className="text-[10px] font-mono text-gray-600">{new Date(entry.created_date).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: false })}</p>
-                      </div>
-                    </div>
-                  </div>
+                  <EntryCard
+                    key={entry.id}
+                    entry={entry}
+                    style={style}
+                    onUpdate={() => queryClient.invalidateQueries({ queryKey: ['logbook-entries', selectedTail] })}
+                  />
                 );
               })}
             </div>
