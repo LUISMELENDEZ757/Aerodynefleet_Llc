@@ -471,11 +471,9 @@ export default function FleetDashboard() {
   const [selectedAircraft, setSelectedAircraft] = useState(null);
   const [kpiFilter, setKpiFilter] = useState(null);
   const [showAddWizard, setShowAddWizard] = useState(false);
-  const [removeMode, setRemoveMode] = useState(false);
-  const [selectedForDelete, setSelectedForDelete] = useState(null);
   const queryClient = useQueryClient();
 
-  const { activeFleet, activeFleetId } = useFleet();
+  const { activeFleet } = useFleet();
 
   const { data: aircraft = [], isLoading } = useQuery({
     queryKey: ['fleet-aircraft'],
