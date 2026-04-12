@@ -180,7 +180,7 @@ export default function LeftRail({ onCollapsedChange }) {
         <motion.div className="my-1 border-t border-white/8 mx-3" />
 
         {/* Workgroup 1: Technician */}
-        <NavGroup title="🔧 Technician Mode" items={TECHNICIAN_ITEMS} location={location} />
+        <NavGroup title="🔧 Technical Operations" items={TECHNICIAN_ITEMS} location={location} />
         <motion.div className="my-1 border-t border-white/8 mx-3" />
 
         {/* Workgroup 2: Dispatch & Ops */}
