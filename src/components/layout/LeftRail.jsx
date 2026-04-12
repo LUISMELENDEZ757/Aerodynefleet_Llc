@@ -89,6 +89,7 @@ const CORE_ITEMS = [
   { label: '🏠 HOME', path: '/' },
   { label: '🎯 OPS HUB', path: '/OpsHub' },
   { label: '📊 AOCS Hub', path: '/AocsDashboard' },
+  { label: '🔧 Technician Mode', path: '/TechnicianMode' },
 ];
 
 
