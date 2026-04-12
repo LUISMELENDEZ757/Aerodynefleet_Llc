@@ -489,6 +489,12 @@ export default function FleetDashboard() {
     refetchInterval: 60000,
   });
 
+  const { data: melItems = [] } = useQuery({
+    queryKey: ['fleet-mel-items'],
+    queryFn: () => base44.entities.MELItem.list('-created_date', 500),
+    refetchInterval: 60000,
+  });
+
   // Map tail -> open (non-closed) discrepancy entries
   const discrepanciesByTail = openDiscrepancies.reduce((acc, e) => {
     if (e.discrepancy_status !== 'CLOSED') {
