@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { base44 } from '@/api/base44Client';
 import { motion } from 'framer-motion';
-import { AlertTriangle, Bell, Clock, Menu } from 'lucide-react';
+import { AlertTriangle, Menu } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import OpsAlertsPanel from '@/components/opshub/OpsAlertsPanel';
 import FlightMovementPanel from '@/components/opshub/FlightMovementPanel';
@@ -86,7 +86,6 @@ export default function OpsHub() {
 
   return (
     <div className="min-h-screen bg-background pb-24">
-      {/* Header */}
       <div className="border-b border-border bg-card sticky top-0 z-30 px-5 py-4">
         <div className="max-w-7xl mx-auto">
           <div className="flex items-center justify-between mb-3">
@@ -127,30 +126,23 @@ export default function OpsHub() {
         </div>
       </div>
 
-      {/* Main Dashboard Grid */}
       <div className="p-4 space-y-4 max-w-7xl mx-auto">
-
-        {/* Row 1: Alerts */}
         {alerts.filter(a => !a.is_dismissed).length > 0 && (
           <OpsAlertsPanel alerts={alerts} />
         )}
 
-        {/* Row 2: Flight Movement */}
         <FlightMovementPanel flights={flights} />
 
-        {/* Row 3: Fleet Health + Crew Status */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
           <FleetHealthPanel aircraft={aircraft} melItems={melItems} />
           <CrewStatusPanel crew={crew} />
         </div>
 
-        {/* Row 4: Weather/ATC + Station Performance */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
           <WeatherAtcPanel releases={releases} />
           <StationPerformancePanel groundOps={groundOps} flights={flights} />
         </div>
 
-        {/* Row 5: Global Fleet Map */}
         <div className="h-96 bg-card border border-border rounded-2xl overflow-hidden">
           <div className="px-5 py-3 border-b border-border bg-card">
             <p className="text-xs font-extrabold text-foreground uppercase tracking-widest">Global Fleet Status Map</p>
@@ -159,18 +151,11 @@ export default function OpsHub() {
           <GlobalFleetMap flights={flights} aircraft={aircraft} melItems={melItems} />
         </div>
 
-        {/* Row 6: Delay Probability + Predictive AI */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
           <DelayProbabilityWidget flights={flights} aircraft={aircraft} />
-          <PredictiveAiPanel
-            flights={flights}
-            aircraft={aircraft}
-            crew={crew}
-            melItems={melItems}
-          />
+          <PredictiveAiPanel flights={flights} aircraft={aircraft} crew={crew} melItems={melItems} />
         </div>
 
-        {/* Row 7: World Time Card (AOCS Hub) */}
         <WorldTimeCard />
       </div>
     </div>
