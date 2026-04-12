@@ -11,12 +11,10 @@ const TECHNICIAN_ITEMS = [
   { label: '📋 Mx Supervisor', path: '/MxSupervisor' },
   { label: '✅ QC Supervisor', path: '/QCSupervisor' },
   { label: '🌍 Global Stations', path: '/GlobalStations' },
-  { label: '🏢 Station Dashboard', path: '/StationDashboard' },
   { label: '📊 Production Control', path: '/ProductionControl' },
   { label: '📝 Work Assignments', path: '/WorkAssignments' },
   { label: '🔧 Line Maintenance', path: '/LineMaintenanceDashboard' },
   { label: '📡 Mx Tracking', path: '/MxTracking' },
-  { label: '🔧 Technician Mode', path: '/TechnicianMode' },
   { label: '🤝 Shift Handover', path: '/ShiftHandover' },
   { label: '📅 Engineering Calendar', path: '/EngCalendar' },
   { label: '🛠️ TechOps Dashboard', path: '/TechOps' },
@@ -74,7 +72,6 @@ const FLIGHT_DECK_ITEMS = [
   { label: '📄 Documents', path: '/Documents' },
   { label: '🛫 Live Flights', path: '/LiveFlightTracker' },
   { label: '🎛️ Fleet Ops Board', path: '/AerodyneFleetOps' },
-  { label: '🧳 Flight Attendant', path: '/FlightAttendant' },
 ];
 
 // ── WORKGROUP 5: ADMIN / SYSTEM ─────────────────────────────────────────────────
@@ -181,7 +178,7 @@ export default function LeftRail({ onCollapsedChange }) {
         <motion.div className="my-1 border-t border-white/8 mx-3" />
 
         {/* Workgroup 1: Technician */}
-        <NavGroup title="🔧 Technical Operations" items={TECHNICIAN_ITEMS} location={location} />
+        <NavGroup title="🔧 Technician Mode" items={TECHNICIAN_ITEMS} location={location} />
         <motion.div className="my-1 border-t border-white/8 mx-3" />
 
         {/* Workgroup 2: Dispatch & Ops */}

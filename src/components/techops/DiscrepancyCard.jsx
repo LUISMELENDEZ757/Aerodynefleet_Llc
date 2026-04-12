@@ -37,7 +37,7 @@ function SectionInput({ label, value, onChange, placeholder, rows = 2, type = 't
   );
 }
 
-export default function DiscrepancyCard({ entry, aircraftTail, userRole = 'technician', onRequestRII }) {
+export default function DiscrepancyCard({ entry, aircraftTail, userRole = 'technician' }) {
   const queryClient = useQueryClient();
   const [expanded, setExpanded] = useState(false);
   const [progressForm, setProgressForm] = useState({ troubleshooting_notes: '', parts_used: '' });

@@ -1,18 +1,15 @@
 import { useState, useEffect } from 'react';
 import { MapContainer, TileLayer, Marker, Popup, CircleMarker, Polyline } from 'react-leaflet';
 import L from 'leaflet';
-import { Cloud, AlertTriangle, CheckCircle, ChevronDown, X, Plane, Activity } from 'lucide-react';
-import { motion, AnimatePresence } from 'framer-motion';
-import { useQuery } from '@tanstack/react-query';
-import { base44 } from '@/api/base44Client';
+import { Cloud, AlertTriangle, CheckCircle, ChevronDown } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import 'leaflet/dist/leaflet.css';
 
-// Status color mapping - Airline-authentic three-state system
+// Status color mapping
 const STATUS_COLORS = {
   green: { bg: '#10b981', icon: '🟢', label: 'Airworthy' },
-  yellow: { bg: '#f59e0b', icon: '🟡', label: 'Airworthy with MEL' },
-  red: { bg: '#ef4444', icon: '🔴', label: 'Out of Service' },
+  yellow: { bg: '#f59e0b', icon: '🟡', label: 'MEL Item' },
+  red: { bg: '#ef4444', icon: '🔴', label: 'OOS' },
 };
 
 // Create custom icons
@@ -58,41 +55,10 @@ function WeatherGrid({ bounds }) {
   );
 }
 
-// Normalize FlightAware data to match internal format
-function normalizeFlightAwareData(faFlights = []) {
-  const airportMap = {
-    KEWR: [40.6895, -74.1745], KJFK: [40.6413, -73.7781], KORD: [41.8742, -87.6278],
-    KLAX: [33.9425, -118.4081], KSFO: [37.6213, -122.3790], KSEA: [47.4502, -122.3088],
-    KDEN: [39.8561, -104.6737], KDFW: [32.8975, -97.0382], KIAH: [29.9844, -95.3414],
-    KATL: [33.6407, -84.4277], KMIA: [25.7959, -80.2870], EGLL: [51.4701, -0.4543],
-  };
-
-  return faFlights.map(f => {
-    const origin = airportMap[f.origin?.code_iata || f.origin?.code || 'KEWR'] || [40, -75];
-    const destination = airportMap[f.destination?.code_iata || f.destination?.code || 'KJFK'] || [40, -75];
-    const position = ['Arrived', 'arrived', 'Landed', 'landed'].includes(f.status)
-      ? destination
-      : origin;
-
-    return {
-      id: f.fa_flight_id || f.ident,
-      flight_number: f.ident_iata || f.ident || '—',
-      origin: f.origin?.code_iata || f.origin?.code || '—',
-      destination: f.destination?.code_iata || f.destination?.code || '—',
-      aircraft_tail: f.registration || '—',
-      aircraft_type: f.aircraft_type || '—',
-      status: f.status || 'Scheduled',
-      lat: position[0],
-      lng: position[1],
-    };
-  });
-}
-
-export default function GlobalFleetMap({ flights = [], aircraft = [], melItems = [], enableLiveTracking = true }) {
+export default function GlobalFleetMap({ flights = [], aircraft = [], melItems = [] }) {
   const [mapKey, setMapKey] = useState(0);
-  const [baseLayer, setBaseLayer] = useState('blue');
+  const [baseLayer, setBaseLayer] = useState('esri-ocean');
   const [showLayerPanel, setShowLayerPanel] = useState(false);
-  const [selectedFlight, setSelectedFlight] = useState(null);
   const [overlays, setOverlays] = useState({
     sunlitEarth: false,
     weatherRadar: false,
@@ -104,12 +70,6 @@ export default function GlobalFleetMap({ flights = [], aircraft = [], melItems =
   });
 
   const tileLayers = {
-    'blue': {
-      url: 'https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Light_Gray_Base/MapServer/tile/{z}/{y}/{x}',
-      label: 'Blue Operational',
-      attribution: 'Tiles &copy; Esri',
-      style: { filter: 'hue-rotate(200deg) saturate(1.3) brightness(0.9)' },
-    },
     'esri-ocean': {
       url: 'https://server.arcgisonline.com/ArcGIS/rest/services/Ocean_Basemap/MapServer/tile/{z}/{y}/{x}',
       label: 'Ocean Base',
@@ -141,42 +101,16 @@ export default function GlobalFleetMap({ flights = [], aircraft = [], melItems =
     setOverlays(prev => ({ ...prev, [key]: !prev[key] }));
   };
 
-  // Fetch live FlightAware data for airborne flights
-  const { data: liveFlights = [] } = useQuery({
-    queryKey: ['map-live-flights'],
-    queryFn: async () => {
-      try {
-        const res = await base44.functions.invoke('flightAwarePositions', {});
-        return normalizeFlightAwareData(res.data?.aircraft || []);
-      } catch (error) {
-        console.error('Failed to fetch live flights:', error);
-        return [];
-      }
-    },
-    refetchInterval: 30000,
-    enabled: enableLiveTracking,
-  });
-
-  // Merge live flights with provided flights, prioritizing live data
-  const displayFlights = enableLiveTracking && liveFlights.length > 0 ? liveFlights : flights;
-
   // Build maintenance status map
   const melByTail = new Set(melItems.map(m => m.aircraft_tail));
   const oosAircraft = new Set(aircraft.filter(a => a.status === 'oos').map(a => a.tail_number));
 
-  // Enrich flights with airline-authentic three-state status
-  const enrichedFlights = displayFlights.map(f => {
+  // Enrich flights with status and position
+  const enrichedFlights = flights.map(f => {
     const tail = f.aircraft_tail;
-    let status = 'green'; // Default: AIRWORTHY - No issues, can fly
-    
-    if (oosAircraft.has(tail)) {
-      // RED: OUT OF SERVICE - Cannot legally fly
-      status = 'red';
-    } else if (melByTail.has(tail)) {
-      // YELLOW: AIRWORTHY WITH MEL - Deferred under MEL/CDL, can fly with restrictions
-      status = 'yellow';
-    }
-    // GREEN: AIRWORTHY - No restrictions, can fly
+    let status = 'green';
+    if (oosAircraft.has(tail)) status = 'red';
+    else if (melByTail.has(tail)) status = 'yellow';
 
     // Airport coordinates map
     const airportMap = {
@@ -218,7 +152,6 @@ export default function GlobalFleetMap({ flights = [], aircraft = [], melItems =
           url={tileLayers[baseLayer].url}
           attribution={tileLayers[baseLayer].attribution}
           maxZoom={18}
-          style={tileLayers[baseLayer].style}
         />
 
         {/* Sunlit Earth overlay */}
@@ -310,29 +243,25 @@ export default function GlobalFleetMap({ flights = [], aircraft = [], melItems =
 
         {/* Aircraft markers */}
         {enrichedFlights.map((flight, idx) => {
-          const statusColor = STATUS_COLORS[flight.status] || STATUS_COLORS['green'];
+          const statusColor = STATUS_COLORS[flight.status];
           return (
             <Marker
               key={`${flight.id}-${idx}`}
               position={[flight.lat, flight.lng]}
               icon={createAircraftIcon(flight.status)}
-              eventHandlers={{
-                click: () => setSelectedFlight(flight),
-              }}
             >
               <Popup>
-                <div className="text-xs space-y-2">
-                  <div className="flex items-center gap-2 pb-2 border-b border-gray-200">
-                    <span
-                      className="w-3 h-3 rounded-full flex-shrink-0"
-                      style={{ background: statusColor.bg }}
-                    />
-                    <span className="font-bold text-[11px] uppercase tracking-wide">{statusColor.label}</span>
-                  </div>
+                <div className="text-xs space-y-1">
                   <p className="font-bold">{flight.flight_number}</p>
                   <p className="text-[10px]">{flight.origin} → {flight.destination}</p>
                   <p className="text-[10px] text-gray-600">{flight.aircraft_tail}</p>
-                  <p className="text-[10px] text-gray-600">{flight.aircraft_type}</p>
+                  <div className="flex items-center gap-1 mt-2">
+                    <span
+                      className="w-2 h-2 rounded-full"
+                      style={{ background: statusColor.bg }}
+                    />
+                    <span className="text-[10px] font-semibold">{statusColor.label}</span>
+                  </div>
                 </div>
               </Popup>
             </Marker>
@@ -387,71 +316,6 @@ export default function GlobalFleetMap({ flights = [], aircraft = [], melItems =
           </div>
         )}
       </div>
-
-      {/* Flight Detail Modal */}
-      <AnimatePresence>
-        {selectedFlight && (
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: 20 }}
-            drag
-            dragElastic={0.2}
-            onClick={() => setSelectedFlight(null)}
-            className="absolute bottom-24 left-3 z-40 bg-card border border-border rounded-2xl shadow-2xl w-48 h-64 overflow-hidden cursor-grab active:cursor-grabbing"
-          >
-            <div className="bg-primary/10 border-b border-border p-4 flex items-center justify-between">
-              <div className="flex items-center gap-2">
-                <Plane className="w-5 h-5 text-primary" />
-                <h3 className="font-extrabold text-foreground">{selectedFlight.flight_number}</h3>
-              </div>
-              <button onClick={() => setSelectedFlight(null)} className="text-muted-foreground hover:text-foreground">
-                <X className="w-5 h-5" />
-              </button>
-            </div>
-            <div className="p-4 space-y-4 overflow-y-auto max-h-[calc(100%-60px)]">
-              <div className="grid grid-cols-2 gap-3">
-                <div className="bg-background/50 rounded-lg p-3">
-                  <p className="text-[10px] text-muted-foreground uppercase font-bold mb-1">From</p>
-                  <p className="text-sm font-extrabold text-foreground">{selectedFlight.origin}</p>
-                </div>
-                <div className="bg-background/50 rounded-lg p-3">
-                  <p className="text-[10px] text-muted-foreground uppercase font-bold mb-1">To</p>
-                  <p className="text-sm font-extrabold text-foreground">{selectedFlight.destination}</p>
-                </div>
-              </div>
-              <div className="grid grid-cols-2 gap-3">
-                <div className="bg-background/50 rounded-lg p-3">
-                  <p className="text-[10px] text-muted-foreground uppercase font-bold mb-1">Altitude</p>
-                  <p className="text-lg font-black text-primary">{Math.floor(Math.random() * 35000 + 5000).toLocaleString()} ft</p>
-                </div>
-                <div className="bg-background/50 rounded-lg p-3">
-                  <p className="text-[10px] text-muted-foreground uppercase font-bold mb-1">Ground Speed</p>
-                  <p className="text-lg font-black text-chart-2">{Math.floor(Math.random() * 450 + 250)} kt</p>
-                </div>
-              </div>
-              <div className="bg-background/50 rounded-lg p-3">
-                <p className="text-[10px] text-muted-foreground uppercase font-bold mb-1">Aircraft</p>
-                <div className="flex items-center justify-between">
-                  <div>
-                    <p className="text-sm font-extrabold text-foreground">{selectedFlight.aircraft_type}</p>
-                    <p className="text-[10px] text-muted-foreground font-mono">{selectedFlight.aircraft_tail}</p>
-                  </div>
-                  <Activity className="w-5 h-5 text-chart-3" />
-                </div>
-              </div>
-              <div className="bg-background/50 rounded-lg p-3">
-                <p className="text-[10px] text-muted-foreground uppercase font-bold mb-1">Est. Arrival</p>
-                <p className="text-sm font-extrabold text-foreground">~{(Math.random() > 0.5 ? Math.floor(Math.random() * 240 + 30) : '—')} min</p>
-              </div>
-              <div className="flex items-center gap-2 p-3 rounded-lg" style={{ background: STATUS_COLORS[selectedFlight.status]?.bg || '#10b981', opacity: 0.2 }}>
-                <span className="w-2.5 h-2.5 rounded-full" style={{ background: STATUS_COLORS[selectedFlight.status]?.bg }} />
-                <span className="text-xs font-bold text-foreground">{STATUS_COLORS[selectedFlight.status]?.label || 'Active'}</span>
-              </div>
-            </div>
-          </motion.div>
-        )}
-      </AnimatePresence>
 
       {/* Legend overlay */}
       <div className="absolute bottom-3 left-3 bg-background/90 border border-border rounded-xl p-3 space-y-2 text-xs z-10">
