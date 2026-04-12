@@ -15,6 +15,7 @@ const TECHNICIAN_ITEMS = [
   { label: '📝 Work Assignments', path: '/WorkAssignments' },
   { label: '🔧 Line Maintenance', path: '/LineMaintenanceDashboard' },
   { label: '📡 Mx Tracking', path: '/MxTracking' },
+  { label: '🔧 Technician Mode', path: '/TechnicianMode' },
   { label: '🤝 Shift Handover', path: '/ShiftHandover' },
   { label: '📅 Engineering Calendar', path: '/EngCalendar' },
   { label: '🛠️ TechOps Dashboard', path: '/TechOps' },
@@ -89,7 +90,6 @@ const CORE_ITEMS = [
   { label: '🏠 HOME', path: '/' },
   { label: '🎯 OPS HUB', path: '/OpsHub' },
   { label: '📊 AOCS Hub', path: '/AocsDashboard' },
-  { label: '🔧 Technician Mode', path: '/TechnicianMode' },
 ];
 
 
