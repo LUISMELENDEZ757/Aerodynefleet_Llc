@@ -710,9 +710,15 @@ export default function AerodyneFleetOps() {
           </button>
           {showQuickViews && (
             <div className="absolute top-full left-0 mt-1 bg-[#141922] border border-white/10 rounded-xl shadow-2xl z-30 min-w-[200px] py-1">
-              {['Departures Next 2H','Arrivals Next 2H','Delayed Flights','AOG Aircraft','Active Airborne'].map(v => (
-                <button key={v} onClick={() => setShowQuickViews(false)}
-                  className="w-full text-left px-3 py-2 text-[10px] text-gray-300 hover:bg-white/5 hover:text-white">{v}</button>
+              {[
+                { label: 'Departures Next 2H', action: () => { setLiveParams(p => ({ ...p, dir: 'departures' })); setStatusFilter('active'); setActiveFilters({}); } },
+                { label: 'Arrivals Next 2H',   action: () => { setLiveParams(p => ({ ...p, dir: 'arrivals' }));   setStatusFilter('arrived'); setActiveFilters({}); } },
+                { label: 'Delayed Flights',    action: () => { setStatusFilter('delayed'); setActiveFilters({}); } },
+                { label: 'Active Airborne',    action: () => { setStatusFilter('airborne'); setActiveFilters({}); } },
+                { label: 'Cancelled Flights',  action: () => { setActiveFilters({ flightStatus: ['Cancelled', 'cancelled'] }); setStatusFilter('all'); } },
+              ].map(({ label, action }) => (
+                <button key={label} onClick={() => { action(); setShowQuickViews(false); }}
+                  className="w-full text-left px-3 py-2 text-[10px] text-gray-300 hover:bg-white/5 hover:text-white">{label}</button>
               ))}
             </div>
           )}
