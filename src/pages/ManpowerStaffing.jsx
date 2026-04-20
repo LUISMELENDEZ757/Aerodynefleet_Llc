@@ -1,11 +1,12 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { base44 } from '@/api/base44Client';
 import { Link } from 'react-router-dom';
 import {
   ChevronLeft, Users, UserCheck, Coffee, Navigation2, GraduationCap,
   AlertTriangle, Plus, Search, MapPin, Pencil, X, RefreshCw, Shield,
-  Wrench, Clock, CheckCircle, Zap
+  Wrench, Clock, CheckCircle, Zap, MoreHorizontal, Trash2, Plane,
+  ChevronDown
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
@@ -185,8 +186,121 @@ function TechModal({ tech, onClose, onSave }) {
   );
 }
 
+// ── Actions Dropdown ──────────────────────────────────────────────────────────
+function ActionsMenu({ tech, onEdit, onDelete, onChangeStatus, onAssign }) {
+  const [open, setOpen] = useState(false);
+  const ref = useRef(null);
+
+  useEffect(() => {
+    const handler = (e) => { if (ref.current && !ref.current.contains(e.target)) setOpen(false); };
+    document.addEventListener('mousedown', handler);
+    return () => document.removeEventListener('mousedown', handler);
+  }, []);
+
+  const statusOptions = Object.entries(STATUS_CFG).filter(([k]) => k !== tech.status);
+
+  return (
+    <div ref={ref} className="relative">
+      <button
+        onClick={() => setOpen(v => !v)}
+        className="w-9 h-9 rounded-xl bg-blue-500/15 border border-blue-500/20 flex items-center justify-center hover:bg-blue-500/30 transition-colors"
+      >
+        <MoreHorizontal className="w-4 h-4 text-blue-400" />
+      </button>
+
+      {open && (
+        <div className="absolute right-0 top-full mt-1 z-50 bg-[#141922] border border-white/10 rounded-xl shadow-2xl min-w-[200px] py-1 overflow-hidden">
+          {/* Edit */}
+          <button onClick={() => { onEdit(tech); setOpen(false); }}
+            className="w-full flex items-center gap-2.5 px-4 py-2.5 text-xs font-bold text-gray-300 hover:bg-white/8 hover:text-white transition-colors">
+            <Pencil className="w-3.5 h-3.5 text-blue-400" /> Edit Details
+          </button>
+
+          {/* Assign Aircraft */}
+          <button onClick={() => { onAssign(tech); setOpen(false); }}
+            className="w-full flex items-center gap-2.5 px-4 py-2.5 text-xs font-bold text-gray-300 hover:bg-white/8 hover:text-white transition-colors">
+            <Plane className="w-3.5 h-3.5 text-cyan-400" /> Assign Aircraft
+          </button>
+
+          {/* Change Status submenu */}
+          <div className="border-t border-white/8 mt-1 pt-1">
+            <p className="px-4 py-1 text-[9px] font-extrabold text-gray-600 uppercase tracking-widest">Change Status</p>
+            {statusOptions.map(([key, cfg]) => (
+              <button key={key} onClick={() => { onChangeStatus(tech, key); setOpen(false); }}
+                className="w-full flex items-center gap-2.5 px-4 py-2 text-xs font-bold text-gray-400 hover:bg-white/8 hover:text-white transition-colors">
+                <span className={cn('w-2 h-2 rounded-full flex-shrink-0', cfg.dot)} />
+                {cfg.label}
+              </button>
+            ))}
+          </div>
+
+          {/* Delete */}
+          <div className="border-t border-white/8 mt-1 pt-1">
+            <button onClick={() => { onDelete(tech); setOpen(false); }}
+              className="w-full flex items-center gap-2.5 px-4 py-2.5 text-xs font-bold text-red-400 hover:bg-red-500/10 transition-colors">
+              <Trash2 className="w-3.5 h-3.5" /> Remove Technician
+            </button>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
+// ── Assign Aircraft Modal ─────────────────────────────────────────────────────
+function AssignModal({ tech, aircraft, onClose, onSave }) {
+  const [tail, setTail] = useState(tech.current_assignment || '');
+  const [task, setTask] = useState('Support');
+  return (
+    <div className="fixed inset-0 z-50 bg-black/80 flex items-center justify-center p-4">
+      <div className="w-full max-w-sm bg-[#111827] border border-white/10 rounded-2xl overflow-hidden shadow-2xl">
+        <div className="flex items-center justify-between px-5 py-4 border-b border-white/10">
+          <p className="font-extrabold text-white text-sm uppercase tracking-widest flex items-center gap-2">
+            <Plane className="w-4 h-4 text-cyan-400" /> Assign Aircraft
+          </p>
+          <button onClick={onClose} className="w-8 h-8 rounded-lg bg-white/10 flex items-center justify-center hover:bg-white/20">
+            <X className="w-4 h-4 text-white" />
+          </button>
+        </div>
+        <div className="p-5 space-y-4">
+          <div className="flex items-center gap-3 bg-white/5 rounded-xl px-3 py-2.5">
+            <Avatar name={tech.name} status={tech.status} />
+            <div>
+              <p className="text-sm font-extrabold text-white">{tech.name}</p>
+              <p className="text-[10px] text-gray-500">{tech.employee_id} · {tech.station}</p>
+            </div>
+          </div>
+          <div>
+            <label className="text-[10px] font-bold text-gray-400 uppercase tracking-widest block mb-1">Aircraft Tail</label>
+            <select value={tail} onChange={e => setTail(e.target.value)}
+              className="w-full bg-[#1a2235] border border-white/10 rounded-xl px-3 py-2 text-sm text-white outline-none focus:border-cyan-500/50">
+              <option value="">— Unassign —</option>
+              {aircraft.map(a => (
+                <option key={a.id} value={a.tail_number}>{a.tail_number} · {a.aircraft_type}</option>
+              ))}
+            </select>
+          </div>
+          <div>
+            <label className="text-[10px] font-bold text-gray-400 uppercase tracking-widest block mb-1">Task / Role</label>
+            <input value={task} onChange={e => setTask(e.target.value)}
+              placeholder="e.g. Support, Line Check, RON"
+              className="w-full bg-[#1a2235] border border-white/10 rounded-xl px-3 py-2 text-sm text-white outline-none focus:border-cyan-500/50" />
+          </div>
+        </div>
+        <div className="px-5 py-4 border-t border-white/10 flex gap-3">
+          <button onClick={onClose} className="flex-1 py-2.5 rounded-xl border border-white/10 text-sm font-bold text-gray-400 hover:bg-white/5">Cancel</button>
+          <button onClick={() => onSave(tech, tail, task)}
+            className="flex-1 py-2.5 rounded-xl bg-cyan-600 text-white text-sm font-bold hover:bg-cyan-500 transition-colors">
+            Assign
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 // ── Technician Row ─────────────────────────────────────────────────────────────
-function TechRow({ tech, onEdit }) {
+function TechRow({ tech, onEdit, onDelete, onChangeStatus, onAssign }) {
   const sc = STATUS_CFG[tech.status] || STATUS_CFG.off_duty;
   const certs = tech.certifications || [];
   const visibleCerts = certs.slice(0, 3);
@@ -261,10 +375,7 @@ function TechRow({ tech, onEdit }) {
 
       {/* Actions */}
       <td className="px-4 py-4">
-        <button onClick={() => onEdit(tech)}
-          className="w-9 h-9 rounded-xl bg-blue-500/15 border border-blue-500/20 flex items-center justify-center hover:bg-blue-500/30 transition-colors opacity-0 group-hover:opacity-100">
-          <Pencil className="w-3.5 h-3.5 text-blue-400" />
-        </button>
+        <ActionsMenu tech={tech} onEdit={onEdit} onDelete={onDelete} onChangeStatus={onChangeStatus} onAssign={onAssign} />
       </td>
     </tr>
   );
@@ -278,6 +389,13 @@ export default function ManpowerStaffing() {
   const [search, setSearch] = useState('');
   const [showModal, setShowModal] = useState(false);
   const [editTech, setEditTech] = useState(null);
+  const [assignTech, setAssignTech] = useState(null);
+
+  const { data: aircraft = [] } = useQuery({
+    queryKey: ['manpower-aircraft'],
+    queryFn: () => base44.entities.Aircraft.list('tail_number', 500),
+    refetchInterval: 300000,
+  });
 
   const { data: technicians = [], isLoading, refetch } = useQuery({
     queryKey: ['manpower-technicians'],
@@ -325,8 +443,33 @@ export default function ManpowerStaffing() {
     },
   });
 
+  const deleteMutation = useMutation({
+    mutationFn: (id) => base44.entities.TrainingRecord.delete(id),
+    onSuccess: () => qc.invalidateQueries({ queryKey: ['manpower-technicians'] }),
+  });
+
+  const statusMutation = useMutation({
+    mutationFn: ({ id, status }) => base44.entities.TrainingRecord.update(id, { duty_status: status }),
+    onSuccess: () => qc.invalidateQueries({ queryKey: ['manpower-technicians'] }),
+  });
+
+  const assignMutation = useMutation({
+    mutationFn: ({ id, tail }) => base44.entities.TrainingRecord.update(id, {
+      current_aircraft: tail,
+      duty_status: tail ? 'assigned' : 'available',
+    }),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ['manpower-technicians'] });
+      setAssignTech(null);
+    },
+  });
+
   const handleEdit = (tech) => { setEditTech(tech); setShowModal(true); };
   const handleNew  = () => { setEditTech(null); setShowModal(true); };
+  const handleDelete = (tech) => { if (confirm(`Remove ${tech.name} from the roster?`)) deleteMutation.mutate(tech.id); };
+  const handleChangeStatus = (tech, newStatus) => statusMutation.mutate({ id: tech.id, status: newStatus });
+  const handleAssign = (tech) => setAssignTech(tech);
+  const handleAssignSave = (tech, tail) => assignMutation.mutate({ id: tech.id, tail });
 
   // KPI counts
   const counts = KPI_ITEMS.reduce((acc, k) => {
@@ -459,7 +602,8 @@ export default function ManpowerStaffing() {
                 </tr>
               ) : (
                 filtered.map(tech => (
-                  <TechRow key={tech.id} tech={tech} onEdit={handleEdit} />
+                  <TechRow key={tech.id} tech={tech} onEdit={handleEdit}
+                    onDelete={handleDelete} onChangeStatus={handleChangeStatus} onAssign={handleAssign} />
                 ))
               )}
             </tbody>
@@ -473,12 +617,22 @@ export default function ManpowerStaffing() {
         )}
       </div>
 
-      {/* ── Modal ── */}
+      {/* ── Edit Modal ── */}
       {showModal && (
         <TechModal
           tech={editTech}
           onClose={() => { setShowModal(false); setEditTech(null); }}
           onSave={(data) => saveMutation.mutate(data)}
+        />
+      )}
+
+      {/* ── Assign Modal ── */}
+      {assignTech && (
+        <AssignModal
+          tech={assignTech}
+          aircraft={aircraft}
+          onClose={() => setAssignTech(null)}
+          onSave={handleAssignSave}
         />
       )}
     </div>
