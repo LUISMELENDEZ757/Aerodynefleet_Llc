@@ -6,9 +6,10 @@ import {
   Cpu, ChevronLeft, Download, RefreshCw, CheckCircle, AlertTriangle,
   Clock, Wifi, Radio, Navigation, Database, HardDrive, Activity,
   ChevronDown, FileDown, Plane, Layers, Shield, Upload, X, Plus,
-  Zap, Info, ExternalLink
+  Zap, Info, ExternalLink, Calendar
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import NavUploadScheduleTab from '@/components/avionics/NavUploadScheduleTab';
 
 // ── Constants ─────────────────────────────────────────────────────────────────
 const AIRCRAFT_TYPES = ['All Types', 'B737-700', 'B737-800', 'B737-900', 'B737 MAX 8', 'B737 MAX 9', 'B757', 'B767', 'B777', 'B787', 'A320', 'A321', 'A350', 'E190', 'CRJ900'];
@@ -530,9 +531,10 @@ function DFDRTab({ reports, typeFilter }) {
 
 // ── Main Page ─────────────────────────────────────────────────────────────────
 const TABS = [
-  { id: 'status',  label: 'Fleet Avionics Status', icon: Activity },
-  { id: 'navdata', label: 'Nav/Data Downloads',    icon: Navigation },
-  { id: 'dfdr',    label: 'DFDR Downloads',         icon: HardDrive },
+  { id: 'status',      label: 'Fleet Avionics Status',   icon: Activity },
+  { id: 'navdata',     label: 'Nav/Data Downloads',      icon: Navigation },
+  { id: 'navschedule', label: 'Nav Upload Schedule',     icon: Calendar },
+  { id: 'dfdr',        label: 'DFDR Downloads',          icon: HardDrive },
 ];
 
 export default function AvionicsDashboard() {
@@ -646,9 +648,10 @@ export default function AvionicsDashboard() {
 
       {/* Body */}
       <div className="flex-1 overflow-y-auto p-4">
-        {activeTab === 'status'  && <FleetStatusTab reports={reports} aircraft={aircraft} typeFilter={typeFilter} />}
-        {activeTab === 'navdata' && <NavDataTab reports={reports} typeFilter={typeFilter} />}
-        {activeTab === 'dfdr'    && <DFDRTab reports={reports} typeFilter={typeFilter} />}
+        {activeTab === 'status'      && <FleetStatusTab reports={reports} aircraft={aircraft} typeFilter={typeFilter} />}
+        {activeTab === 'navdata'     && <NavDataTab reports={reports} typeFilter={typeFilter} />}
+        {activeTab === 'navschedule' && <NavUploadScheduleTab reports={reports} aircraft={aircraft} />}
+        {activeTab === 'dfdr'        && <DFDRTab reports={reports} typeFilter={typeFilter} />}
       </div>
 
       {showIngest && (
