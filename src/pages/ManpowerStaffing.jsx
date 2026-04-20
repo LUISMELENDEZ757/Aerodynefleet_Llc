@@ -194,7 +194,12 @@ function ActionsMenu({ tech, onEdit, onDelete, onChangeStatus, onAssign }) {
 
   useEffect(() => {
     if (!open) return;
-    const handler = (e) => { if (btnRef.current && !btnRef.current.contains(e.target)) setOpen(false); };
+    const handler = (e) => {
+      if (btnRef.current && !btnRef.current.contains(e.target)) {
+        // Delay so click handlers on menu items fire first
+        setTimeout(() => setOpen(false), 100);
+      }
+    };
     document.addEventListener('mousedown', handler);
     return () => document.removeEventListener('mousedown', handler);
   }, [open]);
