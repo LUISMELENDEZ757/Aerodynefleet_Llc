@@ -330,8 +330,9 @@ const FILTER_CATEGORIES = [
   { id: 'zoneGate',   label: 'Zone / Gate',        options: [] },
 ];
 
-function FilterSidebar({ onClose, activeFilters, setActiveFilters }) {
+function FilterSidebar({ onClose, activeFilters, setActiveFilters, savedViews, setSavedViews, onLoadView }) {
   const [expanded, setExpanded] = useState({ flightStatus: true, carrier: true });
+  const [viewName, setViewName] = useState('');
   const toggle = (id) => setExpanded(p => ({ ...p, [id]: !p[id] }));
   const toggleOption = (catId, opt) => {
     setActiveFilters(p => {
@@ -341,6 +342,16 @@ function FilterSidebar({ onClose, activeFilters, setActiveFilters }) {
     });
   };
   const totalActive = Object.values(activeFilters).reduce((s, a) => s + (a?.length || 0), 0);
+
+  const saveView = () => {
+    if (!viewName.trim()) return;
+    const newView = { name: viewName.trim(), filters: { ...activeFilters } };
+    const updated = [...savedViews.filter(v => v.name !== newView.name), newView];
+    setSavedViews(updated);
+    localStorage.setItem('afo_saved_views', JSON.stringify(updated));
+    setViewName('');
+  };
+
   return (
     <div className="flex flex-col h-full bg-[#0d1117] border-r border-white/10 w-56 flex-shrink-0">
       <div className="flex items-center justify-between px-4 py-3 border-b border-white/10">
@@ -352,9 +363,40 @@ function FilterSidebar({ onClose, activeFilters, setActiveFilters }) {
         <button onClick={onClose} className="text-gray-500 hover:text-white"><X className="w-4 h-4" /></button>
       </div>
       <div className="flex gap-2 px-3 py-2 border-b border-white/8">
-        <input placeholder="Name Your View" className="flex-1 bg-[#111620] border border-white/10 rounded-lg px-2 py-1 text-[10px] text-white placeholder-gray-600 outline-none" />
-        <button className="text-[10px] font-bold px-2.5 py-1 rounded-lg bg-primary text-primary-foreground">Save</button>
+        <input
+          value={viewName}
+          onChange={e => setViewName(e.target.value)}
+          onKeyDown={e => e.key === 'Enter' && saveView()}
+          placeholder="Name Your View"
+          className="flex-1 bg-[#111620] border border-white/10 rounded-lg px-2 py-1 text-[10px] text-white placeholder-gray-600 outline-none focus:border-primary/50"
+        />
+        <button
+          onClick={saveView}
+          disabled={!viewName.trim()}
+          className="text-[10px] font-bold px-2.5 py-1 rounded-lg bg-primary text-primary-foreground disabled:opacity-40"
+        >Save</button>
       </div>
+      {savedViews.length > 0 && (
+        <div className="px-3 py-2 border-b border-white/8 space-y-1">
+          <p className="text-[9px] font-extrabold text-gray-600 uppercase tracking-widest mb-1">Saved Views</p>
+          {savedViews.map(v => (
+            <div key={v.name} className="flex items-center gap-1">
+              <button
+                onClick={() => { onLoadView(v.filters); onClose(); }}
+                className="flex-1 text-left text-[10px] text-primary hover:text-white truncate font-bold"
+              >{v.name}</button>
+              <button
+                onClick={() => {
+                  const updated = savedViews.filter(sv => sv.name !== v.name);
+                  setSavedViews(updated);
+                  localStorage.setItem('afo_saved_views', JSON.stringify(updated));
+                }}
+                className="text-gray-600 hover:text-red-400 flex-shrink-0"
+              ><X className="w-3 h-3" /></button>
+            </div>
+          ))}
+        </div>
+      )}
       <div className="flex gap-2 px-3 py-2 border-b border-white/8">
         <button onClick={() => setActiveFilters({})} className="flex-1 text-[10px] font-bold py-1.5 rounded-lg bg-[#111620] border border-white/10 text-gray-400 hover:text-white">Reset</button>
         <button onClick={onClose} className="flex-1 text-[10px] font-bold py-1.5 rounded-lg bg-primary/80 text-primary-foreground hover:bg-primary">Apply</button>
@@ -466,6 +508,9 @@ export default function AerodyneFleetOps() {
   const [search, setSearch] = useState('');
   const [showFilters, setShowFilters] = useState(false);
   const [activeFilters, setActiveFilters] = useState({});
+  const [savedViews, setSavedViews] = useState(() => {
+    try { return JSON.parse(localStorage.getItem('afo_saved_views') || '[]'); } catch { return []; }
+  });
   const [period, setPeriod] = useState('4 HRS');
   const [showPeriod, setShowPeriod] = useState(false);
   const [showMyViews, setShowMyViews] = useState(false);
@@ -645,8 +690,15 @@ export default function AerodyneFleetOps() {
             <Bookmark className="w-3 h-3" /> MY VIEWS <ChevronDown className="w-2.5 h-2.5" />
           </button>
           {showMyViews && (
-            <div className="absolute top-full left-0 mt-1 bg-[#141922] border border-white/10 rounded-xl shadow-2xl z-30 min-w-[160px] py-1">
-              <p className="px-3 py-2 text-[10px] text-gray-500">No saved views yet</p>
+            <div className="absolute top-full left-0 mt-1 bg-[#141922] border border-white/10 rounded-xl shadow-2xl z-30 min-w-[180px] py-1">
+              {savedViews.length === 0 ? (
+                <p className="px-3 py-2 text-[10px] text-gray-500">No saved views yet</p>
+              ) : savedViews.map(v => (
+                <button key={v.name} onClick={() => { setActiveFilters(v.filters); setShowMyViews(false); }}
+                  className="w-full text-left px-3 py-2 text-[10px] font-bold text-primary hover:bg-white/5 hover:text-white truncate">
+                  {v.name}
+                </button>
+              ))}
             </div>
           )}
         </div>
@@ -694,7 +746,14 @@ export default function AerodyneFleetOps() {
       <div className="flex flex-1 overflow-hidden" onClick={() => { setShowMyViews(false); setShowQuickViews(false); setShowPeriod(false); }}>
         {/* Filter sidebar */}
         {showFilters && (
-          <FilterSidebar onClose={() => setShowFilters(false)} activeFilters={activeFilters} setActiveFilters={setActiveFilters} />
+          <FilterSidebar
+            onClose={() => setShowFilters(false)}
+            activeFilters={activeFilters}
+            setActiveFilters={setActiveFilters}
+            savedViews={savedViews}
+            setSavedViews={setSavedViews}
+            onLoadView={(filters) => setActiveFilters(filters)}
+          />
         )}
 
         {/* Left: flight board */}
