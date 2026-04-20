@@ -13,6 +13,7 @@ const TECHNICIAN_ITEMS = [
   { label: '🌍 Global Stations', path: '/GlobalStations' },
   { label: '📊 Production Control', path: '/ProductionControl' },
   { label: '📝 Work Assignments', path: '/WorkAssignments' },
+  { label: '👷 Manpower & Staffing', path: '/ManpowerStaffing' },
   { label: '🔧 Line Maintenance', path: '/LineMaintenanceDashboard' },
   { label: '📡 Mx Tracking', path: '/MxTracking' },
   { label: '🤝 Shift Handover', path: '/ShiftHandover' },
