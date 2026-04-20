@@ -243,14 +243,13 @@ export default function LiveFlightTracker() {
   const [mode, setMode]               = useState('airline');   // 'airline' | 'airport' | 'search'
   const [selectedAirline, setSelectedAirline] = useState(null);
   const [customAirline, setCustomAirline]     = useState('');
+  const [activeAirlineIcao, setActiveAirlineIcao] = useState(''); // fired on demand
   const [airport, setAirport]         = useState('KEWR');
   const [airportTab, setAirportTab]   = useState('departures');
   const [searchIdent, setSearchIdent] = useState('');
   const [searchInput, setSearchInput] = useState('');
   const [selectedFlight, setSelectedFlight] = useState(null);
   const [showAirlineList, setShowAirlineList] = useState(false);
-
-  const activeAirlineIcao = selectedAirline?.icao || customAirline.toUpperCase();
 
   // ── Airline enroute flights ──
   const { data: airlineData, isLoading: airlineLoading, refetch: refetchAirline, error: airlineError } = useQuery({
@@ -307,18 +306,22 @@ export default function LiveFlightTracker() {
     }
   };
 
-  // Auto-load default airline on mount
+  // Helper to fire the airline fetch
+  const fetchAirline = useCallback((icao) => {
+    if (icao) setActiveAirlineIcao(icao);
+  }, []);
+
+  // Auto-load United on mount
   useEffect(() => {
-    if (mode === 'airline' && !selectedAirline && !customAirline) {
-      setSelectedAirline(POPULAR_AIRLINES[0]); // UAL by default
-    }
+    setSelectedAirline(POPULAR_AIRLINES[0]);
+    setActiveAirlineIcao(POPULAR_AIRLINES[0].icao);
   }, []);
 
   // Derive display data
   const displayFlights = mode === 'airline' ? (airlineData || [])
     : mode === 'search' ? (searchData || [])
-    : airportTab === 'departures' ? (airportData?.departures || []).filter(f => !selectedAirline || (f.operator || f.ident_iata?.substring(0, 2) || '').includes(selectedAirline))
-    : (airportData?.arrivals || []).filter(f => !selectedAirline || (f.operator || f.ident_iata?.substring(0, 2) || '').includes(selectedAirline));
+    : airportTab === 'departures' ? (airportData?.departures || [])
+    : (airportData?.arrivals || []);
 
   const isLoading = mode === 'airline' ? airlineLoading
     : mode === 'airport' ? airportLoading
@@ -417,10 +420,15 @@ export default function LiveFlightTracker() {
               {/* Popular quick-picks */}
               <div className="flex flex-wrap gap-2">
                 {POPULAR_AIRLINES.slice(0, showAirlineList ? POPULAR_AIRLINES.length : 10).map(a => (
-                  <button key={a.icao} onClick={() => { setSelectedAirline(a); setCustomAirline(''); }}
+                  <button key={a.icao}
+                    onClick={() => {
+                      setSelectedAirline(a);
+                      setCustomAirline('');
+                      fetchAirline(a.icao);
+                    }}
                     className={cn('flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold border transition-all',
-                      selectedAirline?.icao === a.icao
-                        ? 'bg-sky-600 text-white border-transparent'
+                      activeAirlineIcao === a.icao
+                        ? 'bg-sky-600 text-white border-sky-500'
                         : 'border-white/10 text-gray-400 hover:text-white hover:border-white/20')}>
                     <span>{a.flag}</span>{a.iata} — {a.name}
                   </button>
@@ -432,11 +440,19 @@ export default function LiveFlightTracker() {
                 <input
                   value={customAirline}
                   onChange={e => { setCustomAirline(e.target.value.toUpperCase()); setSelectedAirline(null); }}
+                  onKeyDown={e => e.key === 'Enter' && customAirline.length >= 2 && fetchAirline(customAirline)}
                   placeholder="Custom ICAO code (e.g. AEX)"
                   className="flex-1 bg-[#0d1117] border border-white/10 rounded-xl px-3 py-2 text-sm text-white placeholder-gray-600 outline-none focus:border-sky-500/50 font-mono uppercase"
                 />
-                {selectedAirline && (
-                  <div className="flex items-center gap-2 bg-sky-500/10 border border-sky-500/20 rounded-xl px-3 py-2">
+                <button
+                  onClick={() => customAirline.length >= 2 && fetchAirline(customAirline)}
+                  disabled={customAirline.length < 2}
+                  className="px-4 py-2 rounded-xl bg-sky-600 text-white text-xs font-bold hover:bg-sky-500 disabled:opacity-40 transition-colors flex items-center gap-1.5"
+                >
+                  <Search className="w-3.5 h-3.5" /> Fetch
+                </button>
+                {selectedAirline && activeAirlineIcao === selectedAirline.icao && (
+                  <div className="flex items-center gap-2 bg-sky-500/10 border border-sky-500/20 rounded-xl px-3 py-2 flex-shrink-0">
                     <span>{selectedAirline.flag}</span>
                     <span className="text-xs font-bold text-sky-300">{selectedAirline.name}</span>
                   </div>
@@ -545,9 +561,15 @@ export default function LiveFlightTracker() {
           ) : error ? (
             <div className="flex flex-col items-center justify-center py-12 gap-3">
               <AlertTriangle className="w-8 h-8 text-red-400" />
-              <p className="text-red-300 text-sm font-bold">Failed to load</p>
-              <p className="text-gray-500 text-xs text-center max-w-xs">{error.message}</p>
-              <button onClick={() => refetch()} className="text-xs text-sky-400 underline">Retry</button>
+              <p className="text-red-300 text-sm font-bold">
+                {error.message?.includes('429') ? 'API Rate Limit Reached' : 'Failed to load'}
+              </p>
+              <p className="text-gray-500 text-xs text-center max-w-xs">
+                {error.message?.includes('429')
+                  ? 'FlightAware API quota exhausted. Please wait a few minutes and retry.'
+                  : error.message}
+              </p>
+              <button onClick={() => refetch()} className="px-4 py-2 rounded-xl bg-sky-600 text-white text-xs font-bold hover:bg-sky-500 transition-colors">Retry</button>
             </div>
           ) : displayFlights.length === 0 ? (
             <div className="flex flex-col items-center justify-center py-14 gap-3 text-center">
@@ -571,9 +593,7 @@ export default function LiveFlightTracker() {
                   </tr>
                 </thead>
                 <tbody>
-                  {displayFlights
-                    .filter(f => !selectedAirline || (f.operator || f.ident_iata?.substring(0, 2) || '').includes(selectedAirline))
-                    .map((f, i) => (
+                  {displayFlights.map((f, i) => (
                     <FlightRow key={f.fa_flight_id || i} flight={f}
                       mode={mode === 'airport' ? airportTab : 'departures'}
                       onSelect={setSelectedFlight} />

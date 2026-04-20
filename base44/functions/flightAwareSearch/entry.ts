@@ -23,11 +23,10 @@ Deno.serve(async (req) => {
     const body = await req.json();
     const { type, ident, airline_icao, airport, query } = body;
 
-    // Search flights by airline — fetch departures from airline hubs & filter by operator
+    // Search flights by airline — fetch from all hubs in parallel and filter by operator
     if (type === 'airline_enroute' && airline_icao) {
       const code = airline_icao.toUpperCase();
 
-      // Map ICAO operator codes to their primary hub airports
       const HUB_MAP = {
         UAL: ['KORD', 'KEWR', 'KIAH', 'KSFO', 'KDEN'],
         AAL: ['KDFW', 'KPHL', 'KLAX', 'KMIA', 'KORD'],
@@ -52,33 +51,29 @@ Deno.serve(async (req) => {
       };
 
       const hubs = HUB_MAP[code] || ['KEWR', 'KLAX', 'KATL'];
-      // Fetch departures from the primary hub
-      const hub = hubs[0];
-      const data = await faFetch(`/airports/${hub}/flights/departures?max_pages=1`);
-      const allFlights = data.departures || [];
 
-      // Filter to this operator
-      const filtered = allFlights.filter(f =>
-        (f.operator_icao || f.operator || '').toUpperCase() === code ||
-        (f.ident_icao || f.ident || '').toUpperCase().startsWith(code)
+      // Fetch all hubs in parallel
+      const results = await Promise.allSettled(
+        hubs.map(hub => faFetch(`/airports/${hub}/flights/departures?max_pages=1`))
       );
 
-      // If we got some hits, return them; otherwise try a second hub
-      if (filtered.length > 0) {
-        return Response.json({ flights: filtered });
+      const seen = new Set();
+      const flights = [];
+      for (const r of results) {
+        if (r.status !== 'fulfilled') continue;
+        for (const f of (r.value.departures || [])) {
+          const operatorMatch =
+            (f.operator_icao || '').toUpperCase() === code ||
+            (f.operator || '').toUpperCase() === code ||
+            (f.ident_icao || f.ident || '').toUpperCase().startsWith(code);
+          if (operatorMatch && !seen.has(f.fa_flight_id || f.ident)) {
+            seen.add(f.fa_flight_id || f.ident);
+            flights.push(f);
+          }
+        }
       }
 
-      // Try second hub if available
-      if (hubs.length > 1) {
-        const data2 = await faFetch(`/airports/${hubs[1]}/flights/departures?max_pages=1`);
-        const filtered2 = (data2.departures || []).filter(f =>
-          (f.operator_icao || f.operator || '').toUpperCase() === code ||
-          (f.ident_icao || f.ident || '').toUpperCase().startsWith(code)
-        );
-        return Response.json({ flights: filtered2 });
-      }
-
-      return Response.json({ flights: [] });
+      return Response.json({ flights });
     }
 
     // Search a specific flight number or tail
