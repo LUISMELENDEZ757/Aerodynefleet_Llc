@@ -650,7 +650,7 @@ export default function AvionicsDashboard() {
       <div className="flex-1 overflow-y-auto p-4">
         {activeTab === 'status'      && <FleetStatusTab reports={reports} aircraft={aircraft} typeFilter={typeFilter} />}
         {activeTab === 'navdata'     && <NavDataTab reports={reports} typeFilter={typeFilter} />}
-        {activeTab === 'navschedule' && <NavUploadScheduleTab reports={reports} aircraft={aircraft} />}
+        {activeTab === 'navschedule' && <NavUploadScheduleTab reports={reports} aircraft={aircraft} onIngestSuccess={handleIngestSuccess} />}
         {activeTab === 'dfdr'        && <DFDRTab reports={reports} typeFilter={typeFilter} />}
       </div>
 

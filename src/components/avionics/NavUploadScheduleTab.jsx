@@ -1,9 +1,11 @@
 import { useState, useMemo } from 'react';
 import {
   Calendar, CheckCircle, Clock, AlertTriangle, Plane,
-  ChevronDown, BarChart3, Layers, Filter, Download
+  ChevronDown, BarChart3, Layers, Filter, Download, Upload,
+  X, Zap, RefreshCw, FileDown, Info
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { base44 } from '@/api/base44Client';
 
 // ── Fleet type → manufacturer grouping ───────────────────────────────────────
 const FLEET_GROUPS = {
@@ -57,6 +59,107 @@ function toMonthKey(isoStr) {
   if (!isoStr) return null;
   const d = new Date(isoStr);
   return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}`;
+}
+
+// ── Quick Nav Upload Modal ────────────────────────────────────────────────────
+function NavUploadModal({ aircraftType, onClose, onSuccess }) {
+  const [loading, setLoading] = useState(false);
+  const [result, setResult] = useState(null);
+  const [error, setError] = useState(null);
+  const mfr = getMfr(aircraftType);
+
+  // Determine source id from manufacturer
+  const sourceId = mfr === 'Boeing' ? 'boeing_ahm' : mfr === 'Airbus' ? 'airbus_skywise' : mfr === 'Embraer' ? 'embraer_ahead' : mfr === 'Bombardier' ? 'bombardier_fast' : 'generic';
+
+  const defaultPayload = JSON.stringify({
+    source: sourceId,
+    reports: [{
+      ...(sourceId === 'boeing_ahm'       ? { registration: '', acType: aircraftType, fmsIdent: '', navDbCycle: CURRENT_AIRAC, healthItems: [], reportTime: new Date().toISOString() } :
+          sourceId === 'airbus_skywise'   ? { registration: '', acType: aircraftType, fmgcVersion: '', wbsNavData: CURRENT_AIRAC, acmsAlerts: [], acquisitionDate: new Date().toISOString() } :
+          sourceId === 'embraer_ahead'    ? { aircraftId: '', model: aircraftType, fmsPartNumber: '', navDbVersion: CURRENT_AIRAC, aheadAlerts: [], reportDate: new Date().toISOString() } :
+          sourceId === 'bombardier_fast'  ? { registration: '', variant: aircraftType, fmsSoftwareVersion: '', fmsDbCycle: CURRENT_AIRAC, fastEvents: [], eventTime: new Date().toISOString() } :
+          { tail: '', aircraft_type: aircraftType, fms_version: '', nav_db: CURRENT_AIRAC, systems: [], timestamp: new Date().toISOString() })
+    }]
+  }, null, 2);
+
+  const [payload, setPayload] = useState(defaultPayload);
+
+  const handleFileUpload = (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = (ev) => setPayload(ev.target.result);
+    reader.readAsText(file);
+  };
+
+  const handleSubmit = async () => {
+    setLoading(true);
+    setResult(null);
+    setError(null);
+    try {
+      const parsed = JSON.parse(payload);
+      const res = await base44.functions.invoke('avionicsIngest', parsed);
+      setResult(res.data);
+      if (res.data?.ingested > 0) onSuccess();
+    } catch (e) {
+      setError(e.message || 'Ingest failed');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  return (
+    <div className="fixed inset-0 z-50 bg-black/80 flex items-center justify-center p-4">
+      <div className="w-full max-w-xl bg-[#141922] border border-white/10 rounded-2xl overflow-hidden shadow-2xl flex flex-col max-h-[90vh]">
+        <div className="flex items-center justify-between px-5 py-4 border-b border-white/10 flex-shrink-0">
+          <div className="flex items-center gap-2">
+            <Upload className="w-4 h-4 text-cyan-400" />
+            <p className="font-extrabold text-white text-sm uppercase tracking-widest">Upload Nav Data · {aircraftType}</p>
+          </div>
+          <button onClick={onClose} className="w-8 h-8 rounded-lg bg-white/10 flex items-center justify-center hover:bg-white/20">
+            <X className="w-4 h-4 text-white" />
+          </button>
+        </div>
+        <div className="p-5 space-y-3 overflow-y-auto flex-1">
+          <div className="flex items-center gap-2">
+            <span className={cn('text-[9px] font-extrabold px-2 py-0.5 rounded', (MFR_COLORS[mfr] || MFR_COLORS.Boeing).bg, (MFR_COLORS[mfr] || MFR_COLORS.Boeing).color)}>{mfr}</span>
+            <span className="text-[10px] text-gray-400">Source: <span className="text-white font-bold">{sourceId}</span></span>
+            <span className="text-[10px] text-cyan-400 font-bold">→ AIRAC: {CURRENT_AIRAC}</span>
+          </div>
+          <div className="flex items-center gap-3">
+            <label className="flex items-center gap-2 text-[10px] font-bold text-sky-400 cursor-pointer bg-sky-500/10 border border-sky-500/20 px-3 py-2 rounded-lg hover:bg-sky-500/20 transition-colors">
+              <FileDown className="w-3.5 h-3.5" /> Upload JSON File
+              <input type="file" accept=".json" onChange={handleFileUpload} className="hidden" />
+            </label>
+            <p className="text-[10px] text-gray-600">or edit the pre-filled template below</p>
+          </div>
+          <textarea
+            value={payload}
+            onChange={e => setPayload(e.target.value)}
+            rows={12}
+            className="w-full bg-[#0d1117] border border-white/10 rounded-xl px-4 py-3 text-xs text-green-300 font-mono resize-none outline-none focus:border-cyan-500/50"
+          />
+          {result && (
+            <div className="bg-green-900/20 border border-green-500/30 rounded-xl px-4 py-3">
+              <p className="text-xs font-bold text-green-400">Ingested {result.ingested} report(s){result.errors > 0 ? `, ${result.errors} error(s)` : ' — Success!'}</p>
+            </div>
+          )}
+          {error && (
+            <div className="bg-red-900/20 border border-red-500/30 rounded-xl px-4 py-3">
+              <p className="text-xs font-bold text-red-400">{error}</p>
+            </div>
+          )}
+        </div>
+        <div className="px-5 py-4 border-t border-white/10 flex gap-3 flex-shrink-0">
+          <button onClick={onClose} className="flex-1 py-2.5 rounded-xl border border-white/10 text-sm font-bold text-gray-400 hover:bg-white/5">Cancel</button>
+          <button onClick={handleSubmit} disabled={loading}
+            className="flex-1 py-2.5 rounded-xl bg-cyan-600 text-white text-sm font-bold hover:bg-cyan-500 disabled:opacity-50 flex items-center justify-center gap-2">
+            {loading ? <><RefreshCw className="w-4 h-4 animate-spin" /> Ingesting…</> : <><Zap className="w-4 h-4" /> Upload Nav Data</>}
+          </button>
+        </div>
+      </div>
+    </div>
+  );
 }
 
 // ── Sub-view: Upload Tracker (day / month) ────────────────────────────────────
@@ -225,12 +328,13 @@ function UploadTracker({ reports, aircraft, typeFilter, fleetFilter }) {
 }
 
 // ── Main NavUploadScheduleTab ─────────────────────────────────────────────────
-export default function NavUploadScheduleTab({ reports, aircraft }) {
+export default function NavUploadScheduleTab({ reports, aircraft, onIngestSuccess }) {
   const [typeFilter, setTypeFilter] = useState('All Types');
   const [fleetFilter, setFleetFilter] = useState('All Fleets');
   const [subView, setSubView] = useState('schedule'); // 'schedule' | 'tracker'
   const [showTypeMenu, setShowTypeMenu] = useState(false);
   const [showFleetMenu, setShowFleetMenu] = useState(false);
+  const [uploadModalType, setUploadModalType] = useState(null); // aircraft type string or null
 
   const AIRCRAFT_TYPES_OPTIONS = ['All Types', ...Object.values(FLEET_GROUPS).flat()];
   const FLEET_OPTIONS = ['All Fleets', ...Object.keys(FLEET_GROUPS)];
@@ -354,6 +458,11 @@ export default function NavUploadScheduleTab({ reports, aircraft }) {
                     {isOutdated
                       ? <span className="flex items-center gap-1 text-[10px] font-bold text-amber-400 bg-amber-500/15 px-2 py-0.5 rounded-full border border-amber-500/30"><AlertTriangle className="w-3 h-3" /> Outdated</span>
                       : currentVersion !== '—' && <span className="flex items-center gap-1 text-[10px] font-bold text-green-400 bg-green-500/15 px-2 py-0.5 rounded-full border border-green-500/30"><CheckCircle className="w-3 h-3" /> Current</span>}
+                    <button
+                      onClick={() => setUploadModalType(type)}
+                      className="flex items-center gap-1 text-[10px] font-extrabold text-cyan-400 bg-cyan-500/10 border border-cyan-500/20 px-2.5 py-1 rounded-lg hover:bg-cyan-500/20 transition-colors">
+                      <Upload className="w-3 h-3" /> Upload Nav Data
+                    </button>
                   </div>
                 </div>
 
@@ -418,6 +527,14 @@ export default function NavUploadScheduleTab({ reports, aircraft }) {
           aircraft={aircraft}
           typeFilter={typeFilter}
           fleetFilter={fleetFilter}
+        />
+      )}
+
+      {uploadModalType && (
+        <NavUploadModal
+          aircraftType={uploadModalType}
+          onClose={() => setUploadModalType(null)}
+          onSuccess={() => { setUploadModalType(null); onIngestSuccess?.(); }}
         />
       )}
     </div>
