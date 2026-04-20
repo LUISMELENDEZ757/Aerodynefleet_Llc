@@ -189,6 +189,7 @@ function TechModal({ tech, onClose, onSave }) {
 // ── Actions Dropdown ──────────────────────────────────────────────────────────
 function ActionsMenu({ tech, onEdit, onDelete, onChangeStatus, onAssign }) {
   const [open, setOpen] = useState(false);
+  const [confirmDelete, setConfirmDelete] = useState(false);
   const [menuPos, setMenuPos] = useState({ top: 0, right: 0 });
   const btnRef = useRef(null);
 
@@ -212,6 +213,7 @@ function ActionsMenu({ tech, onEdit, onDelete, onChangeStatus, onAssign }) {
         right: window.innerWidth - rect.right,
       });
     }
+    setConfirmDelete(false);
     setOpen(v => !v);
   };
 
@@ -258,10 +260,28 @@ function ActionsMenu({ tech, onEdit, onDelete, onChangeStatus, onAssign }) {
 
           {/* Delete */}
           <div className="border-t border-white/8 mt-1 pt-1">
-            <button onClick={() => { onDelete(tech); setOpen(false); }}
-              className="w-full flex items-center gap-2.5 px-4 py-2.5 text-xs font-bold text-red-400 hover:bg-red-500/10 transition-colors">
-              <Trash2 className="w-3.5 h-3.5" /> Remove Technician
-            </button>
+            {confirmDelete ? (
+              <div className="px-4 py-2.5 space-y-2">
+                <p className="text-[10px] text-red-400 font-bold">Confirm remove {tech.name}?</p>
+                <div className="flex gap-2">
+                  <button
+                    onClick={() => { setConfirmDelete(false); setOpen(false); onDelete(tech); }}
+                    className="flex-1 py-1.5 rounded-lg bg-red-600 text-white text-[10px] font-extrabold hover:bg-red-500 transition-colors">
+                    Yes, Remove
+                  </button>
+                  <button
+                    onClick={() => setConfirmDelete(false)}
+                    className="flex-1 py-1.5 rounded-lg bg-white/10 text-gray-300 text-[10px] font-bold hover:bg-white/20 transition-colors">
+                    Cancel
+                  </button>
+                </div>
+              </div>
+            ) : (
+              <button onClick={() => setConfirmDelete(true)}
+                className="w-full flex items-center gap-2.5 px-4 py-2.5 text-xs font-bold text-red-400 hover:bg-red-500/10 transition-colors">
+                <Trash2 className="w-3.5 h-3.5" /> Remove Technician
+              </button>
+            )}
           </div>
         </div>
       )}
@@ -487,7 +507,7 @@ export default function ManpowerStaffing() {
 
   const handleEdit = (tech) => { setEditTech(tech); setShowModal(true); };
   const handleNew  = () => { setEditTech(null); setShowModal(true); };
-  const handleDelete = (tech) => { if (confirm(`Remove ${tech.name} from the roster?`)) deleteMutation.mutate(tech.id); };
+  const handleDelete = (tech) => { deleteMutation.mutate(tech.id); };
   const handleChangeStatus = (tech, newStatus) => statusMutation.mutate({ id: tech.id, status: newStatus });
   const handleAssign = (tech) => setAssignTech(tech);
   const handleAssignSave = (tech, tail) => assignMutation.mutate({ id: tech.id, tail });
