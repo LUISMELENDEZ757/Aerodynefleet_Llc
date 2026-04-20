@@ -91,22 +91,30 @@ const FLEET_ICAO_MAP = {
 
 // ── FA data normalizer ────────────────────────────────────────────────────────
 function normalizeFAFlight(fa) {
+  // AeroAPI v4 uses scheduled_out/in, actual_out/in, gate_origin, departure_delay etc.
+  // Also handle older field names for compatibility
+  const schedDep = fa.scheduled_out || fa.scheduled_departure_time || fa.filed_departure_time;
+  const schedArr = fa.scheduled_in || fa.scheduled_arrival_time || fa.filed_arrival_time;
+  const actDep = fa.actual_out || fa.actual_departure_time;
+  const actArr = fa.actual_in || fa.actual_arrival_time;
+  const depDelay = fa.departure_delay ?? (fa.dep_delay != null ? fa.dep_delay : 0);
+
   return {
     id: fa.fa_flight_id || fa.ident,
     flight_number: fa.ident_iata || fa.ident || '—',
-    origin: fa.origin?.code_iata || fa.origin?.code || '—',
-    destination: fa.destination?.code_iata || fa.destination?.code || '—',
+    origin: fa.origin?.code_iata || fa.origin?.code_icao || fa.origin?.code || (typeof fa.origin === 'string' ? fa.origin : '—'),
+    destination: fa.destination?.code_iata || fa.destination?.code_icao || fa.destination?.code || (typeof fa.destination === 'string' ? fa.destination : '—'),
     aircraft_tail: fa.registration || '—',
     aircraft_type: fa.aircraft_type || '—',
     status: fa.status || 'Scheduled',
-    scheduled_departure: fa.scheduled_out ? new Date(fa.scheduled_out).toISOString().slice(11, 16) + 'Z' : '—',
-    scheduled_arrival: fa.scheduled_in ? new Date(fa.scheduled_in).toISOString().slice(11, 16) + 'Z' : '—',
-    actual_departure: fa.actual_out ? new Date(fa.actual_out).toISOString().slice(11, 16) + 'Z' : null,
-    actual_arrival: fa.actual_in ? new Date(fa.actual_in).toISOString().slice(11, 16) + 'Z' : null,
-    _raw_dep: fa.scheduled_out || null,
-    _raw_arr: fa.scheduled_in || null,
-    gate: fa.gate_origin || '—',
-    delay_minutes: fa.departure_delay ? Math.round(fa.departure_delay / 60) : 0,
+    scheduled_departure: schedDep ? new Date(schedDep).toISOString().slice(11, 16) + 'Z' : '—',
+    scheduled_arrival: schedArr ? new Date(schedArr).toISOString().slice(11, 16) + 'Z' : '—',
+    actual_departure: actDep ? new Date(actDep).toISOString().slice(11, 16) + 'Z' : null,
+    actual_arrival: actArr ? new Date(actArr).toISOString().slice(11, 16) + 'Z' : null,
+    _raw_dep: schedDep || null,
+    _raw_arr: schedArr || null,
+    gate: fa.gate_origin || fa.origin_gate || '—',
+    delay_minutes: depDelay ? Math.round(Math.abs(depDelay) / 60) : 0,
     airline: fa.operator_iata || fa.operator || '—',
     _live: true,
   };

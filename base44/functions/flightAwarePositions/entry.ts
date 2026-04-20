@@ -1,6 +1,6 @@
-import { createClientFromRequest } from 'npm:@base44/sdk@0.8.23';
+import { createClientFromRequest } from 'npm:@base44/sdk@0.8.25';
 
-const FLIGHTAWARE_API = 'https://aeroapi.flightaware.com/aeroapi/v2';
+const BASE = 'https://aeroapi.flightaware.com/aeroapi';
 
 Deno.serve(async (req) => {
   try {
@@ -15,31 +15,32 @@ Deno.serve(async (req) => {
       return Response.json({ error: 'FlightAware API key not configured' }, { status: 500 });
     }
 
-    // Get recent flights (last 2 hours)
-    const twoHoursAgo = Math.floor((Date.now() - 2 * 3600000) / 1000);
-    
+    const headers = { 'x-apikey': apiKey, 'Accept': 'application/json' };
+
+    // Search for in-air flights
     const flightsRes = await fetch(
-      `${FLIGHTAWARE_API}/flights/search?query=inAir&max_pages=2`,
-      { headers: { Authorization: apiKey } }
+      `${BASE}/flights/search?query=-inAir+1&max_pages=2`,
+      { headers }
     );
     
     if (!flightsRes.ok) {
-      console.error('FlightAware flights error:', flightsRes.status);
+      const errText = await flightsRes.text();
+      console.error('FlightAware flights error:', flightsRes.status, errText);
       return Response.json({ aircraft: [] });
     }
 
     const flightsData = await flightsRes.json();
     const flights = flightsData.flights || [];
 
-    // Fetch detailed positions for active flights
+    // Fetch positions for active flights (limit to avoid rate limits)
     const positions = [];
     for (const flight of flights.slice(0, 20)) {
       if (!flight.fa_flight_id) continue;
 
       try {
         const trackRes = await fetch(
-          `${FLIGHTAWARE_API}/flights/${flight.fa_flight_id}/track`,
-          { headers: { Authorization: apiKey } }
+          `${BASE}/flights/${flight.fa_flight_id}/track`,
+          { headers }
         );
 
         if (trackRes.ok) {
@@ -55,8 +56,8 @@ Deno.serve(async (req) => {
               airline: flight.operator_iata || flight.operator || 'UNK',
               aircraft_type: flight.aircraft_type,
               tail: flight.registration,
-              latitude: latest.lat,
-              longitude: latest.lon,
+              latitude: latest.latitude,
+              longitude: latest.longitude,
               altitude: latest.altitude,
               ground_speed: latest.groundspeed,
               heading: latest.heading,

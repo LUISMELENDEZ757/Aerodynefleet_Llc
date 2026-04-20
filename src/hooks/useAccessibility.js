@@ -54,8 +54,10 @@ export function getMetricLabel(metric, value, unit = '') {
  * @param {boolean} trigger - Trigger focus change
  * @param {React.RefObject} ref - Element ref to focus
  */
+import { useEffect } from 'react';
+
 export function useFocusManagement(trigger, ref) {
-  React.useEffect(() => {
+  useEffect(() => {
     if (trigger && ref?.current) {
       ref.current.focus();
     }

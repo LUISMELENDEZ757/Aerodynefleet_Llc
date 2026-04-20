@@ -82,9 +82,9 @@ const FlightStrip = ({ flight, onSelect }) => {
 };
 
 const DetailDrawer = ({ flight, onClose }) => {
-  if (!flight) return null;
-
   const [activeTab, setActiveTab] = useState("details");
+
+  if (!flight) return null;
 
   return (
     <div className="fixed inset-0 z-50 flex items-start justify-center bg-black/40 backdrop-blur-sm pt-[96px]">

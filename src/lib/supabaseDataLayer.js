@@ -21,6 +21,7 @@ const db = {
       return data || [];
     },
     filter: async (filters = {}, limit = 500) => {
+      const supabase = await getClient();
       let query = supabase.from('Aircraft').select('*');
       Object.entries(filters).forEach(([key, value]) => {
         query = query.eq(key, value);
@@ -30,6 +31,7 @@ const db = {
       return data || [];
     },
     get: async (id) => {
+      const supabase = await getClient();
       const { data, error } = await supabase
         .from('Aircraft')
         .select('*')
@@ -39,6 +41,7 @@ const db = {
       return data;
     },
     create: async (record) => {
+      const supabase = await getClient();
       const { data, error } = await supabase
         .from('Aircraft')
         .insert([record])
@@ -48,6 +51,7 @@ const db = {
       return data;
     },
     update: async (id, updates) => {
+      const supabase = await getClient();
       const { data, error } = await supabase
         .from('Aircraft')
         .update(updates)
@@ -58,6 +62,7 @@ const db = {
       return data;
     },
     delete: async (id) => {
+      const supabase = await getClient();
       const { error } = await supabase
         .from('Aircraft')
         .delete()
@@ -69,6 +74,7 @@ const db = {
   // FLIGHTS
   flight: {
     list: async (orderBy = '-flight_date', limit = 500) => {
+      const supabase = await getClient();
       const { data, error } = await supabase
         .from('Flight')
         .select('*')
@@ -78,6 +84,7 @@ const db = {
       return data || [];
     },
     filter: async (filters = {}, limit = 500) => {
+      const supabase = await getClient();
       let query = supabase.from('Flight').select('*');
       Object.entries(filters).forEach(([key, value]) => {
         query = query.eq(key, value);
@@ -87,6 +94,7 @@ const db = {
       return data || [];
     },
     create: async (record) => {
+      const supabase = await getClient();
       const { data, error } = await supabase
         .from('Flight')
         .insert([record])
@@ -96,6 +104,7 @@ const db = {
       return data;
     },
     update: async (id, updates) => {
+      const supabase = await getClient();
       const { data, error } = await supabase
         .from('Flight')
         .update(updates)
@@ -110,6 +119,7 @@ const db = {
   // LOGBOOK ENTRIES
   logbookEntry: {
     list: async (orderBy = '-created_date', limit = 10000) => {
+      const supabase = await getClient();
       const { data, error } = await supabase
         .from('LogbookEntry')
         .select('*')
@@ -119,6 +129,7 @@ const db = {
       return data || [];
     },
     filter: async (filters = {}, limit = 10000) => {
+      const supabase = await getClient();
       let query = supabase.from('LogbookEntry').select('*');
       Object.entries(filters).forEach(([key, value]) => {
         query = query.eq(key, value);
@@ -128,6 +139,7 @@ const db = {
       return data || [];
     },
     create: async (record) => {
+      const supabase = await getClient();
       const { data, error } = await supabase
         .from('LogbookEntry')
         .insert([record])
@@ -137,6 +149,7 @@ const db = {
       return data;
     },
     update: async (id, updates) => {
+      const supabase = await getClient();
       const { data, error } = await supabase
         .from('LogbookEntry')
         .update(updates)
@@ -151,6 +164,7 @@ const db = {
   // FAULT MESSAGES
   faultMessage: {
     list: async (orderBy = '-created_date', limit = 5000) => {
+      const supabase = await getClient();
       const { data, error } = await supabase
         .from('FaultMessage')
         .select('*')
@@ -160,6 +174,7 @@ const db = {
       return data || [];
     },
     filter: async (filters = {}, limit = 5000) => {
+      const supabase = await getClient();
       let query = supabase.from('FaultMessage').select('*');
       Object.entries(filters).forEach(([key, value]) => {
         query = query.eq(key, value);
@@ -169,6 +184,7 @@ const db = {
       return data || [];
     },
     create: async (record) => {
+      const supabase = await getClient();
       const { data, error } = await supabase
         .from('FaultMessage')
         .insert([record])
@@ -178,6 +194,7 @@ const db = {
       return data;
     },
     update: async (id, updates) => {
+      const supabase = await getClient();
       const { data, error } = await supabase
         .from('FaultMessage')
         .update(updates)
@@ -192,6 +209,7 @@ const db = {
   // MEL ITEMS
   melItem: {
     list: async (orderBy = '-created_date', limit = 2000) => {
+      const supabase = await getClient();
       const { data, error } = await supabase
         .from('MELItem')
         .select('*')
@@ -201,6 +219,7 @@ const db = {
       return data || [];
     },
     filter: async (filters = {}, limit = 2000) => {
+      const supabase = await getClient();
       let query = supabase.from('MELItem').select('*');
       Object.entries(filters).forEach(([key, value]) => {
         query = query.eq(key, value);
@@ -214,6 +233,7 @@ const db = {
   // MAINTENANCE EVENTS
   maintenanceEvent: {
     list: async (orderBy = '-completed_date', limit = 3000) => {
+      const supabase = await getClient();
       const { data, error } = await supabase
         .from('MaintenanceEvent')
         .select('*')
@@ -223,6 +243,7 @@ const db = {
       return data || [];
     },
     filter: async (filters = {}, limit = 3000) => {
+      const supabase = await getClient();
       let query = supabase.from('MaintenanceEvent').select('*');
       Object.entries(filters).forEach(([key, value]) => {
         query = query.eq(key, value);
@@ -236,6 +257,7 @@ const db = {
   // COMPONENT LIFECYCLE
   componentLifecycle: {
     list: async (orderBy = '-created_date', limit = 2000) => {
+      const supabase = await getClient();
       const { data, error } = await supabase
         .from('ComponentLifecycle')
         .select('*')
@@ -245,6 +267,7 @@ const db = {
       return data || [];
     },
     filter: async (filters = {}, limit = 2000) => {
+      const supabase = await getClient();
       let query = supabase.from('ComponentLifecycle').select('*');
       Object.entries(filters).forEach(([key, value]) => {
         query = query.eq(key, value);
@@ -258,6 +281,7 @@ const db = {
   // AIRWORTHINESS DIRECTIVES
   airworthinessDirective: {
     list: async (orderBy = '-created_date', limit = 1000) => {
+      const supabase = await getClient();
       const { data, error } = await supabase
         .from('AirworthinessDirective')
         .select('*')
@@ -267,6 +291,7 @@ const db = {
       return data || [];
     },
     filter: async (filters = {}, limit = 1000) => {
+      const supabase = await getClient();
       let query = supabase.from('AirworthinessDirective').select('*');
       Object.entries(filters).forEach(([key, value]) => {
         query = query.eq(key, value);

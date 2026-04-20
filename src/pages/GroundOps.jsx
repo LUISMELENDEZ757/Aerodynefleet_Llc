@@ -203,7 +203,7 @@ export default function GroundOpsPage() {
             </div>
           </div>
           <div className="flex gap-2">
-            <button onClick={() => { refetch(); refetchArrivals(); refetchDepartures(); }} className="w-10 h-10 rounded-xl bg-secondary flex items-center justify-center hover:bg-secondary/80 transition-colors">
+            <button onClick={() => { refetch(); refetchAirport(); }} className="w-10 h-10 rounded-xl bg-secondary flex items-center justify-center hover:bg-secondary/80 transition-colors">
               <RefreshCw className="w-4 h-4 text-muted-foreground" />
             </button>
             <button onClick={() => setShowNew(true)} className="flex items-center gap-1.5 px-3 h-10 rounded-xl bg-primary text-primary-foreground text-xs font-bold hover:bg-primary/90">

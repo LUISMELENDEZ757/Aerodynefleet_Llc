@@ -130,7 +130,7 @@ export default function Home() {
       <section className="px-5 py-16 bg-secondary/40 border-t border-amber-400/30">
         <div className="max-w-3xl mx-auto space-y-8">
           <div className="text-center">
-            <h2 className="text-2xl font-black text-foreground mb-2">Why Electronics > Paper</h2>
+            <h2 className="text-2xl font-black text-foreground mb-2">{"Why Electronics > Paper"}</h2>
             <p className="text-muted-foreground">The operational truth behind moving to software-based systems</p>
           </div>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
