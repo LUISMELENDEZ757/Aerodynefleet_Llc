@@ -562,7 +562,10 @@ export default function AerodyneFleetOps() {
       }
       setLiveFlights(results);
     } catch (e) {
-      setLiveError(e.message);
+      const msg = e.message || '';
+      setLiveError(msg.includes('429')
+        ? 'FlightAware API rate limit reached. Please wait 30–60 seconds before fetching again.'
+        : msg);
     } finally {
       setLiveLoading(false);
     }
@@ -806,9 +809,19 @@ export default function AerodyneFleetOps() {
             {liveError && (
               <div className="m-4 bg-red-900/20 border border-red-500/30 rounded-xl px-4 py-3 flex items-start gap-2">
                 <AlertTriangle className="w-4 h-4 text-red-400 flex-shrink-0 mt-0.5" />
-                <div>
-                  <p className="text-xs font-bold text-red-400">FlightAware Error</p>
-                  <p className="text-[10px] text-red-300">{liveError}</p>
+                <div className="flex-1">
+                  <p className="text-xs font-bold text-red-400">
+                    {liveError.includes('rate limit') ? '⏱ Rate Limit Reached' : 'FlightAware Error'}
+                  </p>
+                  <p className="text-[10px] text-red-300 mt-0.5">{liveError}</p>
+                  {liveError.includes('rate limit') && (
+                    <button
+                      onClick={fetchLive}
+                      className="mt-2 text-[10px] font-bold px-3 py-1.5 rounded-lg bg-red-500/20 border border-red-500/30 text-red-300 hover:bg-red-500/30 transition-colors"
+                    >
+                      Retry
+                    </button>
+                  )}
                 </div>
               </div>
             )}
