@@ -1,0 +1,106 @@
+{
+  "name": "AvionicsReport",
+  "type": "object",
+  "description": "Avionics system health report ingested from any manufacturer's data feed (Boeing AHM, Airbus Skywise, Embraer AHEAD, etc.)",
+  "properties": {
+    "aircraft_tail": {
+      "type": "string",
+      "description": "Aircraft tail number"
+    },
+    "aircraft_type": {
+      "type": "string",
+      "description": "Aircraft type e.g. B737-800"
+    },
+    "manufacturer": {
+      "type": "string",
+      "description": "Aircraft manufacturer e.g. Boeing, Airbus, Embraer, Bombardier"
+    },
+    "data_source": {
+      "type": "string",
+      "description": "Source system e.g. Boeing AHM, Airbus Skywise, Embraer AHEAD, Manual Upload, ACARS"
+    },
+    "report_timestamp": {
+      "type": "string",
+      "description": "ISO timestamp of the report from the source"
+    },
+    "systems": {
+      "type": "array",
+      "description": "Array of avionics system health records",
+      "items": {
+        "type": "object",
+        "properties": {
+          "system_name": {
+            "type": "string"
+          },
+          "ata_chapter": {
+            "type": "string"
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "nominal",
+              "caution",
+              "fault",
+              "unknown"
+            ]
+          },
+          "fault_code": {
+            "type": "string"
+          },
+          "message": {
+            "type": "string"
+          },
+          "raw_value": {
+            "type": "string"
+          }
+        }
+      }
+    },
+    "nav_db_version": {
+      "type": "string",
+      "description": "Current nav database AIRAC cycle e.g. AIRAC 2604"
+    },
+    "fms_version": {
+      "type": "string",
+      "description": "FMS software version"
+    },
+    "dfdr_available": {
+      "type": "boolean",
+      "default": false,
+      "description": "DFDR/QAR data available for download"
+    },
+    "dfdr_flight_number": {
+      "type": "string"
+    },
+    "dfdr_flight_duration": {
+      "type": "string"
+    },
+    "dfdr_file_size_mb": {
+      "type": "number"
+    },
+    "dfdr_download_url": {
+      "type": "string"
+    },
+    "raw_payload": {
+      "type": "string",
+      "description": "Original JSON payload from manufacturer (stringified)"
+    },
+    "ingest_status": {
+      "type": "string",
+      "enum": [
+        "ok",
+        "partial",
+        "error"
+      ],
+      "default": "ok"
+    },
+    "notes": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "aircraft_tail",
+    "data_source",
+    "report_timestamp"
+  ]
+}
