@@ -49,7 +49,7 @@ function wmoToCondition(code) {
 }
 
 async function fetchOpenMeteo(lat, lon) {
-  const url = `https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&current_weather=true&daily=temperature_2m_max,temperature_2m_min,uv_index_max,sunrise,sunset&timezone=auto&forecast_days=1`;
+  const url = `https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&current_weather=true&current=relative_humidity_2m,apparent_temperature,surface_pressure,visibility,precipitation&daily=temperature_2m_max,temperature_2m_min,uv_index_max,sunrise,sunset&timezone=auto&forecast_days=1`;
   const res = await fetch(url);
   if (!res.ok) throw new Error('weather fetch failed');
   return res.json();
@@ -113,6 +113,7 @@ function DestinationCard({ dest, onSelect, selected, convertTemp }) {
             <Droplets className="w-3 h-3" />{dest.humidity}%
           </div>
         )}
+
       </div>
     </motion.button>
   );
@@ -121,14 +122,18 @@ function DestinationCard({ dest, onSelect, selected, convertTemp }) {
 function DetailPanel({ dest, convertTemp, unit }) {
   const { data: wx, isLoading, dataUpdatedAt } = useDestWeather(dest);
 
-  const liveTemp   = wx ? Math.round(wx.current_weather.temperature) : dest.temp;
-  const liveCode   = wx ? wx.current_weather.weathercode : null;
-  const liveWind   = wx ? Math.round(wx.current_weather.windspeed) : dest.wind;
-  const liveHigh   = wx?.daily?.temperature_2m_max?.[0] != null ? Math.round(wx.daily.temperature_2m_max[0]) : dest.high;
-  const liveLow    = wx?.daily?.temperature_2m_min?.[0] != null ? Math.round(wx.daily.temperature_2m_min[0]) : dest.low;
-  const liveUV     = wx?.daily?.uv_index_max?.[0] != null ? Math.round(wx.daily.uv_index_max[0]) : dest.uv;
-  const liveSunrise = wx?.daily?.sunrise?.[0] ? new Date(wx.daily.sunrise[0]).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' }) : dest.sunrise;
-  const liveSunset  = wx?.daily?.sunset?.[0]  ? new Date(wx.daily.sunset[0]).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' }) : dest.sunset;
+  const liveTemp     = wx ? Math.round(wx.current_weather.temperature) : dest.temp;
+  const liveCode     = wx ? wx.current_weather.weathercode : null;
+  const liveWind     = wx ? Math.round(wx.current_weather.windspeed) : dest.wind;
+  const liveHigh     = wx?.daily?.temperature_2m_max?.[0] != null ? Math.round(wx.daily.temperature_2m_max[0]) : dest.high;
+  const liveLow      = wx?.daily?.temperature_2m_min?.[0] != null ? Math.round(wx.daily.temperature_2m_min[0]) : dest.low;
+  const liveUV       = wx?.daily?.uv_index_max?.[0] != null ? Math.round(wx.daily.uv_index_max[0]) : dest.uv;
+  const liveHumidity = wx?.current?.relative_humidity_2m ?? dest.humidity;
+  const liveFeels    = wx?.current?.apparent_temperature != null ? Math.round(wx.current.apparent_temperature) : dest.feels;
+  const livePressure = wx?.current?.surface_pressure != null ? Math.round(wx.current.surface_pressure) : dest.pressure;
+  const liveVis      = wx?.current?.visibility != null ? Math.round(wx.current.visibility / 1000) : dest.vis;
+  const liveSunrise  = wx?.daily?.sunrise?.[0] ? new Date(wx.daily.sunrise[0]).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' }) : dest.sunrise;
+  const liveSunset   = wx?.daily?.sunset?.[0]  ? new Date(wx.daily.sunset[0]).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' }) : dest.sunset;
   const liveCondition = liveCode != null ? wmoToCondition(liveCode) : dest.condition;
   const liveIcon      = liveCode != null ? wmoCondition(liveCode).icon : dest.icon;
   const liveDesc      = liveCode != null ? wmoCondition(liveCode).label : dest.desc;
@@ -183,9 +188,9 @@ function DetailPanel({ dest, convertTemp, unit }) {
       <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
         {[
           { icon: Wind,        label: 'Wind',        value: `${liveWind} km/h` },
-          { icon: Droplets,    label: 'Humidity',    value: `${dest.humidity}%` },
-          { icon: Eye,         label: 'Visibility',  value: `${dest.vis} km` },
-          { icon: Gauge,       label: 'Pressure',    value: `${dest.pressure} hPa` },
+          { icon: Droplets,    label: 'Humidity',    value: `${liveHumidity}%` },
+          { icon: Eye,         label: 'Visibility',  value: `${liveVis} km` },
+          { icon: Gauge,       label: 'Pressure',    value: `${livePressure} hPa` },
           { icon: Sunrise,     label: 'Sunrise',     value: liveSunrise },
           { icon: Sunset,      label: 'Sunset',      value: liveSunset },
         ].map(({ icon: Icon, label, value }) => (
@@ -239,7 +244,7 @@ function DetailPanel({ dest, convertTemp, unit }) {
           <Star className="w-3.5 h-3.5" /> Packing Tip
         </p>
         <p className="text-sm text-amber-200">
-          {dest.humidity > 80 ? 'High humidity — pack light, breathable fabrics and extra sunscreen.' :
+          {liveHumidity > 80 ? 'High humidity — pack light, breathable fabrics and extra sunscreen.' :
            liveWind > 20 ? 'Breezy conditions — bring a light jacket for evenings.' :
            liveUV >= 10 ? 'Extreme UV — reef-safe SPF 50+ and a hat are must-haves.' :
            liveCondition === 'thunderstorm' ? 'Storms possible — pack a compact rain poncho for afternoon showers.' :
