@@ -189,45 +189,62 @@ function TechModal({ tech, onClose, onSave }) {
 // ── Actions Dropdown ──────────────────────────────────────────────────────────
 function ActionsMenu({ tech, onEdit, onDelete, onChangeStatus, onAssign }) {
   const [open, setOpen] = useState(false);
-  const ref = useRef(null);
+  const [menuPos, setMenuPos] = useState({ top: 0, right: 0 });
+  const btnRef = useRef(null);
 
   useEffect(() => {
-    const handler = (e) => { if (ref.current && !ref.current.contains(e.target)) setOpen(false); };
+    if (!open) return;
+    const handler = (e) => { if (btnRef.current && !btnRef.current.contains(e.target)) setOpen(false); };
     document.addEventListener('mousedown', handler);
     return () => document.removeEventListener('mousedown', handler);
-  }, []);
+  }, [open]);
+
+  const handleOpen = () => {
+    if (btnRef.current) {
+      const rect = btnRef.current.getBoundingClientRect();
+      setMenuPos({
+        top: rect.bottom + window.scrollY + 4,
+        right: window.innerWidth - rect.right,
+      });
+    }
+    setOpen(v => !v);
+  };
 
   const statusOptions = Object.entries(STATUS_CFG).filter(([k]) => k !== tech.status);
 
   return (
-    <div ref={ref} className="relative">
+    <>
       <button
-        onClick={() => setOpen(v => !v)}
+        ref={btnRef}
+        onClick={handleOpen}
         className="w-9 h-9 rounded-xl bg-blue-500/15 border border-blue-500/20 flex items-center justify-center hover:bg-blue-500/30 transition-colors"
       >
         <MoreHorizontal className="w-4 h-4 text-blue-400" />
       </button>
 
       {open && (
-        <div className="absolute right-0 top-full mt-1 z-50 bg-[#141922] border border-white/10 rounded-xl shadow-2xl min-w-[200px] py-1 overflow-hidden">
+        <div
+          style={{ position: 'fixed', top: menuPos.top, right: menuPos.right, zIndex: 9999 }}
+          className="bg-[#141922] border border-white/10 rounded-xl shadow-2xl min-w-[210px] py-1 overflow-hidden"
+        >
           {/* Edit */}
           <button onClick={() => { onEdit(tech); setOpen(false); }}
-            className="w-full flex items-center gap-2.5 px-4 py-2.5 text-xs font-bold text-gray-300 hover:bg-white/8 hover:text-white transition-colors">
+            className="w-full flex items-center gap-2.5 px-4 py-2.5 text-xs font-bold text-gray-300 hover:bg-white/10 hover:text-white transition-colors">
             <Pencil className="w-3.5 h-3.5 text-blue-400" /> Edit Details
           </button>
 
           {/* Assign Aircraft */}
           <button onClick={() => { onAssign(tech); setOpen(false); }}
-            className="w-full flex items-center gap-2.5 px-4 py-2.5 text-xs font-bold text-gray-300 hover:bg-white/8 hover:text-white transition-colors">
+            className="w-full flex items-center gap-2.5 px-4 py-2.5 text-xs font-bold text-gray-300 hover:bg-white/10 hover:text-white transition-colors">
             <Plane className="w-3.5 h-3.5 text-cyan-400" /> Assign Aircraft
           </button>
 
-          {/* Change Status submenu */}
+          {/* Change Status */}
           <div className="border-t border-white/8 mt-1 pt-1">
             <p className="px-4 py-1 text-[9px] font-extrabold text-gray-600 uppercase tracking-widest">Change Status</p>
             {statusOptions.map(([key, cfg]) => (
               <button key={key} onClick={() => { onChangeStatus(tech, key); setOpen(false); }}
-                className="w-full flex items-center gap-2.5 px-4 py-2 text-xs font-bold text-gray-400 hover:bg-white/8 hover:text-white transition-colors">
+                className="w-full flex items-center gap-2.5 px-4 py-2 text-xs font-bold text-gray-400 hover:bg-white/10 hover:text-white transition-colors">
                 <span className={cn('w-2 h-2 rounded-full flex-shrink-0', cfg.dot)} />
                 {cfg.label}
               </button>
@@ -243,7 +260,7 @@ function ActionsMenu({ tech, onEdit, onDelete, onChangeStatus, onAssign }) {
           </div>
         </div>
       )}
-    </div>
+    </>
   );
 }
 
