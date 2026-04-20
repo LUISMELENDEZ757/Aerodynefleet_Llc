@@ -319,6 +319,7 @@ function FlightDetailPanel({ flight, aircraft }) {
 // ── Live feed filter bar ──────────────────────────────────────────────────────
 const FLEET_TYPES = ['All Types','B737-700','B737-800','B737-900','B737 MAX 8','B737 MAX 9','B757','B767','B777','B787','A320','A321','A350','E190','CRJ900'];
 const PERIODS = ['1 HR','2 HRS','4 HRS','8 HRS','12 HRS','24 HRS'];
+const PERIOD_HOURS = { '1 HR': 1, '2 HRS': 2, '4 HRS': 4, '8 HRS': 8, '12 HRS': 12, '24 HRS': 24 };
 
 const FILTER_CATEGORIES = [
   { id: 'carrier',     label: 'Carrier',          options: ['UAL','AAL','DAL','SWA','JBU','ASA','FFT'] },
@@ -611,7 +612,17 @@ export default function AerodyneFleetOps() {
     const statusFilters = activeFilters.flightStatus || [];
     const matchSidebarStatus = statusFilters.length === 0 || statusFilters.includes(f.status);
 
-    return matchStatus && matchSearch && matchCarrier && matchFleet && matchSidebarStatus;
+    // Time window filter — check scheduled departure or arrival falls within now ± periodHours
+    const periodHours = PERIOD_HOURS[period] || 24;
+    const now = Date.now();
+    const windowMs = periodHours * 3600000;
+    const refTime = f._raw_dep || f._raw_arr;
+    const matchPeriod = !refTime || (() => {
+      const t = new Date(refTime).getTime();
+      return t >= now - windowMs && t <= now + windowMs;
+    })();
+
+    return matchStatus && matchSearch && matchCarrier && matchFleet && matchSidebarStatus && matchPeriod;
   });
 
   // KPIs
