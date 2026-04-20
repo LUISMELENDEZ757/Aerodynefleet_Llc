@@ -193,12 +193,16 @@ function ActionsMenu({ tech, onEdit, onDelete, onChangeStatus, onAssign }) {
   const [menuPos, setMenuPos] = useState({ top: 0, right: 0 });
   const btnRef = useRef(null);
 
+  const menuRef = useRef(null);
+
   useEffect(() => {
     if (!open) return;
     const handler = (e) => {
-      if (btnRef.current && !btnRef.current.contains(e.target)) {
-        // Delay so click handlers on menu items fire first
-        setTimeout(() => setOpen(false), 100);
+      if (
+        btnRef.current && !btnRef.current.contains(e.target) &&
+        menuRef.current && !menuRef.current.contains(e.target)
+      ) {
+        setOpen(false);
       }
     };
     document.addEventListener('mousedown', handler);
@@ -231,6 +235,7 @@ function ActionsMenu({ tech, onEdit, onDelete, onChangeStatus, onAssign }) {
 
       {open && (
         <div
+          ref={menuRef}
           style={{ position: 'fixed', top: menuPos.top, right: menuPos.right, zIndex: 9999 }}
           className="bg-[#141922] border border-white/10 rounded-xl shadow-2xl min-w-[210px] py-1 overflow-hidden"
         >
