@@ -199,6 +199,7 @@ const AuthenticatedApp = () => {
     <Suspense fallback={<PageFallback />}>
     <Routes>
       <Route path="/" element={<Home />} />
+      <Route path="/Home" element={<Home />} />
       <Route element={<AppLayout />}>
         <Route path="/OpsHub" element={<OpsHub />} />
         <Route path="/Dashboard" element={<Dashboard />} />
