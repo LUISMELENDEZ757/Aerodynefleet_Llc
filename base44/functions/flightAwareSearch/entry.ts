@@ -86,12 +86,12 @@ Deno.serve(async (req) => {
     if (type === 'airport_board' && airport) {
       const code = airport.toUpperCase();
       const [depData, arrData] = await Promise.all([
-        faFetch(`/airports/${code}/flights/departures?max_pages=1`),
-        faFetch(`/airports/${code}/flights/arrivals?max_pages=1`),
+        faFetch(`/airports/${code}/flights/departures?max_pages=2&per_page=50`),
+        faFetch(`/airports/${code}/flights/arrivals?max_pages=2&per_page=50`),
       ]);
       return Response.json({
-        departures: depData.departures || [],
-        arrivals: arrData.arrivals || [],
+        departures: (depData.departures || []).slice(0, 50),
+        arrivals: (arrData.arrivals || []).slice(0, 50),
       });
     }
 
