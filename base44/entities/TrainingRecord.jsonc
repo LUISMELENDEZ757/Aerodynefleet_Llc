@@ -1,0 +1,152 @@
+{
+  "name": "TrainingRecord",
+  "type": "object",
+  "description": "Crew training records, recurrency items, currency expiration tracking, and technician staffing profiles.",
+  "properties": {
+    "crew_name": {
+      "type": "string"
+    },
+    "employee_id": {
+      "type": "string"
+    },
+    "role": {
+      "type": "string",
+      "enum": [
+        "captain",
+        "first_officer",
+        "flight_attendant",
+        "dispatcher"
+      ]
+    },
+    "aircraft_type": {
+      "type": "string"
+    },
+    "training_type": {
+      "type": "string",
+      "enum": [
+        "initial",
+        "recurrent",
+        "upgrade",
+        "special",
+        "sim_check",
+        "line_check",
+        "emergency",
+        "security"
+      ]
+    },
+    "training_name": {
+      "type": "string"
+    },
+    "completed_date": {
+      "type": "string",
+      "format": "date"
+    },
+    "expiry_date": {
+      "type": "string",
+      "format": "date"
+    },
+    "instructor": {
+      "type": "string"
+    },
+    "sim_device": {
+      "type": "string"
+    },
+    "grade": {
+      "type": "string",
+      "enum": [
+        "satisfactory",
+        "unsatisfactory",
+        "needs_improvement",
+        "outstanding"
+      ]
+    },
+    "currency_items": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "item": {
+            "type": "string"
+          },
+          "last_completed": {
+            "type": "string"
+          },
+          "expires": {
+            "type": "string"
+          },
+          "count_required": {
+            "type": "number"
+          },
+          "count_completed": {
+            "type": "number"
+          }
+        }
+      }
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "current",
+        "expiring_soon",
+        "expired",
+        "in_progress"
+      ],
+      "default": "current"
+    },
+    "certificate_url": {
+      "type": "string"
+    },
+    "notes": {
+      "type": "string"
+    },
+    "employee_name": {
+      "type": "string",
+      "description": "Technician full name"
+    },
+    "station": {
+      "type": "string",
+      "description": "Home station ICAO e.g. KEWR"
+    },
+    "years_experience": {
+      "type": "number",
+      "description": "Years of experience"
+    },
+    "certifications": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "Certifications held e.g. A&P, IA, RII"
+    },
+    "specialty": {
+      "type": "string",
+      "description": "Specialty or title e.g. Lead A&P / Avionics"
+    },
+    "duty_status": {
+      "type": "string",
+      "enum": [
+        "on_duty",
+        "assigned",
+        "available",
+        "on_break",
+        "in_transit",
+        "training",
+        "aog",
+        "off_duty"
+      ],
+      "default": "available",
+      "description": "Current duty status"
+    },
+    "current_aircraft": {
+      "type": "string",
+      "description": "Aircraft tail currently assigned to"
+    },
+    "shift_hours_remaining": {
+      "type": "number",
+      "description": "Hours remaining in current shift"
+    }
+  },
+  "required": [
+    "employee_name"
+  ]
+}
