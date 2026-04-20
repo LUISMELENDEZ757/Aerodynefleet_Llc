@@ -125,69 +125,92 @@ function FleetCard({ fleet, aircraft, onEdit, onDelete }) {
   const fleetAircraft = aircraft.filter(a => a.fleet_id === fleet.id || a.airline === fleet.name);
   const activeCount = fleetAircraft.filter(a => a.status === 'active').length;
   const oosCount = fleetAircraft.filter(a => a.status === 'oos' || a.status === 'maintenance').length;
+  const visibleTails = fleetAircraft.slice(0, 8);
+  const extraCount = fleetAircraft.length - visibleTails.length;
 
   return (
-    <div className="bg-[#141922] border border-white/10 rounded-2xl overflow-hidden hover:border-white/20 transition-all">
-      {/* Color bar */}
-      <div className="h-1.5 w-full" style={{ background: col }} />
+    <div
+      className="bg-[#12161f] rounded-2xl overflow-hidden transition-all hover:translate-y-[-2px] hover:shadow-xl"
+      style={{ border: `1.5px solid ${col}55`, boxShadow: `0 0 0 0px ${col}00` }}
+    >
+      {/* Colored top border accent */}
+      <div className="h-[3px] w-full" style={{ background: `linear-gradient(90deg, ${col}, ${col}88)` }} />
+
       <div className="p-5">
-        <div className="flex items-start justify-between gap-3 mb-4">
+        {/* Header row */}
+        <div className="flex items-start justify-between gap-2 mb-4">
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-xl flex items-center justify-center text-white font-extrabold text-sm" style={{ background: `${col}30`, border: `1.5px solid ${col}60` }}>
-              {fleet.icao_code?.slice(0,3)}
+            {/* ICAO badge */}
+            <div
+              className="w-11 h-11 rounded-xl flex items-center justify-center text-white font-black text-sm tracking-wider flex-shrink-0"
+              style={{ background: `linear-gradient(135deg, ${col}55, ${col}22)`, border: `1.5px solid ${col}70` }}
+            >
+              {fleet.icao_code?.slice(0,3) || '?'}
             </div>
-            <div>
-              <p className="font-extrabold text-white text-base leading-tight">{fleet.name}</p>
-              <p className="text-xs text-gray-400">{fleet.fleet_type?.replace('_',' ')} · {fleet.callsign || '—'}</p>
+            <div className="min-w-0">
+              <p className="font-extrabold text-white text-[15px] leading-tight truncate">{fleet.name}</p>
+              <p className="text-[11px] text-gray-500 mt-0.5">{fleet.fleet_type?.replace('_',' ')} · {fleet.callsign || '—'}</p>
             </div>
           </div>
-          <div className="flex items-center gap-1">
-            <button onClick={() => onEdit(fleet)} className="w-8 h-8 rounded-lg bg-white/5 flex items-center justify-center hover:bg-white/10 transition-colors">
-              <Edit3 className="w-3.5 h-3.5 text-gray-400" />
+          <div className="flex items-center gap-1 flex-shrink-0">
+            <button onClick={() => onEdit(fleet)} className="w-8 h-8 rounded-lg flex items-center justify-center text-gray-500 hover:text-gray-300 hover:bg-white/8 transition-colors">
+              <Edit3 className="w-3.5 h-3.5" />
             </button>
-            <button onClick={() => onDelete(fleet.id)} className="w-8 h-8 rounded-lg bg-white/5 flex items-center justify-center hover:bg-red-500/20 transition-colors">
-              <Trash2 className="w-3.5 h-3.5 text-gray-500" />
+            <button onClick={() => onDelete(fleet.id)} className="w-8 h-8 rounded-lg flex items-center justify-center text-gray-600 hover:text-red-400 hover:bg-red-500/10 transition-colors">
+              <Trash2 className="w-3.5 h-3.5" />
             </button>
           </div>
         </div>
 
-        <div className="grid grid-cols-3 gap-2 mb-4">
-          <div className="text-center bg-[#0d1117] rounded-xl py-2">
-            <p className="text-xl font-extrabold" style={{ color: col }}>{fleetAircraft.length}</p>
-            <p className="text-[9px] text-gray-500 uppercase font-bold">Aircraft</p>
+        {/* Stats row — matches image style */}
+        <div className="grid grid-cols-3 gap-3 mb-4">
+          <div className="text-center">
+            <p className="text-3xl font-black leading-none" style={{ color: col }}>{fleetAircraft.length}</p>
+            <p className="text-[9px] font-extrabold text-gray-500 uppercase tracking-widest mt-1">Aircraft</p>
           </div>
-          <div className="text-center bg-[#0d1117] rounded-xl py-2">
-            <p className="text-xl font-extrabold text-green-400">{activeCount}</p>
-            <p className="text-[9px] text-gray-500 uppercase font-bold">Active</p>
+          <div className="text-center">
+            <p className="text-3xl font-black leading-none text-green-400">{activeCount}</p>
+            <p className="text-[9px] font-extrabold text-gray-500 uppercase tracking-widest mt-1">Active</p>
           </div>
-          <div className="text-center bg-[#0d1117] rounded-xl py-2">
-            <p className={cn('text-xl font-extrabold', oosCount > 0 ? 'text-red-400' : 'text-gray-600')}>{oosCount}</p>
-            <p className="text-[9px] text-gray-500 uppercase font-bold">OOS</p>
+          <div className="text-center">
+            <p className={cn('text-3xl font-black leading-none', oosCount > 0 ? 'text-red-400' : 'text-gray-600')}>{oosCount}</p>
+            <p className="text-[9px] font-extrabold text-gray-500 uppercase tracking-widest mt-1">OOS</p>
           </div>
         </div>
 
-        <div className="flex items-center justify-between text-xs">
-          <div className="flex items-center gap-2 text-gray-400">
-            <Globe className="w-3.5 h-3.5" />
+        {/* Divider */}
+        <div className="border-t border-white/6 mb-3" />
+
+        {/* Hub + status row */}
+        <div className="flex items-center justify-between mb-3">
+          <div className="flex items-center gap-2 text-[12px] text-gray-400">
+            <Globe className="w-3.5 h-3.5" style={{ color: col }} />
             <span>Hub: <span className="text-white font-bold">{fleet.hub_station || '—'}</span></span>
           </div>
-          <span className={cn('text-[10px] font-bold px-2 py-1 rounded-full',
-            fleet.status === 'active' ? 'bg-green-500/15 text-green-400' :
-            fleet.status === 'suspended' ? 'bg-red-500/15 text-red-400' :
-            'bg-gray-500/15 text-gray-400'
-          )}>{fleet.status?.toUpperCase()}</span>
+          <span className={cn(
+            'text-[10px] font-extrabold px-2.5 py-1 rounded-full uppercase tracking-wider',
+            fleet.status === 'active'    ? 'bg-green-500/20 text-green-400 border border-green-500/30' :
+            fleet.status === 'suspended' ? 'bg-red-500/20 text-red-400 border border-red-500/30' :
+                                           'bg-gray-500/15 text-gray-400 border border-gray-500/20'
+          )}>
+            {fleet.status || 'ACTIVE'}
+          </span>
         </div>
 
-        {/* Aircraft tails preview */}
+        {/* Tail chips */}
         {fleetAircraft.length > 0 && (
-          <div className="mt-3 flex flex-wrap gap-1">
-            {fleetAircraft.slice(0, 6).map(a => (
-              <span key={a.id} className="text-[10px] font-mono px-2 py-0.5 rounded-lg border" style={{ borderColor: `${col}40`, color: col, background: `${col}10` }}>
+          <div className="flex flex-wrap gap-1.5">
+            {visibleTails.map(a => (
+              <span
+                key={a.id}
+                className="text-[10px] font-mono font-bold px-2 py-0.5 rounded-md"
+                style={{ color: col, background: `${col}18`, border: `1px solid ${col}35` }}
+              >
                 {a.tail_number}
               </span>
             ))}
-            {fleetAircraft.length > 6 && (
-              <span className="text-[10px] text-gray-500 px-2 py-0.5">+{fleetAircraft.length - 6} more</span>
+            {extraCount > 0 && (
+              <span className="text-[10px] text-gray-500 font-bold px-1.5 py-0.5">+{extraCount} more</span>
             )}
           </div>
         )}
