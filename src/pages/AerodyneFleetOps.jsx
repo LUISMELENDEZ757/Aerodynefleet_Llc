@@ -530,12 +530,16 @@ export default function AerodyneFleetOps() {
 
   const filtered = sourceFlights.filter(f => {
     const s = f.status;
+
+    // Status tab filter
     const matchStatus =
       statusFilter === 'all'      ? true :
       statusFilter === 'active'   ? isActive(s) :
       statusFilter === 'airborne' ? isAirborne(s) :
       statusFilter === 'delayed'  ? (f.delay_minutes || 0) > 0 :
       statusFilter === 'arrived'  ? isArrived(s) : true;
+
+    // Search filter
     const q = search.toLowerCase();
     const matchSearch = !search ||
       f.flight_number?.toLowerCase().includes(q) ||
@@ -544,7 +548,25 @@ export default function AerodyneFleetOps() {
       f.aircraft_tail?.toLowerCase().includes(q) ||
       f.airline?.toLowerCase().includes(q) ||
       f.aircraft_type?.toLowerCase().includes(q);
-    return matchStatus && matchSearch;
+
+    // Sidebar: Carrier filter
+    const carrierFilters = activeFilters.carrier || [];
+    const matchCarrier = carrierFilters.length === 0 || carrierFilters.some(c =>
+      f.airline?.toUpperCase().includes(c) || f.flight_number?.toUpperCase().startsWith(c)
+    );
+
+    // Sidebar: Fleet type filter
+    const fleetFilters = activeFilters.fleetType || [];
+    const matchFleet = fleetFilters.length === 0 || fleetFilters.some(ft => {
+      const allowed = FLEET_ICAO_MAP[ft] || [];
+      return allowed.some(code => f.aircraft_type?.toUpperCase().startsWith(code));
+    });
+
+    // Sidebar: Flight status filter
+    const statusFilters = activeFilters.flightStatus || [];
+    const matchSidebarStatus = statusFilters.length === 0 || statusFilters.includes(f.status);
+
+    return matchStatus && matchSearch && matchCarrier && matchFleet && matchSidebarStatus;
   });
 
   // KPIs
