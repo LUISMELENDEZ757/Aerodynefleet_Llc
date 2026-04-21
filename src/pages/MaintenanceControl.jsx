@@ -110,19 +110,35 @@ function AircraftRecoveryModal({ selectedLocation, onClose, oosEntries, aircraft
                     <p className="text-xs font-bold text-gray-400 uppercase tracking-widest mb-3">👷 Team Members ({trip.technicians_assigned?.length || 0})</p>
                     {trip.technicians_assigned?.length > 0 ? (
                       <div className="space-y-2">
-                        {trip.technicians_assigned.map((tech, i) => (
-                          <div key={i} className="bg-[#0d1117] p-3 rounded-lg">
-                            <div className="flex items-center justify-between mb-1">
-                              <p className="text-sm font-bold text-white">{tech.name}</p>
-                              <span className="text-[10px] bg-purple-500/20 text-purple-400 px-2 py-0.5 rounded font-bold">{tech.role}</span>
+                        {trip.technicians_assigned.map((tech, i) => {
+                          const roleColors = {
+                            supervisor: 'bg-red-500/20 text-red-400',
+                            inspector_rii: 'bg-orange-500/20 text-orange-400',
+                            quality_inspector: 'bg-yellow-500/20 text-yellow-400',
+                            lead_ap: 'bg-blue-500/20 text-blue-400',
+                            specialty_tech: 'bg-green-500/20 text-green-400',
+                          };
+                          const roleColor = roleColors[tech.role] || 'bg-purple-500/20 text-purple-400';
+                          return (
+                            <div key={i} className="bg-[#0d1117] p-3 rounded-lg border border-white/5">
+                              <div className="flex items-center justify-between mb-2">
+                                <p className="text-sm font-bold text-white">{tech.name}</p>
+                                <span className={`text-[10px] ${roleColor} px-2 py-0.5 rounded font-bold`}>
+                                  {tech.role?.replace(/_/g, ' ').toUpperCase()}
+                                </span>
+                              </div>
+                              <div className="space-y-1 text-[10px] text-gray-400">
+                                <p><span className="text-gray-500">Employee ID:</span> <span className="font-mono text-white">{tech.employee_id}</span></p>
+                                <p><span className="text-gray-500">Company ID:</span> <span className="font-mono text-white">{tech.company_id}</span></p>
+                                {tech.certification && <p><span className="text-gray-500">Cert:</span> <span className="font-bold text-cyan-400">{tech.certification}</span></p>}
+                                {tech.specialty && <p><span className="text-gray-500">Specialty:</span> <span className="text-white">{tech.specialty}</span></p>}
+                                {tech.phone && <p><span className="text-gray-500">Phone:</span> <span className="font-mono text-white">{tech.phone}</span></p>}
+                                {tech.passport_number && <p><span className="text-gray-500">Passport:</span> <span className="font-mono text-white">{tech.passport_number}</span></p>}
+                                {tech.notes && <p className="text-gray-500 italic mt-1">{tech.notes}</p>}
+                              </div>
                             </div>
-                            <div className="grid grid-cols-2 gap-2 text-[10px] text-gray-400 mt-2">
-                              <p><span className="text-gray-500">Employee ID:</span> <span className="font-mono text-white">{tech.employee_id}</span></p>
-                              <p><span className="text-gray-500">Company ID:</span> <span className="font-mono text-white">{tech.company_id}</span></p>
-                              {tech.passport_number && <p className="col-span-2"><span className="text-gray-500">Passport:</span> <span className="font-mono text-white">{tech.passport_number}</span></p>}
-                            </div>
-                          </div>
-                        ))}
+                          );
+                        })}
                       </div>
                     ) : (
                       <p className="text-xs text-gray-600">No technicians assigned</p>

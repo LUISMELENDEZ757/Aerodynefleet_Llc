@@ -45,17 +45,47 @@
             "type": "string"
           },
           "role": {
-            "type": "string"
+            "type": "string",
+            "enum": [
+              "lead_ap",
+              "ap",
+              "avionics_tech",
+              "powerplant_tech",
+              "hydraulics_tech",
+              "structures_tech",
+              "electrical_tech",
+              "inspector_rii",
+              "supervisor",
+              "quality_inspector",
+              "specialty_tech"
+            ],
+            "description": "Role on the team"
+          },
+          "specialty": {
+            "type": "string",
+            "description": "Specialty area (e.g. Turbine Engines, Avionics Systems)"
+          },
+          "certification": {
+            "type": "string",
+            "description": "Relevant certification (e.g. A&P, IA, RII)"
           },
           "passport_number": {
             "type": "string"
           },
           "company_id": {
             "type": "string"
+          },
+          "phone": {
+            "type": "string",
+            "description": "Contact phone number"
+          },
+          "notes": {
+            "type": "string",
+            "description": "Additional notes about this team member"
           }
         }
       },
-      "description": "Team members assigned to the trip"
+      "description": "Team members assigned to the trip (technicians, supervisors, inspectors, specialty techs)"
     },
     "flight_number": {
       "type": "string",
