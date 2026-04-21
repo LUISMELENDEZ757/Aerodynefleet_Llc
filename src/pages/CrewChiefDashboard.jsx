@@ -9,6 +9,7 @@ import {
   Package, RefreshCw, Plus, Zap, Shield, BookOpen, FileCheck,
   Play, Send, X, Activity, ChevronRight, MapPin, ChevronDown
 } from 'lucide-react';
+import LiveClock from '@/components/ui/LiveClock';
 import { cn } from '@/lib/utils';
 
 const TODAY = new Date().toISOString().split('T')[0];
@@ -351,6 +352,7 @@ export default function CrewChiefDashboard() {
             <button onClick={() => refetch()} className="w-9 h-9 rounded-lg bg-secondary flex items-center justify-center hover:bg-secondary/80">
               <RefreshCw className={cn('w-4 h-4 text-muted-foreground', isLoading && 'animate-spin')} />
             </button>
+            <LiveClock />
           </div>
         </div>
 
