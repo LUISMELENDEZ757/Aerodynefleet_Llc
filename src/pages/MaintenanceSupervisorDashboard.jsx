@@ -11,6 +11,7 @@ import {
 import { cn } from '@/lib/utils';
 import LiveClock from '@/components/ui/LiveClock';
 import TasksModule from '@/components/mxsup/TasksModule';
+import StationComplianceWidget from '@/components/mxsup/StationComplianceWidget';
 
 const TODAY = new Date().toISOString().split('T')[0];
 
@@ -440,6 +441,46 @@ export default function MaintenanceSupervisorDashboard() {
               <KpiCard label="In Maintenance" value={inMaintenance.length} color="text-amber-400"                                              icon={Wrench} />
               <KpiCard label="Active Faults" value={stationFaults.length} color={stationFaults.length > 0 ? 'text-orange-400' : 'text-green-400'} icon={Zap} />
               <KpiCard label="Open MELs"     value={stationMels.length}   color={stationMels.length > 0 ? 'text-amber-400' : 'text-green-400'}   icon={FileCheck} />
+            </div>
+
+            {/* Station Compliance Widgets */}
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-3">
+              <StationComplianceWidget 
+                title="E-Logbook Compliance" 
+                compliancePercent={open.length === 0 ? 100 : Math.round((closedToday.length / (closedToday.length + open.length)) * 100)}
+                total={closedToday.length + open.length}
+                closed={closedToday.length}
+                signed={discrepancies.filter(e => e.is_signed).length}
+                rejected={0}
+                color={open.length === 0 ? 'text-green-400' : 'text-red-400'}
+              />
+              <StationComplianceWidget 
+                title="MEL/NEF/CDL Compliance" 
+                compliancePercent={stationMels.length === 0 ? 100 : Math.round(((stationMels.length - stationMels.filter(m => m.status === 'expired').length) / stationMels.length) * 100)}
+                total={stationMels.length}
+                closed={stationMels.filter(m => m.status === 'cleared').length}
+                signed={stationMels.filter(m => m.status === 'approved').length}
+                rejected={stationMels.filter(m => m.status === 'expired').length}
+                color={stationMels.filter(m => m.status === 'expired').length === 0 ? 'text-green-400' : 'text-red-400'}
+              />
+              <StationComplianceWidget 
+                title="Workload Distribution" 
+                compliancePercent={unassigned.length === 0 ? 100 : Math.round(((activeWork.length - unassigned.length) / activeWork.length) * 100)}
+                total={activeWork.length}
+                closed={activeWork.filter(w => w.discrepancy_status === 'CLOSED').length}
+                signed={activeWork.filter(w => w.technician_name).length}
+                rejected={unassigned.length}
+                color={unassigned.length === 0 ? 'text-green-400' : 'text-amber-400'}
+              />
+              <StationComplianceWidget 
+                title="AD Compliance" 
+                compliancePercent={stationAds.length === 0 ? 100 : Math.round(((stationAds.length - stationAds.filter(a => a.status === 'overdue').length) / stationAds.length) * 100)}
+                total={stationAds.length}
+                closed={stationAds.filter(a => a.status === 'complied').length}
+                signed={stationAds.filter(a => a.status === 'complied').length}
+                rejected={stationAds.filter(a => a.status === 'overdue').length}
+                color={stationAds.filter(a => a.status === 'overdue').length === 0 ? 'text-green-400' : 'text-red-400'}
+              />
             </div>
 
             {/* Local aircraft grid */}
