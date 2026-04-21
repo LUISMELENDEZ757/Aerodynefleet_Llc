@@ -5,6 +5,7 @@ import {
   Package, BookOpen, GraduationCap, FileText, DollarSign,
   BarChart3, Home, Activity, Shield
 } from 'lucide-react';
+import LiveClock from '@/components/ui/LiveClock';
 
 const TECH_CARDS = [
   { icon: Shield,        iconBg: 'bg-red-700',    title: 'MCC',            subtitle: 'Maint. Control Center',     path: '/MaintenanceControl' },
@@ -49,6 +50,9 @@ export default function TechOpsDashboard() {
         </div>
         <h1 className="text-3xl font-extrabold text-white tracking-wide">Tech Operations</h1>
         <p className="text-sm text-gray-500 mt-1">Maintenance, MEL, Ground Ops & more</p>
+        <div className="flex justify-center mt-3">
+          <LiveClock />
+        </div>
       </motion.div>
 
       <div className="w-full max-w-lg">
