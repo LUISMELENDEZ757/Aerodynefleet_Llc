@@ -6,7 +6,7 @@ import { Link } from 'react-router-dom';
 import {
   Wrench, ChevronLeft, AlertTriangle, CheckCircle, Clock, Users,
   Package, RefreshCw, Plus, Zap, Shield, BookOpen, FileCheck,
-  Play, Send, X, Activity, ChevronRight
+  Play, Send, X, Activity, ChevronRight, MapPin, ChevronDown
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
@@ -206,6 +206,7 @@ const TABS = ['discrepancies', 'faults', 'parts', 'handover', 'work_assignments'
 export default function CrewChiefDashboard() {
   const [tab, setTab] = useState('discrepancies');
   const [assignEntry, setAssignEntry] = useState(null);
+  const [stationFilter, setStationFilter] = useState('');
   const qc = useQueryClient();
 
   const { data: discrepancies = [], isLoading, refetch } = useQuery({
@@ -289,9 +290,23 @@ export default function CrewChiefDashboard() {
     });
   };
 
-  const open = discrepancies.filter(d => d.discrepancy_status === 'OPEN');
-  const inProgress = discrepancies.filter(d => d.discrepancy_status === 'IN_PROGRESS');
-  const pendingRii = discrepancies.filter(d => d.discrepancy_status === 'PENDING_RII');
+  // Derive station list from aircraft
+  const stations = [...new Set(aircraft.map(a => a.base_station).filter(Boolean))].sort();
+
+  // Filter discrepancies by station
+  const stationTails = stationFilter
+    ? aircraft.filter(a => a.base_station === stationFilter).map(a => a.tail_number)
+    : null;
+  const filteredDiscrepancies = stationTails
+    ? discrepancies.filter(d => stationTails.includes(d.aircraft_tail))
+    : discrepancies;
+  const filteredFaults = stationTails
+    ? faults.filter(f => stationTails.includes(f.aircraft_tail))
+    : faults;
+
+  const open = filteredDiscrepancies.filter(d => d.discrepancy_status === 'OPEN');
+  const inProgress = filteredDiscrepancies.filter(d => d.discrepancy_status === 'IN_PROGRESS');
+  const pendingRii = filteredDiscrepancies.filter(d => d.discrepancy_status === 'PENDING_RII');
   const lowStock = inventory.filter(i => i.quantity_on_hand <= i.min_quantity);
   const outOfStock = inventory.filter(i => i.quantity_on_hand === 0);
   const toolsOut = tools.filter(t => t.status === 'checked_out');
@@ -314,9 +329,28 @@ export default function CrewChiefDashboard() {
               <p className="text-xs text-orange-400 tracking-widest uppercase">Line MX · Task Assignment · Tool & Parts Control</p>
             </div>
           </div>
-          <button onClick={() => refetch()} className="w-9 h-9 rounded-lg bg-secondary flex items-center justify-center hover:bg-secondary/80">
-            <RefreshCw className={cn('w-4 h-4 text-muted-foreground', isLoading && 'animate-spin')} />
-          </button>
+          <div className="flex items-center gap-2">
+            {/* Station Filter Dropdown */}
+            <div className="relative flex items-center gap-2 bg-secondary border border-border rounded-xl px-3 py-2 min-w-[180px]">
+              <MapPin className="w-3.5 h-3.5 text-primary flex-shrink-0" />
+              <select
+                value={stationFilter}
+                onChange={e => setStationFilter(e.target.value)}
+                className="bg-transparent text-sm font-bold text-foreground outline-none flex-1 appearance-none cursor-pointer"
+              >
+                <option value="">All Stations</option>
+                {stations.map(s => <option key={s} value={s}>{s}</option>)}
+              </select>
+              <ChevronDown className="w-3.5 h-3.5 text-muted-foreground flex-shrink-0 pointer-events-none" />
+              <div className="flex items-center gap-1 ml-2 flex-shrink-0">
+                <span className="w-2 h-2 rounded-full bg-green-400 animate-pulse" />
+                <span className="text-[10px] font-extrabold text-green-400">LIVE</span>
+              </div>
+            </div>
+            <button onClick={() => refetch()} className="w-9 h-9 rounded-lg bg-secondary flex items-center justify-center hover:bg-secondary/80">
+              <RefreshCw className={cn('w-4 h-4 text-muted-foreground', isLoading && 'animate-spin')} />
+            </button>
+          </div>
         </div>
 
         {/* KPI Row */}
@@ -347,7 +381,7 @@ export default function CrewChiefDashboard() {
         <div className="flex gap-2 mt-3 overflow-x-auto scrollbar-hide">
           {[
             { id: 'discrepancies', label: 'Discrepancies', badge: open.length + inProgress.length },
-            { id: 'faults', label: 'Faults', badge: faults.length },
+            { id: 'faults', label: 'Faults', badge: filteredFaults.length },
             { id: 'parts', label: 'Parts & Tools', badge: lowStock.length + calDue.length },
             { id: 'handover', label: 'Shift Handover' },
             { id: 'work_assignments', label: 'Work Assignments', badge: requisitions.filter(r => r.status === 'pending_approval').length },
@@ -405,12 +439,12 @@ export default function CrewChiefDashboard() {
         {/* FAULTS TAB */}
         {tab === 'faults' && (
           <>
-            {faults.length === 0 ? (
+            {filteredFaults.length === 0 ? (
               <div className="text-center py-16">
                 <Zap className="w-12 h-12 text-muted-foreground/20 mx-auto mb-3" />
-                <p className="text-muted-foreground font-bold">No active faults</p>
+                <p className="text-muted-foreground font-bold">No active faults{stationFilter ? ` at ${stationFilter}` : ''}</p>
               </div>
-            ) : faults.map(fault => (
+            ) : filteredFaults.map(fault => (
               <div key={fault.id} className={cn('bg-card border rounded-xl px-4 py-3 space-y-1',
                 fault.severity === 'warning' ? 'border-red-500/30' : fault.severity === 'caution' ? 'border-amber-500/30' : 'border-border')}>
                 <div className="flex items-center justify-between gap-2">
