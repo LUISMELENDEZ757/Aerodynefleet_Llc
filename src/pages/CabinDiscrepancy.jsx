@@ -1,4 +1,4 @@
-import { useState, useRef } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { base44 } from '@/api/base44Client';
 import { Link } from 'react-router-dom';
@@ -44,7 +44,6 @@ export default function CabinDiscrepancy() {
   });
   const [submitted, setSubmitted] = useState(false);
   const [photoCount, setPhotoCount] = useState(0);
-  const [tailSearch, setTailSearch] = useState('');
   const cameraInputRef = useRef(null);
   const photoInputRef = useRef(null);
   const docInputRef = useRef(null);
@@ -135,45 +134,19 @@ export default function CabinDiscrepancy() {
             <div className="grid grid-cols-2 gap-3">
               <div>
                 <label className="text-[10px] font-bold text-gray-400 uppercase tracking-widest block mb-1.5">AIRCRAFT TAIL *</label>
-                <input
-                  type="text"
-                  placeholder="Search tail…"
-                  value={tailSearch}
-                  onChange={e => {
-                    setTailSearch(e.target.value);
-                    // Clear selection if user edits the search
-                    if (form.aircraft_tail && !e.target.value.toUpperCase().startsWith(form.aircraft_tail)) {
-                      set('aircraft_tail', '');
-                    }
-                  }}
-                  className="w-full bg-[#1a1f2e] border border-white/10 rounded-t-xl px-4 py-2.5 text-sm text-white placeholder-gray-600 outline-none focus:border-pink-500 font-mono"
-                />
-                {tailSearch && (
-                  <div className="bg-[#1a1f2e] border border-t-0 border-white/10 rounded-b-xl overflow-hidden max-h-40 overflow-y-auto">
-                    {aircraft
-                      .filter(a => a.tail_number.toLowerCase().includes(tailSearch.toLowerCase()))
-                      .map(a => (
-                        <button
-                          key={a.id}
-                          type="button"
-                          onClick={() => { set('aircraft_tail', a.tail_number); setTailSearch(a.tail_number); }}
-                          className={cn(
-                            'w-full text-left px-4 py-2.5 text-sm font-mono hover:bg-pink-500/20 transition-colors flex items-center justify-between',
-                            form.aircraft_tail === a.tail_number ? 'bg-pink-500/20 text-pink-300' : 'text-white'
-                          )}
-                        >
-                          <span>{a.tail_number}</span>
-                          {a.aircraft_type && <span className="text-xs text-gray-500">{a.aircraft_type}</span>}
-                        </button>
-                      ))}
-                    {aircraft.filter(a => a.tail_number.toLowerCase().includes(tailSearch.toLowerCase())).length === 0 && (
-                      <p className="px-4 py-3 text-xs text-gray-500">No aircraft found</p>
-                    )}
-                  </div>
-                )}
-                {form.aircraft_tail && !tailSearch.includes(form.aircraft_tail) && (
-                  <p className="text-xs text-pink-400 mt-1 font-mono">{form.aircraft_tail} selected</p>
-                )}
+                <select
+                  required
+                  value={form.aircraft_tail}
+                  onChange={e => set('aircraft_tail', e.target.value)}
+                  className="w-full bg-[#1a1f2e] border border-white/10 rounded-xl px-4 py-2.5 text-sm text-white outline-none focus:border-pink-500 font-mono appearance-none"
+                >
+                  <option value="">Select aircraft…</option>
+                  {aircraft.map(a => (
+                    <option key={a.id} value={a.tail_number}>
+                      {a.tail_number}{a.aircraft_type ? ` — ${a.aircraft_type}` : ''}
+                    </option>
+                  ))}
+                </select>
               </div>
               <div>
                 <label className="text-[10px] font-bold text-gray-400 uppercase tracking-widest block mb-1.5">STATION *</label>
