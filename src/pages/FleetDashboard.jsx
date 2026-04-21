@@ -60,6 +60,11 @@ function AircraftDetailOverlay({ aircraft: initialAircraft, onClose }) {
     queryFn: () => base44.entities.LogbookEntry.filter({ aircraft_tail: aircraft.tail_number }),
   });
 
+  const { data: melItems = [] } = useQuery({
+    queryKey: ['fleet-mel-items', aircraft.tail_number],
+    queryFn: () => base44.entities.MELItem.filter({ aircraft_tail: aircraft.tail_number }),
+  });
+
   // Derive max CAT capability from aircraft type
   // CAT IIIc: B777, B787, A350 (highest-tier autoland certified types)
   // CAT IIIb: B737 MAX, A320, A321
@@ -308,6 +313,40 @@ function AircraftDetailOverlay({ aircraft: initialAircraft, onClose }) {
               <Plus className="w-4 h-4" /> Add Event
             </button>
           </div>
+
+          {/* MEL / NEF / CDL Deferrals */}
+          {melItems.length > 0 && (
+            <div className="space-y-3 mb-6">
+              <p className="text-base font-extrabold text-white flex items-center gap-2">
+                <Zap className="w-4 h-4 text-amber-400" /> MEL / NEF / CDL Deferrals ({melItems.filter(m => m.status !== 'cleared' && m.status !== 'voided').length})
+              </p>
+              {melItems.map(mel => {
+                const isExpired = mel.status === 'expired';
+                const isCleared = mel.status === 'cleared' || mel.status === 'voided';
+                if (isCleared) return null;
+                return (
+                  <div key={mel.id} className={cn('flex items-start gap-4 border rounded-xl px-5 py-4',
+                    isExpired ? 'bg-red-900/20 border-red-500/40' : 'bg-amber-900/20 border-amber-500/40')}>
+                    <div className={cn('w-2 h-2 rounded-full mt-1.5 flex-shrink-0', isExpired ? 'bg-red-500' : 'bg-amber-500')} />
+                    <div className="flex-1">
+                      <div className="flex items-center gap-2 mb-1">
+                        <span className={cn('text-[10px] font-bold px-2 py-0.5 rounded uppercase',
+                          isExpired ? 'bg-red-900 text-red-400' : 'bg-amber-900 text-amber-400')}>
+                          {mel.mel_reference || 'MEL'} {mel.mel_category ? `CAT ${mel.mel_category}` : ''}
+                        </span>
+                        <span className={cn('text-[10px] font-bold px-2 py-0.5 rounded',
+                          isExpired ? 'bg-red-500/20 text-red-400' : 'bg-amber-500/20 text-amber-400')}>
+                          {isExpired ? 'EXPIRED' : mel.status?.toUpperCase() || 'OPEN'}
+                        </span>
+                      </div>
+                      <p className="text-sm text-gray-200">{mel.title || mel.description || '—'}</p>
+                      {mel.expires_at && <p className="text-[10px] text-gray-500 mt-1">Deferral expires: {new Date(mel.expires_at).toLocaleDateString()}</p>}
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          )}
 
           {logEntries.length === 0 ? (
             <div className="flex-1 flex flex-col items-center justify-center gap-4 text-center py-16">
