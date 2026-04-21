@@ -10,6 +10,7 @@ import { cn } from '@/lib/utils';
 import { format } from 'date-fns';
 import ShiftHandoverForm from '@/components/techops/ShiftHandoverForm';
 import ShiftSignOff from '@/components/techops/ShiftSignOff';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 
 const STEPS = ['form', 'signoff', 'complete'];
 
@@ -73,8 +74,6 @@ function HandoverCard({ record, onView, onGenerate, isGenerating }) {
   );
 }
 
-const STATIONS = ['KEWR', 'KJFK', 'KORD', 'KATL', 'KLAX', 'KSFO', 'KDEN', 'KMIA', 'KDFW', 'KSEA', 'KBOS', 'KDCA'];
-
 export default function ShiftHandoverPage() {
   const [step, setStep] = useState('list'); // 'list' | 'form' | 'signoff' | 'complete'
   const [pendingData, setPendingData] = useState(null);
@@ -82,6 +81,12 @@ export default function ShiftHandoverPage() {
   const [generatingId, setGeneratingId] = useState(null);
   const [selectedStation, setSelectedStation] = useState('all');
   const qc = useQueryClient();
+
+  const { data: stations = [] } = useQuery({
+    queryKey: ['global-stations'],
+    queryFn: () => base44.entities.Station.list('icao_code', 100),
+    refetchInterval: 300000,
+  });
 
   const { data: handovers = [], isLoading, refetch } = useQuery({
     queryKey: ['shift-handovers'],
@@ -311,27 +316,21 @@ export default function ShiftHandoverPage() {
           </div>
         </div>
 
-        {/* Station filter */}
-        <div className="mt-4 flex gap-2 flex-wrap">
-          <button
-            onClick={() => setSelectedStation('all')}
-            className={cn('px-3 py-1.5 rounded-lg text-xs font-bold transition-colors',
-              selectedStation === 'all' ? 'bg-primary text-primary-foreground' : 'bg-secondary text-muted-foreground hover:text-foreground'
-            )}
-          >
-            All Stations
-          </button>
-          {STATIONS.map(station => (
-            <button
-              key={station}
-              onClick={() => setSelectedStation(station)}
-              className={cn('px-3 py-1.5 rounded-lg text-xs font-bold transition-colors',
-                selectedStation === station ? 'bg-primary text-primary-foreground' : 'bg-secondary text-muted-foreground hover:text-foreground'
-              )}
-            >
-              {station}
-            </button>
-          ))}
+        {/* Station filter dropdown */}
+        <div className="mt-4 w-64">
+          <Select value={selectedStation} onValueChange={setSelectedStation}>
+            <SelectTrigger className="w-full bg-secondary border-border text-foreground">
+              <SelectValue placeholder="Filter by station..." />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">All Stations</SelectItem>
+              {stations.map(station => (
+                <SelectItem key={station.icao_code} value={station.icao_code}>
+                  {station.icao_code} — {station.station_name}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
         </div>
 
         {/* Today's summary */}
