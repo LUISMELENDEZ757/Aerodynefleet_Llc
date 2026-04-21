@@ -1,0 +1,64 @@
+{
+  "name": "PSSGateMapping",
+  "type": "object",
+  "description": "PSS \u2194 Airport topology mapping \u2014 resolves gate naming mismatches between PSS and actual airport infrastructure",
+  "properties": {
+    "airport_icao": {
+      "type": "string",
+      "description": "Airport ICAO"
+    },
+    "pss_gate_code": {
+      "type": "string",
+      "description": "PSS gate identifier (e.g. A1, GATE-42, T1-A01)"
+    },
+    "actual_gate_id": {
+      "type": "string",
+      "description": "Actual airport gate identifier"
+    },
+    "mapping_status": {
+      "type": "string",
+      "enum": [
+        "active",
+        "deprecated",
+        "under_review",
+        "conflict"
+      ],
+      "default": "active",
+      "description": "Is this mapping current and valid?"
+    },
+    "terminal_id": {
+      "type": "string",
+      "description": "Terminal from airport topology"
+    },
+    "concourse": {
+      "type": "string",
+      "description": "Concourse from airport topology"
+    },
+    "pss_notes": {
+      "type": "string",
+      "description": "PSS system notes on this gate"
+    },
+    "actual_gate_notes": {
+      "type": "string",
+      "description": "Actual airport infrastructure notes"
+    },
+    "mismatch_notes": {
+      "type": "string",
+      "description": "Explanation of why PSS code differs from actual gate ID"
+    },
+    "last_validated": {
+      "type": "string",
+      "format": "date",
+      "description": "Date this mapping was last verified"
+    },
+    "validated_by": {
+      "type": "string",
+      "description": "User or system that validated this mapping"
+    }
+  },
+  "required": [
+    "airport_icao",
+    "pss_gate_code",
+    "actual_gate_id"
+  ]
+}

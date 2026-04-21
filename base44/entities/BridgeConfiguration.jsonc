@@ -1,0 +1,84 @@
+{
+  "name": "BridgeConfiguration",
+  "type": "object",
+  "description": "Multi-bridge gate configuration \u2014 some gates have 2-4 jet bridges for simultaneous L1/L2/cargo door access",
+  "properties": {
+    "airport_icao": {
+      "type": "string",
+      "description": "Airport ICAO"
+    },
+    "gate_id": {
+      "type": "string",
+      "description": "Gate identifier"
+    },
+    "total_bridges": {
+      "type": "integer",
+      "description": "Total number of bridges at this gate (1-4)"
+    },
+    "bridges": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "bridge_id": {
+            "type": "string",
+            "description": "Individual bridge identifier (e.g. A, B, L1, L2)"
+          },
+          "door_type": {
+            "type": "string",
+            "enum": [
+              "main_deck_L1",
+              "upper_deck_L2",
+              "cargo_door",
+              "service_door"
+            ],
+            "description": "Aircraft door this bridge connects to"
+          },
+          "height_adjustable": {
+            "type": "boolean",
+            "default": true,
+            "description": "Can adjust for different fuselage heights"
+          },
+          "operational_status": {
+            "type": "string",
+            "enum": [
+              "operational",
+              "maintenance",
+              "inoperable"
+            ],
+            "default": "operational"
+          },
+          "aircraft_compatible": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "description": "Aircraft types this bridge can service"
+          }
+        }
+      },
+      "description": "Individual bridge details"
+    },
+    "multi_aircraft_capable": {
+      "type": "boolean",
+      "description": "Can handle 2 aircraft simultaneously (e.g. A380 dual-bridges or small + large)"
+    },
+    "simultaneous_aircraft_types": {
+      "type": "array",
+      "items": {
+        "type": "array",
+        "items": {
+          "type": "string"
+        }
+      },
+      "description": "Valid aircraft type combinations for simultaneous docking"
+    },
+    "notes": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "airport_icao",
+    "gate_id"
+  ]
+}

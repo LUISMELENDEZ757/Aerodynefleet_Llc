@@ -1,0 +1,72 @@
+{
+  "name": "GateAircraftCompatibility",
+  "type": "object",
+  "description": "Aircraft type compatibility rules per gate \u2014 handles edge cases like multi-bridge gates, width constraints",
+  "properties": {
+    "airport_icao": {
+      "type": "string",
+      "description": "Airport ICAO"
+    },
+    "gate_id": {
+      "type": "string",
+      "description": "Gate identifier"
+    },
+    "aircraft_type": {
+      "type": "string",
+      "description": "Aircraft type (e.g. B737-800, A380, B787-9)"
+    },
+    "compatible": {
+      "type": "boolean",
+      "default": true,
+      "description": "Is this aircraft type compatible with this gate?"
+    },
+    "restrictions": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "type": {
+            "type": "string",
+            "enum": [
+              "width",
+              "length",
+              "wingspan",
+              "weight",
+              "bridges",
+              "pushback"
+            ],
+            "description": "Type of restriction"
+          },
+          "description": {
+            "type": "string",
+            "description": "Human-readable explanation"
+          },
+          "severity": {
+            "type": "string",
+            "enum": [
+              "hard_block",
+              "warning",
+              "informational"
+            ],
+            "description": "Hard-block prevents assignment; warning requires override"
+          }
+        }
+      },
+      "description": "List of compatibility issues"
+    },
+    "requires_override": {
+      "type": "boolean",
+      "default": false,
+      "description": "Operational override required (e.g. tow-in needed)"
+    },
+    "notes": {
+      "type": "string",
+      "description": "Special handling instructions"
+    }
+  },
+  "required": [
+    "airport_icao",
+    "gate_id",
+    "aircraft_type"
+  ]
+}

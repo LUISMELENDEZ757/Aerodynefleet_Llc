@@ -1,0 +1,132 @@
+{
+  "name": "AirportStand",
+  "type": "object",
+  "description": "Ramp/hardstand position \u2014 cargo, maintenance, parking, line service",
+  "properties": {
+    "airport_icao": {
+      "type": "string",
+      "description": "Home airport ICAO"
+    },
+    "stand_id": {
+      "type": "string",
+      "description": "Unique stand identifier e.g. C1, MX-5, H10"
+    },
+    "stand_name": {
+      "type": "string",
+      "description": "Display name e.g. Cargo Stand 1"
+    },
+    "ramp_zone": {
+      "type": "string",
+      "description": "Zone identifier (cargo, maintenance, parking, fuel, line_service)"
+    },
+    "stand_type": {
+      "type": "string",
+      "enum": [
+        "cargo",
+        "maintenance",
+        "parking",
+        "fuel",
+        "line_service"
+      ],
+      "description": "Primary purpose of this stand"
+    },
+    "width_category": {
+      "type": "string",
+      "enum": [
+        "narrow",
+        "standard",
+        "wide",
+        "double_wide"
+      ],
+      "description": "Stand width constraint"
+    },
+    "max_aircraft_length_ft": {
+      "type": "number",
+      "description": "Maximum aircraft length (ft)"
+    },
+    "max_wingspan_ft": {
+      "type": "number",
+      "description": "Maximum wingspan (ft)"
+    },
+    "max_mtow_lbs": {
+      "type": "number",
+      "description": "Maximum takeoff weight (lbs)"
+    },
+    "stand_geometry": {
+      "type": "object",
+      "properties": {
+        "latitude": {
+          "type": "number"
+        },
+        "longitude": {
+          "type": "number"
+        },
+        "rotation_angle": {
+          "type": "number",
+          "description": "Stand rotation/heading (degrees)"
+        },
+        "parking_spots": {
+          "type": "integer",
+          "description": "Number of parallel parking positions at this stand"
+        }
+      },
+      "description": "Geometric position and orientation"
+    },
+    "power_systems": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "enum": [
+          "400hz",
+          "28vdc",
+          "gpu",
+          "apu"
+        ]
+      }
+    },
+    "preconditioned_air": {
+      "type": "boolean",
+      "default": false,
+      "description": "PCA service available"
+    },
+    "water_service": {
+      "type": "boolean",
+      "default": false,
+      "description": "Potable water available"
+    },
+    "fuel_available": {
+      "type": "boolean",
+      "default": false,
+      "description": "Fuel service at this stand"
+    },
+    "tug_required": {
+      "type": "boolean",
+      "default": true,
+      "description": "Tug pushback required (no jet bridges)"
+    },
+    "compatible_aircraft_types": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "Compatible aircraft types"
+    },
+    "operational_status": {
+      "type": "string",
+      "enum": [
+        "operational",
+        "maintenance",
+        "closed"
+      ],
+      "default": "operational"
+    },
+    "notes": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "airport_icao",
+    "stand_id",
+    "stand_type"
+  ]
+}

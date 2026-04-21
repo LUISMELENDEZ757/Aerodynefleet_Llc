@@ -1,0 +1,103 @@
+{
+  "name": "Airport",
+  "type": "object",
+  "description": "Airport base infrastructure \u2014 ICAO code, terminals, operational zones",
+  "properties": {
+    "icao_code": {
+      "type": "string",
+      "description": "4-letter ICAO code e.g. KEWR"
+    },
+    "iata_code": {
+      "type": "string",
+      "description": "3-letter IATA code e.g. EWR"
+    },
+    "name": {
+      "type": "string",
+      "description": "Airport name"
+    },
+    "country": {
+      "type": "string",
+      "description": "Country"
+    },
+    "timezone": {
+      "type": "string",
+      "description": "IANA timezone"
+    },
+    "total_gates": {
+      "type": "integer",
+      "description": "Total gate count"
+    },
+    "total_hardstands": {
+      "type": "integer",
+      "description": "Total ramp stand count"
+    },
+    "terminals": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "terminal_id": {
+            "type": "string",
+            "description": "Terminal identifier e.g. T1, Terminal A"
+          },
+          "name": {
+            "type": "string"
+          },
+          "gate_count": {
+            "type": "integer"
+          },
+          "concourses": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "description": "Concourse identifiers e.g. A, B, C"
+          }
+        }
+      },
+      "description": "Terminal structure"
+    },
+    "ramp_zones": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "zone_id": {
+            "type": "string",
+            "description": "Ramp zone identifier"
+          },
+          "name": {
+            "type": "string"
+          },
+          "stand_count": {
+            "type": "integer"
+          },
+          "purpose": {
+            "type": "string",
+            "enum": [
+              "cargo",
+              "maintenance",
+              "parking",
+              "fuel",
+              "line_service"
+            ],
+            "description": "Primary use of this ramp zone"
+          }
+        }
+      },
+      "description": "Ramp/apron zones and hardstands"
+    },
+    "operational": {
+      "type": "boolean",
+      "default": true,
+      "description": "Airport operational status"
+    },
+    "notes": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "icao_code",
+    "name"
+  ]
+}

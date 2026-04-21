@@ -1,0 +1,189 @@
+{
+  "name": "Gate",
+  "type": "object",
+  "description": "Individual gate / jet bridge \u2014 location, capabilities, compatibility",
+  "properties": {
+    "airport_icao": {
+      "type": "string",
+      "description": "Home airport ICAO"
+    },
+    "terminal_id": {
+      "type": "string",
+      "description": "Terminal identifier e.g. T1, A"
+    },
+    "concourse": {
+      "type": "string",
+      "description": "Concourse letter/number e.g. A, B1"
+    },
+    "gate_number": {
+      "type": "string",
+      "description": "Gate identifier e.g. A1, 42B"
+    },
+    "gate_id": {
+      "type": "string",
+      "description": "Unique gate code \u2014 typically airport + terminal + gate"
+    },
+    "gate_type": {
+      "type": "string",
+      "enum": [
+        "jetway",
+        "airbridge",
+        "hardstand",
+        "tug_gate",
+        "cargo_gate"
+      ],
+      "description": "Type of gate / dock"
+    },
+    "jet_bridges": {
+      "type": "integer",
+      "default": 1,
+      "description": "Number of jet bridges at this gate (1-2 typical, up to 4 for wide cabins)"
+    },
+    "width_category": {
+      "type": "string",
+      "enum": [
+        "narrow",
+        "standard",
+        "wide",
+        "double_wide"
+      ],
+      "description": "Gate width constraint \u2014 what aircraft can dock here"
+    },
+    "max_aircraft_length_ft": {
+      "type": "number",
+      "description": "Maximum aircraft fuselage length that can dock (ft)"
+    },
+    "max_wingspan_ft": {
+      "type": "number",
+      "description": "Maximum wingspan (ft)"
+    },
+    "max_mtow_lbs": {
+      "type": "number",
+      "description": "Maximum takeoff weight aircraft can dock (lbs)"
+    },
+    "power_systems": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "enum": [
+          "400hz_single",
+          "400hz_dual",
+          "28vdc",
+          "gpu"
+        ]
+      },
+      "description": "Available electrical power systems"
+    },
+    "pcu_type": {
+      "type": "string",
+      "enum": [
+        "none",
+        "passive",
+        "active",
+        "dual"
+      ],
+      "description": "Preconditioned unit \u2014 air handling"
+    },
+    "potable_water": {
+      "type": "boolean",
+      "default": true,
+      "description": "Potable water service available"
+    },
+    "lavatory_waste": {
+      "type": "boolean",
+      "default": true,
+      "description": "Lavatory waste drain available"
+    },
+    "headset_compatible": {
+      "type": "boolean",
+      "default": true,
+      "description": "Headset communication capability"
+    },
+    "pushback_directions": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "enum": [
+          "left",
+          "right",
+          "straight",
+          "limited"
+        ],
+        "description": "Directions aircraft can safely push back from this gate"
+      },
+      "description": "Allowable pushback directions (geometry/ramp constraint)"
+    },
+    "approach_heading": {
+      "type": "number",
+      "description": "Magnetic heading for approach (degrees, 0-359)"
+    },
+    "stand_geometry": {
+      "type": "object",
+      "properties": {
+        "latitude": {
+          "type": "number",
+          "description": "Gate latitude (decimal degrees)"
+        },
+        "longitude": {
+          "type": "number",
+          "description": "Gate longitude (decimal degrees)"
+        },
+        "rotation_angle": {
+          "type": "number",
+          "description": "Gate rotation angle relative to taxiway (degrees)"
+        }
+      },
+      "description": "Geometric position and orientation"
+    },
+    "ownership": {
+      "type": "string",
+      "enum": [
+        "airport",
+        "airline",
+        "shared",
+        "third_party"
+      ],
+      "description": "Gate ownership \u2014 critical for allocation"
+    },
+    "airline_owner": {
+      "type": "string",
+      "description": "If airline-owned, airline ICAO code (e.g. AAL, UAL)"
+    },
+    "preferred_airlines": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "Airlines with priority access (e.g. hub carriers)"
+    },
+    "compatible_aircraft_types": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "Compatible aircraft types (e.g. B737-800, A320, B787)"
+    },
+    "turnaround_time_minutes": {
+      "type": "integer",
+      "description": "Estimated turn time at this gate"
+    },
+    "operational_status": {
+      "type": "string",
+      "enum": [
+        "operational",
+        "maintenance",
+        "closed",
+        "restricted"
+      ],
+      "default": "operational"
+    },
+    "notes": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "airport_icao",
+    "gate_id",
+    "gate_type"
+  ]
+}

@@ -1,0 +1,141 @@
+{
+  "name": "RampControlZone",
+  "type": "object",
+  "description": "Ramp control area \u2014 defines AoA (area of authority) with pushback corridors, taxi lanes, hold points, and frequency assignments",
+  "properties": {
+    "airport_icao": {
+      "type": "string",
+      "description": "Airport ICAO"
+    },
+    "zone_id": {
+      "type": "string",
+      "description": "Zone identifier e.g. RAMP-1, NORTH-APRON"
+    },
+    "zone_name": {
+      "type": "string",
+      "description": "Zone name"
+    },
+    "frequency": {
+      "type": "number",
+      "description": "VHF frequency for this ramp zone (decimal format, e.g. 121.75)"
+    },
+    "frequency_name": {
+      "type": "string",
+      "description": "Frequency callsign (e.g. Newark Ground, JFK Ramp)"
+    },
+    "gates": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "Gate IDs within this ramp zone"
+    },
+    "stands": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "Stand IDs within this ramp zone"
+    },
+    "hold_points": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "description": "Hold point identifier"
+          },
+          "name": {
+            "type": "string"
+          },
+          "description": {
+            "type": "string",
+            "description": "Location description"
+          },
+          "latitude": {
+            "type": "number"
+          },
+          "longitude": {
+            "type": "number"
+          }
+        }
+      },
+      "description": "Defined hold points for aircraft queuing"
+    },
+    "pushback_corridors": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "description": "Corridor identifier"
+          },
+          "from_gates": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "description": "Gates that use this corridor"
+          },
+          "direction": {
+            "type": "string",
+            "enum": [
+              "left",
+              "right",
+              "straight"
+            ],
+            "description": "Pushback direction"
+          },
+          "clearance_feet": {
+            "type": "integer",
+            "description": "Minimum clearance required (feet)"
+          }
+        }
+      },
+      "description": "Safe pushback corridors from gates"
+    },
+    "taxiway_lanes": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "Assigned taxiway lanes (e.g. Taxiway A, B, C routing)"
+    },
+    "frequency_assignment_rules": {
+      "type": "object",
+      "properties": {
+        "check_in_procedure": {
+          "type": "string",
+          "description": "Standard check-in phraseology"
+        },
+        "push_clearance_required": {
+          "type": "boolean",
+          "default": true,
+          "description": "Does ramp control issue explicit push clearance?"
+        },
+        "request_frequency": {
+          "type": "boolean",
+          "description": "Frequency for requesting ops (e.g. ground for taxi)"
+        }
+      }
+    },
+    "operational_status": {
+      "type": "string",
+      "enum": [
+        "operational",
+        "maintenance",
+        "closed"
+      ],
+      "default": "operational"
+    },
+    "notes": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "airport_icao",
+    "zone_id"
+  ]
+}
