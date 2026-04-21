@@ -11,12 +11,23 @@ import {
 } from 'lucide-react';
 
 const HangarIcon = ({ className }) => (
-  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}>
-    <path d="M3 8h18v10c0 1.1-.9 2-2 2H5c-1.1 0-2-.9-2-2V8z" />
-    <path d="M3 8L12 2l9 6" />
-    <circle cx="8" cy="14" r="1.5" />
-    <circle cx="16" cy="14" r="1.5" />
-    <line x1="10" y1="14" x2="14" y2="14" />
+  <svg viewBox="0 0 64 64" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" className={className}>
+    {/* Arched roof */}
+    <path d="M 12 32 Q 32 8 52 32" strokeWidth="2" />
+    {/* Left wall */}
+    <line x1="12" y1="32" x2="12" y2="52" strokeWidth="2" />
+    {/* Right wall */}
+    <line x1="52" y1="32" x2="52" y2="52" strokeWidth="2" />
+    {/* Bottom */}
+    <line x1="12" y1="52" x2="52" y2="52" strokeWidth="2" />
+    {/* Aircraft left wheel */}
+    <circle cx="24" cy="48" r="3" strokeWidth="1.5" />
+    {/* Aircraft right wheel */}
+    <circle cx="40" cy="48" r="3" strokeWidth="1.5" />
+    {/* Aircraft connection */}
+    <line x1="24" y1="45" x2="40" y2="45" strokeWidth="1.5" />
+    {/* Aircraft fuselage */}
+    <path d="M 26 40 Q 32 35 38 40" strokeWidth="1.5" />
   </svg>
 );
 import AiMaintenanceInsights from '@/components/fleet/AiMaintenanceInsights';
@@ -478,10 +489,10 @@ function AircraftCard({ aircraft, onSelect, discrepancies }) {
             e.stopPropagation();
             setLocationType(locationType === 'terminal' ? 'hangar' : 'terminal');
           }}
-          className="flex-shrink-0 ml-2 p-1.5 rounded-lg bg-secondary hover:bg-secondary/80 transition-colors"
+          className="flex-shrink-0 ml-2 p-2 rounded-lg bg-secondary hover:bg-secondary/80 transition-colors"
           title={`Click to switch to ${locationType === 'terminal' ? 'hangar' : 'terminal'}`}
         >
-          <LocationIcon className="w-4 h-4 text-primary" />
+          <LocationIcon className="w-6 h-6 text-primary" />
         </button>
       </div>
       <div className="flex flex-wrap gap-1.5">
