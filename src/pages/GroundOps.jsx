@@ -206,6 +206,9 @@ export default function GroundOpsPage() {
             <button onClick={() => { refetch(); refetchAirport(); }} className="w-10 h-10 rounded-xl bg-secondary flex items-center justify-center hover:bg-secondary/80 transition-colors">
               <RefreshCw className="w-4 h-4 text-muted-foreground" />
             </button>
+            <Link to="/AirportGateMap" className="flex items-center gap-1.5 px-3 h-10 rounded-xl bg-secondary text-muted-foreground text-xs font-bold hover:bg-secondary/80 transition-colors">
+              📍 Gate Map
+            </Link>
             <button onClick={() => setShowNew(true)} className="flex items-center gap-1.5 px-3 h-10 rounded-xl bg-primary text-primary-foreground text-xs font-bold hover:bg-primary/90">
               <Plus className="w-3.5 h-3.5" /> New
             </button>
