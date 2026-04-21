@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import EtopsMonitorPanel from "@/components/dispatch/EtopsMonitorPanel";
 import SituationalAwarenessMap from "@/components/dispatch/SituationalAwarenessMap";
 import ReplanningWorkflow from "@/components/dispatch/ReplanningWorkflow";
@@ -253,6 +253,47 @@ const DetailDrawer = ({ flight, onClose }) => {
   );
 };
 
+const DispatchClocks = ({ bankLabel }) => {
+  const [now, setNow] = useState(new Date());
+  useEffect(() => {
+    const id = setInterval(() => setNow(new Date()), 1000);
+    return () => clearInterval(id);
+  }, []);
+
+  const utc = now.toLocaleTimeString('en-US', {
+    hour: '2-digit', minute: '2-digit', second: '2-digit',
+    hour12: false, timeZone: 'UTC',
+  });
+  const local = now.toLocaleTimeString('en-US', {
+    hour: '2-digit', minute: '2-digit', second: '2-digit',
+    hour12: true,
+  });
+  const localTz = now.toLocaleDateString('en-US', { timeZoneName: 'short' }).split(', ')[1] || 'LCL';
+
+  return (
+    <div className="flex items-center gap-4">
+      {/* UTC Clock */}
+      <div className="flex flex-col items-center bg-slate-900 border border-sky-700/50 rounded-xl px-4 py-2 min-w-[110px]">
+        <p className="text-[9px] font-extrabold text-sky-400 tracking-widest uppercase">UTC / ZULU</p>
+        <p className="text-lg font-black text-white font-mono tracking-wider leading-tight">{utc}Z</p>
+      </div>
+      {/* Local Clock */}
+      <div className="flex flex-col items-center bg-slate-900 border border-slate-700 rounded-xl px-4 py-2 min-w-[110px]">
+        <p className="text-[9px] font-extrabold text-slate-400 tracking-widest uppercase">{localTz}</p>
+        <p className="text-lg font-black text-white font-mono tracking-wider leading-tight">{local}</p>
+      </div>
+      {/* Live indicator */}
+      <div className="flex flex-col items-end gap-1 text-xs text-slate-400">
+        <div className="flex items-center gap-2">
+          <span className="h-2 w-2 rounded-full bg-emerald-400 animate-pulse" />
+          Live ops link
+        </div>
+        <div className="text-[11px]">{bankLabel}</div>
+      </div>
+    </div>
+  );
+};
+
 const DispatchWorkstation = () => {
   const [selectedFlight, setSelectedFlight] = useState(null);
 
@@ -417,15 +458,7 @@ const DispatchWorkstation = () => {
             Flight‑centric control surface for releases, risk, and route decisions.
           </p>
         </div>
-        <div className="flex flex-col items-end gap-1 text-xs text-slate-400">
-          <div className="flex items-center gap-2">
-            <span className="h-2 w-2 rounded-full bg-emerald-400" />
-            Live ops link
-          </div>
-          <div className="text-[11px]">
-            {dispatcher.bankLabel} · {dispatcher.utcTime}
-          </div>
-        </div>
+        <DispatchClocks bankLabel={dispatcher.bankLabel} />
       </header>
 
       {/* Main layout */}
