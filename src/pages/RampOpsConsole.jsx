@@ -8,6 +8,7 @@ import {
   Clock, Users, Zap, RefreshCw, Volume2, Pause, Play, Target
 } from 'lucide-react';
 import LiveClock from '@/components/ui/LiveClock';
+import TurnManagement from '@/components/ramp/TurnManagement';
 
 const GATE_POSITIONS = {
   'A1': { x: 10, y: 20, terminal: 'A' },
@@ -374,6 +375,14 @@ export default function RampOpsConsole() {
           />
 
           <RadioPanel />
+        </div>
+      </div>
+
+      {/* Turn Management */}
+      <div className="px-6 pb-6">
+        <div className="max-w-7xl mx-auto">
+          <h2 className="text-sm font-bold text-foreground uppercase tracking-widest mb-4">Ground Service Management</h2>
+          <TurnManagement flights={flights} station={station} />
         </div>
       </div>
 
