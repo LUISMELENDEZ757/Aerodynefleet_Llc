@@ -73,11 +73,14 @@ function HandoverCard({ record, onView, onGenerate, isGenerating }) {
   );
 }
 
+const STATIONS = ['KEWR', 'KJFK', 'KORD', 'KATL', 'KLAX', 'KSFO', 'KDEN', 'KMIA', 'KDFW', 'KSEA', 'KBOS', 'KDCA'];
+
 export default function ShiftHandoverPage() {
   const [step, setStep] = useState('list'); // 'list' | 'form' | 'signoff' | 'complete'
   const [pendingData, setPendingData] = useState(null);
   const [viewingRecord, setViewingRecord] = useState(null);
   const [generatingId, setGeneratingId] = useState(null);
+  const [selectedStation, setSelectedStation] = useState('all');
   const qc = useQueryClient();
 
   const { data: handovers = [], isLoading, refetch } = useQuery({
@@ -123,8 +126,11 @@ export default function ShiftHandoverPage() {
   };
 
   const today = new Date().toISOString().split('T')[0];
-  const todayHandovers = handovers.filter(h => h.shift_date === today);
-  const criticalCount = handovers
+  const filteredHandovers = selectedStation === 'all' 
+    ? handovers 
+    : handovers.filter(h => h.station === selectedStation);
+  const todayHandovers = filteredHandovers.filter(h => h.shift_date === today);
+  const criticalCount = filteredHandovers
     .filter(h => h.shift_date === today)
     .flatMap(h => h.pending_issues || [])
     .filter(i => i.priority === 'critical').length;
@@ -305,6 +311,29 @@ export default function ShiftHandoverPage() {
           </div>
         </div>
 
+        {/* Station filter */}
+        <div className="mt-4 flex gap-2 flex-wrap">
+          <button
+            onClick={() => setSelectedStation('all')}
+            className={cn('px-3 py-1.5 rounded-lg text-xs font-bold transition-colors',
+              selectedStation === 'all' ? 'bg-primary text-primary-foreground' : 'bg-secondary text-muted-foreground hover:text-foreground'
+            )}
+          >
+            All Stations
+          </button>
+          {STATIONS.map(station => (
+            <button
+              key={station}
+              onClick={() => setSelectedStation(station)}
+              className={cn('px-3 py-1.5 rounded-lg text-xs font-bold transition-colors',
+                selectedStation === station ? 'bg-primary text-primary-foreground' : 'bg-secondary text-muted-foreground hover:text-foreground'
+              )}
+            >
+              {station}
+            </button>
+          ))}
+        </div>
+
         {/* Today's summary */}
         <div className="grid grid-cols-3 gap-3 mt-4">
           <div className="bg-secondary/50 rounded-xl px-3 py-2">
@@ -335,7 +364,7 @@ export default function ShiftHandoverPage() {
             </button>
           </div>
         ) : (
-          handovers.map(record => (
+          filteredHandovers.map(record => (
             <HandoverCard
               key={record.id}
               record={record}
