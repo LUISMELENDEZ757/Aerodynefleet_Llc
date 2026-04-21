@@ -44,8 +44,8 @@ export default function OEMConfigModal({ connector, onClose }) {
   }));
 
   return (
-    <div className="fixed inset-0 z-50 bg-black/70 flex items-center justify-center p-4 overflow-y-auto">
-      <div className="w-full max-w-lg bg-[#0d1117] border border-white/10 rounded-2xl overflow-hidden shadow-2xl my-4">
+    <div className="fixed inset-0 z-50 bg-black/70 overflow-y-auto">
+      <div className="w-full max-w-lg bg-[#0d1117] border border-white/10 rounded-2xl overflow-hidden shadow-2xl mx-auto mt-[1in]">
         <div className="flex items-center justify-between px-5 py-4 border-b border-white/10 bg-[#141922]">
           <div className="flex items-center gap-2">
             <Settings className="w-4 h-4 text-primary" />
