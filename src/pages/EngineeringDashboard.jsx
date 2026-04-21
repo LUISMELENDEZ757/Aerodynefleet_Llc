@@ -12,6 +12,7 @@ import OilServiceTrends from '@/components/engineering/OilServiceTrends';
 import ApuTrendDashboard from '@/components/engineering/ApuTrendDashboard';
 import MaintenanceForecastModule from '@/components/engineering/MaintenanceForecastModule';
 import OilServicingConfig from '@/components/engineering/OilServicingConfig';
+import StationAircraftDropdown from '@/components/engineering/StationAircraftDropdown';
 
 const TABS = [
   { id: 'trends',    label: 'Engine Trend Analysis', icon: TrendingUp },
@@ -72,17 +73,12 @@ export default function EngineeringDashboard() {
           </div>
         </div>
 
-        {/* Aircraft selector */}
-        <select
+        {/* Station-grouped aircraft selector */}
+        <StationAircraftDropdown
+          aircraft={aircraft}
           value={selectedTail}
-          onChange={e => setSelectedTail(e.target.value)}
-          className="bg-[#1a1f2e] border border-white/10 rounded-xl px-4 py-2 text-sm text-white outline-none focus:border-emerald-500 transition-colors"
-        >
-          <option value="">All Aircraft</option>
-          {aircraft.map(a => (
-            <option key={a.id} value={a.tail_number}>{a.tail_number} — {a.aircraft_type}</option>
-          ))}
-        </select>
+          onChange={setSelectedTail}
+        />
       </div>
 
       {/* KPI Bar */}
