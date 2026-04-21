@@ -507,7 +507,7 @@ function AircraftCard({ aircraft, onSelect, discrepancies }) {
           <p className="text-xl font-extrabold text-primary tracking-wide font-mono">{aircraft.tail_number}</p>
           <p className="text-xs text-gray-400 mt-0.5">{aircraft.aircraft_type}</p>
         </div>
-        <Plane className={cn("w-4 h-4 mt-1", aircraft.status === 'active' ? 'text-green-400' : aircraft.status === 'oos' ? 'text-red-400' : 'text-gray-600')} />
+        <Plane className={cn("w-4 h-4 mt-1", aircraft.status === 'active' ? 'text-green-400' : aircraft.status === 'oos' ? 'text-red-400' : aircraft.status === 'maintenance' ? 'text-orange-400' : 'text-gray-600')} />
       </div>
       <div className="flex items-center justify-between">
         <p className="text-xs text-gray-500">
