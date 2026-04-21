@@ -40,23 +40,23 @@ const TerminalIcon = ({ className }) => (
 );
 
 const HangarIcon = ({ className }) => (
-  <svg viewBox="0 0 64 64" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" className={className}>
-    {/* Arched roof */}
-    <path d="M 12 32 Q 32 8 52 32" strokeWidth="2" />
-    {/* Left wall */}
-    <line x1="12" y1="32" x2="12" y2="52" strokeWidth="2" />
-    {/* Right wall */}
-    <line x1="52" y1="32" x2="52" y2="52" strokeWidth="2" />
-    {/* Bottom */}
-    <line x1="12" y1="52" x2="52" y2="52" strokeWidth="2" />
-    {/* Aircraft left wheel */}
-    <circle cx="24" cy="48" r="3" strokeWidth="1.5" />
-    {/* Aircraft right wheel */}
-    <circle cx="40" cy="48" r="3" strokeWidth="1.5" />
-    {/* Aircraft connection */}
-    <line x1="24" y1="45" x2="40" y2="45" strokeWidth="1.5" />
-    {/* Aircraft fuselage */}
-    <path d="M 26 40 Q 32 35 38 40" strokeWidth="1.5" />
+  <svg viewBox="0 0 64 64" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}>
+    {/* Outer peaked roof */}
+    <path d="M 10 28 L 32 8 L 54 28" strokeWidth="2.5" />
+    {/* Outer walls */}
+    <line x1="10" y1="28" x2="10" y2="52" strokeWidth="2.5" />
+    <line x1="54" y1="28" x2="54" y2="52" strokeWidth="2.5" />
+    {/* Ground line */}
+    <line x1="10" y1="52" x2="54" y2="52" strokeWidth="2.5" />
+    {/* Inner peaked roof */}
+    <path d="M 14 32 L 32 16 L 50 32" strokeWidth="2" />
+    {/* Inner walls */}
+    <line x1="14" y1="32" x2="14" y2="50" strokeWidth="2" />
+    <line x1="50" y1="32" x2="50" y2="50" strokeWidth="2" />
+    {/* Large door */}
+    <rect x="20" y="35" width="24" height="15" strokeWidth="2" />
+    {/* Door handle/window */}
+    <rect x="28" y="38" width="8" height="4" strokeWidth="1.5" />
   </svg>
 );
 import AiMaintenanceInsights from '@/components/fleet/AiMaintenanceInsights';
