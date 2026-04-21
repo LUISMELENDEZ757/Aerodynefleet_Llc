@@ -14,6 +14,7 @@ const WeatherPanel = lazy(() => import('@/components/flightops/WeatherPanel'));
 const DispatchPanel = lazy(() => import('@/components/dispatch/DispatchPanel'));
 import PullToRefresh from '@/components/ui/PullToRefresh';
 import TechOpsDashboard from '@/components/techops/TechOpsDashboard';
+import MaintenanceCalendarWidget from '@/components/dashboard/MaintenanceCalendarWidget';
 
 const TODAY = new Date().toISOString().split('T')[0];
 
@@ -22,6 +23,7 @@ const TABS = [
   { key: 'crew',     label: 'Crew Legality' },
   { key: 'dispatch', label: 'Dispatch' },
   { key: 'weather',  label: 'WX / METAR' },
+  { key: 'mxcal',   label: '📅 Mx Calendar' },
 ];
 
 export default function Dashboard() {
@@ -154,6 +156,9 @@ export default function Dashboard() {
               <WeatherPanel flights={flights} />
             </PullToRefresh>
           </Suspense>
+        )}
+        {activeTab === 'mxcal' && (
+          <MaintenanceCalendarWidget />
         )}
       </div>
     </div>
