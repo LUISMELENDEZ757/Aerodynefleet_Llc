@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import { base44 } from '@/api/base44Client';
-import { ChevronLeft, Activity, Users } from 'lucide-react';
+import { ChevronLeft, Activity, Users, MapPin, X } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import LiveClock from '@/components/ui/LiveClock';
 import MccKpiBar from '@/components/mcc/MccKpiBar';
@@ -37,6 +37,7 @@ function ZuluClock() {
 const TABS = [
   { id: 'fleet',    label: 'Fleet Status' },
   { id: 'oos',      label: 'OOS / MX' },
+  { id: 'fieldtrip', label: 'Field Trip' },
   { id: 'mel',      label: 'MEL' },
   { id: 'faults',   label: 'Faults' },
   { id: 'parts',    label: 'Parts' },
@@ -46,8 +47,56 @@ const TABS = [
   { id: 'mro',      label: '🔗 MRO Integrations' },
 ];
 
+// Aircraft Recovery by Location Modal
+function AircraftRecoveryModal({ selectedLocation, onClose, oosEntries, aircraft }) {
+  const locationAircraft = oosEntries
+    .filter(e => e.station === selectedLocation)
+    .map(e => ({
+      ...e,
+      aircraftType: aircraft.find(a => a.tail_number === e.aircraft_tail)?.aircraft_type || '—',
+    }));
+
+  return (
+    <div className="fixed inset-0 z-50 bg-black/70 flex items-center justify-center p-4">
+      <div className="bg-[#0d1117] border border-white/10 rounded-2xl w-full max-w-lg shadow-2xl">
+        <div className="flex items-center justify-between px-5 py-4 border-b border-white/10">
+          <div className="flex items-center gap-2">
+            <MapPin className="w-4 h-4 text-orange-400" />
+            <h2 className="text-sm font-extrabold text-white uppercase tracking-widest">{selectedLocation} — Aircraft Recovery</h2>
+          </div>
+          <button onClick={onClose} className="w-8 h-8 rounded-lg bg-white/10 flex items-center justify-center hover:bg-white/20">
+            <X className="w-4 h-4 text-white" />
+          </button>
+        </div>
+        <div className="p-5 space-y-3 max-h-[60vh] overflow-y-auto">
+          {locationAircraft.length === 0 ? (
+            <p className="text-gray-600 text-sm text-center py-6">No OOS aircraft at this location</p>
+          ) : (
+            locationAircraft.map(entry => (
+              <div key={entry.id} className="bg-[#141922] border border-white/10 rounded-lg p-4 space-y-2">
+                <div className="flex items-center justify-between gap-2">
+                  <span className="text-sm font-extrabold text-orange-400 font-mono">{entry.aircraft_tail}</span>
+                  <span className="text-[10px] px-2 py-1 rounded-full bg-red-500/20 text-red-400 font-bold">{entry.reason || 'Maintenance'}</span>
+                </div>
+                <p className="text-xs text-gray-400">{entry.aircraftType}</p>
+                <div className="flex items-center justify-between text-xs">
+                  <span className="text-gray-600">Days OOS: {entry.days_out_of_service || '—'}</span>
+                  {entry.estimated_return_date && (
+                    <span className="text-gray-500">Est. Return: {new Date(entry.estimated_return_date).toLocaleDateString()}</span>
+                  )}
+                </div>
+              </div>
+            ))
+          )}
+        </div>
+      </div>
+    </div>
+  );
+}
+
 export default function MaintenanceControl() {
   const [activeTab, setActiveTab] = useState('fleet');
+  const [selectedLocation, setSelectedLocation] = useState(null);
 
 
   const { data: aircraft = [] } = useQuery({
@@ -159,6 +208,38 @@ export default function MaintenanceControl() {
           </>
         )}
         {activeTab === 'oos'     && <MccOosBoard oosEntries={oosEntries} aircraft={aircraft} />}
+        {activeTab === 'fieldtrip' && (
+          <div className="space-y-4">
+            <div className="bg-[#141922] border border-white/10 rounded-2xl p-5">
+              <div className="flex items-center gap-2 mb-4">
+                <MapPin className="w-5 h-5 text-orange-400" />
+                <h2 className="text-lg font-extrabold text-white">Field Trip Recovery</h2>
+              </div>
+              <p className="text-xs text-gray-500 mb-4">Select a station to view aircraft recovery operations by location.</p>
+              <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
+                {['KEWR', 'KJFK', 'KORD', 'KATL', 'KLAX', 'KSFO', 'KDEN', 'KMIA', 'KDFW', 'KSEA', 'KBOS', 'KDCA'].map(station => {
+                  const count = oosEntries.filter(e => e.station === station).length;
+                  return (
+                    <button
+                      key={station}
+                      onClick={() => setSelectedLocation(station)}
+                      disabled={count === 0}
+                      className={cn(
+                        'py-3 px-4 rounded-xl text-sm font-bold transition-all',
+                        count > 0
+                          ? 'bg-orange-600 text-white hover:bg-orange-500'
+                          : 'bg-[#0a0e18] text-gray-600 cursor-not-allowed'
+                      )}
+                    >
+                      <p className="font-extrabold">{station}</p>
+                      <p className="text-[10px] mt-1">{count} aircraft</p>
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+          </div>
+        )}
         {activeTab === 'mel'     && <MccMelBoard melItems={melItems} aircraft={aircraft} />}
         {activeTab === 'faults'  && <MccFaultBoard faults={faults} aircraft={aircraft} />}
         {activeTab === 'parts'   && <MccPartsBoard parts={parts} oosEntries={oosEntries} />}
@@ -234,7 +315,17 @@ export default function MaintenanceControl() {
         {activeTab === 'mro' && (
           <MROIntegrationHub />
         )}
-      </div>
-    </div>
-  );
-}
+        </div>
+
+        {/* Aircraft Recovery Modal */}
+        {selectedLocation && (
+        <AircraftRecoveryModal
+          selectedLocation={selectedLocation}
+          onClose={() => setSelectedLocation(null)}
+          oosEntries={oosEntries}
+          aircraft={aircraft}
+        />
+        )}
+        </div>
+        );
+        }
