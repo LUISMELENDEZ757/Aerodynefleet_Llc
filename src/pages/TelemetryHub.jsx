@@ -8,6 +8,7 @@ import {
   ChevronRight, BarChart3, Search
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import LiveClock from '@/components/ui/LiveClock';
 import OEMConnectorCard from '@/components/telemetry/OEMConnectorCard';
 import TelemetryImportModal from '@/components/telemetry/TelemetryImportModal';
 import OEMConfigModal from '@/components/telemetry/OEMConfigModal';
@@ -105,7 +106,8 @@ export default function TelemetryHub() {
               <p className="text-xs font-mono text-primary tracking-widest uppercase">Boeing · Airbus · GE · Honeywell · Safran · Embraer + more</p>
             </div>
           </div>
-          <div className="flex items-center gap-2 mt-1">
+          <div className="flex items-center gap-4 mt-1">
+            <LiveClock />
             <button onClick={() => { refetchConnectors(); refetchImports(); }}
               className="w-9 h-9 rounded-xl border border-border flex items-center justify-center text-muted-foreground hover:text-foreground transition-colors">
               <RefreshCw className="w-4 h-4" />

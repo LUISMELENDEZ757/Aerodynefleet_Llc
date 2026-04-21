@@ -13,6 +13,7 @@ import ApuTrendDashboard from '@/components/engineering/ApuTrendDashboard';
 import MaintenanceForecastModule from '@/components/engineering/MaintenanceForecastModule';
 import OilServicingConfig from '@/components/engineering/OilServicingConfig';
 import StationAircraftDropdown from '@/components/engineering/StationAircraftDropdown';
+import LiveClock from '@/components/ui/LiveClock';
 
 const TABS = [
   { id: 'trends',    label: 'Engine Trend Analysis', icon: TrendingUp },
@@ -73,12 +74,15 @@ export default function EngineeringDashboard() {
           </div>
         </div>
 
-        {/* Station-grouped aircraft selector */}
-        <StationAircraftDropdown
-          aircraft={aircraft}
-          value={selectedTail}
-          onChange={setSelectedTail}
-        />
+        <div className="flex items-center gap-4">
+          {/* Station-grouped aircraft selector */}
+          <StationAircraftDropdown
+            aircraft={aircraft}
+            value={selectedTail}
+            onChange={setSelectedTail}
+          />
+          <LiveClock />
+        </div>
       </div>
 
       {/* KPI Bar */}
