@@ -7,8 +7,37 @@ import { FleetBadge } from '@/components/fleet/FleetSwitcher';
 import {
   Plane, Search, LayoutGrid, List, Wrench, CheckCircle, Globe, Shield,
   BookOpen, MapPin, Cpu, X, AlertTriangle, UserCheck, Plus, Clock,
-  ChevronDown, Radio, Activity, Zap, Package, Brain, Settings2, Building2
+  ChevronDown, Radio, Activity, Zap, Package, Brain, Settings2
 } from 'lucide-react';
+
+const TerminalIcon = ({ className }) => (
+  <svg viewBox="0 0 64 64" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" className={className}>
+    {/* Control tower */}
+    <rect x="42" y="18" width="10" height="18" strokeWidth="2" />
+    <circle cx="47" cy="12" r="4" strokeWidth="2" />
+    <line x1="44" y1="10" x2="50" y2="10" strokeWidth="1.5" />
+    <line x1="43" y1="12" x2="51" y2="12" strokeWidth="1.5" />
+    {/* Tower connector */}
+    <line x1="47" y1="18" x2="47" y2="36" strokeWidth="1.5" />
+    {/* Terminal building */}
+    <path d="M 8 36 L 40 20 L 40 36 Z" strokeWidth="2" />
+    {/* Terminal base */}
+    <rect x="8" y="36" width="32" height="16" strokeWidth="2" />
+    {/* Terminal windows */}
+    <line x1="12" y1="36" x2="12" y2="52" strokeWidth="1" />
+    <line x1="16" y1="36" x2="16" y2="52" strokeWidth="1" />
+    <line x1="20" y1="36" x2="20" y2="52" strokeWidth="1" />
+    <line x1="24" y1="36" x2="24" y2="52" strokeWidth="1" />
+    <line x1="28" y1="36" x2="28" y2="52" strokeWidth="1" />
+    <line x1="32" y1="36" x2="32" y2="52" strokeWidth="1" />
+    <line x1="36" y1="36" x2="36" y2="52" strokeWidth="1" />
+    <line x1="12" y1="42" x2="36" y2="42" strokeWidth="1" />
+    <line x1="12" y1="46" x2="36" y2="46" strokeWidth="1" />
+    <line x1="12" y1="50" x2="36" y2="50" strokeWidth="1" />
+    {/* Ground line */}
+    <line x1="4" y1="52" x2="56" y2="52" strokeWidth="2" />
+  </svg>
+);
 
 const HangarIcon = ({ className }) => (
   <svg viewBox="0 0 64 64" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" className={className}>
@@ -465,7 +494,7 @@ function AircraftCard({ aircraft, onSelect, discrepancies }) {
   const openDiscs = discrepancies?.filter(d => d.discrepancy_status !== 'CLOSED') || [];
   const hasHighRisk = openDiscs.length >= 3 || aircraft.status === 'oos' || aircraft.status === 'maintenance';
   
-  const LocationIcon = locationType === 'terminal' ? Building2 : HangarIcon;
+  const LocationIcon = locationType === 'terminal' ? TerminalIcon : HangarIcon;
   
   return (
     <div onClick={() => onSelect(aircraft)}
