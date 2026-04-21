@@ -70,6 +70,7 @@ const CREW_OPS_ITEMS = [
 
 // ── WORKGROUP 4: FLIGHT DECK / EFB ──────────────────────────────────────────────
 const FLIGHT_DECK_ITEMS = [
+  { label: '🛋️ Cabin Mode', path: '/FlightAttendant' },
   { label: '📱 EFB Dashboard', path: '/EFB' },
   { label: '✍️ Flight Release', path: '/EFB' },
   { label: '📈 Flight Performance', path: '/FlightPlanner' },
