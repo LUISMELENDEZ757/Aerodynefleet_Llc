@@ -92,89 +92,95 @@ function AircraftRecoveryModal({ selectedLocation, onClose, oosEntries, aircraft
           </div>
 
           {/* Field Trip Details */}
-          {locationTrips.length > 0 ? (
-            locationTrips.map(trip => (
-              <div key={trip.id} className="space-y-4 border-t border-white/10 pt-4">
-                <div className="flex items-center justify-between">
-                  <h3 className="text-xs font-extrabold text-gray-400 uppercase tracking-widest">Recovery Operation: {trip.aircraft_tail}</h3>
-                  <span className="text-[10px] px-2 py-1 rounded-full bg-blue-500/20 text-blue-400 font-bold">{trip.recovery_type?.replace(/_/g, ' ').toUpperCase()}</span>
-                </div>
-
-                {/* Technicians */}
-                {trip.technicians_assigned?.length > 0 && (
-                  <div>
-                    <p className="text-[10px] font-bold text-gray-500 mb-2">👷 TECHNICIANS ASSIGNED</p>
-                    <div className="space-y-1 text-xs text-gray-300 font-mono">
-                      {trip.technicians_assigned.map((tech, i) => (
-                        <div key={i} className="flex justify-between bg-[#141922] p-2 rounded">
-                          <span>{tech.name} ({tech.role})</span>
-                          <span className="text-gray-500">{tech.company_id}</span>
-                        </div>
-                      ))}
+          <div className="border-t border-white/10 pt-4">
+            {locationTrips.length === 0 ? (
+              <p className="text-xs text-gray-600 text-center py-6">No field trip recovery data configured</p>
+            ) : (
+              locationTrips.map(trip => (
+                <div key={trip.id} className="space-y-5">
+                  <div className="flex items-start justify-between">
+                    <div>
+                      <p className="text-lg font-black text-white">{trip.aircraft_tail}</p>
+                      <p className="text-xs text-gray-400 mt-1">Recovery Type: <span className="text-blue-400 font-bold">{trip.recovery_type?.replace(/_/g, ' ').toUpperCase()}</span></p>
                     </div>
                   </div>
-                )}
 
-                {/* Flights & Passport */}
-                <div className="grid grid-cols-2 gap-3">
-                  {trip.flight_number && (
-                    <div className="bg-[#141922] rounded-lg p-3">
-                      <p className="text-[10px] font-bold text-gray-500 mb-1">✈ OUTBOUND FLIGHT</p>
-                      <p className="text-sm font-mono font-bold text-cyan-400">{trip.flight_number}</p>
-                    </div>
-                  )}
-                  {trip.return_flight_number && (
-                    <div className="bg-[#141922] rounded-lg p-3">
-                      <p className="text-[10px] font-bold text-gray-500 mb-1">✈ RETURN FLIGHT</p>
-                      <p className="text-sm font-mono font-bold text-cyan-400">{trip.return_flight_number}</p>
-                    </div>
-                  )}
-                  {trip.hotel_name && (
-                    <div className="bg-[#141922] rounded-lg p-3">
-                      <p className="text-[10px] font-bold text-gray-500 mb-1">🏨 HOTEL</p>
-                      <p className="text-xs font-bold text-white">{trip.hotel_name}</p>
-                      {trip.hotel_confirmation && <p className="text-[10px] text-gray-500">{trip.hotel_confirmation}</p>}
-                    </div>
-                  )}
-                  {trip.daily_expense_budget && (
-                    <div className="bg-[#141922] rounded-lg p-3">
-                      <p className="text-[10px] font-bold text-gray-500 mb-1">💰 DAILY EXPENSE</p>
-                      <p className="text-sm font-mono font-bold text-green-400">${trip.daily_expense_budget}/day</p>
-                      {trip.total_expenses && <p className="text-[10px] text-gray-500">Total: ${trip.total_expenses}</p>}
-                    </div>
-                  )}
-                </div>
-
-                {/* Technician Details */}
-                {trip.technicians_assigned?.length > 0 && trip.technicians_assigned[0].passport_number && (
-                  <div className="bg-[#141922] rounded-lg p-3">
-                    <p className="text-[10px] font-bold text-gray-500 mb-2">📋 DOCUMENTATION</p>
-                    <div className="space-y-1 text-xs text-gray-300">
-                      {trip.technicians_assigned.map((tech, i) => (
-                        tech.passport_number && (
-                          <div key={i} className="flex justify-between">
-                            <span>{tech.name}</span>
-                            <span className="text-gray-500">Passport: {tech.passport_number}</span>
+                  {/* Technicians */}
+                  <div className="bg-[#141922] border border-white/10 rounded-lg p-4">
+                    <p className="text-xs font-bold text-gray-400 uppercase tracking-widest mb-3">👷 Team Members ({trip.technicians_assigned?.length || 0})</p>
+                    {trip.technicians_assigned?.length > 0 ? (
+                      <div className="space-y-2">
+                        {trip.technicians_assigned.map((tech, i) => (
+                          <div key={i} className="bg-[#0d1117] p-3 rounded-lg">
+                            <div className="flex items-center justify-between mb-1">
+                              <p className="text-sm font-bold text-white">{tech.name}</p>
+                              <span className="text-[10px] bg-purple-500/20 text-purple-400 px-2 py-0.5 rounded font-bold">{tech.role}</span>
+                            </div>
+                            <div className="grid grid-cols-2 gap-2 text-[10px] text-gray-400 mt-2">
+                              <p><span className="text-gray-500">Employee ID:</span> <span className="font-mono text-white">{tech.employee_id}</span></p>
+                              <p><span className="text-gray-500">Company ID:</span> <span className="font-mono text-white">{tech.company_id}</span></p>
+                              {tech.passport_number && <p className="col-span-2"><span className="text-gray-500">Passport:</span> <span className="font-mono text-white">{tech.passport_number}</span></p>}
+                            </div>
                           </div>
-                        )
-                      ))}
+                        ))}
+                      </div>
+                    ) : (
+                      <p className="text-xs text-gray-600">No technicians assigned</p>
+                    )}
+                  </div>
+
+                  {/* Flights */}
+                  <div className="bg-[#141922] border border-white/10 rounded-lg p-4">
+                    <p className="text-xs font-bold text-gray-400 uppercase tracking-widest mb-3">✈ Flights</p>
+                    <div className="space-y-2">
+                      {trip.flight_number && (
+                        <div className="bg-[#0d1117] p-3 rounded-lg">
+                          <p className="text-[10px] text-gray-500 mb-1">OUTBOUND</p>
+                          <p className="text-lg font-mono font-bold text-cyan-400">{trip.flight_number}</p>
+                        </div>
+                      )}
+                      {trip.return_flight_number && (
+                        <div className="bg-[#0d1117] p-3 rounded-lg">
+                          <p className="text-[10px] text-gray-500 mb-1">RETURN</p>
+                          <p className="text-lg font-mono font-bold text-cyan-400">{trip.return_flight_number}</p>
+                        </div>
+                      )}
                     </div>
                   </div>
-                )}
 
-                {trip.notes && (
-                  <div className="bg-blue-500/10 border border-blue-500/30 rounded-lg p-3">
-                    <p className="text-[10px] font-bold text-blue-400 mb-1">📝 NOTES</p>
-                    <p className="text-xs text-blue-300">{trip.notes}</p>
+                  {/* Hotel & Expenses */}
+                  <div className="grid grid-cols-2 gap-3">
+                    {trip.hotel_name && (
+                      <div className="bg-[#141922] border border-white/10 rounded-lg p-4">
+                        <p className="text-xs font-bold text-gray-400 uppercase tracking-widest mb-2">🏨 Hotel</p>
+                        <p className="text-sm font-bold text-white">{trip.hotel_name}</p>
+                        {trip.hotel_confirmation && (
+                          <p className="text-[10px] text-gray-500 mt-2">Confirmation: <span className="font-mono text-gray-400">{trip.hotel_confirmation}</span></p>
+                        )}
+                      </div>
+                    )}
+                    {trip.daily_expense_budget && (
+                      <div className="bg-[#141922] border border-white/10 rounded-lg p-4">
+                        <p className="text-xs font-bold text-gray-400 uppercase tracking-widest mb-2">💰 Expenses</p>
+                        <p className="text-lg font-mono font-bold text-green-400">${trip.daily_expense_budget}<span className="text-xs text-gray-500">/day</span></p>
+                        {trip.total_expenses && (
+                          <p className="text-[10px] text-gray-500 mt-2">Total Trip: <span className="text-green-400 font-bold">${trip.total_expenses}</span></p>
+                        )}
+                      </div>
+                    )}
                   </div>
-                )}
-              </div>
-            ))
-          ) : (
-            <div className="border-t border-white/10 pt-4">
-              <p className="text-xs text-gray-600 text-center py-4">No field trip recovery data configured</p>
-            </div>
-          )}
+
+                  {/* Notes */}
+                  {trip.notes && (
+                    <div className="bg-blue-950/30 border border-blue-500/40 rounded-lg p-4">
+                      <p className="text-[10px] font-bold text-blue-400 uppercase tracking-widest mb-2">📝 Recovery Details</p>
+                      <p className="text-sm text-blue-300">{trip.notes}</p>
+                    </div>
+                  )}
+                </div>
+              ))
+            )}
+          </div>
         </div>
       </div>
     </div>
