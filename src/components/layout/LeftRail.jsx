@@ -14,6 +14,7 @@ const TECHNICIAN_ITEMS = [
   { label: '📊 Production Control', path: '/ProductionControl' },
   { label: '📝 Work Assignments', path: '/WorkAssignments' },
   { label: '👷 Manpower & Staffing', path: '/ManpowerStaffing' },
+  { label: '🧰 Technician Mode', path: '/TechnicianMode' },
   { label: '🔧 Line Maintenance', path: '/LineMaintenanceDashboard' },
   { label: '📡 Mx Tracking', path: '/MxTracking' },
   { label: '📅 Mx Calendar', path: '/EngCalendar' },
