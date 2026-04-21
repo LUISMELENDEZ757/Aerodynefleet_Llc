@@ -289,7 +289,7 @@ export default function ShiftHandoverPage() {
               <ChevronLeft className="w-5 h-5 text-foreground" />
             </Link>
             <div>
-              <h1 className="text-lg font-extrabold text-foreground">Shift Handover</h1>
+              <h1 className="text-lg font-extrabold text-foreground">Shift Turn Over</h1>
               <p className="text-xs text-primary tracking-widest uppercase">Log Off · Sign Off · Daily Report</p>
             </div>
           </div>
