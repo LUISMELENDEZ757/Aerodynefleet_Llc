@@ -152,9 +152,9 @@ export default function GroundOpsPage() {
   const { data: airportData = {}, refetch: refetchAirport, isLoading: loadingAirport } = useQuery({
     queryKey: ['station-airport', selectedStation],
     queryFn: async () => {
-      const res = await base44.functions.invoke('flightAwareSearch', {
-        type: 'airport_board',
+      const res = await base44.functions.invoke('groundOpsFlightAware', {
         airport: selectedStation,
+        limit: 50
       });
       if (res.data?.error) throw new Error(res.data.error);
       return res.data || { departures: [], arrivals: [] };
