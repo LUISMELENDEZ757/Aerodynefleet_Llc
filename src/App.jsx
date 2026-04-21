@@ -85,6 +85,7 @@ const ShiftHandoverPage         = lazy(() => import('@/pages/ShiftHandoverPage')
 const ChronicMELDashboard       = lazy(() => import('@/pages/ChronicMELDashboard'));
 const EngineeringCalendar       = lazy(() => import('@/pages/EngineeringCalendar'));
 const ReliabilityDashboard      = lazy(() => import('@/components/reliability/ReliabilityDashboard'));
+const PlanningWorkPackages      = lazy(() => import('@/components/planning/PlanningWorkPackages'));
 const WorkAssignmentDashboard   = lazy(() => import('@/pages/WorkAssignmentDashboard'));
 const EngineRemovalInstallation = lazy(() => import('@/pages/EngineRemovalInstallation'));
 const PassengerServiceSystem   = lazy(() => import('@/pages/PassengerServiceSystem'));
@@ -301,6 +302,7 @@ const AuthenticatedApp = () => {
         <Route path="/ChronicMEL" element={<ChronicMELDashboard />} />
         <Route path="/EngCalendar" element={<EngineeringCalendar />} />
         <Route path="/Reliability" element={<ReliabilityDashboard />} />
+        <Route path="/Planning" element={<PlanningWorkPackages />} />
         <Route path="/WorkAssignments" element={<WorkAssignmentDashboard />} />
         <Route path="/ADTracking" element={<ADTracking />} />
         <Route path="/ComponentTraceability" element={<ComponentTraceability />} />
