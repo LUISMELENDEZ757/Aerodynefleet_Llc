@@ -133,17 +133,29 @@ class ChunkErrorBoundary extends React.Component {
     super(props);
     this.state = { hasError: false, errorCount: 0 };
   }
+  static isChunkError(error) {
+    const msg = error?.message || '';
+    return (
+      msg.includes('Failed to fetch dynamically imported module') ||
+      msg.includes('error loading dynamically imported module') ||
+      msg.includes('Loading chunk') ||
+      msg.includes('Importing a module script failed')
+    );
+  }
   static getDerivedStateFromError(error) {
-    if (error?.message?.includes('Failed to fetch dynamically imported module') ||
-        error?.message?.includes('Loading chunk') ||
-        error?.message?.includes('Importing a module script failed')) {
+    if (ChunkErrorBoundary.isChunkError(error)) {
+      // Auto-reload once to clear stale Vite chunk cache
+      if (!sessionStorage.getItem('chunk_reload_attempted')) {
+        sessionStorage.setItem('chunk_reload_attempted', '1');
+        window.location.reload();
+        return { hasError: false };
+      }
       return { hasError: true };
     }
     return null;
   }
   componentDidCatch(error) {
     console.error('Chunk load error:', error);
-    this.setState(prev => ({ errorCount: prev.errorCount + 1 }));
   }
   render() {
     if (this.state.hasError) {
@@ -152,7 +164,7 @@ class ChunkErrorBoundary extends React.Component {
           <div className="text-center space-y-4">
             <div className="text-sm text-muted-foreground">Page failed to load</div>
             <button
-              onClick={() => window.location.reload()}
+              onClick={() => { sessionStorage.removeItem('chunk_reload_attempted'); window.location.reload(); }}
               className="px-4 py-2 bg-primary text-primary-foreground rounded-lg text-sm font-semibold hover:bg-primary/90"
             >
               Reload App
