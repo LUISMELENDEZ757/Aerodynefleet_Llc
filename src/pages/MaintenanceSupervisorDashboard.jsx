@@ -204,7 +204,7 @@ const TABS = [
   { id: 'closed',    label: 'Closed Today',      icon: CheckCircle },
   { id: 'faults',    label: 'Faults & MEL',     icon: Zap },
   { id: 'parts',     label: 'Parts & Tools',    icon: Package },
-  { id: 'handover',  label: 'Shift Handover',   icon: Users },
+  { id: 'handover',  label: 'Shift Turnover',   icon: Users },
 ];
 
 export default function MaintenanceSupervisorDashboard() {
