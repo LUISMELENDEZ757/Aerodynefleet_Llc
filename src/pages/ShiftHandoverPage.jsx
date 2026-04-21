@@ -300,7 +300,7 @@ export default function ShiftHandoverPage() {
             </button>
             <button onClick={() => setStep('form')}
               className="flex items-center gap-2 px-4 py-2 rounded-xl bg-primary text-primary-foreground font-bold text-sm hover:bg-primary/90">
-              <ClipboardCheck className="w-4 h-4" /> New Handover
+              <ClipboardCheck className="w-4 h-4" /> New Shift Turnover
             </button>
           </div>
         </div>
