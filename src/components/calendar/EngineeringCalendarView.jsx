@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { ChevronLeft, ChevronRight } from 'lucide-react';
+import { ChevronLeft, ChevronRight, RefreshCw } from 'lucide-react';
 import { startOfMonth, endOfMonth, eachDayOfInterval, getDay, format, addMonths, subMonths, isSameDay } from 'date-fns';
 import { cn } from '@/lib/utils';
 
@@ -43,7 +43,7 @@ function DayCell({ date, events, onSelectDay, selectedDay, isOtherMonth }) {
   );
 }
 
-export default function EngineeringCalendarView({ events = [], onEventClick }) {
+export default function EngineeringCalendarView({ events = [], onEventClick, onRefetch, isLoading }) {
   const [currentMonth, setCurrentMonth] = useState(new Date());
   const [selectedDay, setSelectedDay] = useState(null);
 
@@ -91,6 +91,12 @@ export default function EngineeringCalendarView({ events = [], onEventClick }) {
             className="w-9 h-9 rounded-lg bg-secondary flex items-center justify-center hover:bg-secondary/80">
             <ChevronRight className="w-4 h-4 text-foreground" />
           </button>
+          {onRefetch && (
+            <button onClick={onRefetch}
+              className="w-9 h-9 rounded-lg bg-secondary flex items-center justify-center hover:bg-secondary/80">
+              <RefreshCw className={`w-4 h-4 text-foreground ${isLoading ? 'animate-spin' : ''}`} />
+            </button>
+          )}
         </div>
       </div>
 

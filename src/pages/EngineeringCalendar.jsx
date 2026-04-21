@@ -113,7 +113,7 @@ END:VCALENDAR`;
             <LiveClock />
             <button onClick={() => refetch()}
               className="w-9 h-9 rounded-lg bg-secondary flex items-center justify-center hover:bg-secondary/80">
-              <RefreshCw className={isLoading ? 'animate-spin' : ''} />
+              <RefreshCw className={`w-4 h-4 text-foreground transition-transform ${isLoading ? 'animate-spin' : ''}`} />
             </button>
             <button onClick={handleExportCalendar}
               className="px-4 py-2 rounded-lg bg-secondary text-foreground text-xs font-bold hover:bg-secondary/80 flex items-center gap-2">
@@ -125,7 +125,7 @@ END:VCALENDAR`;
 
       {/* Content */}
       <div className="px-4 py-6 max-w-6xl mx-auto">
-        <EngineeringCalendarView events={events} onEventClick={setSelectedEvent} />
+        <EngineeringCalendarView events={events} onEventClick={setSelectedEvent} onRefetch={refetch} isLoading={isLoading} />
 
         {/* Event Detail Modal */}
         {selectedEvent && (
