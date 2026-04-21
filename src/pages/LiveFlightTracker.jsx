@@ -245,7 +245,9 @@ export default function LiveFlightTracker() {
   const [customAirline, setCustomAirline]     = useState('');
   const [activeAirlineIcao, setActiveAirlineIcao] = useState(''); // fired on demand
   const [airport, setAirport]         = useState('KEWR');
+  const [airportInput, setAirportInput] = useState('KEWR');
   const [airportTab, setAirportTab]   = useState('departures');
+  const [airportAirlineFilter, setAirportAirlineFilter] = useState(''); // sub-filter for airport mode
   const [searchIdent, setSearchIdent] = useState('');
   const [searchInput, setSearchInput] = useState('');
   const [selectedFlight, setSelectedFlight] = useState(null);
@@ -278,7 +280,7 @@ export default function LiveFlightTracker() {
       if (res.data?.error) throw new Error(res.data.error);
       return res.data || { departures: [], arrivals: [] };
     },
-    enabled: mode === 'airport' && !!airport && airport.length === 4,
+    enabled: !!airport && airport.length === 4,
     refetchInterval: 120000,
     staleTime: 60000,
     refetchOnMount: true,
@@ -318,10 +320,22 @@ export default function LiveFlightTracker() {
   }, []);
 
   // Derive display data
+  const rawAirportFlights = airportTab === 'departures' ? (airportData?.departures || []) : (airportData?.arrivals || []);
   const displayFlights = mode === 'airline' ? (airlineData || [])
     : mode === 'search' ? (searchData || [])
-    : airportTab === 'departures' ? (airportData?.departures || [])
-    : (airportData?.arrivals || []);
+    : airportAirlineFilter
+      ? rawAirportFlights.filter(f => {
+          const op = f.operator || f.ident_iata?.substring(0, 2) || '';
+          return op === airportAirlineFilter;
+        })
+      : rawAirportFlights;
+
+  // All airlines available in the current airport board (both deps + arrs)
+  const airportAirlines = Array.from(new Set(
+    [...(airportData?.departures || []), ...(airportData?.arrivals || [])]
+      .map(f => f.operator || f.ident_iata?.substring(0, 2))
+      .filter(Boolean)
+  )).sort();
 
   const isLoading = mode === 'airline' ? airlineLoading
     : mode === 'airport' ? airportLoading
@@ -389,11 +403,11 @@ export default function LiveFlightTracker() {
             { key: 'airline',  label: 'By Airline',  icon: Building2 },
             { key: 'airport',  label: 'By Airport',  icon: MapPin },
             { key: 'search',   label: 'Flight Search', icon: Search },
-          ].map(({ key, label, icon: Icon }) => (
+          ].map(({ key, label, icon: TabIcon }) => (
             <button key={key} onClick={() => setMode(key)}
               className={cn('flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-bold transition-all',
                 mode === key ? 'bg-sky-600 text-white' : 'text-gray-500 hover:text-white hover:bg-white/5')}>
-              <Icon className="w-3.5 h-3.5" />{label}
+              <TabIcon className="w-3.5 h-3.5" />{label}
             </button>
           ))}
         </div>
@@ -468,63 +482,83 @@ export default function LiveFlightTracker() {
             <p className="text-xs font-extrabold text-white uppercase tracking-widest flex items-center gap-2">
               <MapPin className="w-4 h-4 text-sky-400" /> Select Airport
             </p>
+
+            {/* ICAO input + Load button */}
             <div className="flex gap-2">
               <input
-                value={airport}
-                onChange={e => setAirport(e.target.value.toUpperCase())}
+                value={airportInput}
+                onChange={e => setAirportInput(e.target.value.toUpperCase())}
+                onKeyDown={e => { if (e.key === 'Enter' && airportInput.length === 4) { setAirport(airportInput); setAirportAirlineFilter(''); } }}
                 placeholder="ICAO e.g. KEWR"
                 maxLength={4}
                 className="flex-1 bg-[#0d1117] border border-white/10 rounded-xl px-3 py-2 text-sm text-white placeholder-gray-600 outline-none focus:border-sky-500/50 font-mono uppercase"
               />
-              <button onClick={() => refetchAirport()}
-                className="px-4 py-2 rounded-xl bg-sky-600 text-white text-xs font-bold hover:bg-sky-500 transition-colors">
-                Load
+              <button
+                onClick={() => { setAirport(airportInput); setAirportAirlineFilter(''); }}
+                disabled={airportInput.length !== 4}
+                className="px-4 py-2 rounded-xl bg-sky-600 text-white text-xs font-bold hover:bg-sky-500 disabled:opacity-40 transition-colors flex items-center gap-1.5">
+                <Search className="w-3.5 h-3.5" /> Load
               </button>
             </div>
+
+            {/* Popular airport quick-picks — clicking immediately loads */}
             <div className="flex flex-wrap gap-2">
               {POPULAR_AIRPORTS.map(ap => (
-                <button key={ap} onClick={() => setAirport(ap)}
+                <button key={ap} onClick={() => { setAirport(ap); setAirportInput(ap); setAirportAirlineFilter(''); }}
                   className={cn('px-2.5 py-1 rounded-lg text-[10px] font-bold border transition-all',
                     airport === ap
                       ? 'bg-sky-600 text-white border-transparent'
-                      : 'border-white/10 text-gray-400 hover:text-white')}>
+                      : 'border-white/10 text-gray-400 hover:text-white hover:border-white/20')}>
                   {ap}
                 </button>
               ))}
             </div>
-            <div className="flex gap-2 mb-3">
-              {['departures','arrivals'].map(t => (
+
+            {/* Departures / Arrivals tabs */}
+            <div className="flex gap-2">
+              {['departures', 'arrivals'].map(t => (
                 <button key={t} onClick={() => setAirportTab(t)}
                   className={cn('flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-bold transition-all',
-                    airportTab === t ? 'bg-primary text-primary-foreground' : 'text-gray-500 hover:text-white hover:bg-white/5')}>
+                    airportTab === t ? 'bg-sky-600 text-white' : 'text-gray-500 hover:text-white hover:bg-white/5')}>
                   {t === 'departures' ? <PlaneTakeoff className="w-3.5 h-3.5" /> : <PlaneLanding className="w-3.5 h-3.5" />}
                   {t.charAt(0).toUpperCase() + t.slice(1)}
                   {airportData && (
                     <span className={cn('text-[10px] px-1.5 py-0.5 rounded-full font-black',
                       airportTab === t ? 'bg-black/30 text-white' : 'bg-white/10 text-gray-400')}>
-                      {airportTab === t ? displayFlights.length : (t === 'departures' ? (airportData.departures?.length || 0) : (airportData.arrivals?.length || 0))}
+                      {t === 'departures' ? (airportData.departures?.length || 0) : (airportData.arrivals?.length || 0)}
                     </span>
                   )}
                 </button>
               ))}
             </div>
-            {(airportData?.departures?.length > 0 || airportData?.arrivals?.length > 0) && (
+
+            {/* Airline sub-filter — only shown when data is available */}
+            {airportAirlines.length > 0 && (
               <div className="space-y-2">
-                <label className="text-xs font-bold text-gray-500 uppercase tracking-widest block">Filter by Airline</label>
-                <select
-                  value={selectedAirline || ''}
-                  onChange={e => setSelectedAirline(e.target.value || null)}
-                  className="w-full bg-[#0d1117] border border-white/10 rounded-xl px-3 py-2 text-sm text-white outline-none focus:border-sky-500/50"
-                >
-                  <option value="">All Airlines</option>
-                  {Array.from(new Set(
-                    [...(airportData?.departures || []), ...(airportData?.arrivals || [])]
-                      .map(f => f.operator || f.ident_iata?.substring(0, 2))
-                      .filter(Boolean)
-                  )).sort().map(airline => (
-                    <option key={airline} value={airline}>{airline}</option>
-                  ))}
-                </select>
+                <p className="text-[10px] font-bold text-gray-500 uppercase tracking-widest flex items-center gap-1.5">
+                  <Filter className="w-3 h-3" /> Filter by Airline
+                </p>
+                <div className="flex flex-wrap gap-1.5">
+                  <button
+                    onClick={() => setAirportAirlineFilter('')}
+                    className={cn('px-3 py-1 rounded-lg text-[10px] font-bold border transition-all',
+                      !airportAirlineFilter ? 'bg-sky-600 text-white border-transparent' : 'border-white/10 text-gray-400 hover:text-white hover:border-white/20')}>
+                    All ({rawAirportFlights.length})
+                  </button>
+                  {airportAirlines.map(airline => {
+                    const count = rawAirportFlights.filter(f => (f.operator || f.ident_iata?.substring(0, 2)) === airline).length;
+                    return (
+                      <button key={airline}
+                        onClick={() => setAirportAirlineFilter(airportAirlineFilter === airline ? '' : airline)}
+                        className={cn('px-3 py-1 rounded-lg text-[10px] font-bold border transition-all',
+                          airportAirlineFilter === airline
+                            ? 'bg-sky-600 text-white border-transparent'
+                            : 'border-white/10 text-gray-400 hover:text-white hover:border-white/20')}>
+                        {airline} ({count})
+                      </button>
+                    );
+                  })}
+                </div>
               </div>
             )}
           </div>
@@ -547,7 +581,7 @@ export default function LiveFlightTracker() {
               <Plane className="w-4 h-4 text-sky-400" />
               {mode === 'airline' && selectedAirline ? `${selectedAirline.flag} ${selectedAirline.name} — Enroute` :
                mode === 'airline' && customAirline ? `${customAirline} — Enroute` :
-               mode === 'airport' ? `${airport} ${airportTab === 'departures' ? 'Departures' : 'Arrivals'}` :
+               mode === 'airport' ? `${airport} ${airportTab === 'departures' ? 'Departures' : 'Arrivals'}${airportAirlineFilter ? ` · ${airportAirlineFilter}` : ''}` :
                mode === 'search' ? `Search: ${searchIdent}` : 'Select a source above'}
             </p>
             {isLoading && <Loader className="w-4 h-4 text-sky-400 animate-spin" />}
