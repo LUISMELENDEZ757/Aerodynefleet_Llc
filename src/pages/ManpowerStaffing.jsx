@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { base44 } from '@/api/base44Client';
+import { useStations } from '@/hooks/useStations';
 import { Link } from 'react-router-dom';
 import {
   ChevronLeft, Users, UserCheck, Coffee, Navigation2, GraduationCap,
@@ -46,7 +47,7 @@ const KPI_ITEMS = [
   { status: 'aog',        label: 'AOG Response', icon: AlertTriangle, iconColor: 'text-red-400',  bg: 'bg-[#200a0a] border-red-500/30' },
 ];
 
-const STATIONS = ['All Stations', 'KEWR', 'KJFK', 'KLAX', 'KORD', 'KATL', 'KSFO', 'KDEN', 'KDFW', 'KMIA', 'KBOS', 'KSEA', 'KIAH'];
+// STATIONS list is now loaded live from the Global Station registry via useStations()
 
 const CERT_COLORS = {
   'A&P': 'bg-blue-500/20 text-blue-300 border-blue-500/30',
@@ -77,9 +78,9 @@ function Avatar({ name, status }) {
 const CERT_OPTIONS = ['A&P', 'IA', 'Avionics', 'Lead A&P', 'Airframe', 'Powerplant', 'NDT', 'RII'];
 const STATUS_OPTIONS = Object.keys(STATUS_CFG);
 
-function TechModal({ tech, onClose, onSave }) {
+function TechModal({ tech, onClose, onSave, stationList = [] }) {
   const [form, setForm] = useState(tech || {
-    name: '', employee_id: '', station: 'KEWR', years_experience: 0,
+    name: '', employee_id: '', station: '', years_experience: 0,
     certifications: [], specialty: '', status: 'available',
     current_assignment: '', shift_hours_remaining: 8, notes: '',
   });
@@ -119,7 +120,8 @@ function TechModal({ tech, onClose, onSave }) {
               <label className="text-[10px] font-bold text-gray-400 uppercase tracking-widest block mb-1">Station</label>
               <select value={form.station || ''} onChange={e => set('station', e.target.value)}
                 className="w-full bg-[#1a2235] border border-white/10 rounded-xl px-3 py-2 text-sm text-white outline-none focus:border-cyan-500/50">
-                {STATIONS.slice(1).map(s => <option key={s} value={s}>{s}</option>)}
+                <option value="">— Select Station —</option>
+                {stationList.map(s => <option key={s} value={s}>{s}</option>)}
               </select>
             </div>
             <div>
@@ -431,6 +433,7 @@ function TechRow({ tech, onEdit, onDelete, onChangeStatus, onAssign }) {
 // ── Main Page ─────────────────────────────────────────────────────────────────
 export default function ManpowerStaffing() {
   const qc = useQueryClient();
+  const { icaoCodes: stationList } = useStations();
   const [statusFilter, setStatusFilter] = useState('all');
   const [stationFilter, setStationFilter] = useState('All Stations');
   const [search, setSearch] = useState('');
@@ -607,7 +610,8 @@ export default function ManpowerStaffing() {
 
         <select value={stationFilter} onChange={e => setStationFilter(e.target.value)}
           className="bg-[#141922] border border-white/10 rounded-xl px-3 py-2 text-xs text-white outline-none focus:border-cyan-500/50 min-w-[130px]">
-          {STATIONS.map(s => <option key={s} value={s}>{s}</option>)}
+          <option value="All Stations">All Stations</option>
+          {stationList.map(s => <option key={s} value={s}>{s}</option>)}
         </select>
 
         <div className="flex items-center gap-2 bg-[#141922] border border-white/10 rounded-xl px-3 py-2 flex-1 max-w-xs">
@@ -667,6 +671,7 @@ export default function ManpowerStaffing() {
       {showModal && (
         <TechModal
           tech={editTech}
+          stationList={stationList}
           onClose={() => { setShowModal(false); setEditTech(null); }}
           onSave={(data) => saveMutation.mutate(data)}
         />

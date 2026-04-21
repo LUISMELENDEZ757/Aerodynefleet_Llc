@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import TechAssignmentPanel from '@/components/techops/TechAssignmentPanel';
 import { base44 } from '@/api/base44Client';
+import { useStations } from '@/hooks/useStations';
 import { Link } from 'react-router-dom';
 import {
   Wrench, ChevronLeft, AlertTriangle, CheckCircle, Clock, Users,
@@ -290,8 +291,8 @@ export default function CrewChiefDashboard() {
     });
   };
 
-  // Derive station list from aircraft
-  const stations = [...new Set(aircraft.map(a => a.base_station).filter(Boolean))].sort();
+  // Station list from Global Station registry
+  const { icaoCodes: stations } = useStations();
 
   // Filter discrepancies by station
   const stationTails = stationFilter
