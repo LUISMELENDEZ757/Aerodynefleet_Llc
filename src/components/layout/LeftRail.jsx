@@ -107,50 +107,52 @@ const CORE_ITEMS = [
 function NavGroup({ title, items, location }) {
   return (
     <div className="w-full">
-      {title && <p className="text-[9px] font-extrabold text-gray-600 uppercase tracking-widest px-3 pt-3 pb-2">{title}</p>}
-      {items.map(({ label, path }, idx) => {
-        const isActive = location.pathname === path;
-        return (
-          <motion.div
-            key={`${title}-${idx}`}
-            initial={{ opacity: 0, x: -8 }}
-            animate={{ opacity: 1, x: 0 }}
-            transition={{ delay: idx * 0.02, duration: 0.3, ease: 'easeOut' }}
-          >
-            <Link
-              to={path}
-              className={cn(
-                'flex items-center h-8 px-3 rounded-lg transition-all text-xs font-bold tracking-wide whitespace-nowrap active:scale-95 mx-1',
-                isActive
-                  ? 'bg-primary text-primary-foreground'
-                  : 'text-sidebar-foreground hover:text-white hover:bg-white/10'
-              )}
+      {title && <p className="text-[9px] font-extrabold text-gray-600 uppercase tracking-widest px-3 pt-4 pb-2.5">{title}</p>}
+      <div className="space-y-0.5">
+        {items.map(({ label, path }, idx) => {
+          const isActive = location.pathname === path;
+          return (
+            <motion.div
+              key={`${title}-${idx}`}
+              initial={{ opacity: 0, x: -8 }}
+              animate={{ opacity: 1, x: 0 }}
+              transition={{ delay: idx * 0.02, duration: 0.3, ease: 'easeOut' }}
             >
-              {label}
-            </Link>
-          </motion.div>
-        );
-      })}
+              <Link
+                to={path}
+                className={cn(
+                  'flex items-center h-8 px-3 rounded-lg transition-all text-xs font-bold tracking-wide whitespace-nowrap active:scale-95 mx-1',
+                  isActive
+                    ? 'bg-primary text-primary-foreground shadow-md'
+                    : 'text-sidebar-foreground hover:text-white hover:bg-white/15'
+              )}
+              >
+                {label}
+              </Link>
+            </motion.div>
+          );
+        })}
+      </div>
     </div>
   );
 }
 
 const BrandHeader = ({ collapsed, onToggle }) => (
-  <div className="flex items-center justify-between px-3 py-3 border-b border-white/10 flex-shrink-0">
+  <div className="flex items-center justify-between px-3 py-4 border-b border-white/10 flex-shrink-0">
     {!collapsed && (
-      <div className="flex items-center gap-2.5">
-      <div className="w-9 h-9 rounded-xl bg-primary flex items-center justify-center flex-shrink-0">
-        <Plane className="w-5 h-5 text-sidebar-background" />
-      </div>
-      <div>
-        <p className="text-sm font-extrabold text-sidebar-foreground tracking-widest uppercase leading-none">Aerodyne</p>
-        <p className="text-[10px] text-sidebar-foreground/70">Fleet Management</p>
-      </div>
+      <div className="flex items-center gap-3">
+        <div className="w-10 h-10 rounded-xl bg-primary flex items-center justify-center flex-shrink-0 shadow-lg">
+          <Plane className="w-5 h-5 text-sidebar-background" />
+        </div>
+        <div>
+          <p className="text-sm font-black text-sidebar-foreground tracking-wide leading-none">Aerodyne</p>
+          <p className="text-[10px] text-sidebar-foreground/70">Fleet Ops</p>
+        </div>
       </div>
     )}
     <button
       onClick={onToggle}
-      className="w-8 h-8 rounded-lg bg-white/10 flex items-center justify-center hover:bg-white/20 transition-colors flex-shrink-0 ml-auto"
+      className="w-8 h-8 rounded-lg bg-white/10 flex items-center justify-center hover:bg-white/20 transition-all flex-shrink-0 ml-auto"
     >
       {collapsed ? <ChevronRight className="w-4 h-4 text-gray-300" /> : <ChevronLeft className="w-4 h-4 text-gray-300" />}
     </button>
@@ -178,30 +180,30 @@ export default function LeftRail({ onCollapsedChange }) {
     <aside className="fixed left-0 top-0 h-full w-48 bg-sidebar border-r border-border flex flex-col z-50">
       <BrandHeader collapsed={false} onToggle={() => toggle(true)} />
       <motion.nav 
-        className="flex flex-col gap-0 flex-1 w-full overflow-y-auto scrollbar-hide py-2"
+        className="flex flex-col gap-0 flex-1 w-full overflow-y-auto scrollbar-hide py-3"
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         transition={{ duration: 0.4, staggerChildren: 0.01 }}
       >
         {/* Core / Home */}
         <NavGroup items={CORE_ITEMS} location={location} />
-        <motion.div className="my-1 border-t border-white/8 mx-3" />
+        <motion.div className="my-2 border-t border-white/5 mx-3" />
 
         {/* Workgroup 1: Technician */}
         <NavGroup title="🔧 Technician Mode" items={TECHNICIAN_ITEMS} location={location} />
-        <motion.div className="my-1 border-t border-white/8 mx-3" />
+        <motion.div className="my-2 border-t border-white/5 mx-3" />
 
         {/* Workgroup 2: Dispatch & Ops */}
         <NavGroup title="✈️ Dispatch & Ops" items={DISPATCH_OPS_ITEMS} location={location} />
-        <motion.div className="my-1 border-t border-white/8 mx-3" />
+        <motion.div className="my-2 border-t border-white/5 mx-3" />
 
         {/* Workgroup 3: Crew */}
         <NavGroup title="👥 Crew Ops" items={CREW_OPS_ITEMS} location={location} />
-        <motion.div className="my-1 border-t border-white/8 mx-3" />
+        <motion.div className="my-2 border-t border-white/5 mx-3" />
 
         {/* Workgroup 4: Flight Deck */}
         <NavGroup title="🛩️ Flight Deck / EFB" items={FLIGHT_DECK_ITEMS} location={location} />
-        <motion.div className="my-1 border-t border-white/8 mx-3" />
+        <motion.div className="my-2 border-t border-white/5 mx-3" />
 
         {/* Workgroup 5: Admin */}
         <NavGroup title="⚙️ Admin / System" items={ADMIN_SYSTEM_ITEMS} location={location} />

@@ -10,13 +10,13 @@ export default function Home() {
   return (
     <div className="min-h-screen bg-background flex flex-col">
       {/* Navigation */}
-      <nav className="sticky top-0 z-50 border-b border-amber-400/30 bg-card/95 backdrop-blur-md px-5 h-12 flex items-center">
+      <nav className="sticky top-0 z-50 border-b border-border bg-card/95 backdrop-blur-md px-6 py-3 flex items-center shadow-sm">
         <div className="max-w-7xl mx-auto w-full flex items-center">
-          <div className="flex items-center gap-2">
-            <div className="w-8 h-8 rounded-lg bg-primary flex items-center justify-center">
-              <Plane className="w-4 h-4 text-primary-foreground" />
+          <div className="flex items-center gap-3">
+            <div className="w-9 h-9 rounded-lg bg-primary flex items-center justify-center shadow-lg">
+              <Plane className="w-5 h-5 text-primary-foreground" />
             </div>
-            <span className="text-base font-extrabold text-foreground tracking-widest uppercase">Aerodyne Fleet</span>
+            <span className="text-lg font-black text-foreground tracking-wider">Aerodyne Fleet</span>
           </div>
         </div>
       </nav>
@@ -70,18 +70,18 @@ export default function Home() {
             className="space-y-4"
           >
             <p className="text-sm font-extrabold text-primary uppercase tracking-widest">How We Boost Efficiency</p>
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-              {[
-                { icon: Activity, title: 'Electronic Workflows', desc: 'Digital logbooks replace paper. Instant notifications replace memos. Real-time dashboards replace status meetings.' },
-                { icon: Shield, title: 'Regulatory Automation', desc: 'Compliance checks run continuously. Digital signatures are legally binding. Audit trails auto-generate instantly.' },
-                { icon: BarChart3, title: 'Predictive Intelligence', desc: 'AI forecasts maintenance windows. Component health predicts failures. Delays prevented before they happen.' },
-              ].map(({ icon: Icon, title, desc }) => (
-                <div key={title} className="bg-card border border-amber-400/30 rounded-2xl p-4 space-y-2">
-                  <Icon className="w-6 h-6 text-primary mx-auto lg:mx-0" />
-                  <p className="text-sm font-bold text-foreground">{title}</p>
-                  <p className="text-xs text-muted-foreground">{desc}</p>
-                </div>
-              ))}
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-5">
+             {[
+               { icon: Activity, title: 'Electronic Workflows', desc: 'Digital logbooks replace paper. Instant notifications replace memos. Real-time dashboards replace status meetings.' },
+               { icon: Shield, title: 'Regulatory Automation', desc: 'Compliance checks run continuously. Digital signatures are legally binding. Audit trails auto-generate instantly.' },
+               { icon: BarChart3, title: 'Predictive Intelligence', desc: 'AI forecasts maintenance windows. Component health predicts failures. Delays prevented before they happen.' },
+             ].map(({ icon: Icon, title, desc }) => (
+               <motion.div key={title} whileHover={{ translateY: -4 }} className="bg-card border border-border rounded-2xl p-5 space-y-3 shadow-sm hover:shadow-md transition-shadow">
+                 <Icon className="w-7 h-7 text-primary mx-auto lg:mx-0" />
+                 <p className="text-sm font-bold text-foreground">{title}</p>
+                 <p className="text-xs text-muted-foreground leading-relaxed">{desc}</p>
+               </motion.div>
+             ))}
             </div>
           </motion.div>
 
@@ -90,7 +90,7 @@ export default function Home() {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.3, duration: 0.6 }}
-            className="bg-secondary/50 border border-amber-400/30 rounded-2xl p-6 space-y-3"
+            className="bg-secondary/60 border border-border rounded-2xl p-6 space-y-3 shadow-sm"
           >
             <p className="text-xs font-extrabold text-primary uppercase tracking-widest">Founder Message</p>
             <p className="text-sm text-foreground leading-relaxed">
@@ -111,14 +111,14 @@ export default function Home() {
           >
             <Link
               to="/OpsHub"
-              className="px-8 py-3 rounded-xl bg-primary text-primary-foreground text-sm font-extrabold hover:bg-primary/90 transition-colors"
+              className="px-8 py-3 rounded-xl bg-primary text-primary-foreground text-sm font-extrabold hover:bg-primary/90 transition-all shadow-lg hover:shadow-xl"
             >
               Enter Dashboard
             </Link>
 
             <a
               href="#features"
-              className="px-8 py-3 rounded-xl border border-amber-400/30 text-foreground text-sm font-bold hover:bg-secondary/50 transition-colors"
+              className="px-8 py-3 rounded-xl border border-border text-foreground text-sm font-bold hover:bg-secondary/70 transition-all"
             >
               Learn More
             </a>
@@ -127,13 +127,13 @@ export default function Home() {
       </motion.div>
 
       {/* Why Electronic Systems Matter */}
-      <section className="px-5 py-16 bg-secondary/40 border-t border-amber-400/30">
+      <section className="px-5 py-16 bg-secondary/40 border-t border-border">
         <div className="max-w-3xl mx-auto space-y-8">
           <div className="text-center">
             <h2 className="text-2xl font-black text-foreground mb-2">{"Why Electronics > Paper"}</h2>
             <p className="text-muted-foreground">The operational truth behind moving to software-based systems</p>
           </div>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
             {[
               { emoji: '⚡', title: 'Speed', desc: 'Instant data access across the entire operation. No searching for logbooks or files.' },
               { emoji: '🎯', title: 'Accuracy', desc: 'Automated compliance checks prevent human error. Calculations are instant and verified.' },
@@ -142,20 +142,20 @@ export default function Home() {
               { emoji: '🌐', title: 'Integration', desc: 'Every system connects to every other system. No data silos, no manual transfer.' },
               { emoji: '💰', title: 'Cost Savings', desc: 'Fewer delays, shorter maintenance windows, optimized parts ordering, reduced crew fatigue.' },
             ].map(({ emoji, title, desc }) => (
-              <div key={title} className="bg-card border border-amber-400/30 rounded-xl p-6 space-y-2">
-                <div className="flex items-center gap-2">
-                  <span className="text-2xl">{emoji}</span>
-                  <p className="font-extrabold text-foreground">{title}</p>
+              <motion.div key={title} whileHover={{ translateY: -2 }} className="bg-card border border-border rounded-xl p-6 space-y-3 shadow-sm hover:shadow-md transition-shadow">
+                <div className="flex items-center gap-3">
+                  <span className="text-3xl">{emoji}</span>
+                  <p className="font-bold text-foreground">{title}</p>
                 </div>
                 <p className="text-xs text-muted-foreground leading-relaxed">{desc}</p>
-              </div>
+              </motion.div>
             ))}
           </div>
         </div>
       </section>
 
       {/* Features Section */}
-      <section id="features" className="px-5 py-20 bg-secondary/30 border-t border-amber-400/30">
+      <section id="features" className="px-5 py-20 bg-secondary/30 border-t border-border">
         <div className="max-w-3xl mx-auto space-y-12">
           <div className="text-center">
             <h2 className="text-3xl font-black text-foreground mb-3">Built for Modern Aviation</h2>
@@ -167,24 +167,24 @@ export default function Home() {
               { title: 'Regulatory Ready', items: ['FAA compliance', 'Digital signatures', 'Audit trails', 'CRS documentation'] },
               { title: 'Integrated Data', items: ['Component traceability', 'AD compliance tracking', 'Engine health analytics', 'Cost per flight'] },
             ].map(({ title, items }) => (
-              <div key={title} className="bg-card border border-amber-400/30 rounded-2xl p-6 space-y-4">
+              <motion.div key={title} whileHover={{ translateY: -4 }} className="bg-card border border-border rounded-2xl p-6 space-y-4 shadow-sm hover:shadow-md transition-shadow">
                 <h3 className="text-lg font-bold text-foreground">{title}</h3>
-                <ul className="text-sm text-muted-foreground space-y-2">
+                <ul className="text-sm text-muted-foreground space-y-2.5">
                   {items.map((item) => (
-                    <li key={item} className="flex items-center gap-2">
-                      <span className="w-1.5 h-1.5 rounded-full bg-primary flex-shrink-0" />
+                    <li key={item} className="flex items-center gap-3">
+                      <span className="w-2 h-2 rounded-full bg-primary flex-shrink-0" />
                       {item}
                     </li>
                   ))}
                 </ul>
-              </div>
+              </motion.div>
             ))}
           </div>
         </div>
       </section>
 
       {/* Footer */}
-      <footer className="border-t border-amber-400/30 bg-card/50 px-5 py-4 text-center text-xs text-muted-foreground">
+      <footer className="border-t border-border bg-card/50 px-5 py-5 text-center text-xs text-muted-foreground shadow-sm">
         <p>Aerodyne Fleet LLC — Aircraft Maintenance Management System</p>
       </footer>
     </div>
