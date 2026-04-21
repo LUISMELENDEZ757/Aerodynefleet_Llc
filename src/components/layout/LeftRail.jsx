@@ -80,6 +80,7 @@ const FLIGHT_DECK_ITEMS = [
   { label: '📄 Documents', path: '/Documents' },
   { label: '🛫 Live Flights', path: '/LiveFlightTracker' },
   { label: '🎛️ Fleet Ops Board', path: '/AerodyneFleetOps' },
+  { label: '👨‍💼 Passenger Service', path: '/PSS' },
 ];
 
 // ── WORKGROUP 5: ADMIN / SYSTEM ─────────────────────────────────────────────────
