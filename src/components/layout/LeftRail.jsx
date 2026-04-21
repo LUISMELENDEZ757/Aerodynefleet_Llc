@@ -21,6 +21,7 @@ const TECHNICIAN_ITEMS = [
   { label: '🤝 Shift Turn Over', path: '/ShiftHandover' },
   { label: '📅 Engineering Calendar', path: '/EngCalendar' },
   { label: '🛠️ TechOps Dashboard', path: '/TechOps' },
+  { label: '📊 Reliability Tracking', path: '/Reliability' },
   { label: '🚫 OOS Aircraft', path: '/OOSDashboard' },
   { label: '⚙️ Maintenance Control', path: '/MaintenanceControl' },
   { label: '✈️ Fleet Management', path: '/FleetDashboard' },
