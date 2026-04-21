@@ -4,6 +4,7 @@ import { base44 } from '@/api/base44Client';
 import { Link } from 'react-router-dom';
 import { ChevronLeft, Plus, Calendar, Wrench, AlertTriangle, CheckCircle } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import LiveClock from '@/components/ui/LiveClock';
 
 const TABS = ['events', 'inspections', 'components', 'history'];
 
@@ -61,6 +62,7 @@ export default function AircraftMaintenanceTracking() {
               <p className="text-xs text-muted-foreground">Log events · Schedule inspections · Track components</p>
             </div>
           </div>
+          <LiveClock />
         </div>
 
         {/* Aircraft selector */}

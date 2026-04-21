@@ -4,6 +4,7 @@ import { useQuery } from '@tanstack/react-query';
 import { base44 } from '@/api/base44Client';
 import { ChevronLeft, Activity, Users } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import LiveClock from '@/components/ui/LiveClock';
 import MccKpiBar from '@/components/mcc/MccKpiBar';
 import MccFleetStatus from '@/components/mcc/MccFleetStatus';
 import MROIntegrationHub from '@/components/mcc/MROIntegrationHub';
@@ -89,9 +90,12 @@ export default function MaintenanceControl() {
             <p className="text-[10px] text-orange-400 tracking-widest uppercase font-bold">MCC · Fleet Oversight · TechOps Command</p>
           </div>
         </div>
-        <div className="hidden sm:flex items-center gap-2 text-xs font-mono text-gray-500">
-          <span className="w-2 h-2 rounded-full bg-green-400 animate-pulse" />
-          LIVE
+        <div className="flex items-center gap-3">
+          <LiveClock />
+          <div className="hidden sm:flex items-center gap-2 text-xs font-mono text-gray-500">
+            <span className="w-2 h-2 rounded-full bg-green-400 animate-pulse" />
+            LIVE
+          </div>
         </div>
       </div>
 

@@ -4,6 +4,7 @@ import { base44 } from '@/api/base44Client';
 import { Link } from 'react-router-dom';
 import { ChevronLeft, RefreshCw } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import LiveClock from '@/components/ui/LiveClock';
 import DailyAssignmentsPanel from '@/components/workassignments/DailyAssignmentsPanel';
 import ForecastedWorkPanel from '@/components/workassignments/ForecastedWorkPanel';
 import ThroughFlightWorkPanel from '@/components/workassignments/ThroughFlightWorkPanel';
@@ -86,10 +87,13 @@ export default function WorkAssignmentDashboard() {
               <p className="text-xs text-primary tracking-widest uppercase">BOW · Through-Flight · Tech Support · Forecast</p>
             </div>
           </div>
-          <button onClick={() => refetchBow()}
-            className="w-9 h-9 rounded-lg bg-secondary flex items-center justify-center hover:bg-secondary/80">
-            <RefreshCw className={cn('w-4 h-4 text-muted-foreground', isLoading && 'animate-spin')} />
-          </button>
+          <div className="flex items-center gap-3">
+            <LiveClock />
+            <button onClick={() => refetchBow()}
+              className="w-9 h-9 rounded-lg bg-secondary flex items-center justify-center hover:bg-secondary/80">
+              <RefreshCw className={cn('w-4 h-4 text-muted-foreground', isLoading && 'animate-spin')} />
+            </button>
+          </div>
         </div>
 
         {/* KPI Bar */}

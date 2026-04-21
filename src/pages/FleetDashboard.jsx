@@ -12,6 +12,7 @@ import {
 import AiMaintenanceInsights from '@/components/fleet/AiMaintenanceInsights';
 import AiMaintenanceCard from '@/components/ai/AiMaintenanceCard';
 import { cn } from '@/lib/utils';
+import LiveClock from '@/components/ui/LiveClock';
 import { motion, AnimatePresence } from 'framer-motion';
 import AddTimelineEventModal from '@/components/fleet/AddTimelineEventModal';
 import TakingOwnershipModal from '@/components/fleet/TakingOwnershipModal';
@@ -522,7 +523,8 @@ export default function FleetDashboard() {
           <h1 className="text-2xl sm:text-3xl font-black text-primary tracking-widest uppercase">
             Aerodyne Fleet Management
           </h1>
-          <div className="ml-auto">
+          <div className="ml-auto flex items-center gap-4">
+            <LiveClock />
             <FleetBadge />
           </div>
         </div>

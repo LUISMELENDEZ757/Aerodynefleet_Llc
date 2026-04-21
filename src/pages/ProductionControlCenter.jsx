@@ -5,6 +5,7 @@ import {
   Activity, CheckCircle, AlertCircle, Clock, Zap
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import LiveClock from '@/components/ui/LiveClock';
 import BOWPlanner from '@/components/production/BOWPlanner';
 import WorkforceScheduler from '@/components/production/WorkforceScheduler';
 import BOWInventoryTracker from '@/components/production/BOWInventoryTracker';
@@ -255,6 +256,7 @@ export default function ProductionControlCenter() {
               </div>
             </div>
             <div className="flex items-center gap-3">
+              <LiveClock />
               <div className="text-right">
                 <p className="text-[10px] font-bold text-green-400 tracking-widest uppercase flex items-center gap-2">
                   <span className="w-2 h-2 rounded-full bg-green-400" /> 1000 AIRCRAFT SYNCED

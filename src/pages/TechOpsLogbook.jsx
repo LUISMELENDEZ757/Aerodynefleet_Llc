@@ -9,6 +9,7 @@ import {
   Radio, Flame, Wind, Settings, Shield, ChevronRight, FilePlus, QrCode
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import LiveClock from '@/components/ui/LiveClock';
 import NewLogEntryModal from '@/components/techops/NewLogEntryModal';
 import NewFaultModal from '@/components/techops/NewFaultModal';
 import DiscrepancyCard from '@/components/techops/DiscrepancyCard';
@@ -225,6 +226,7 @@ export default function TechOpsLogbook() {
             <Clock className="w-3 h-3 text-amber-400" />
             <span className="text-xs font-mono text-amber-400">{elapsed}</span>
           </div>
+          <LiveClock />
         </div>
 
         {/* Aircraft Selector */}
