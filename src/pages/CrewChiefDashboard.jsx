@@ -88,40 +88,111 @@ function DiscrepancyRow({ entry, onBeginWork, onComplete }) {
 }
 
 function QuickAssignModal({ entry, onClose, onAssign }) {
-  const [tech, setTech] = useState('');
-  const [techId, setTechId] = useState('');
+  const [stationFilter, setStationFilter] = useState('');
+  const [selectedTech, setSelectedTech] = useState(null);
+
+  const { data: rawTechs = [] } = useQuery({
+    queryKey: ['assign-modal-techs'],
+    queryFn: () => base44.entities.TrainingRecord.list('-created_date', 500),
+    select: (data) => data
+      .filter(r => r.employee_name || r.crew_name)
+      .map(r => ({
+        id: r.id,
+        name: r.employee_name || r.crew_name,
+        employee_id: r.employee_id || '',
+        station: r.station || '',
+        specialty: r.specialty || '',
+        certifications: r.certifications || [],
+        duty_status: r.duty_status || 'available',
+      })),
+  });
+
+  const stations = [...new Set(rawTechs.map(t => t.station).filter(Boolean))].sort();
+  const filtered = stationFilter ? rawTechs.filter(t => t.station === stationFilter) : rawTechs;
+  const available = filtered.filter(t => t.duty_status !== 'off_duty');
+
   const handleSubmit = (e) => {
     e.preventDefault();
-    if (!tech) return;
-    onAssign(entry.id, tech, techId);
+    if (!selectedTech) return;
+    onAssign(entry.id, selectedTech.name, selectedTech.employee_id);
     onClose();
   };
+
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 p-4">
-      <div className="w-full max-w-sm bg-card border border-border rounded-2xl shadow-2xl">
+      <div className="w-full max-w-md bg-card border border-border rounded-2xl shadow-2xl">
         <div className="flex items-center justify-between px-5 py-4 border-b border-border">
-          <p className="font-extrabold text-foreground text-sm">Assign Technician</p>
+          <p className="font-extrabold text-foreground text-sm flex items-center gap-2">
+            <Users className="w-4 h-4 text-orange-400" /> Assign Technician
+          </p>
           <button onClick={onClose}><X className="w-4 h-4 text-muted-foreground" /></button>
         </div>
-        <form onSubmit={handleSubmit} className="p-5 space-y-3">
+        <form onSubmit={handleSubmit} className="p-5 space-y-4">
+          {/* Task context */}
           <div className="bg-secondary/50 rounded-xl px-3 py-2 text-xs">
             <p className="font-bold text-primary">{entry.aircraft_tail}</p>
             <p className="text-muted-foreground truncate">{entry.description?.slice(0, 80)}</p>
           </div>
+
+          {/* Station / City filter */}
           <div>
-            <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest block mb-1">Technician Name *</label>
-            <input required value={tech} onChange={e => setTech(e.target.value)} placeholder="Full name"
-              className="w-full bg-background border border-border rounded-xl px-3 py-2.5 text-sm text-foreground placeholder-muted-foreground outline-none focus:border-primary" />
+            <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest block mb-1">Filter by Station / City</label>
+            <select
+              value={stationFilter}
+              onChange={e => { setStationFilter(e.target.value); setSelectedTech(null); }}
+              className="w-full bg-background border border-border rounded-xl px-3 py-2.5 text-sm text-foreground outline-none focus:border-primary"
+            >
+              <option value="">— All Stations —</option>
+              {stations.map(s => <option key={s} value={s}>{s}</option>)}
+            </select>
           </div>
+
+          {/* Technician picker */}
           <div>
-            <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest block mb-1">Cert / License #</label>
-            <input value={techId} onChange={e => setTechId(e.target.value)} placeholder="e.g. AMT-12345"
-              className="w-full bg-background border border-border rounded-xl px-3 py-2.5 text-sm text-foreground placeholder-muted-foreground outline-none focus:border-primary" />
+            <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest block mb-1">
+              Select Technician {available.length > 0 && <span className="text-primary normal-case font-normal">({available.length} available)</span>}
+            </label>
+            <div className="max-h-52 overflow-y-auto space-y-1.5 rounded-xl border border-border bg-background p-2">
+              {available.length === 0 ? (
+                <p className="text-xs text-muted-foreground text-center py-4">No technicians found{stationFilter ? ` at ${stationFilter}` : ''}</p>
+              ) : available.map(t => {
+                const isSelected = selectedTech?.id === t.id;
+                const statusColors = {
+                  on_duty: 'bg-cyan-500', assigned: 'bg-green-500', available: 'bg-blue-500',
+                  on_break: 'bg-amber-500', in_transit: 'bg-purple-500', training: 'bg-indigo-500', aog: 'bg-red-500',
+                };
+                return (
+                  <button
+                    key={t.id}
+                    type="button"
+                    onClick={() => setSelectedTech(t)}
+                    className={cn(
+                      'w-full flex items-center gap-3 px-3 py-2 rounded-lg text-left transition-all',
+                      isSelected ? 'bg-primary/20 border border-primary/40' : 'hover:bg-secondary border border-transparent'
+                    )}
+                  >
+                    <span className={cn('w-2 h-2 rounded-full flex-shrink-0', statusColors[t.duty_status] || 'bg-gray-500')} />
+                    <div className="flex-1 min-w-0">
+                      <p className="text-sm font-bold text-foreground truncate">{t.name}</p>
+                      <p className="text-[10px] text-muted-foreground">
+                        {t.employee_id && <span className="font-mono mr-1">{t.employee_id}</span>}
+                        {t.specialty && <span>{t.specialty}</span>}
+                        {t.certifications?.length > 0 && <span className="ml-1 text-primary">· {t.certifications.slice(0,3).join(', ')}</span>}
+                      </p>
+                    </div>
+                    <span className="text-[9px] font-bold text-muted-foreground uppercase">{t.station}</span>
+                    {isSelected && <CheckCircle className="w-4 h-4 text-primary flex-shrink-0" />}
+                  </button>
+                );
+              })}
+            </div>
           </div>
+
           <div className="flex gap-3">
             <button type="button" onClick={onClose} className="flex-1 py-2.5 rounded-xl border border-border text-sm font-bold text-muted-foreground">Cancel</button>
-            <button type="submit" className="flex-1 py-2.5 rounded-xl bg-primary text-primary-foreground text-sm font-extrabold hover:bg-primary/90 flex items-center justify-center gap-2">
-              <Send className="w-4 h-4" /> Assign
+            <button type="submit" disabled={!selectedTech}
+              className="flex-1 py-2.5 rounded-xl bg-primary text-primary-foreground text-sm font-extrabold hover:bg-primary/90 disabled:opacity-40 flex items-center justify-center gap-2">
+              <Send className="w-4 h-4" /> Assign {selectedTech ? selectedTech.name.split(' ')[0] : ''}
             </button>
           </div>
         </form>
