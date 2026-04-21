@@ -7,7 +7,7 @@ import { FleetBadge } from '@/components/fleet/FleetSwitcher';
 import {
   Plane, Search, LayoutGrid, List, Wrench, CheckCircle, Globe, Shield,
   BookOpen, MapPin, Cpu, X, AlertTriangle, UserCheck, Plus, Clock,
-  ChevronDown, Radio, Activity, Zap, Package, Brain, Settings2
+  ChevronDown, Radio, Activity, Zap, Package, Brain, Settings2, Building2, Warehouse
 } from 'lucide-react';
 import AiMaintenanceInsights from '@/components/fleet/AiMaintenanceInsights';
 import AiMaintenanceCard from '@/components/ai/AiMaintenanceCard';
@@ -438,10 +438,14 @@ function DiscrepancyBadges({ discrepancies, melItems, aircraftStatus }) {
 
 // ── Aircraft Card ────────────────────────────────────────────────────────────
 function AircraftCard({ aircraft, onSelect, discrepancies }) {
+  const [locationType, setLocationType] = useState('terminal');
   const status = STATUS_STYLES[aircraft.status] || STATUS_STYLES.active;
   const StatusIcon = status.icon;
   const openDiscs = discrepancies?.filter(d => d.discrepancy_status !== 'CLOSED') || [];
   const hasHighRisk = openDiscs.length >= 3 || aircraft.status === 'oos' || aircraft.status === 'maintenance';
+  
+  const LocationIcon = locationType === 'terminal' ? Building2 : Warehouse;
+  
   return (
     <div onClick={() => onSelect(aircraft)}
       className={cn(
@@ -455,9 +459,21 @@ function AircraftCard({ aircraft, onSelect, discrepancies }) {
         </div>
         <Plane className="w-4 h-4 text-gray-600 mt-1" />
       </div>
-      <p className="text-xs text-gray-500">
-        Base: <span className="font-bold text-gray-300">{aircraft.base_station || '—'}</span>
-      </p>
+      <div className="flex items-center justify-between">
+        <p className="text-xs text-gray-500">
+          Base: <span className="font-bold text-gray-300">{aircraft.base_station || '—'}</span>
+        </p>
+        <button
+          onClick={(e) => {
+            e.stopPropagation();
+            setLocationType(locationType === 'terminal' ? 'hangar' : 'terminal');
+          }}
+          className="flex-shrink-0 ml-2 p-1.5 rounded-lg bg-secondary hover:bg-secondary/80 transition-colors"
+          title={`Click to switch to ${locationType === 'terminal' ? 'hangar' : 'terminal'}`}
+        >
+          <LocationIcon className="w-4 h-4 text-primary" />
+        </button>
+      </div>
       <div className="flex flex-wrap gap-1.5">
         <span className={cn('flex items-center gap-1 px-2.5 py-1 rounded-lg text-[10px] font-extrabold text-white', status.bg)}>
           <StatusIcon className="w-3 h-3" /> {status.label}
