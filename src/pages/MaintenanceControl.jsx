@@ -50,7 +50,7 @@ const TABS = [
 ];
 
 // Aircraft Recovery by Location Modal
-function AircraftRecoveryModal({ selectedLocation, onClose, oosEntries, aircraft, fieldTrips }) {
+function AircraftRecoveryModal({ selectedLocation, onClose, oosEntries, aircraft, fieldTrips, onEditTrip }) {
   const locationAircraft = oosEntries
     .filter(e => e.station === selectedLocation)
     .map(e => ({
@@ -105,6 +105,9 @@ function AircraftRecoveryModal({ selectedLocation, onClose, oosEntries, aircraft
                       <p className="text-lg font-black text-white">{trip.aircraft_tail}</p>
                       <p className="text-xs text-gray-400 mt-1">Recovery Type: <span className="text-blue-400 font-bold">{trip.recovery_type?.replace(/_/g, ' ').toUpperCase()}</span></p>
                     </div>
+                    <button onClick={() => onEditTrip(trip)} className="px-3 py-1.5 rounded-lg bg-primary/90 hover:bg-primary text-primary-foreground text-xs font-bold transition-colors">
+                      Edit
+                    </button>
                   </div>
 
                   {/* Technicians */}
@@ -449,6 +452,7 @@ export default function MaintenanceControl() {
              oosEntries={oosEntries}
              aircraft={aircraft}
              fieldTrips={fieldTrips}
+             onEditTrip={setEditingTrip}
            />
          )}
 
