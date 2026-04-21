@@ -10,6 +10,7 @@ import {
   ClipboardList, User
 } from 'lucide-react';
 import FlightAwarePanel from '@/components/techops/FlightAwarePanel';
+import LiveClock from '@/components/ui/LiveClock';
 import { cn } from '@/lib/utils';
 
 // ── Shared modal shell ──────────────────────────────────────────────────────
@@ -1029,8 +1030,7 @@ export default function OOSDashboard() {
           <ChevronLeft className="w-5 h-5 text-white" />
         </Link>
         <h1 className="text-xl font-extrabold tracking-wide flex-1 text-center">Technician Mode</h1>
-        {/* Technician quick-action panel — accessible via /TechnicianMode */}
-        <div className="w-9" />
+        <LiveClock />
       </div>
 
       {/* Grid */}
