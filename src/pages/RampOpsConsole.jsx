@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useRef, useEffect } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { base44 } from '@/api/base44Client';
 import { Link } from 'react-router-dom';
@@ -9,6 +9,7 @@ import {
 } from 'lucide-react';
 import LiveClock from '@/components/ui/LiveClock';
 import TurnManagement from '@/components/ramp/TurnManagement';
+import FlightStatusTracker from '@/components/flight/FlightStatusTracker';
 
 const GATE_POSITIONS = {
   'A1': { x: 10, y: 20, terminal: 'A' },
@@ -121,7 +122,7 @@ function RampDisplay({ flights, selectedFlight, onSelectFlight, gateAssignments 
   );
 }
 
-function AircraftControlPanel({ flight, onPushback, onTaxi, onMoveToGate }) {
+function AircraftControlPanel({ flight, onPushback, onTaxi, onMoveToGate, previousStatus }) {
   if (!flight) {
     return (
       <div className="bg-card border border-border rounded-xl p-6 text-center text-muted-foreground">
@@ -142,6 +143,8 @@ function AircraftControlPanel({ flight, onPushback, onTaxi, onMoveToGate }) {
           {flight.direction.toUpperCase()}
         </span>
       </div>
+
+      <FlightStatusTracker flight={flight} previousStatus={previousStatus} />
 
       <div className="space-y-2">
         <p className="text-xs font-bold text-foreground uppercase tracking-widest">Ground Position</p>
@@ -264,6 +267,7 @@ export default function RampOpsConsole() {
   const [selectedFlight, setSelectedFlight] = useState(null);
   const [gateAssignments, setGateAssignments] = useState({});
   const [station, setStation] = useState('KEWR');
+  const previousStatusRef = useRef({});
   const qc = useQueryClient();
 
   const { data: flightData = {}, refetch, isLoading } = useQuery({
@@ -276,6 +280,13 @@ export default function RampOpsConsole() {
   });
 
   const flights = flightData.flights || [];
+
+  // Track previous statuses for alert triggering
+  useEffect(() => {
+    flights.forEach(f => {
+      previousStatusRef.current[f.id] = f.status;
+    });
+  }, [flights]);
 
   const handlePushback = (flight) => {
     // Log push-back event
@@ -369,6 +380,7 @@ export default function RampOpsConsole() {
         <div className="lg:col-span-2 space-y-6">
           <AircraftControlPanel
             flight={selectedFlight}
+            previousStatus={selectedFlight ? previousStatusRef.current[selectedFlight.id] : null}
             onPushback={handlePushback}
             onTaxi={handleTaxi}
             onMoveToGate={handleMoveToGate}

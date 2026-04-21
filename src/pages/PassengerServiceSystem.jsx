@@ -1,9 +1,10 @@
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useRef, useEffect } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { base44 } from '@/api/base44Client';
 import { Link } from 'react-router-dom';
 import { cn } from '@/lib/utils';
 import LiveClock from '@/components/ui/LiveClock';
+import FlightStatusTracker from '@/components/flight/FlightStatusTracker';
 import {
   Plane, DoorOpen, Clock, Users, MapPin, AlertTriangle,
   ChevronLeft, Filter, RefreshCw, TrendingUp, CheckCircle,
@@ -110,6 +111,7 @@ export default function PassengerServiceSystem() {
   const [activeTab, setActiveTab] = useState('gates');
   const [selectedAirport, setSelectedAirport] = useState('KEWR');
   const [gateAssignments, setGateAssignments] = useState({});
+  const previousStatusRef = useRef({});
 
   // Fetch flights for selected airport from FlightAware
   const { data: flightData = {}, refetch, isLoading } = useQuery({
@@ -141,6 +143,13 @@ export default function PassengerServiceSystem() {
 
   const arrivals = flights.filter(f => f.direction === 'arrival');
   const departures = flights.filter(f => f.direction === 'departure');
+
+  // Track previous statuses for alert triggering
+  useEffect(() => {
+    flights.forEach(f => {
+      previousStatusRef.current[f.id] = f.status;
+    });
+  }, [flights]);
 
   const availableGates = flightAwareGates.filter(g => !gateAssignments[g.id]);
   const occupiedGates = flightAwareGates.filter(g => gateAssignments[g.id]);
@@ -252,44 +261,50 @@ export default function PassengerServiceSystem() {
                 )}
 
         {activeTab === 'arrivals' && (
-          <div className="space-y-3">
-            <div className="flex items-center justify-between">
-              <h2 className="text-lg font-extrabold text-foreground">Arrivals Today</h2>
-              <span className="text-xs font-bold text-muted-foreground">{arrivals.length} flights</span>
-            </div>
-            {arrivals.length === 0 ? (
-              <div className="rounded-xl bg-card border border-border px-4 py-8 text-center text-sm text-muted-foreground">
-                No arrivals scheduled
-              </div>
-            ) : (
-              <div className="space-y-2">
-                {arrivals.map(f => (
-                  <FlightRow key={f.id} flight={f} type="arrivals" onSelect={() => {}} />
-                ))}
-              </div>
-            )}
-          </div>
-        )}
+           <div className="space-y-3">
+             <div className="flex items-center justify-between">
+               <h2 className="text-lg font-extrabold text-foreground">Arrivals Today</h2>
+               <span className="text-xs font-bold text-muted-foreground">{arrivals.length} flights</span>
+             </div>
+             {arrivals.length === 0 ? (
+               <div className="rounded-xl bg-card border border-border px-4 py-8 text-center text-sm text-muted-foreground">
+                 No arrivals scheduled
+               </div>
+             ) : (
+               <div className="space-y-3">
+                 {arrivals.map(f => (
+                   <div key={f.id} className="space-y-2">
+                     <FlightStatusTracker flight={f} previousStatus={previousStatusRef.current[f.id]} />
+                     <FlightRow flight={f} type="arrivals" onSelect={() => {}} />
+                   </div>
+                 ))}
+               </div>
+             )}
+           </div>
+         )}
 
         {activeTab === 'departures' && (
-          <div className="space-y-3">
-            <div className="flex items-center justify-between">
-              <h2 className="text-lg font-extrabold text-foreground">Departures Today</h2>
-              <span className="text-xs font-bold text-muted-foreground">{departures.length} flights</span>
-            </div>
-            {departures.length === 0 ? (
-              <div className="rounded-xl bg-card border border-border px-4 py-8 text-center text-sm text-muted-foreground">
-                No departures scheduled
-              </div>
-            ) : (
-              <div className="space-y-2">
-                {departures.map(f => (
-                  <FlightRow key={f.id} flight={f} type="departures" onSelect={() => {}} />
-                ))}
-              </div>
-            )}
-          </div>
-        )}
+           <div className="space-y-3">
+             <div className="flex items-center justify-between">
+               <h2 className="text-lg font-extrabold text-foreground">Departures Today</h2>
+               <span className="text-xs font-bold text-muted-foreground">{departures.length} flights</span>
+             </div>
+             {departures.length === 0 ? (
+               <div className="rounded-xl bg-card border border-border px-4 py-8 text-center text-sm text-muted-foreground">
+                 No departures scheduled
+               </div>
+             ) : (
+               <div className="space-y-3">
+                 {departures.map(f => (
+                   <div key={f.id} className="space-y-2">
+                     <FlightStatusTracker flight={f} previousStatus={previousStatusRef.current[f.id]} />
+                     <FlightRow flight={f} type="departures" onSelect={() => {}} />
+                   </div>
+                 ))}
+               </div>
+             )}
+           </div>
+         )}
       </div>
     </div>
   );
