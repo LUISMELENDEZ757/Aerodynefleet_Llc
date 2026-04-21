@@ -15,6 +15,8 @@ import MccPartsBoard from '@/components/mcc/MccPartsBoard';
 import MccToolingBoard from '@/components/mcc/MccToolingBoard';
 import ShiftHandoverModule from '@/components/mcc/ShiftHandoverModule';
 import SupervisorHandoverModule from '@/components/mcc/SupervisorHandoverModule';
+import FieldTripModal from '@/components/mcc/FieldTripModal';
+import { Plus } from 'lucide-react';
 
 function ZuluClock() {
   const [t, setT] = useState(new Date());
@@ -206,6 +208,7 @@ function AircraftRecoveryModal({ selectedLocation, onClose, oosEntries, aircraft
 export default function MaintenanceControl() {
   const [activeTab, setActiveTab] = useState('fleet');
   const [selectedLocation, setSelectedLocation] = useState(null);
+  const [editingTrip, setEditingTrip] = useState(null);
 
 
   const { data: aircraft = [] } = useQuery({
@@ -325,12 +328,17 @@ export default function MaintenanceControl() {
         {activeTab === 'oos'     && <MccOosBoard oosEntries={oosEntries} aircraft={aircraft} />}
         {activeTab === 'fieldtrip' && (
           <div className="space-y-4">
-            <div className="bg-[#141922] border border-white/10 rounded-2xl p-5">
-              <div className="flex items-center gap-2 mb-4">
-                <MapPin className="w-5 h-5 text-orange-400" />
-                <h2 className="text-lg font-extrabold text-white">Field Trip Recovery</h2>
+            <div className="bg-[#141922] border border-white/10 rounded-2xl p-5 space-y-4">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <MapPin className="w-5 h-5 text-orange-400" />
+                  <h2 className="text-lg font-extrabold text-white">Field Trip Recovery</h2>
+                </div>
+                <button onClick={() => setEditingTrip({ station: '' })} className="flex items-center gap-2 px-4 py-2 rounded-xl bg-primary text-primary-foreground text-xs font-bold hover:bg-primary/90">
+                  <Plus className="w-4 h-4" /> New Trip
+                </button>
               </div>
-              <p className="text-xs text-gray-500 mb-4">Select a station to view aircraft recovery operations by location.</p>
+              <p className="text-xs text-gray-500">Select a station to view or create recovery operations by location.</p>
               <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
                 {['KEWR', 'KJFK', 'KORD', 'KATL', 'KLAX', 'KSFO', 'KDEN', 'KMIA', 'KDFW', 'KSEA', 'KBOS', 'KDCA'].map(station => {
                   const stationAircraft = oosEntries.filter(e => e.station === station);
@@ -434,15 +442,24 @@ export default function MaintenanceControl() {
         </div>
 
         {/* Aircraft Recovery Modal */}
-        {selectedLocation && (
-          <AircraftRecoveryModal
-            selectedLocation={selectedLocation}
-            onClose={() => setSelectedLocation(null)}
-            oosEntries={oosEntries}
-            aircraft={aircraft}
-            fieldTrips={fieldTrips}
-          />
-        )}
+         {selectedLocation && (
+           <AircraftRecoveryModal
+             selectedLocation={selectedLocation}
+             onClose={() => setSelectedLocation(null)}
+             oosEntries={oosEntries}
+             aircraft={aircraft}
+             fieldTrips={fieldTrips}
+           />
+         )}
+
+         {/* Field Trip Edit Modal */}
+         {editingTrip && (
+           <FieldTripModal
+             trip={editingTrip?.id ? editingTrip : null}
+             station={editingTrip.station || selectedLocation}
+             onClose={() => setEditingTrip(null)}
+           />
+         )}
         </div>
         );
         }
