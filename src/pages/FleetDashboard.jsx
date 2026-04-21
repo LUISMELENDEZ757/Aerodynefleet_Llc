@@ -392,11 +392,11 @@ function DiscrepancyBadges({ discrepancies, melItems, aircraftStatus }) {
   const openDiscrepancies = discrepancies?.filter(d => d.discrepancy_status !== 'CLOSED') || [];
   const expiredMels = melItems?.filter(m => m.status === 'expired') || [];
   
-  // OOS Risk if: multiple serious issues (3+) OR aircraft already OOS/maintenance OR expired MELs
-  const hasOosRisk = openDiscrepancies.length >= 3 || 
-                     aircraftStatus === 'oos' || 
+  // OOS Risk if: multiple serious issues (3+) OR maintenance status OR expired MELs (but not if already OOS)
+  const hasOosRisk = (openDiscrepancies.length >= 3 || 
                      aircraftStatus === 'maintenance' || 
-                     expiredMels.length > 0;
+                     expiredMels.length > 0) && 
+                     aircraftStatus !== 'oos';
   
   if (!openDiscrepancies.length && !expiredMels.length) return null;
   
