@@ -1,0 +1,94 @@
+{
+  "name": "FieldTrip",
+  "type": "object",
+  "description": "Field trip recovery operations tracking technicians, accommodations, and expenses",
+  "properties": {
+    "station": {
+      "type": "string",
+      "description": "Station ICAO code (e.g. KEWR)"
+    },
+    "aircraft_tail": {
+      "type": "string",
+      "description": "Aircraft being recovered"
+    },
+    "recovery_type": {
+      "type": "string",
+      "enum": [
+        "engine_replacement",
+        "airframe_repair",
+        "hydraulic_system",
+        "avionics",
+        "landing_gear",
+        "other"
+      ],
+      "description": "Type of recovery operation"
+    },
+    "start_date": {
+      "type": "string",
+      "format": "date",
+      "description": "When the field trip starts"
+    },
+    "end_date": {
+      "type": "string",
+      "format": "date",
+      "description": "When the field trip ends"
+    },
+    "technicians_assigned": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string"
+          },
+          "employee_id": {
+            "type": "string"
+          },
+          "role": {
+            "type": "string"
+          },
+          "passport_number": {
+            "type": "string"
+          },
+          "company_id": {
+            "type": "string"
+          }
+        }
+      },
+      "description": "Team members assigned to the trip"
+    },
+    "flight_number": {
+      "type": "string",
+      "description": "Outbound flight number"
+    },
+    "return_flight_number": {
+      "type": "string",
+      "description": "Return flight number"
+    },
+    "hotel_name": {
+      "type": "string",
+      "description": "Hotel name and location"
+    },
+    "hotel_confirmation": {
+      "type": "string",
+      "description": "Hotel confirmation number"
+    },
+    "daily_expense_budget": {
+      "type": "number",
+      "description": "Daily expense allowance per technician in USD"
+    },
+    "total_expenses": {
+      "type": "number",
+      "description": "Total expenses for the trip"
+    },
+    "notes": {
+      "type": "string",
+      "description": "Additional notes about the recovery operation"
+    }
+  },
+  "required": [
+    "station",
+    "aircraft_tail",
+    "recovery_type"
+  ]
+}
