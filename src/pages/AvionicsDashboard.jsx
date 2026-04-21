@@ -23,10 +23,12 @@ const DATA_SOURCES = [
 ];
 
 const SYSTEM_ICONS = {
-  'FMS': Navigation, 'ACARS': Radio, 'ADS-B': Wifi, 'TCAS': Shield, 'TCAS II': Shield,
-  'IRS': Activity, 'IRU': Activity, 'IRS/IRU': Activity, 'EGPWS': Layers,
-  'CMC': Cpu, 'SATCOM': Database, 'EFIS': Cpu, 'EICAS': Activity,
-  'DME': Radio, 'VOR': Navigation, 'ILS': Navigation, 'RA': Shield,
+  'FMS': Navigation, 'FMC': Cpu, 'FCC': Cpu, 'ACARS': Radio, 'ADS-B': Wifi, 'TCAS': Shield, 'TCAS II': Shield,
+  'GPWS': AlertTriangle, 'EGPWS': AlertTriangle, 'Weather Radar': Radio, 'WXR': Radio,
+  'IRS': Activity, 'IRU': Activity, 'IRS/IRU': Activity, 'EFIS': Cpu, 'EICAS': Activity,
+  'CMC': Cpu, 'SATCOM': Database, 'CPDLC': Radio, 'DCDU': Cpu,
+  'DME': Radio, 'VOR': Navigation, 'ILS': Navigation, 'RA': Shield, 'ALT': Activity,
+  'Engine': Zap, 'APU': Zap, 'Fuel': HardDrive, 'Hydraulics': Activity,
 };
 function sysIcon(name) {
   for (const k of Object.keys(SYSTEM_ICONS)) {
@@ -531,22 +533,38 @@ function DFDRTab({ reports, typeFilter }) {
 
 // ── Tab: Software Verifications ───────────────────────────────────────────────
 function SoftwareVerificationsTab({ reports, typeFilter }) {
-  // Group LRU software versions by aircraft type
+  // Group systems by aircraft type and collect all avionics LRUs
   const swByType = {};
+  const avionic_systems = ['FMS', 'FMC', 'FCC', 'ACARS', 'CPDLC', 'DCDU', 'ADS-B', 'TCAS', 'TCAS II', 'GPWS', 'EGPWS', 'Weather Radar', 'WXR', 
+                           'IRS', 'IRU', 'IRS/IRU', 'EFIS', 'EICAS', 'CMC', 'SATCOM', 'DME', 'VOR', 'ILS', 'RA', 'ALT'];
+
   reports.forEach(r => {
     if (typeFilter !== 'All Types' && r.aircraft_type !== typeFilter) return;
     if (!r.aircraft_type) return;
+    
     if (!swByType[r.aircraft_type]) {
       swByType[r.aircraft_type] = {
         fms_version: r.fms_version,
         nav_db_version: r.nav_db_version,
         aircraft_type: r.aircraft_type,
         count: 0,
-        reports: [],
+        lrus: {},
+        tails: [],
       };
     }
+    
     swByType[r.aircraft_type].count += 1;
-    swByType[r.aircraft_type].reports.push(r);
+    swByType[r.aircraft_type].tails.push(r.aircraft_tail);
+    
+    // Collect LRU systems from this report
+    r.systems?.forEach(sys => {
+      if (avionic_systems.some(av => sys.system_name?.toUpperCase().includes(av.toUpperCase()))) {
+        if (!swByType[r.aircraft_type].lrus[sys.system_name]) {
+          swByType[r.aircraft_type].lrus[sys.system_name] = { status: sys.status, count: 0 };
+        }
+        swByType[r.aircraft_type].lrus[sys.system_name].count += 1;
+      }
+    });
   });
 
   const types = Object.keys(swByType).sort();
@@ -561,9 +579,11 @@ function SoftwareVerificationsTab({ reports, typeFilter }) {
         </div>
       )}
 
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+      <div className="grid grid-cols-1 gap-4">
         {types.map(type => {
           const sw = swByType[type];
+          const lruEntries = Object.entries(sw.lrus).sort((a, b) => a[0].localeCompare(b[0]));
+
           return (
             <div key={type} className="bg-[#141922] border border-white/8 rounded-2xl p-4 space-y-3">
               <div className="flex items-center justify-between">
@@ -574,28 +594,37 @@ function SoftwareVerificationsTab({ reports, typeFilter }) {
                 </div>
               </div>
 
-              <div className="space-y-2 text-xs">
+              <div className="grid grid-cols-2 gap-2 text-xs">
                 <div className="bg-[#0d1117] rounded-lg px-3 py-2">
                   <p className="text-gray-500 text-[10px] uppercase tracking-widest">FMS Version</p>
-                  <p className="font-bold text-primary font-mono mt-1">{sw.fms_version || 'Not available'}</p>
+                  <p className="font-bold text-primary font-mono mt-1 text-sm">{sw.fms_version || '—'}</p>
                 </div>
                 <div className="bg-[#0d1117] rounded-lg px-3 py-2">
-                  <p className="text-gray-500 text-[10px] uppercase tracking-widest">Nav DB Version</p>
-                  <p className="font-bold text-cyan-400 font-mono mt-1">{sw.nav_db_version || 'Not available'}</p>
+                  <p className="text-gray-500 text-[10px] uppercase tracking-widest">Nav DB</p>
+                  <p className="font-bold text-cyan-400 font-mono mt-1 text-sm">{sw.nav_db_version || '—'}</p>
                 </div>
               </div>
 
-              <div className="border-t border-white/5 pt-2">
-                <p className="text-[10px] font-bold text-gray-500 uppercase tracking-widest mb-2">Fleet Distribution</p>
-                <div className="space-y-1">
-                  {sw.reports.map((r, i) => (
-                    <div key={i} className="flex items-center justify-between text-[10px]">
-                      <span className="font-mono text-primary">{r.aircraft_tail}</span>
-                      <span className="text-gray-500">{r.data_source}</span>
-                    </div>
-                  ))}
+              <div className="border-t border-white/5 pt-3">
+                <p className="text-[10px] font-bold text-gray-500 uppercase tracking-widest mb-2">Avionics LRU Status</p>
+                <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
+                  {lruEntries.map(([lru, info]) => {
+                    const cfg = scfg(info.status);
+                    const Icon = sysIcon(lru);
+                    return (
+                      <div key={lru} className={cn('flex items-center gap-1.5 text-[10px] font-bold px-2 py-1.5 rounded-lg', cfg.bg, cfg.color)}>
+                        <Icon className="w-3 h-3 flex-shrink-0" />
+                        <span className="truncate">{lru}</span>
+                        <span className={cn('w-1.5 h-1.5 rounded-full flex-shrink-0', cfg.dot)} />
+                      </div>
+                    );
+                  })}
                 </div>
               </div>
+
+              {lruEntries.length === 0 && (
+                <p className="text-[10px] text-gray-600 italic">No avionics systems ingested yet</p>
+              )}
             </div>
           );
         })}
