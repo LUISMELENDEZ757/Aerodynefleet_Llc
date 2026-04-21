@@ -218,21 +218,22 @@ export default function MaintenanceControl() {
               <p className="text-xs text-gray-500 mb-4">Select a station to view aircraft recovery operations by location.</p>
               <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
                 {['KEWR', 'KJFK', 'KORD', 'KATL', 'KLAX', 'KSFO', 'KDEN', 'KMIA', 'KDFW', 'KSEA', 'KBOS', 'KDCA'].map(station => {
-                  const count = oosEntries.filter(e => e.station === station).length;
+                  const stationAircraft = oosEntries.filter(e => e.station === station);
+                  const count = stationAircraft.length;
                   return (
                     <button
                       key={station}
                       onClick={() => setSelectedLocation(station)}
                       disabled={count === 0}
                       className={cn(
-                        'py-3 px-4 rounded-xl text-sm font-bold transition-all',
+                        'py-3 px-4 rounded-xl text-sm font-bold transition-all text-left',
                         count > 0
                           ? 'bg-orange-600 text-white hover:bg-orange-500'
                           : 'bg-[#0a0e18] text-gray-600 cursor-not-allowed'
                       )}
                     >
                       <p className="font-extrabold">{station}</p>
-                      <p className="text-[10px] mt-1">{count} aircraft</p>
+                      <p className="text-[10px] mt-1 font-mono">{stationAircraft.map(a => a.aircraft_tail).join(', ') || 'None'}</p>
                     </button>
                   );
                 })}
