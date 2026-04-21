@@ -11,6 +11,7 @@ import {
 import { cn } from '@/lib/utils';
 import NavUploadScheduleTab from '@/components/avionics/NavUploadScheduleTab';
 import PredictiveAnalysisTab from '@/components/avionics/PredictiveAnalysisTab';
+import AvionicsWriteUpsTab from '@/components/avionics/AvionicsWriteUpsTab';
 
 // ── Constants ─────────────────────────────────────────────────────────────────
 const AIRCRAFT_TYPES = ['All Types', 'B737-700', 'B737-800', 'B737-900', 'B737 MAX 8', 'B737 MAX 9', 'B757', 'B767', 'B777', 'B787', 'A320', 'A321', 'A350', 'E190', 'CRJ900'];
@@ -641,6 +642,7 @@ const TABS = [
   { id: 'navschedule', label: 'Nav Upload Schedule',     icon: Calendar },
   { id: 'swverify',    label: 'Software Verifications',  icon: Shield },
   { id: 'predictive',  label: 'Predictive Analysis',     icon: TrendingUp },
+  { id: 'writeups',    label: 'E-Logbook Write-ups',     icon: FileDown },
   { id: 'dfdr',        label: 'DFDR Downloads',          icon: HardDrive },
 ];
 
@@ -760,6 +762,7 @@ export default function AvionicsDashboard() {
         {activeTab === 'navschedule' && <NavUploadScheduleTab reports={reports} aircraft={aircraft} onIngestSuccess={handleIngestSuccess} />}
         {activeTab === 'swverify'    && <SoftwareVerificationsTab reports={reports} typeFilter={typeFilter} />}
         {activeTab === 'predictive'  && <PredictiveAnalysisTab reports={reports} typeFilter={typeFilter} />}
+        {activeTab === 'writeups'    && <AvionicsWriteUpsTab typeFilter={typeFilter} aircraft={aircraft} />}
         {activeTab === 'dfdr'        && <DFDRTab reports={reports} typeFilter={typeFilter} />}
       </div>
 
