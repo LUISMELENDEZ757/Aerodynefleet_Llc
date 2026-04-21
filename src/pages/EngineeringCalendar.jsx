@@ -9,6 +9,22 @@ import LiveClock from '@/components/ui/LiveClock';
 export default function EngineeringCalendar() {
   const [selectedEvent, setSelectedEvent] = useState(null);
 
+  const MOCK_EVENTS = [
+    { id: 'mock-mx-1',  type: 'heavy_mx',  date: '2026-04-22', title: 'N455GJ — Engine Overhaul',       detail: 'CFM56-7B shop visit — EGT margin exceeded limits', meta: 'ATA 72 • 22,400/22,000h' },
+    { id: 'mock-mx-2',  type: 'heavy_mx',  date: '2026-04-25', title: 'N801EB — C-Check',                detail: '6,000 FH check due — hangar slot confirmed at MIA MRO', meta: 'ATA 05 • 6,020/6,000h' },
+    { id: 'mock-mx-3',  type: 'heavy_mx',  date: '2026-05-03', title: 'N337AX — Landing Gear Overhaul', detail: 'MLG/NLG 6-year overhaul due', meta: 'ATA 32 • 5,980/6,000 cycles' },
+    { id: 'mock-mx-4',  type: 'heavy_mx',  date: '2026-05-12', title: 'N220UA — APU Shop Visit',         detail: 'Honeywell 131-9B compressor section overhaul', meta: 'ATA 49 • 8,100/8,000h' },
+    { id: 'mock-mx-5',  type: 'heavy_mx',  date: '2026-05-18', title: 'N644AA — D-Check',                detail: 'Scheduled heavy structural inspection — ORD hangar', meta: 'ATA 05 • 24,000h check' },
+    { id: 'mock-mel-1', type: 'mel_expiry', date: '2026-04-23', title: 'N455GJ MEL expires',             detail: 'R Thrust Reverser Isolation — CAT C deferral expires', meta: 'MEL • ATA 78' },
+    { id: 'mock-mel-2', type: 'mel_expiry', date: '2026-04-28', title: 'N801EB MEL expires',             detail: 'Pack 2 partially inoperative — 10-day CAT B deferral', meta: 'MEL • ATA 21' },
+    { id: 'mock-mel-3', type: 'mel_expiry', date: '2026-05-07', title: 'N337AX MEL expires',             detail: 'IRS 3 inoperative — CAT C deferral expires', meta: 'MEL • ATA 34' },
+    { id: 'mock-mel-4', type: 'mel_expiry', date: '2026-05-14', title: 'N220UA MEL expires',             detail: 'Cabin pressure controller 2 inop', meta: 'MEL • ATA 21' },
+    { id: 'mock-oos-1', type: 'grounding',  date: '2026-04-24', title: 'N644AA return to service',       detail: 'Grounded: Bird strike — nose radome damage', meta: 'Days OOS: 3' },
+    { id: 'mock-oos-2', type: 'grounding',  date: '2026-04-29', title: 'N903DL return to service',       detail: 'Grounded: Hydraulic leak — left main gear', meta: 'Days OOS: 5' },
+    { id: 'mock-oos-3', type: 'grounding',  date: '2026-05-09', title: 'N112SW return to service',       detail: 'Grounded: Engine 2 borescope inspection', meta: 'Days OOS: 4' },
+    { id: 'mock-oos-4', type: 'grounding',  date: '2026-05-20', title: 'N455GJ return to service',       detail: 'Grounded: Engine overhaul shop visit', meta: 'Days OOS: 28' },
+  ];
+
   const { data: events = [], isLoading, refetch } = useQuery({
     queryKey: ['engineering-calendar-events'],
     queryFn: async () => {
@@ -18,7 +34,7 @@ export default function EngineeringCalendar() {
         base44.entities.OOSEntry.list('-created_date', 100),
       ]);
 
-      const calendarEvents = [];
+      const calendarEvents = [...MOCK_EVENTS];
 
       // Heavy Maintenance Events
       forecasts.forEach(fc => {
