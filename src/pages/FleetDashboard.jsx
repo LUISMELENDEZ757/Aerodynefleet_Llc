@@ -687,7 +687,7 @@ export default function FleetDashboard() {
             <select value={statusFilter} onChange={e => setStatusFilter(e.target.value)}
               className="bg-card border border-border rounded-xl px-4 py-2.5 text-sm text-white outline-none hover:border-primary/40">
               {STATUS_OPTIONS.map(s => (
-                <option key={s} value={s}>{s === 'All Status' ? s : s.charAt(0).toUpperCase() + s.slice(1)}</option>
+                <option key={s} value={s}>{s === 'All Status' ? s : s === 'oos' ? 'Out of Service' : s.charAt(0).toUpperCase() + s.slice(1)}</option>
               ))}
             </select>
             <div className="flex rounded-xl overflow-hidden bg-card border border-border">
