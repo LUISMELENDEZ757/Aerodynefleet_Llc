@@ -212,7 +212,7 @@ export default function ShiftHandoverPage() {
           <div className="space-y-3">
             <button onClick={() => { setStep('list'); setPendingData(null); }}
               className="w-full py-3 rounded-xl bg-primary text-primary-foreground font-bold hover:bg-primary/90">
-              View All Handovers
+              View Turnover
             </button>
             <Link to="/ShiftHandover"
               className="block w-full py-3 rounded-xl border border-border text-muted-foreground font-bold hover:bg-secondary text-center">
