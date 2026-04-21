@@ -388,31 +388,50 @@ function AircraftDetailOverlay({ aircraft: initialAircraft, onClose }) {
 }
 
 // ── Discrepancy Badge Block ──────────────────────────────────────────────────
-function DiscrepancyBadges({ discrepancies }) {
-  if (!discrepancies || discrepancies.length === 0) return null;
-  const count = discrepancies.length;
-  const hasInProgress = discrepancies.some(d => d.discrepancy_status === 'IN_PROGRESS');
-  const hasPendingRii = discrepancies.some(d => d.discrepancy_status === 'PENDING_RII');
+function DiscrepancyBadges({ discrepancies, melItems, aircraftStatus }) {
+  const openDiscrepancies = discrepancies?.filter(d => d.discrepancy_status !== 'CLOSED') || [];
+  const expiredMels = melItems?.filter(m => m.status === 'expired') || [];
+  
+  // OOS Risk if: multiple serious issues (3+) OR aircraft already OOS/maintenance OR expired MELs
+  const hasOosRisk = openDiscrepancies.length >= 3 || 
+                     aircraftStatus === 'oos' || 
+                     aircraftStatus === 'maintenance' || 
+                     expiredMels.length > 0;
+  
+  if (!openDiscrepancies.length && !expiredMels.length) return null;
+  
+  const count = openDiscrepancies.length;
+  const hasInProgress = openDiscrepancies.some(d => d.discrepancy_status === 'IN_PROGRESS');
+  const hasPendingRii = openDiscrepancies.some(d => d.discrepancy_status === 'PENDING_RII');
+  
   return (
     <div className="border-t border-amber-500/20 pt-2 mt-1 flex flex-col gap-1">
-      <div className="flex items-center gap-1.5">
-        <span className="text-amber-400">⚠️</span>
-        <span className="text-[10px] font-extrabold text-amber-400">{count} Open Write-Up{count > 1 ? 's' : ''}</span>
-      </div>
-      <div className="flex items-center gap-1.5">
-        <span className="text-red-400 text-[10px]">🔴</span>
-        <span className="text-[10px] font-bold text-red-400">RON Risk</span>
-      </div>
-      <div className="flex items-center gap-1.5">
-        <span className="text-[10px]">🛠️</span>
-        <span className="text-[10px] font-bold text-gray-300">
-          {hasPendingRii ? 'Awaiting RII Sign-Off' : hasInProgress ? 'Work In Progress' : 'Assigned to Line MX'}
-        </span>
-      </div>
-      <div className="flex items-center gap-1.5">
-        <Clock className="w-3 h-3 text-sky-400" />
-        <span className="text-[10px] font-bold text-sky-400">ETA: 06:30</span>
-      </div>
+      {count > 0 && (
+        <div className="flex items-center gap-1.5">
+          <span className="text-amber-400">⚠️</span>
+          <span className="text-[10px] font-extrabold text-amber-400">{count} Open Write-Up{count > 1 ? 's' : ''}</span>
+        </div>
+      )}
+      {hasOosRisk && (
+        <div className="flex items-center gap-1.5">
+          <span className="text-red-400 text-[10px]">🔴</span>
+          <span className="text-[10px] font-bold text-red-400">OOS Risk</span>
+        </div>
+      )}
+      {expiredMels.length > 0 && (
+        <div className="flex items-center gap-1.5">
+          <Zap className="w-3 h-3 text-red-400" />
+          <span className="text-[10px] font-bold text-red-400">{expiredMels.length} Expired MEL{expiredMels.length > 1 ? 's' : ''}</span>
+        </div>
+      )}
+      {count > 0 && (
+        <div className="flex items-center gap-1.5">
+          <span className="text-[10px]">🛠️</span>
+          <span className="text-[10px] font-bold text-gray-300">
+            {hasPendingRii ? 'Awaiting RII Sign-Off' : hasInProgress ? 'Work In Progress' : 'Assigned to Line MX'}
+          </span>
+        </div>
+      )}
     </div>
   );
 }
@@ -421,12 +440,13 @@ function DiscrepancyBadges({ discrepancies }) {
 function AircraftCard({ aircraft, onSelect, discrepancies }) {
   const status = STATUS_STYLES[aircraft.status] || STATUS_STYLES.active;
   const StatusIcon = status.icon;
-  const hasDiscrepancies = discrepancies && discrepancies.length > 0;
+  const openDiscs = discrepancies?.filter(d => d.discrepancy_status !== 'CLOSED') || [];
+  const hasHighRisk = openDiscs.length >= 3 || aircraft.status === 'oos' || aircraft.status === 'maintenance';
   return (
     <div onClick={() => onSelect(aircraft)}
       className={cn(
         "bg-card rounded-2xl border p-5 flex flex-col gap-3 hover:border-primary/40 transition-all cursor-pointer active:scale-[0.97]",
-        hasDiscrepancies ? 'border-amber-500/40' : 'border-border'
+        hasHighRisk ? 'border-red-500/40' : openDiscs.length > 0 ? 'border-amber-500/40' : 'border-border'
       )}>
       <div className="flex items-start justify-between">
         <div>
@@ -446,7 +466,7 @@ function AircraftCard({ aircraft, onSelect, discrepancies }) {
           <span className="text-[10px] font-bold px-2 py-1 rounded-lg bg-white/5 text-gray-400 truncate max-w-[100px]">{aircraft.engine_type}</span>
         )}
       </div>
-      <DiscrepancyBadges discrepancies={discrepancies} />
+      <DiscrepancyBadges discrepancies={discrepancies} melItems={[]} aircraftStatus={aircraft.status} />
     </div>
   );
 }
@@ -469,8 +489,7 @@ function AircraftRow({ aircraft, onSelect, discrepancies }) {
         {count > 0 && (
           <div className="hidden md:flex items-center gap-3">
             <span className="text-[10px] font-extrabold text-amber-400">⚠️ {count} Open Write-Up{count > 1 ? 's' : ''}</span>
-            <span className="text-[10px] font-bold text-red-400">🔴 RON Risk</span>
-            <span className="text-[10px] font-bold text-sky-400 flex items-center gap-1"><Clock className="w-3 h-3" /> ETA: 06:30</span>
+            <span className="text-[10px] font-bold text-red-400">🔴 OOS Risk</span>
           </div>
         )}
       </div>
