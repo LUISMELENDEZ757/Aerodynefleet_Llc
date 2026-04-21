@@ -10,6 +10,7 @@ import {
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import LiveClock from '@/components/ui/LiveClock';
+import TasksModule from '@/components/mxsup/TasksModule';
 
 const TODAY = new Date().toISOString().split('T')[0];
 
@@ -196,12 +197,13 @@ function WorkCard({ entry, onAssign, onClose, onReopen, showReopen }) {
 }
 
 const TABS = [
-  { id: 'overview',  label: 'Overview',       icon: BarChart2 },
-  { id: 'active',    label: 'Active Work',     icon: Activity },
-  { id: 'closed',    label: 'Closed Today',    icon: CheckCircle },
-  { id: 'faults',    label: 'Faults & MEL',   icon: Zap },
-  { id: 'parts',     label: 'Parts & Tools',  icon: Package },
-  { id: 'handover',  label: 'Shift Handover', icon: Users },
+  { id: 'overview',  label: 'Overview',          icon: BarChart2 },
+  { id: 'tasks',     label: 'Tasks',             icon: CheckCircle },
+  { id: 'active',    label: 'Active Work',       icon: Activity },
+  { id: 'closed',    label: 'Closed Today',      icon: CheckCircle },
+  { id: 'faults',    label: 'Faults & MEL',     icon: Zap },
+  { id: 'parts',     label: 'Parts & Tools',    icon: Package },
+  { id: 'handover',  label: 'Shift Handover',   icon: Users },
 ];
 
 export default function MaintenanceSupervisorDashboard() {
@@ -411,6 +413,17 @@ export default function MaintenanceSupervisorDashboard() {
       </div>
 
       <div className="px-4 py-4 space-y-4 max-w-5xl mx-auto">
+
+        {/* TASKS TAB */}
+        {tab === 'tasks' && (
+          <TasksModule 
+            allDiscrepancies={discrepancies}
+            mels={stationMels}
+            ads={stationAds}
+            aircraft={stationAircraft}
+            stationFilter={stationFilter}
+          />
+        )}
 
         {/* OVERVIEW TAB */}
         {tab === 'overview' && (
