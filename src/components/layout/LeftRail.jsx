@@ -22,6 +22,7 @@ const TECHNICIAN_ITEMS = [
   { label: '📅 Engineering Calendar', path: '/EngCalendar' },
   { label: '🛠️ TechOps Dashboard', path: '/TechOps' },
   { label: '📊 Reliability Tracking', path: '/Reliability' },
+  { label: '📋 Planning & Checks', path: '/Planning' },
   { label: '🚫 OOS Aircraft', path: '/OOSDashboard' },
   { label: '⚙️ Maintenance Control', path: '/MaintenanceControl' },
   { label: '✈️ Fleet Management', path: '/FleetDashboard' },
