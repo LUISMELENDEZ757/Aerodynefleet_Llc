@@ -7,8 +7,18 @@ import { FleetBadge } from '@/components/fleet/FleetSwitcher';
 import {
   Plane, Search, LayoutGrid, List, Wrench, CheckCircle, Globe, Shield,
   BookOpen, MapPin, Cpu, X, AlertTriangle, UserCheck, Plus, Clock,
-  ChevronDown, Radio, Activity, Zap, Package, Brain, Settings2, Building2, Warehouse
+  ChevronDown, Radio, Activity, Zap, Package, Brain, Settings2, Building2
 } from 'lucide-react';
+
+const HangarIcon = ({ className }) => (
+  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}>
+    <path d="M3 8h18v10c0 1.1-.9 2-2 2H5c-1.1 0-2-.9-2-2V8z" />
+    <path d="M3 8L12 2l9 6" />
+    <circle cx="8" cy="14" r="1.5" />
+    <circle cx="16" cy="14" r="1.5" />
+    <line x1="10" y1="14" x2="14" y2="14" />
+  </svg>
+);
 import AiMaintenanceInsights from '@/components/fleet/AiMaintenanceInsights';
 import AiMaintenanceCard from '@/components/ai/AiMaintenanceCard';
 import { cn } from '@/lib/utils';
@@ -444,7 +454,7 @@ function AircraftCard({ aircraft, onSelect, discrepancies }) {
   const openDiscs = discrepancies?.filter(d => d.discrepancy_status !== 'CLOSED') || [];
   const hasHighRisk = openDiscs.length >= 3 || aircraft.status === 'oos' || aircraft.status === 'maintenance';
   
-  const LocationIcon = locationType === 'terminal' ? Building2 : Warehouse;
+  const LocationIcon = locationType === 'terminal' ? Building2 : HangarIcon;
   
   return (
     <div onClick={() => onSelect(aircraft)}
