@@ -1,4 +1,4 @@
-import { createClientFromRequest } from 'npm:@base44/sdk@0.8.23';
+import { createClientFromRequest } from 'npm:@base44/sdk@0.8.25';
 
 Deno.serve(async (req) => {
   try {
@@ -9,70 +9,97 @@ Deno.serve(async (req) => {
       return Response.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    const { station, direction } = await req.json();
+    const { station } = await req.json();
 
-    if (!station || !['arrivals', 'departures'].includes(direction)) {
-      return Response.json(
-        { error: 'Missing or invalid station/direction' },
-        { status: 400 }
-      );
+    if (!station) {
+      return Response.json({ error: 'Station code required' }, { status: 400 });
     }
 
     const apiKey = Deno.env.get('FLIGHTAWARE_API_KEY');
     if (!apiKey) {
-      return Response.json(
-        { error: 'FlightAware API key not configured' },
-        { status: 500 }
-      );
+      return Response.json({ error: 'FlightAware API not configured' }, { status: 500 });
     }
 
-    // Use FlightAware FlightBox endpoint
-    const url = `https://flightxml.flightaware.com/json/FlightXML2/ArrivalInfo?airport=${station}`;
+    // Fetch airport operations for the station
+    // FlightAware AeroAPI endpoint: /airports/{station}/scheduled_arrivals and /scheduled_departures
+    const now = new Date();
+    const nowUtc = now.toISOString();
+    const in24h = new Date(now.getTime() + 24 * 60 * 60 * 1000).toISOString();
 
-    const response = await fetch(url, {
-      method: 'GET',
-      headers: {
-        'Authorization': 'Basic ' + btoa(apiKey + ':'),
-        'Accept': 'application/json',
-      },
-    });
+    // Get scheduled arrivals
+    const arrivalsRes = await fetch(
+      `https://aeroapi.flightaware.com/aeroapi/airports/${station}/scheduled_arrivals?start=${nowUtc}&end=${in24h}`,
+      {
+        headers: {
+          'x-apikey': apiKey,
+          'Accept': 'application/json',
+        },
+      }
+    );
 
-    if (!response.ok) {
-      const errorText = await response.text();
-      console.error('FlightAware error response:', response.status, errorText);
-      // Return empty array instead of error for better UX
-      return Response.json({
-        success: true,
-        station,
-        direction,
-        flights: [],
-        error: 'FlightAware API unavailable',
-        timestamp: new Date().toISOString(),
-      });
+    // Get scheduled departures
+    const departuresRes = await fetch(
+      `https://aeroapi.flightaware.com/aeroapi/airports/${station}/scheduled_departures?start=${nowUtc}&end=${in24h}`,
+      {
+        headers: {
+          'x-apikey': apiKey,
+          'Accept': 'application/json',
+        },
+      }
+    );
+
+    if (!arrivalsRes.ok || !departuresRes.ok) {
+      return Response.json({ 
+        error: 'Failed to fetch FlightAware data',
+        flights: [] 
+      }, { status: 200 });
     }
 
-    const data = await response.json();
+    const arrivalsData = await arrivalsRes.json();
+    const departuresData = await departuresRes.json();
 
-    // FlightXML returns flights differently
-    const flights = data.ArrivalInfo?.flights?.item || [];
+    // Transform FlightAware data into unified format
+    const arrivals = (arrivalsData.scheduled_arrivals || []).map(flight => ({
+      id: flight.id || flight.flight_id,
+      flight_number: flight.ident,
+      aircraft_type: flight.aircraft_type,
+      origin: flight.origin?.code || flight.origin,
+      destination: station,
+      direction: 'arrival',
+      scheduled_arrival: flight.scheduled_in,
+      actual_arrival: flight.actual_in,
+      status: flight.status === 'Landed' ? 'arrived' : 'scheduled',
+      gate: flight.gate_dest || null,
+    }));
+
+    const departures = (departuresData.scheduled_departures || []).map(flight => ({
+      id: flight.id || flight.flight_id,
+      flight_number: flight.ident,
+      aircraft_type: flight.aircraft_type,
+      origin: station,
+      destination: flight.destination?.code || flight.destination,
+      direction: 'departure',
+      scheduled_departure: flight.scheduled_out,
+      actual_departure: flight.actual_out,
+      status: flight.status === 'Departed' ? 'departed' : 'scheduled',
+      gate: flight.gate_origin || null,
+    }));
 
     return Response.json({
       success: true,
       station,
-      direction,
-      flights: flights,
-      timestamp: new Date().toISOString(),
+      flights: [...arrivals, ...departures],
+      summary: {
+        total_flights: arrivals.length + departures.length,
+        arrivals_count: arrivals.length,
+        departures_count: departures.length,
+      },
     });
   } catch (error) {
     console.error('FlightAware station ops error:', error);
-    // Return empty array for better UX
-    return Response.json({
-      success: true,
-      station: await req.json().then(r => r.station).catch(() => 'UNK'),
-      direction: await req.json().then(r => r.direction).catch(() => 'arrivals'),
-      flights: [],
-      error: error.message,
-      timestamp: new Date().toISOString(),
-    });
+    return Response.json({ 
+      error: error.message || 'Failed to fetch station operations',
+      flights: []
+    }, { status: 200 });
   }
 });
