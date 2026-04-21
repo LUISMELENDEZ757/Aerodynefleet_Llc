@@ -16,6 +16,7 @@ const TECHNICIAN_ITEMS = [
   { label: '👷 Manpower & Staffing', path: '/ManpowerStaffing' },
   { label: '🔧 Line Maintenance', path: '/LineMaintenanceDashboard' },
   { label: '📡 Mx Tracking', path: '/MxTracking' },
+  { label: '📅 Mx Calendar', path: '/EngCalendar' },
   { label: '🤝 Shift Handover', path: '/ShiftHandover' },
   { label: '📅 Engineering Calendar', path: '/EngCalendar' },
   { label: '🛠️ TechOps Dashboard', path: '/TechOps' },
