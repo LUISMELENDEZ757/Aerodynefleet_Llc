@@ -4,6 +4,7 @@ import { base44 } from '@/api/base44Client';
 import { Link } from 'react-router-dom';
 import { ChevronLeft, RefreshCw, Download } from 'lucide-react';
 import EngineeringCalendarView from '@/components/calendar/EngineeringCalendarView';
+import LiveClock from '@/components/ui/LiveClock';
 
 export default function EngineeringCalendar() {
   const [selectedEvent, setSelectedEvent] = useState(null);
@@ -108,7 +109,8 @@ END:VCALENDAR`;
               <p className="text-xs text-primary tracking-widest uppercase">Fleet-wide MX & Groundings</p>
             </div>
           </div>
-          <div className="flex gap-2">
+          <div className="flex items-center gap-3">
+            <LiveClock />
             <button onClick={() => refetch()}
               className="w-9 h-9 rounded-lg bg-secondary flex items-center justify-center hover:bg-secondary/80">
               <RefreshCw className={isLoading ? 'animate-spin' : ''} />
