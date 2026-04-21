@@ -11,31 +11,31 @@ import {
 } from 'lucide-react';
 
 const TerminalIcon = ({ className }) => (
-  <svg viewBox="0 0 64 64" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" className={className}>
-    {/* Control tower */}
-    <rect x="42" y="18" width="10" height="18" strokeWidth="2" />
-    <circle cx="47" cy="12" r="4" strokeWidth="2" />
-    <line x1="44" y1="10" x2="50" y2="10" strokeWidth="1.5" />
-    <line x1="43" y1="12" x2="51" y2="12" strokeWidth="1.5" />
-    {/* Tower connector */}
-    <line x1="47" y1="18" x2="47" y2="36" strokeWidth="1.5" />
-    {/* Terminal building */}
-    <path d="M 8 36 L 40 20 L 40 36 Z" strokeWidth="2" />
-    {/* Terminal base */}
-    <rect x="8" y="36" width="32" height="16" strokeWidth="2" />
+  <svg viewBox="0 0 64 64" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}>
+    {/* Control tower crenellations */}
+    <line x1="16" y1="14" x2="20" y2="14" strokeWidth="2" />
+    <line x1="20" y1="14" x2="20" y2="18" strokeWidth="2" />
+    <line x1="20" y1="18" x2="24" y2="18" strokeWidth="2" />
+    <line x1="24" y1="18" x2="24" y2="14" strokeWidth="2" />
+    <line x1="24" y1="14" x2="28" y2="14" strokeWidth="2" />
+    <line x1="28" y1="14" x2="28" y2="18" strokeWidth="2" />
+    {/* Tower body - wide base */}
+    <path d="M 14 20 L 18 28 L 30 28 L 34 20 Z" strokeWidth="2" />
+    {/* Tower main shaft */}
+    <rect x="18" y="28" width="12" height="20" strokeWidth="2" />
+    {/* Tower connector line to building */}
+    <line x1="30" y1="35" x2="36" y2="35" strokeWidth="2" />
+    {/* Terminal building main box */}
+    <rect x="36" y="30" width="18" height="18" strokeWidth="2" />
+    {/* Terminal roof line */}
+    <line x1="36" y1="30" x2="54" y2="30" strokeWidth="2" />
     {/* Terminal windows */}
-    <line x1="12" y1="36" x2="12" y2="52" strokeWidth="1" />
-    <line x1="16" y1="36" x2="16" y2="52" strokeWidth="1" />
-    <line x1="20" y1="36" x2="20" y2="52" strokeWidth="1" />
-    <line x1="24" y1="36" x2="24" y2="52" strokeWidth="1" />
-    <line x1="28" y1="36" x2="28" y2="52" strokeWidth="1" />
-    <line x1="32" y1="36" x2="32" y2="52" strokeWidth="1" />
-    <line x1="36" y1="36" x2="36" y2="52" strokeWidth="1" />
-    <line x1="12" y1="42" x2="36" y2="42" strokeWidth="1" />
-    <line x1="12" y1="46" x2="36" y2="46" strokeWidth="1" />
-    <line x1="12" y1="50" x2="36" y2="50" strokeWidth="1" />
+    <circle cx="41" cy="37" r="2" strokeWidth="1.5" />
+    <circle cx="48" cy="37" r="2" strokeWidth="1.5" />
+    <circle cx="41" cy="44" r="2" strokeWidth="1.5" />
+    <circle cx="48" cy="44" r="2" strokeWidth="1.5" />
     {/* Ground line */}
-    <line x1="4" y1="52" x2="56" y2="52" strokeWidth="2" />
+    <line x1="8" y1="48" x2="56" y2="48" strokeWidth="2.5" />
   </svg>
 );
 
