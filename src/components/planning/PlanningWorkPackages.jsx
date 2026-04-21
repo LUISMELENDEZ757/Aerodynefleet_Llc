@@ -1,6 +1,7 @@
 import React, { useState, useMemo } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { base44 } from '@/api/base44Client';
+import SupplierIngestModal from './SupplierIngestModal';
 import {
   Calendar, Wrench, Package, Users, TrendingUp, AlertTriangle,
   CheckCircle, Clock, Zap, MapPin, FileText, Plus, Edit2,
@@ -237,6 +238,7 @@ function PartsLaborForecast({ parts }) {
 export default function PlanningWorkPackages() {
   const [selectedCheckType, setSelectedCheckType] = useState('A');
   const [filterStatus, setFilterStatus] = useState('all');
+  const [showIngestModal, setShowIngestModal] = useState(false);
 
   const { data: aircraft = [] } = useQuery({
     queryKey: ['planning-aircraft'],
@@ -265,7 +267,7 @@ export default function PlanningWorkPackages() {
             <p className="text-xs text-primary tracking-widest uppercase mt-1">MPD/AMP Compliance · Heavy Checks · Parts Planning</p>
           </div>
           <div className="flex gap-2">
-            <button className="flex items-center gap-2 px-4 py-2 rounded-lg bg-secondary text-muted-foreground text-xs font-bold hover:text-foreground">
+            <button onClick={() => setShowIngestModal(true)} className="flex items-center gap-2 px-4 py-2 rounded-lg bg-secondary text-muted-foreground text-xs font-bold hover:text-foreground">
               <Plus className="w-4 h-4" /> New Work Package
             </button>
             <button className="flex items-center gap-2 px-4 py-2 rounded-lg bg-secondary text-muted-foreground text-xs font-bold hover:text-foreground">
@@ -414,6 +416,14 @@ export default function PlanningWorkPackages() {
             </div>
           </div>
         </div>
+
+        {showIngestModal && (
+          <SupplierIngestModal
+            aircraft={aircraft}
+            onClose={() => setShowIngestModal(false)}
+            onSuccess={() => setShowIngestModal(false)}
+          />
+        )}
       </div>
     </div>
   );

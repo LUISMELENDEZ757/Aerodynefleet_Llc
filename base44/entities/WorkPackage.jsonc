@@ -1,0 +1,139 @@
+{
+  "name": "WorkPackage",
+  "type": "object",
+  "description": "Heavy maintenance work packages (A/C/D checks, ETOPS, etc) with task tracking and supplier system integration",
+  "properties": {
+    "aircraft_tail": {
+      "type": "string",
+      "description": "Aircraft tail number"
+    },
+    "aircraft_type": {
+      "type": "string",
+      "description": "Aircraft type for reference"
+    },
+    "check_type": {
+      "type": "string",
+      "enum": [
+        "A",
+        "C",
+        "D",
+        "overnight",
+        "ETOPS"
+      ],
+      "description": "Type of maintenance check"
+    },
+    "scheduled_date": {
+      "type": "string",
+      "format": "date",
+      "description": "When the work package is scheduled"
+    },
+    "estimated_completion_date": {
+      "type": "string",
+      "format": "date",
+      "description": "Expected completion date"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "planned",
+        "in_progress",
+        "completed",
+        "overdue"
+      ],
+      "default": "planned"
+    },
+    "station": {
+      "type": "string",
+      "description": "Station ICAO where work will be performed"
+    },
+    "estimated_man_hours": {
+      "type": "number",
+      "description": "Total man-hours estimated for the package"
+    },
+    "estimated_cost": {
+      "type": "number",
+      "description": "Estimated total cost in USD"
+    },
+    "tasks": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "task_id": {
+            "type": "string"
+          },
+          "description": {
+            "type": "string"
+          },
+          "ata_chapter": {
+            "type": "string"
+          },
+          "estimated_hours": {
+            "type": "number"
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "pending",
+              "in_progress",
+              "completed"
+            ]
+          },
+          "assigned_to": {
+            "type": "string",
+            "description": "Technician name or team assigned"
+          }
+        }
+      },
+      "description": "Individual tasks within the work package"
+    },
+    "parts_required": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "part_number": {
+            "type": "string"
+          },
+          "part_name": {
+            "type": "string"
+          },
+          "quantity": {
+            "type": "number"
+          },
+          "lead_time_days": {
+            "type": "number"
+          },
+          "unit_cost": {
+            "type": "number"
+          }
+        }
+      }
+    },
+    "supplier_system": {
+      "type": "string",
+      "enum": [
+        "manual",
+        "TRAX",
+        "AMOS",
+        "SCEPTRE",
+        "AHEAD",
+        "AHM"
+      ],
+      "default": "manual",
+      "description": "Source system for work package generation"
+    },
+    "supplier_reference": {
+      "type": "string",
+      "description": "Reference ID from supplier system"
+    },
+    "notes": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "aircraft_tail",
+    "check_type",
+    "scheduled_date"
+  ]
+}
