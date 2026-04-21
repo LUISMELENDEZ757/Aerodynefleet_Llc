@@ -9,6 +9,7 @@ import {
   BarChart2, RotateCcw, Plane
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import LiveClock from '@/components/ui/LiveClock';
 
 const TODAY = new Date().toISOString().split('T')[0];
 
@@ -346,7 +347,8 @@ export default function MaintenanceSupervisorDashboard() {
               <p className="text-xs text-cyan-400 tracking-widest uppercase">Line & Hangar Ops · Station Control</p>
             </div>
           </div>
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-3">
+            <LiveClock />
             <button onClick={() => refetch()} className="w-9 h-9 rounded-lg bg-secondary flex items-center justify-center hover:bg-secondary/80">
               <RefreshCw className={cn('w-4 h-4 text-muted-foreground', isLoading && 'animate-spin')} />
             </button>

@@ -9,6 +9,7 @@ import {
   ClipboardList, XCircle
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import LiveClock from '@/components/ui/LiveClock';
 
 const TODAY = new Date().toISOString().split('T')[0];
 
@@ -378,7 +379,8 @@ export default function QCSupervisorDashboard() {
               <p className="text-xs text-green-400 tracking-widest uppercase">Quality Control · RII Inspections · Compliance Oversight</p>
             </div>
           </div>
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-3">
+            <LiveClock />
             <button onClick={() => refetch()} className="w-9 h-9 rounded-lg bg-secondary flex items-center justify-center hover:bg-secondary/80">
               <RefreshCw className={cn('w-4 h-4 text-muted-foreground', isLoading && 'animate-spin')} />
             </button>
