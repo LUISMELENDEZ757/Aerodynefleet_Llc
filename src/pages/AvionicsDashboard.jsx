@@ -529,11 +529,87 @@ function DFDRTab({ reports, typeFilter }) {
   );
 }
 
+// ── Tab: Software Verifications ───────────────────────────────────────────────
+function SoftwareVerificationsTab({ reports, typeFilter }) {
+  // Group LRU software versions by aircraft type
+  const swByType = {};
+  reports.forEach(r => {
+    if (typeFilter !== 'All Types' && r.aircraft_type !== typeFilter) return;
+    if (!r.aircraft_type) return;
+    if (!swByType[r.aircraft_type]) {
+      swByType[r.aircraft_type] = {
+        fms_version: r.fms_version,
+        nav_db_version: r.nav_db_version,
+        aircraft_type: r.aircraft_type,
+        count: 0,
+        reports: [],
+      };
+    }
+    swByType[r.aircraft_type].count += 1;
+    swByType[r.aircraft_type].reports.push(r);
+  });
+
+  const types = Object.keys(swByType).sort();
+
+  return (
+    <div className="space-y-4">
+      {types.length === 0 && (
+        <div className="flex flex-col items-center justify-center py-16 gap-3 text-center">
+          <Shield className="w-12 h-12 text-gray-700" />
+          <p className="text-gray-500 font-bold">No software verification data</p>
+          <p className="text-gray-600 text-xs">Ingest avionics reports to see LRU software versions</p>
+        </div>
+      )}
+
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+        {types.map(type => {
+          const sw = swByType[type];
+          return (
+            <div key={type} className="bg-[#141922] border border-white/8 rounded-2xl p-4 space-y-3">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <Plane className="w-4 h-4 text-cyan-400" />
+                  <p className="text-sm font-extrabold text-white">{type}</p>
+                  <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-cyan-500/20 text-cyan-400">{sw.count} aircraft</span>
+                </div>
+              </div>
+
+              <div className="space-y-2 text-xs">
+                <div className="bg-[#0d1117] rounded-lg px-3 py-2">
+                  <p className="text-gray-500 text-[10px] uppercase tracking-widest">FMS Version</p>
+                  <p className="font-bold text-primary font-mono mt-1">{sw.fms_version || 'Not available'}</p>
+                </div>
+                <div className="bg-[#0d1117] rounded-lg px-3 py-2">
+                  <p className="text-gray-500 text-[10px] uppercase tracking-widest">Nav DB Version</p>
+                  <p className="font-bold text-cyan-400 font-mono mt-1">{sw.nav_db_version || 'Not available'}</p>
+                </div>
+              </div>
+
+              <div className="border-t border-white/5 pt-2">
+                <p className="text-[10px] font-bold text-gray-500 uppercase tracking-widest mb-2">Fleet Distribution</p>
+                <div className="space-y-1">
+                  {sw.reports.map((r, i) => (
+                    <div key={i} className="flex items-center justify-between text-[10px]">
+                      <span className="font-mono text-primary">{r.aircraft_tail}</span>
+                      <span className="text-gray-500">{r.data_source}</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </div>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
+
 // ── Main Page ─────────────────────────────────────────────────────────────────
 const TABS = [
   { id: 'status',      label: 'Fleet Avionics Status',   icon: Activity },
   { id: 'navdata',     label: 'Nav/Data Downloads',      icon: Navigation },
   { id: 'navschedule', label: 'Nav Upload Schedule',     icon: Calendar },
+  { id: 'swverify',    label: 'Software Verifications',  icon: Shield },
   { id: 'dfdr',        label: 'DFDR Downloads',          icon: HardDrive },
 ];
 
@@ -651,6 +727,7 @@ export default function AvionicsDashboard() {
         {activeTab === 'status'      && <FleetStatusTab reports={reports} aircraft={aircraft} typeFilter={typeFilter} />}
         {activeTab === 'navdata'     && <NavDataTab reports={reports} typeFilter={typeFilter} />}
         {activeTab === 'navschedule' && <NavUploadScheduleTab reports={reports} aircraft={aircraft} onIngestSuccess={handleIngestSuccess} />}
+        {activeTab === 'swverify'    && <SoftwareVerificationsTab reports={reports} typeFilter={typeFilter} />}
         {activeTab === 'dfdr'        && <DFDRTab reports={reports} typeFilter={typeFilter} />}
       </div>
 
