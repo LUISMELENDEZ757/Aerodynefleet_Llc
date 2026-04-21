@@ -95,6 +95,7 @@ const FAR117Calculator         = lazy(() => import('@/pages/FAR117Calculator'));
 const OTPDashboard             = lazy(() => import('@/pages/OTPDashboard'));
 const DiversionWorkflow        = lazy(() => import('@/pages/DiversionWorkflow'));
 const AIDispatchCopilot        = lazy(() => import('@/pages/AIDispatchCopilot'));
+const AIForecastingDashboard   = lazy(() => import('@/pages/AIForecastingDashboard'));
 const LiveSIGMETMap            = lazy(() => import('@/pages/LiveSIGMETMap.jsx'));
 const AOGProbabilityForecast   = lazy(() => import('@/pages/AOGProbabilityForecast'));
 const ProductionControlCenter  = lazy(() => import('@/pages/ProductionControlCenter'));
@@ -273,6 +274,7 @@ const AuthenticatedApp = () => {
         <Route path="/OTPDashboard" element={<OTPDashboard />} />
         <Route path="/DiversionWorkflow" element={<DiversionWorkflow />} />
         <Route path="/AIDispatchCopilot" element={<AIDispatchCopilot />} />
+        <Route path="/AIForecasting" element={<AIForecastingDashboard />} />
         <Route path="/SIGMETMap" element={<LiveSIGMETMap />} />
         <Route path="/AOGForecast" element={<AOGProbabilityForecast />} />
         <Route path="/CostAnalytics" element={<CostPerFlightAnalytics />} />
