@@ -16,6 +16,24 @@ import MccToolingBoard from '@/components/mcc/MccToolingBoard';
 import ShiftHandoverModule from '@/components/mcc/ShiftHandoverModule';
 import SupervisorHandoverModule from '@/components/mcc/SupervisorHandoverModule';
 
+function ZuluClock() {
+  const [t, setT] = useState(new Date());
+  useState(() => {
+    const id = setInterval(() => setT(new Date()), 1000);
+    return () => clearInterval(id);
+  });
+  const zuluStr = t.toLocaleTimeString('en-US', {
+    hour: '2-digit', minute: '2-digit', second: '2-digit',
+    hour12: false, timeZone: 'UTC',
+  });
+  return (
+    <div className="text-right flex-shrink-0">
+      <p className="text-[9px] font-extrabold text-amber-400 tracking-widest uppercase">Zulu / UTC</p>
+      <p className="text-lg font-black text-white font-mono tracking-wider leading-tight">{zuluStr}Z</p>
+    </div>
+  );
+}
+
 const TABS = [
   { id: 'fleet',    label: 'Fleet Status' },
   { id: 'oos',      label: 'OOS / MX' },
@@ -90,7 +108,9 @@ export default function MaintenanceControl() {
             <p className="text-[10px] text-orange-400 tracking-widest uppercase font-bold">MCC · Fleet Oversight · TechOps Command</p>
           </div>
         </div>
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-4">
+          {/* Zulu / UTC clock */}
+          <ZuluClock />
           <LiveClock />
           <div className="hidden sm:flex items-center gap-2 text-xs font-mono text-gray-500">
             <span className="w-2 h-2 rounded-full bg-green-400 animate-pulse" />
