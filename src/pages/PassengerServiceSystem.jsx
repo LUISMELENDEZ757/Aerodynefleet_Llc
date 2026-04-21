@@ -3,6 +3,7 @@ import { useQuery } from '@tanstack/react-query';
 import { base44 } from '@/api/base44Client';
 import { Link } from 'react-router-dom';
 import { cn } from '@/lib/utils';
+import LiveClock from '@/components/ui/LiveClock';
 import {
   Plane, DoorOpen, Clock, Users, MapPin, AlertTriangle,
   ChevronLeft, Filter, RefreshCw, TrendingUp, CheckCircle,
@@ -144,9 +145,6 @@ export default function PassengerServiceSystem() {
   const availableGates = flightAwareGates.filter(g => !gateAssignments[g.id]);
   const occupiedGates = flightAwareGates.filter(g => gateAssignments[g.id]);
 
-  const now = new Date();
-  const timeStr = now.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: false });
-
   return (
     <div className="min-h-screen bg-background">
       {/* Header */}
@@ -162,7 +160,7 @@ export default function PassengerServiceSystem() {
             </div>
           </div>
           <div className="flex items-end gap-3">
-            <p className="text-lg font-mono font-bold text-foreground">{timeStr} Z</p>
+            <LiveClock />
             <button
               onClick={() => refetch()}
               className="flex items-center gap-1.5 text-xs font-bold text-muted-foreground hover:text-foreground transition-colors"
