@@ -5,7 +5,7 @@ import { base44 } from '@/api/base44Client';
 import {
   ChevronLeft, Brain, Wrench, Package, Activity, BarChart2, ArrowLeftRight,
   RefreshCw, Loader2, TrendingUp, AlertTriangle, Clock, DollarSign, Database,
-  Zap, CheckCircle, Target
+  Zap, CheckCircle, Target, CircleDot, Bell, MapPin, Moon
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { RadialBarChart, RadialBar, PolarAngleAxis, AreaChart, Area, XAxis, YAxis, Tooltip, ResponsiveContainer, BarChart, Bar } from 'recharts';
@@ -162,9 +162,139 @@ const SWAP_RECOMMENDATIONS = [
 const SPARKLINE_UP   = [{ v:2},{ v:5},{ v:3},{ v:7},{ v:6},{ v:9},{ v:8}];
 const SPARKLINE_DOWN = [{ v:9},{ v:7},{ v:8},{ v:5},{ v:6},{ v:4},{ v:3}];
 
+// ── Tire Monitoring Data ──────────────────────────────────────────────────────
+const TIRE_ALERTS = [
+  {
+    tail: 'N738AD', station: 'KEWR', hub: 'Newark Hub', overnight: true,
+    position: 'Main Gear L/H Outboard', pressure_psi: 162, nominal_psi: 195,
+    pct_life: 91, tread_mm: 1.8, cycles_remaining: 42, status: 'CRITICAL',
+    notification: 'Tire at 91% life cycle — replacement recommended at KEWR overnight turn. Pressure 17% below nominal.',
+  },
+  {
+    tail: 'N745AD', station: 'KORD', hub: 'Chicago Hub', overnight: true,
+    position: 'Nose Gear L/H', pressure_psi: 178, nominal_psi: 185,
+    pct_life: 78, tread_mm: 3.1, cycles_remaining: 88, status: 'WARNING',
+    notification: 'Tire pressure trending low over last 3 cycles. Inspect and service during KORD overnight.',
+  },
+  {
+    tail: 'N761AD', station: 'KATL', hub: 'Atlanta Hub', overnight: false,
+    position: 'Main Gear R/H Inboard', pressure_psi: 191, nominal_psi: 195,
+    pct_life: 65, tread_mm: 4.2, cycles_remaining: 140, status: 'MONITOR',
+    notification: 'Normal wear rate. Continue monitoring — schedule inspection within next 100 cycles.',
+  },
+  {
+    tail: 'N782AD', station: 'KLAX', hub: 'Los Angeles Hub', overnight: true,
+    position: 'Main Gear R/H Outboard', pressure_psi: 158, nominal_psi: 195,
+    pct_life: 88, tread_mm: 2.1, cycles_remaining: 55, status: 'CRITICAL',
+    notification: 'Significant pressure loss detected — 19% below nominal. Inspect for slow leak at KLAX overnight. Do not dispatch without tire check.',
+  },
+  {
+    tail: 'N789AD', station: 'KDFW', hub: 'Dallas Hub', overnight: true,
+    position: 'Nose Gear R/H', pressure_psi: 183, nominal_psi: 185,
+    pct_life: 52, tread_mm: 5.8, cycles_remaining: 195, status: 'OK',
+    notification: 'Serviceable. Slight pressure variance within limits. No action required at DFW overnight.',
+  },
+  {
+    tail: 'N801AD', station: 'KBOS', hub: 'Boston Hub', overnight: false,
+    position: 'Main Gear L/H Inboard', pressure_psi: 193, nominal_psi: 195,
+    pct_life: 44, tread_mm: 6.9, cycles_remaining: 240, status: 'OK',
+    notification: 'All parameters within limits. No overnight action required.',
+  },
+];
+
+const TIRE_STATUS_CFG = {
+  CRITICAL: { color: 'text-red-400',    bg: 'bg-red-500/20',    border: 'border-red-500/40',    dot: 'bg-red-500',    label: 'CRITICAL' },
+  WARNING:  { color: 'text-amber-400',  bg: 'bg-amber-500/20',  border: 'border-amber-500/40',  dot: 'bg-amber-500',  label: 'WARNING' },
+  MONITOR:  { color: 'text-sky-400',    bg: 'bg-sky-500/20',    border: 'border-sky-500/30',    dot: 'bg-sky-500',    label: 'MONITOR' },
+  OK:       { color: 'text-emerald-400',bg: 'bg-emerald-500/20',border: 'border-emerald-500/30',dot: 'bg-emerald-500',label: 'OK' },
+};
+
+function TireNotificationCard({ alert }) {
+  const cfg = TIRE_STATUS_CFG[alert.status] || TIRE_STATUS_CFG.OK;
+  const pressurePct = Math.round((alert.pressure_psi / alert.nominal_psi) * 100);
+  const pressureColor = pressurePct < 85 ? 'text-red-400' : pressurePct < 95 ? 'text-amber-400' : 'text-emerald-400';
+  const lifeColor = alert.pct_life >= 85 ? 'text-red-400' : alert.pct_life >= 70 ? 'text-amber-400' : 'text-emerald-400';
+
+  return (
+    <div className={cn('bg-[#0f1624] border rounded-2xl p-5 space-y-4', cfg.border)}>
+      {/* Header row */}
+      <div className="flex items-start justify-between gap-3 flex-wrap">
+        <div className="flex items-center gap-2 flex-wrap">
+          <span className="text-xs font-extrabold px-2.5 py-1 rounded-lg bg-violet-500/20 text-violet-300 border border-violet-500/30 font-mono">{alert.tail}</span>
+          <span className={cn('text-[10px] font-extrabold px-2.5 py-1 rounded-full border', cfg.bg, cfg.color, cfg.border)}>
+            <span className={cn('inline-block w-1.5 h-1.5 rounded-full mr-1.5', cfg.dot)} />{cfg.label}
+          </span>
+          {alert.overnight && (
+            <span className="flex items-center gap-1 text-[10px] font-extrabold px-2.5 py-1 rounded-full bg-indigo-500/20 text-indigo-300 border border-indigo-500/30">
+              <Moon className="w-3 h-3" /> OVERNIGHT ACTION
+            </span>
+          )}
+        </div>
+        <div className="flex items-center gap-1.5 text-[10px] text-slate-400">
+          <MapPin className="w-3 h-3" /> {alert.station} · {alert.hub}
+        </div>
+      </div>
+
+      {/* Position */}
+      <div>
+        <p className="text-[10px] font-extrabold text-slate-500 uppercase tracking-widest">Tire Position</p>
+        <p className="text-sm font-bold text-white mt-0.5">{alert.position}</p>
+      </div>
+
+      {/* Metrics */}
+      <div className="grid grid-cols-4 gap-3">
+        <div className="bg-[#141c2e] rounded-xl px-3 py-2.5 text-center">
+          <p className="text-[9px] text-slate-500 uppercase tracking-widest font-bold">Pressure</p>
+          <p className={cn('text-lg font-black mt-0.5', pressureColor)}>{alert.pressure_psi}</p>
+          <p className="text-[9px] text-slate-500">/{alert.nominal_psi} PSI</p>
+        </div>
+        <div className="bg-[#141c2e] rounded-xl px-3 py-2.5 text-center">
+          <p className="text-[9px] text-slate-500 uppercase tracking-widest font-bold">Life Used</p>
+          <p className={cn('text-lg font-black mt-0.5', lifeColor)}>{alert.pct_life}%</p>
+          <p className="text-[9px] text-slate-500">of cycle</p>
+        </div>
+        <div className="bg-[#141c2e] rounded-xl px-3 py-2.5 text-center">
+          <p className="text-[9px] text-slate-500 uppercase tracking-widest font-bold">Tread</p>
+          <p className="text-lg font-black text-sky-400 mt-0.5">{alert.tread_mm}</p>
+          <p className="text-[9px] text-slate-500">mm remain</p>
+        </div>
+        <div className="bg-[#141c2e] rounded-xl px-3 py-2.5 text-center">
+          <p className="text-[9px] text-slate-500 uppercase tracking-widest font-bold">Cycles Left</p>
+          <p className="text-lg font-black text-white mt-0.5">{alert.cycles_remaining}</p>
+          <p className="text-[9px] text-slate-500">est.</p>
+        </div>
+      </div>
+
+      {/* Life bar */}
+      <div>
+        <div className="flex justify-between text-[10px] text-slate-500 mb-1">
+          <span>Operational Life Cycle</span>
+          <span className={lifeColor}>{alert.pct_life}% consumed</span>
+        </div>
+        <div className="w-full h-2 bg-white/10 rounded-full overflow-hidden">
+          <div className="h-full rounded-full transition-all"
+            style={{ width: `${alert.pct_life}%`, background: alert.pct_life >= 85 ? '#ef4444' : alert.pct_life >= 70 ? '#f59e0b' : '#22c55e' }} />
+        </div>
+      </div>
+
+      {/* Notification */}
+      <div className={cn('rounded-xl px-4 py-3 flex items-start gap-2.5 border', cfg.bg, cfg.border)}>
+        <Bell className={cn('w-4 h-4 flex-shrink-0 mt-0.5', cfg.color)} />
+        <div>
+          <p className={cn('text-[10px] font-extrabold uppercase tracking-widest mb-0.5', cfg.color)}>
+            {alert.overnight ? `${alert.station} Overnight Notification` : 'Informational Alert'}
+          </p>
+          <p className="text-xs text-slate-300 leading-relaxed">{alert.notification}</p>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 const TABS = [
   { id: 'maintenance', label: 'Maintenance Predictions', icon: Wrench },
   { id: 'parts',       label: 'Parts Demand',            icon: Package },
+  { id: 'tires',       label: 'Tire Monitoring',         icon: CircleDot },
   { id: 'reliability', label: 'Reliability Metrics',    icon: Activity },
   { id: 'performance', label: 'Performance Insights',   icon: BarChart2 },
   { id: 'swaps',       label: 'Aircraft Swaps',         icon: ArrowLeftRight },
@@ -306,6 +436,46 @@ export default function AIForecastingDashboard() {
                   </div>
                   <ConfidenceRing value={part.confidence} color={part.urgency === 'HIGH' ? '#ef4444' : part.urgency === 'MEDIUM' ? '#f59e0b' : '#22c55e'} />
                 </div>
+              ))}
+            </div>
+          </>
+        )}
+
+        {/* ══ TIRE MONITORING TAB ══ */}
+        {activeTab === 'tires' && (
+          <>
+            <div className="flex items-center justify-between flex-wrap gap-2">
+              <h2 className="text-lg font-black tracking-wider text-white uppercase flex items-center gap-2">
+                <CircleDot className="w-5 h-5 text-violet-400" /> Tire Inspection & Pressure Monitoring
+              </h2>
+              <span className="text-[11px] text-slate-500 font-bold">Hub Overnight Notifications</span>
+            </div>
+
+            {/* Summary KPIs */}
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+              {[
+                { label: 'Critical', value: TIRE_ALERTS.filter(a => a.status === 'CRITICAL').length, color: 'text-red-400', icon: AlertTriangle },
+                { label: 'Warning',  value: TIRE_ALERTS.filter(a => a.status === 'WARNING').length,  color: 'text-amber-400', icon: Clock },
+                { label: 'Overnight Action', value: TIRE_ALERTS.filter(a => a.overnight).length, color: 'text-indigo-400', icon: Moon },
+                { label: 'Hubs Monitored', value: new Set(TIRE_ALERTS.map(a => a.station)).size, color: 'text-sky-400', icon: MapPin },
+              ].map(({ label, value, color, icon: Icon }) => (
+                <div key={label} className="bg-[#0f1624] border border-white/10 rounded-2xl px-4 py-4 flex items-center gap-3">
+                  <Icon className={cn('w-5 h-5', color)} />
+                  <div>
+                    <p className={cn('text-2xl font-black', color)}>{value}</p>
+                    <p className="text-[10px] text-slate-500">{label}</p>
+                  </div>
+                </div>
+              ))}
+            </div>
+
+            {/* Overnight-action-first sort */}
+            <div className="space-y-3">
+              {[...TIRE_ALERTS].sort((a, b) => {
+                const order = { CRITICAL: 0, WARNING: 1, MONITOR: 2, OK: 3 };
+                return (order[a.status] ?? 4) - (order[b.status] ?? 4);
+              }).map((alert, i) => (
+                <TireNotificationCard key={i} alert={alert} />
               ))}
             </div>
           </>
