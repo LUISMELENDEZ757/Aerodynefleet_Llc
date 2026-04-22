@@ -38,6 +38,7 @@ export default function AddTimelineEventModal({ aircraftTail, onClose, onSubmit,
       description: `[${EVENT_TYPES.find(t => t.value === form.event_type)?.label}] ${form.event_title}`,
       notes: form.description ? `Description: ${form.description}` : '',
       ata_chapter: form.code_reference ? form.code_reference : '',
+      _rts: form.event_type === 'return_to_service',
     });
     setForm({
       event_type: 'troubleshooting',

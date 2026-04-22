@@ -171,9 +171,21 @@ function AircraftDetailOverlay({ aircraft: initialAircraft, onClose }) {
   const [showPlaceOOSModal, setShowPlaceOOSModal] = useState(false);
 
   const createEntryMutation = useMutation({
-    mutationFn: (data) => base44.entities.LogbookEntry.create(data),
+    mutationFn: async (data) => {
+      const entry = await base44.entities.LogbookEntry.create(data);
+      // If this is a Return to Service event, update aircraft status back to active
+      if (data._rts) {
+        await base44.entities.Aircraft.update(aircraft.id, { status: 'active' });
+        setAircraft(prev => ({ ...prev, status: 'active' }));
+        queryClient.setQueryData(['fleet-aircraft'], (old = []) =>
+          old.map(a => a.tail_number === aircraft.tail_number ? { ...a, status: 'active' } : a)
+        );
+      }
+      return entry;
+    },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['fleet-logbook', aircraft.tail_number] });
+      queryClient.invalidateQueries({ queryKey: ['fleet-aircraft'] });
       setShowAddEventModal(false);
     },
   });
