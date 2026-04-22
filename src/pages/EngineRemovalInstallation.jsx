@@ -4,7 +4,7 @@ import { base44 } from '@/api/base44Client';
 import { Link } from 'react-router-dom';
 import {
   Settings, AlertTriangle, CheckCircle, Zap, Wrench, Shield,
-  ChevronLeft, Plus, Activity, X, Send, Clock, ChevronDown, BookOpen
+  ChevronLeft, Plus, Activity, X, Send, Clock, ChevronDown, BookOpen, Package
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { format } from 'date-fns';
@@ -588,6 +588,11 @@ export default function EngineRemovalInstallation() {
               ))
             )}
             {/* New Engine Event Button */}
+            <Link to="/PartInventory"
+              className="flex-shrink-0 w-52 rounded-2xl bg-[#1a1f2e] border border-primary/30 hover:border-primary/60 transition-colors flex flex-col items-center justify-center gap-2 py-6 px-4">
+              <Package className="w-8 h-8 text-primary" />
+              <p className="text-sm font-extrabold text-primary text-center">Part Inventory</p>
+            </Link>
             <button onClick={() => setShowModal(true)}
               className="flex-shrink-0 w-52 rounded-2xl bg-green-600 hover:bg-green-500 transition-colors flex flex-col items-center justify-center gap-2 py-6 px-4">
               <Plus className="w-8 h-8 text-white" />
