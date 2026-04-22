@@ -67,7 +67,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import AddTimelineEventModal from '@/components/fleet/AddTimelineEventModal';
 import TakingOwnershipModal from '@/components/fleet/TakingOwnershipModal';
 import PlaceOOSModal from '@/components/fleet/PlaceOOSModal';
-import AddAircraftWizard from '@/components/fleet/AddAircraftWizard';
+import FleetIngestionHub from '@/components/fleet/FleetIngestionHub';
 
 const STATUS_OPTIONS = ['All Status', 'active', 'oos', 'maintenance', 'retired'];
 
@@ -944,7 +944,7 @@ export default function FleetDashboard() {
       </AnimatePresence>
 
       {showAddWizard && (
-        <AddAircraftWizard
+        <FleetIngestionHub
           onClose={() => setShowAddWizard(false)}
           onSuccess={() => setShowAddWizard(false)}
         />

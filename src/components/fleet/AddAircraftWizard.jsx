@@ -203,39 +203,38 @@ export default function AddAircraftWizard({ onClose, onSuccess }) {
           {/* ── Step 1: Fleet ── */}
           {step === 1 && (
             <div className="space-y-4">
-              <p className="text-xs text-gray-400 italic">Select the operator fleet this aircraft will belong to.</p>
-              <Field label="Fleet / Operator *">
-                {fleets.length > 0 ? (
+              <p className="text-xs text-gray-400 italic">Select an existing fleet or enter the airline name manually.</p>
+
+              {fleets.length > 0 && (
+                <Field label="Link to Registered Fleet (Optional)">
                   <select
                     value={form.fleet_id}
                     onChange={e => {
                       const fleet = fleets.find(f => f.id === e.target.value);
-                      setForm(p => ({ ...p, fleet_id: e.target.value, airline: fleet?.name || '' }));
+                      setForm(p => ({ ...p, fleet_id: e.target.value, airline: fleet?.name || p.airline }));
                     }}
                     className={inputCls}
                   >
-                    <option value="">— Select a fleet —</option>
+                    <option value="">— Select a fleet (optional) —</option>
                     {fleets.map(f => (
                       <option key={f.id} value={f.id}>{f.name} ({f.icao_code})</option>
                     ))}
                   </select>
-                ) : (
-                  <input
-                    value={form.airline}
-                    onChange={e => set('airline', e.target.value)}
-                    placeholder="Enter operator name…"
-                    className={inputCls}
-                  />
-                )}
-              </Field>
-              {fleets.length === 0 && (
-                <div className="rounded-xl bg-amber-900/20 border border-amber-500/30 px-4 py-3 text-xs text-amber-300">
-                  No fleets found. Create a fleet in Fleet Registry first, then return here.
-                </div>
+                </Field>
               )}
+
+              <Field label="Airline / Operator Name *">
+                <input
+                  value={form.airline}
+                  onChange={e => set('airline', e.target.value)}
+                  placeholder="e.g. United Airlines, Delta Air Lines, Southwest…"
+                  className={inputCls}
+                />
+              </Field>
+
               {form.fleet_id && (
                 <div className="rounded-xl bg-green-900/20 border border-green-500/30 px-4 py-2 text-xs text-green-400 font-bold">
-                  ✓ Fleet: {form.airline}
+                  ✓ Linked to fleet: {fleets.find(f => f.id === form.fleet_id)?.name}
                 </div>
               )}
             </div>
