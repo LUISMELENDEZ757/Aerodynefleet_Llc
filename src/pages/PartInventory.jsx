@@ -5,7 +5,7 @@ import { Link } from 'react-router-dom';
 import {
   ChevronLeft, Plus, Search, AlertTriangle, CheckCircle,
   Package, X, Edit2, Trash2, Activity,
-  ChevronDown, RefreshCw
+  ChevronDown, RefreshCw, Upload, FileCheck, Loader2
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { format } from 'date-fns';
@@ -66,6 +66,33 @@ function LifeBar({ current, limit, label }) {
   );
 }
 
+// ── Tag Document Uploader ─────────────────────────────────────────────────────
+function TagDocumentUploader({ value, onChange }) {
+  const [uploading, setUploading] = useState(false);
+
+  const handleFile = async (e) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setUploading(true);
+    const { file_url } = await base44.integrations.Core.UploadFile({ file });
+    onChange(file_url);
+    setUploading(false);
+  };
+
+  return (
+    <label className={cn(
+      'flex items-center justify-center gap-2 cursor-pointer rounded-xl border border-dashed px-3 py-2.5 text-sm font-bold transition-colors',
+      uploading
+        ? 'border-primary/40 text-primary bg-primary/5'
+        : 'border-white/20 text-gray-400 hover:border-primary/50 hover:text-primary hover:bg-primary/5'
+    )}>
+      {uploading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Upload className="w-4 h-4" />}
+      {uploading ? 'Uploading…' : value ? 'Replace File' : 'Choose File'}
+      <input type="file" accept=".pdf,.jpg,.jpeg,.png,.tif,.tiff" className="hidden" onChange={handleFile} disabled={uploading} />
+    </label>
+  );
+}
+
 // ── Part Form Modal ───────────────────────────────────────────────────────────
 function PartModal({ part, aircraft, onClose, onSave, isSaving }) {
   const isEdit = !!part?.id;
@@ -92,6 +119,8 @@ function PartModal({ part, aircraft, onClose, onSave, isSaving }) {
     overhaul_interval_hours: '',
     ad_compliance: '',
     notes: '',
+    tag_document_url: '',
+    tag_document_type: '8130-3',
     ...(part || {}),
   });
   const set = (k, v) => setForm(p => ({ ...p, [k]: v }));
@@ -239,6 +268,44 @@ function PartModal({ part, aircraft, onClose, onSave, isSaving }) {
             </div>
           </div>
 
+          {/* Parts Tag Document Upload */}
+          <div>
+            <p className="text-[10px] font-extrabold text-primary uppercase tracking-widest mb-3">Parts Tag / Release Document</p>
+            <div className="grid grid-cols-2 gap-3">
+              <div>
+                <label className={labelCls}>Document Type</label>
+                <select value={form.tag_document_type} onChange={e => set('tag_document_type', e.target.value)} className={inputCls}>
+                  <option value="8130-3">FAA Form 8130-3 (Airworthiness Approval Tag)</option>
+                  <option value="EASA-Form-1">EASA Form 1</option>
+                  <option value="CoC">Certificate of Conformance (CoC)</option>
+                  <option value="Work-Order">Work Order / Shop Release</option>
+                  <option value="Material-Receipt">Material Receipt / Packing Slip</option>
+                  <option value="Other">Other</option>
+                </select>
+              </div>
+              <div>
+                <label className={labelCls}>Upload Document</label>
+                <TagDocumentUploader
+                  value={form.tag_document_url}
+                  onChange={url => set('tag_document_url', url)}
+                />
+              </div>
+            </div>
+            {form.tag_document_url && (
+              <div className="mt-2 flex items-center gap-2 bg-green-900/20 border border-green-500/30 rounded-xl px-4 py-2.5">
+                <FileCheck className="w-4 h-4 text-green-400 flex-shrink-0" />
+                <div className="flex-1 min-w-0">
+                  <p className="text-xs font-bold text-green-400">{form.tag_document_type} Uploaded</p>
+                  <a href={form.tag_document_url} target="_blank" rel="noopener noreferrer"
+                    className="text-[10px] text-green-300 underline truncate block">View Document ↗</a>
+                </div>
+                <button type="button" onClick={() => set('tag_document_url', '')} className="text-gray-500 hover:text-red-400 transition-colors">
+                  <X className="w-3.5 h-3.5" />
+                </button>
+              </div>
+            )}
+          </div>
+
           {/* AD / Notes */}
           <div className="grid grid-cols-1 gap-3">
             <div>
@@ -333,6 +400,15 @@ function PartRow({ part, onEdit, onDelete }) {
             </div>
           </div>
 
+          {part.tag_document_url && (
+            <div className="flex items-center gap-3 bg-green-900/20 border border-green-500/30 rounded-xl px-4 py-2.5">
+              <FileCheck className="w-4 h-4 text-green-400 flex-shrink-0" />
+              <div>
+                <p className="text-[9px] font-bold text-green-400 uppercase tracking-widest">{part.tag_document_type || '8130-3'} — Parts Release Document</p>
+                <a href={part.tag_document_url} target="_blank" rel="noopener noreferrer" className="text-xs text-green-300 underline">View Document ↗</a>
+              </div>
+            </div>
+          )}
           {part.ad_compliance && (
             <div className="bg-blue-950/30 border border-blue-500/20 rounded-xl px-4 py-2.5">
               <p className="text-[9px] font-bold text-blue-400 uppercase tracking-widest mb-0.5">AD Compliance</p>
