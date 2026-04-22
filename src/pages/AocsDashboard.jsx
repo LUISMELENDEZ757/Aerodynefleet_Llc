@@ -228,24 +228,30 @@ export default function AocsDashboard() {
       <div>
         <p className="text-xs font-extrabold text-muted-foreground uppercase tracking-widest mb-3">Advanced Capabilities</p>
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
-          {FEATURE_CARDS.map(({ title, desc, path, icon: Icon, color, badge }) => (
-            <Link key={path} to={path}
-              className={cn("bg-card border rounded-2xl p-4 hover:scale-[1.02] transition-all active:scale-[0.98] group", color.split(" ").find(c => c.startsWith("border")))}>
-              <div className="flex items-start justify-between mb-3">
-                <div className={cn("w-9 h-9 rounded-xl flex items-center justify-center", color.split(" ").find(c => c.startsWith("bg")))}>
-                  <Icon className={cn("w-5 h-5", color.split(" ").find(c => c.startsWith("text")))} />
+          {FEATURE_CARDS.map(({ title, desc, path, icon: Icon, color, badge }) => {
+            const colorClasses = color.split(" ");
+            const borderClass = colorClasses.find(c => c.startsWith("border"));
+            const bgClass = colorClasses.find(c => c.startsWith("bg"));
+            const textClass = colorClasses.find(c => c.startsWith("text"));
+            return (
+              <Link key={path} to={path}
+                className={cn("bg-card border rounded-2xl p-4 hover:scale-[1.02] transition-all active:scale-[0.98] group", borderClass)}>
+                <div className="flex items-start justify-between mb-3">
+                  <div className={cn("w-9 h-9 rounded-xl flex items-center justify-center", bgClass)}>
+                    <Icon className={cn("w-5 h-5", textClass)} />
+                  </div>
+                  <span className={cn("text-[9px] font-extrabold px-2 py-0.5 rounded-full border tracking-widest", textClass, bgClass, borderClass)}>
+                    {badge}
+                  </span>
                 </div>
-                <span className={cn("text-[9px] font-extrabold px-2 py-0.5 rounded-full border tracking-widest", color.split(" ").find(c => c.startsWith("text")), color.split(" ").find(c => c.startsWith("bg")), color.split(" ").find(c => c.startsWith("border")))}>
-                  {badge}
-                </span>
-              </div>
-              <p className="text-sm font-extrabold text-foreground mb-0.5">{title}</p>
-              <p className="text-[10px] text-muted-foreground">{desc}</p>
-              <div className="flex items-center gap-1 mt-2 text-[10px] font-bold opacity-0 group-hover:opacity-100 transition-opacity" style={{ color: 'hsl(var(--primary))' }}>
-                Open <ArrowRight className="w-3 h-3" />
-              </div>
-            </Link>
-          ))}
+                <p className="text-sm font-extrabold text-foreground mb-0.5">{title}</p>
+                <p className="text-[10px] text-muted-foreground">{desc}</p>
+                <div className="flex items-center gap-1 mt-2 text-[10px] font-bold opacity-0 group-hover:opacity-100 transition-opacity" style={{ color: 'hsl(var(--primary))' }}>
+                  Open <ArrowRight className="w-3 h-3" />
+                </div>
+              </Link>
+            );
+          })}
         </div>
       </div>
     </div>
