@@ -235,13 +235,8 @@ function AircraftDetailOverlay({ aircraft: initialAircraft, onClose }) {
 
       <div className="flex flex-col lg:flex-row gap-0 min-h-[calc(100vh-65px)]">
         <div className="w-full lg:w-72 flex-shrink-0 bg-[#111620] border-r border-white/10 p-6 flex flex-col gap-5">
-          <div className="flex items-center justify-between gap-2 flex-wrap">
-            <div className="flex items-center gap-2">
-              <p className="text-base font-extrabold text-white">Aircraft Information</p>
-              <span className={cn('flex items-center gap-1 px-2.5 py-1 rounded-full text-[10px] font-extrabold text-white', status.bg)}>
-                <StatusIcon className="w-3 h-3" /> {status.label}
-              </span>
-            </div>
+          <div className="flex items-center justify-between">
+            <p className="text-base font-extrabold text-white">Aircraft Information</p>
             <Link to={`/TechOpsLogbook?tail=${aircraft.tail_number}`} className="flex items-center gap-1.5 px-3 py-2 rounded-lg bg-primary text-primary-foreground text-xs font-extrabold hover:bg-primary/90 transition-colors">
               <BookOpen className="w-3.5 h-3.5" /> E-Logbook
             </Link>
