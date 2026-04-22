@@ -522,7 +522,7 @@ function DiscrepancyBadges({ discrepancies, melItems, aircraftStatus }) {
 }
 
 // ── Aircraft Card ────────────────────────────────────────────────────────────
-function AircraftCard({ aircraft, onSelect, discrepancies, activeLocks = [], oosEntries = [], logEntries = [] }) {
+function AircraftCard({ aircraft, onSelect, discrepancies, activeLocks = [], oosEntries = [], timelineEvents = [] }) {
   const [locationType, setLocationType] = useState('terminal');
   const status = STATUS_STYLES[aircraft.status] || STATUS_STYLES.active;
   const StatusIcon = status.icon;
@@ -552,10 +552,10 @@ function AircraftCard({ aircraft, onSelect, discrepancies, activeLocks = [], oos
   
   const LocationIcon = locationType === 'terminal' ? TerminalIcon : HangarIcon;
   
-  // Check if aircraft is OOS without ownership taken
+  // Check if aircraft is OOS without ownership taken via Taking Ownership modal
   const oosEntry = oosEntries.find(e => e.aircraft_tail === aircraft.tail_number || e.tail_number === aircraft.tail_number);
-  const hasOwnershipEntry = logEntries?.some(e => e.aircraft_tail === aircraft.tail_number && e.entry_type === 'taking_ownership');
-  const shouldPulsate = aircraft.status === 'oos' && oosEntry && !hasOwnershipEntry && aircraft.tail_number === 'N505AD';
+  const hasOwnershipEvent = timelineEvents?.some(e => e.aircraft_tail === aircraft.tail_number && e.event_type === 'taking_ownership');
+  const shouldPulsate = aircraft.status === 'oos' && oosEntry && !hasOwnershipEvent && aircraft.tail_number === 'N505AD';
 
   return (
     <div onClick={() => onSelect(aircraft)}
@@ -712,9 +712,9 @@ export default function FleetDashboard() {
     refetchInterval: 30000,
   });
 
-  const { data: logbookEntries = [] } = useQuery({
-    queryKey: ['fleet-logbook-entries'],
-    queryFn: () => base44.entities.LogbookEntry.list('-created_date', 1000),
+  const { data: timelineEvents = [] } = useQuery({
+    queryKey: ['fleet-timeline-events'],
+    queryFn: () => base44.entities.TimelineEvent.list('-created_date', 1000),
     refetchInterval: 60000,
   });
 
@@ -903,7 +903,7 @@ export default function FleetDashboard() {
             <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-6 gap-3">
               {filtered.map(a => (
                 <div key={a.id} className="relative">
-                  <AircraftCard aircraft={a} onSelect={setSelectedAircraft} discrepancies={discrepanciesByTail[a.tail_number]} activeLocks={mccLocks} oosEntries={oosEntries} logEntries={logbookEntries} />
+                  <AircraftCard aircraft={a} onSelect={setSelectedAircraft} discrepancies={discrepanciesByTail[a.tail_number]} activeLocks={mccLocks} oosEntries={oosEntries} timelineEvents={timelineEvents} />
                 </div>
               ))}
             </div>
