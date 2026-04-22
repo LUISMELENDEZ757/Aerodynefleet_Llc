@@ -705,7 +705,6 @@ export default function FleetDashboard() {
     queryFn: () => base44.entities.MccLock.list('-created_date', 200),
     refetchInterval: 30000,
   });
-  const activeMccLocks = mccLocks.filter(l => l.is_active);
 
   // Map tail -> open (non-closed) discrepancy entries
   const discrepanciesByTail = openDiscrepancies.reduce((acc, e) => {
@@ -892,7 +891,7 @@ export default function FleetDashboard() {
             <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-6 gap-3">
               {filtered.map(a => (
                 <div key={a.id} className="relative">
-                  <AircraftCard aircraft={a} onSelect={setSelectedAircraft} discrepancies={discrepanciesByTail[a.tail_number]} activeLocks={activeMccLocks} oosEntries={oosEntries} />
+                  <AircraftCard aircraft={a} onSelect={setSelectedAircraft} discrepancies={discrepanciesByTail[a.tail_number]} activeLocks={mccLocks} oosEntries={oosEntries} />
                 </div>
               ))}
             </div>
@@ -900,7 +899,7 @@ export default function FleetDashboard() {
             <div className="flex flex-col gap-1.5">
               {filtered.map(a => (
                 <div key={a.id} className="relative">
-                  <AircraftRow aircraft={a} onSelect={setSelectedAircraft} discrepancies={discrepanciesByTail[a.tail_number]} activeLocks={activeMccLocks} />
+                  <AircraftRow aircraft={a} onSelect={setSelectedAircraft} discrepancies={discrepanciesByTail[a.tail_number]} activeLocks={mccLocks} />
                 </div>
               ))}
             </div>
