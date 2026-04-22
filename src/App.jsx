@@ -123,6 +123,7 @@ const ScreensaverAdmin         = lazy(() => import('@/pages/ScreensaverAdmin'));
 const MigrationControl         = lazy(() => import('@/pages/MigrationControl'));
 const AvionicsDashboard        = lazy(() => import('@/pages/AvionicsDashboard'));
 const ManpowerStaffing         = lazy(() => import('@/pages/ManpowerStaffing'));
+const PartInventory            = lazy(() => import('@/pages/PartInventory.jsx'));
 
 function PageFallback() {
   return (
@@ -324,6 +325,7 @@ const AuthenticatedApp = () => {
         <Route path="/MigrationControl" element={<MigrationControl />} />
         <Route path="/AvionicsDashboard" element={<AvionicsDashboard />} />
         <Route path="/ManpowerStaffing" element={<ManpowerStaffing />} />
+        <Route path="/PartInventory" element={<PartInventory />} />
       </Route>
       <Route path="*" element={<PageNotFound />} />
     </Routes>
