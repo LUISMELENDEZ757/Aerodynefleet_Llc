@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import { base44 } from '@/api/base44Client';
@@ -21,10 +21,10 @@ import { Plus } from 'lucide-react';
 
 function ZuluClock() {
   const [t, setT] = useState(new Date());
-  useEffect(() => {
+  useState(() => {
     const id = setInterval(() => setT(new Date()), 1000);
     return () => clearInterval(id);
-  }, []);
+  });
   const zuluStr = t.toLocaleTimeString('en-US', {
     hour: '2-digit', minute: '2-digit', second: '2-digit',
     hour12: false, timeZone: 'UTC',
