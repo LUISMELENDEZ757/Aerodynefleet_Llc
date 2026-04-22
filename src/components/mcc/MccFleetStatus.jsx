@@ -50,7 +50,6 @@ export default function MccFleetStatus({ aircraft, oosEntries, logbookEntries, r
         {[
           { label: 'Fleet Dashboard',   path: '/FleetDashboard',       color: 'bg-orange-600' },
           { label: 'E-Logbook',         path: '/TechOpsLogbook',       color: 'bg-violet-600' },
-          { label: 'Technician Mode',   path: '/OOSDashboard',         color: 'bg-amber-600' },
           { label: 'Engineering',       path: '/EngineeringDashboard', color: 'bg-emerald-700' },
         ].map(({ label, path, color }) => (
           <Link key={path} to={path}
