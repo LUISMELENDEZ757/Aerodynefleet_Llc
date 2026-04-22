@@ -215,8 +215,8 @@ export default function MaintenanceControl() {
 
 
   const { data: aircraft = [] } = useQuery({
-    queryKey: ['mcc-aircraft'],
-    queryFn: () => base44.entities.Aircraft.list('tail_number', 1000),
+    queryKey: ['fleet-aircraft'],
+    queryFn: () => base44.entities.Aircraft.list('-created_date', 1000),
     refetchInterval: 60000,
   });
 
