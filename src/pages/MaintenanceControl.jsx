@@ -372,13 +372,7 @@ export default function MaintenanceControl() {
         {activeTab === 'faults'  && <MccFaultBoard faults={faults} aircraft={aircraft} />}
         {activeTab === 'parts'   && <MccPartsBoard parts={parts} oosEntries={oosEntries} />}
         {activeTab === 'tooling' && <MccToolingBoard tools={tools} />}
-        {activeTab === 'technician' && (
-          <iframe
-            src="/technicianMode"
-            className="w-full h-[calc(100vh-300px)] border-0 rounded-xl"
-            title="Technician Mode"
-          />
-        )}
+
         {activeTab === 'supervisor' && (
           <div className="space-y-5">
             <SupervisorHandoverModule />
