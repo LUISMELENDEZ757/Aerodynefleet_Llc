@@ -7,7 +7,7 @@ import { FleetBadge } from '@/components/fleet/FleetSwitcher';
 import {
   Plane, Search, LayoutGrid, List, Wrench, CheckCircle, Globe, Shield,
   BookOpen, MapPin, Cpu, X, AlertTriangle, UserCheck, Plus, Clock,
-  ChevronDown, Radio, Activity, Zap, Package, Brain, Settings2, Lock, Eye
+  ChevronDown, Radio, Activity, Zap, Package, Brain, Settings2, Lock, LockOpen, Eye
 } from 'lucide-react';
 
 const TerminalIcon = ({ className }) => (
@@ -581,9 +581,9 @@ function AircraftCard({ aircraft, onSelect, discrepancies, activeLocks = [], oos
             </div>
           )}
           {acLock && (
-            <div className="flex items-center gap-1 px-2 py-0.5 rounded-lg bg-red-600 border border-red-500" title={`MCC Lock: ${acLock.reason}`}>
-              <Lock className="w-3 h-3 text-white" />
-              <span className="text-[9px] font-extrabold text-white">LOCKED</span>
+            <div className={cn("flex items-center gap-1 px-2 py-0.5 rounded-lg border", acLock.is_active ? "bg-red-600 border-red-500" : "bg-green-600 border-green-500")} title={acLock.is_active ? `MCC Lock: ${acLock.reason}` : "Released by Maintenance Control"}>
+              {acLock.is_active ? <Lock className="w-3 h-3 text-white" /> : <LockOpen className="w-3 h-3 text-white" />}
+              <span className="text-[9px] font-extrabold text-white">{acLock.is_active ? "LOCKED" : "RELEASED"}</span>
             </div>
           )}
         </div>
