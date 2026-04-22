@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React from "react";
 import { Link } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import { base44 } from "@/api/base44Client";
@@ -15,14 +15,14 @@ const TOOLTIP_STYLE = {
 };
 
 const FEATURE_CARDS = [
-  { title: "AI Dispatch Co-Pilot", desc: "Real-time LLM assistant for dispatch decisions", path: "/AIDispatchCopilot", icon: Brain, color: "border-violet-500/40 bg-violet-500/10 text-violet-400", badge: "AI" },
-  { title: "AOG Probability Forecast", desc: "Predict AOG risk 24h / 72h ahead", path: "/AOGForecast", icon: Zap, color: "border-red-500/40 bg-red-500/10 text-red-400", badge: "AI" },
-  { title: "One-Click Diversion", desc: "Full diversion package in seconds", path: "/DiversionWorkflow", icon: AlertTriangle, color: "border-orange-500/40 bg-orange-500/10 text-orange-400", badge: "OPS" },
-  { title: "SIGMET / AIRMET Monitor", desc: "Live weather hazards & route impact", path: "/SIGMETMap", icon: CloudLightning, color: "border-blue-500/40 bg-blue-500/10 text-blue-400", badge: "WX" },
-  { title: "FAR 117 Calculator", desc: "Crew duty, rest & fatigue risk index", path: "/FAR117", icon: Shield, color: "border-green-500/40 bg-green-500/10 text-green-400", badge: "CREW" },
-  { title: "OTP Analytics", desc: "On-time performance & root cause", path: "/OTPDashboard", icon: BarChart3, color: "border-primary/40 bg-primary/10 text-primary", badge: "PERF" },
-  { title: "Cost Per Flight", desc: "Fuel, crew, delay & maintenance cost", path: "/CostAnalytics", icon: DollarSign, color: "border-emerald-500/40 bg-emerald-500/10 text-emerald-400", badge: "COST" },
-  { title: "Predictive Parts Ordering", desc: "AI-driven proactive procurement", path: "/PredictiveParts", icon: Package, color: "border-cyan-500/40 bg-cyan-500/10 text-cyan-400", badge: "AI" },
+  { title: "AI Dispatch Co-Pilot", desc: "Real-time LLM assistant for dispatch decisions", path: "/AIDispatchCopilot", icon: Brain, border: "border-violet-500/40", bg: "bg-violet-500/10", text: "text-violet-400", badge: "AI" },
+  { title: "AOG Probability Forecast", desc: "Predict AOG risk 24h / 72h ahead", path: "/AOGForecast", icon: Zap, border: "border-red-500/40", bg: "bg-red-500/10", text: "text-red-400", badge: "AI" },
+  { title: "One-Click Diversion", desc: "Full diversion package in seconds", path: "/DiversionWorkflow", icon: AlertTriangle, border: "border-orange-500/40", bg: "bg-orange-500/10", text: "text-orange-400", badge: "OPS" },
+  { title: "SIGMET / AIRMET Monitor", desc: "Live weather hazards & route impact", path: "/SIGMETMap", icon: CloudLightning, border: "border-blue-500/40", bg: "bg-blue-500/10", text: "text-blue-400", badge: "WX" },
+  { title: "FAR 117 Calculator", desc: "Crew duty, rest & fatigue risk index", path: "/FAR117", icon: Shield, border: "border-green-500/40", bg: "bg-green-500/10", text: "text-green-400", badge: "CREW" },
+  { title: "OTP Analytics", desc: "On-time performance & root cause", path: "/OTPDashboard", icon: BarChart3, border: "border-primary/40", bg: "bg-primary/10", text: "text-primary", badge: "PERF" },
+  { title: "Cost Per Flight", desc: "Fuel, crew, delay & maintenance cost", path: "/CostAnalytics", icon: DollarSign, border: "border-emerald-500/40", bg: "bg-emerald-500/10", text: "text-emerald-400", badge: "COST" },
+  { title: "Predictive Parts Ordering", desc: "AI-driven proactive procurement", path: "/PredictiveParts", icon: Package, border: "border-cyan-500/40", bg: "bg-cyan-500/10", text: "text-cyan-400", badge: "AI" },
 ];
 
 export default function AocsDashboard() {
@@ -50,7 +50,6 @@ export default function AocsDashboard() {
   const expiredMel = mel.filter(m => m.status === "expired");
   const activeFaults = faults.length;
 
-  // Delay root cause
   const reasonMap = {};
   todayFlights.filter(f => (f.delay_minutes || 0) >= 15).forEach(f => {
     const r = f.delay_reason || "Other";
@@ -62,7 +61,6 @@ export default function AocsDashboard() {
   });
   const delayData = Object.entries(reasonMap).map(([name, minutes]) => ({ name, minutes })).sort((a, b) => b.minutes - a.minutes);
 
-  // Hotspots from delayed flights
   const stationIssues = {};
   todayFlights.filter(f => (f.delay_minutes || 0) >= 30).forEach(f => {
     const s = f.origin || "UNK";
@@ -228,30 +226,23 @@ export default function AocsDashboard() {
       <div>
         <p className="text-xs font-extrabold text-muted-foreground uppercase tracking-widest mb-3">Advanced Capabilities</p>
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
-          {FEATURE_CARDS.map(({ title, desc, path, icon: Icon, color, badge }) => {
-            const colorClasses = color.split(" ");
-            const borderClass = colorClasses.find(c => c.startsWith("border"));
-            const bgClass = colorClasses.find(c => c.startsWith("bg"));
-            const textClass = colorClasses.find(c => c.startsWith("text"));
-            return (
-              <Link key={path} to={path}
-                className={cn("bg-card border rounded-2xl p-4 hover:scale-[1.02] transition-all active:scale-[0.98] group", borderClass)}>
-                <div className="flex items-start justify-between mb-3">
-                  <div className={cn("w-9 h-9 rounded-xl flex items-center justify-center", bgClass)}>
-                    <Icon className={cn("w-5 h-5", textClass)} />
-                  </div>
-                  <span className={cn("text-[9px] font-extrabold px-2 py-0.5 rounded-full border tracking-widest", textClass, bgClass, borderClass)}>
-                    {badge}
-                  </span>
+          {FEATURE_CARDS.map(({ title, desc, path, icon: Icon, border, bg, text, badge }) => (
+            <Link key={path} to={path} className={cn("bg-card border rounded-2xl p-4 hover:scale-[1.02] transition-all active:scale-[0.98] group", border)}>
+              <div className="flex items-start justify-between mb-3">
+                <div className={cn("w-9 h-9 rounded-xl flex items-center justify-center", bg)}>
+                  <Icon className={cn("w-5 h-5", text)} />
                 </div>
-                <p className="text-sm font-extrabold text-foreground mb-0.5">{title}</p>
-                <p className="text-[10px] text-muted-foreground">{desc}</p>
-                <div className="flex items-center gap-1 mt-2 text-[10px] font-bold opacity-0 group-hover:opacity-100 transition-opacity" style={{ color: 'hsl(var(--primary))' }}>
-                  Open <ArrowRight className="w-3 h-3" />
-                </div>
-              </Link>
-            );
-          })}
+                <span className={cn("text-[9px] font-extrabold px-2 py-0.5 rounded-full border tracking-widest", text, bg, border)}>
+                  {badge}
+                </span>
+              </div>
+              <p className="text-sm font-extrabold text-foreground mb-0.5">{title}</p>
+              <p className="text-[10px] text-muted-foreground">{desc}</p>
+              <div className="flex items-center gap-1 mt-2 text-[10px] font-bold text-primary opacity-0 group-hover:opacity-100 transition-opacity">
+                Open <ArrowRight className="w-3 h-3" />
+              </div>
+            </Link>
+          ))}
         </div>
       </div>
     </div>
