@@ -9,7 +9,7 @@ function PlaceLockModal({ aircraft, onClose, onSubmit, isPending }) {
   const set = (k, v) => setForm(p => ({ ...p, [k]: v }));
 
   return (
-    <div className="fixed inset-0 z-50 bg-black/80 flex items-center justify-center p-4">
+    <div className="fixed inset-0 z-50 bg-black/80 flex items-start justify-center p-4" style={{ paddingTop: '96px' }}>
       <div className="w-full max-w-md bg-[#0d1117] border border-red-500/40 rounded-2xl overflow-hidden shadow-2xl">
         <div className="flex items-center gap-3 px-5 py-4 border-b border-red-500/30 bg-red-950/30">
           <div className="w-9 h-9 rounded-lg bg-red-600 flex items-center justify-center">
