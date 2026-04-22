@@ -522,7 +522,7 @@ function DiscrepancyBadges({ discrepancies, melItems, aircraftStatus }) {
 }
 
 // ── Aircraft Card ────────────────────────────────────────────────────────────
-function AircraftCard({ aircraft, onSelect, discrepancies, activeLocks = [], oosEntries = [] }) {
+function AircraftCard({ aircraft, onSelect, discrepancies, activeLocks = [], oosEntries = [], logEntries = [] }) {
   const [locationType, setLocationType] = useState('terminal');
   const status = STATUS_STYLES[aircraft.status] || STATUS_STYLES.active;
   const StatusIcon = status.icon;
@@ -552,10 +552,16 @@ function AircraftCard({ aircraft, onSelect, discrepancies, activeLocks = [], oos
   
   const LocationIcon = locationType === 'terminal' ? TerminalIcon : HangarIcon;
   
+  // Check if aircraft is OOS without ownership taken
+  const oosEntry = oosEntries.find(e => e.aircraft_tail === aircraft.tail_number || e.tail_number === aircraft.tail_number);
+  const hasOwnershipEntry = logEntries?.some(e => e.aircraft_tail === aircraft.tail_number && e.entry_type === 'taking_ownership');
+  const shouldPulsate = aircraft.status === 'oos' && oosEntry && !hasOwnershipEntry && aircraft.tail_number === 'N505AD';
+
   return (
     <div onClick={() => onSelect(aircraft)}
     className={cn(
       "bg-card rounded-2xl border p-5 flex flex-col gap-3 hover:border-primary/40 transition-all cursor-pointer active:scale-[0.97]",
+      shouldPulsate ? 'animate-pulse border-orange-500 bg-orange-950/20' :
       acLock ? 'border-red-500/60 bg-red-950/10' : hasHighRisk ? 'border-red-500/40' : openDiscs.length > 0 ? 'border-amber-500/40' : 'border-border'
     )}>
     <div className="flex items-start justify-between">
@@ -704,6 +710,12 @@ export default function FleetDashboard() {
     queryKey: ['mcc-locks'],
     queryFn: () => base44.entities.MccLock.list('-created_date', 200),
     refetchInterval: 30000,
+  });
+
+  const { data: logbookEntries = [] } = useQuery({
+    queryKey: ['fleet-logbook-entries'],
+    queryFn: () => base44.entities.LogbookEntry.list('-created_date', 1000),
+    refetchInterval: 60000,
   });
 
   // Map tail -> open (non-closed) discrepancy entries
@@ -891,7 +903,7 @@ export default function FleetDashboard() {
             <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-6 gap-3">
               {filtered.map(a => (
                 <div key={a.id} className="relative">
-                  <AircraftCard aircraft={a} onSelect={setSelectedAircraft} discrepancies={discrepanciesByTail[a.tail_number]} activeLocks={mccLocks} oosEntries={oosEntries} />
+                  <AircraftCard aircraft={a} onSelect={setSelectedAircraft} discrepancies={discrepanciesByTail[a.tail_number]} activeLocks={mccLocks} oosEntries={oosEntries} logEntries={logbookEntries} />
                 </div>
               ))}
             </div>
