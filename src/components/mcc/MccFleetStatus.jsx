@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { Plane, Wrench, CheckCircle, Clock, ExternalLink } from 'lucide-react';
 import { cn } from '@/lib/utils';
@@ -9,8 +10,18 @@ const STATUS_CFG = {
   retired:     { label: 'RETIRED',      bg: 'bg-gray-600',   dot: 'bg-gray-400' },
 };
 
+const FILTER_OPTIONS = [
+  { value: 'all',         label: 'All',         color: 'bg-white/10 text-white' },
+  { value: 'active',      label: 'Active',      color: 'bg-green-600 text-white' },
+  { value: 'oos',         label: 'OOS',         color: 'bg-red-700 text-white' },
+  { value: 'maintenance', label: 'Maintenance', color: 'bg-orange-600 text-white' },
+  { value: 'retired',     label: 'Retired',     color: 'bg-gray-600 text-white' },
+];
+
 export default function MccFleetStatus({ aircraft, oosEntries, logbookEntries, removeMode, selectedForDelete, onSelectForDelete }) {
+  const [statusFilter, setStatusFilter] = useState('all');
   const openDiscrepancies = logbookEntries.filter(e => !e.is_cleared && e.entry_type === 'discrepancy');
+  const filteredAircraft = statusFilter === 'all' ? aircraft : aircraft.filter(a => a.status === statusFilter);
 
   return (
     <div className="space-y-4">
@@ -29,9 +40,30 @@ export default function MccFleetStatus({ aircraft, oosEntries, logbookEntries, r
         ))}
       </div>
 
+      {/* Status Filter */}
+      <div className="flex gap-2 flex-wrap">
+        {FILTER_OPTIONS.map(({ value, label, color }) => (
+          <button
+            key={value}
+            onClick={() => setStatusFilter(value)}
+            className={cn(
+              'px-4 py-2 rounded-xl text-xs font-bold transition-all border',
+              statusFilter === value
+                ? cn(color, 'border-transparent')
+                : 'bg-[#141922] border-white/10 text-gray-400 hover:text-white'
+            )}
+          >
+            {label}
+            <span className="ml-1.5 opacity-70">
+              ({value === 'all' ? aircraft.length : aircraft.filter(a => a.status === value).length})
+            </span>
+          </button>
+        ))}
+      </div>
+
       {/* Aircraft grid */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
-        {aircraft.map(ac => {
+        {filteredAircraft.map(ac => {
           const cfg = STATUS_CFG[ac.status] || STATUS_CFG.active;
           const acOOS = oosEntries.filter(e => e.tail_number === ac.tail_number && (e.status === 'in_work' || e.status === 'waiting_on_parts'));
           const acDiscr = openDiscrepancies.filter(e => e.aircraft_tail === ac.tail_number);
@@ -82,8 +114,8 @@ export default function MccFleetStatus({ aircraft, oosEntries, logbookEntries, r
             </div>
           );
         })}
-        {aircraft.length === 0 && (
-          <p className="col-span-3 text-center text-gray-600 text-sm py-12">No aircraft registered</p>
+        {filteredAircraft.length === 0 && (
+          <p className="col-span-3 text-center text-gray-600 text-sm py-12">No aircraft found</p>
         )}
       </div>
     </div>
