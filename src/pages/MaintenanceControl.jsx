@@ -277,7 +277,7 @@ export default function MaintenanceControl() {
           </div>
           <div>
             <p className="text-base font-extrabold tracking-wide leading-none">Maintenance Control</p>
-            <p className="text-[10px] text-orange-400 tracking-widest uppercase font-bold">MCC · Fleet Oversight · TechOps Command</p>
+            <p className="text-[10px] text-orange-400 tracking-widest uppercase font-bold">MCC · Fleet Oversight</p>
           </div>
         </div>
         <div className="flex items-center gap-4">
