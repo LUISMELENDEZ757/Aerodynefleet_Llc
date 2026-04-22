@@ -375,7 +375,7 @@ export default function MaintenanceControl() {
         {activeTab === 'tooling' && <MccToolingBoard tools={tools} />}
         {activeTab === 'technician' && (
           <iframe
-            src="/TechnicianMode"
+            src="/technicianMode"
             className="w-full h-[calc(100vh-300px)] border-0 rounded-xl"
             title="Technician Mode"
           />
