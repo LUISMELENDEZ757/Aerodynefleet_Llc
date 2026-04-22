@@ -121,7 +121,7 @@ function QuickAssignModal({ entry, onClose, onAssign }) {
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 p-4">
+    <div className="fixed inset-0 z-50 flex items-start justify-center bg-black/70 p-4" style={{ paddingTop: '1in' }}>
       <div className="w-full max-w-md bg-card border border-border rounded-2xl shadow-2xl">
         <div className="flex items-center justify-between px-5 py-4 border-b border-border">
           <p className="font-extrabold text-foreground text-sm flex items-center gap-2">
