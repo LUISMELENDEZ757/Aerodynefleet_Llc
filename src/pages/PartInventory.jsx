@@ -198,7 +198,20 @@ function PartModal({ part, aircraft, onClose, onSave, isSaving }) {
                 <label className={labelCls}>Aircraft Tail</label>
                 <select value={form.aircraft_tail} onChange={e => set('aircraft_tail', e.target.value)} className={inputCls}>
                   <option value="">— Uninstalled / Stock —</option>
-                  {aircraft.map(a => <option key={a.id} value={a.tail_number}>{a.tail_number} — {a.aircraft_type}</option>)}
+                  {Object.entries(
+                    aircraft.reduce((acc, a) => {
+                      const type = a.aircraft_type || 'Unassigned';
+                      if (!acc[type]) acc[type] = [];
+                      acc[type].push(a);
+                      return acc;
+                    }, {})
+                  ).map(([type, planes]) => (
+                    <optgroup key={type} label={type}>
+                      {planes.map(a => (
+                        <option key={a.id} value={a.tail_number}>{a.tail_number}</option>
+                      ))}
+                    </optgroup>
+                  ))}
                 </select>
               </div>
               <div>
