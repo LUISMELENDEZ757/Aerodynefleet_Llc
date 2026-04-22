@@ -369,26 +369,7 @@ function AircraftDetailOverlay({ aircraft: initialAircraft, onClose }) {
             <h2 className="text-xl font-extrabold text-white">Maintenance Timeline</h2>
           </div>
           <div className="flex flex-wrap gap-3">
-            {/* Ferry Flight Toggle */}
-            <button
-              onClick={async () => {
-                const newVal = !aircraft.ferry_flight;
-                await base44.entities.Aircraft.update(aircraft.id, { ferry_flight: newVal });
-                setAircraft(prev => ({ ...prev, ferry_flight: newVal }));
-                queryClient.setQueryData(['fleet-aircraft'], (old = []) =>
-                  old.map(a => a.tail_number === aircraft.tail_number ? { ...a, ferry_flight: newVal } : a)
-                );
-              }}
-              className={cn(
-                'flex items-center gap-2 px-5 py-2.5 rounded-xl border text-sm font-extrabold transition-colors',
-                aircraft.ferry_flight
-                  ? 'bg-sky-600 border-sky-500 text-white hover:bg-sky-700'
-                  : 'bg-[#1a1f2e] border-sky-500/40 text-sky-400 hover:bg-sky-500/10'
-              )}
-            >
-              <Plane className="w-4 h-4" />
-              {aircraft.ferry_flight ? 'REMOVE FERRY' : 'SCHEDULE FERRY'}
-            </button>
+
             <button onClick={() => setShowPlaceOOSModal(true)} disabled={createEntryMutation.isPending}
               className="flex items-center gap-2 px-5 py-2.5 rounded-xl bg-red-700/80 border border-red-600 text-white text-sm font-extrabold hover:bg-red-600 transition-colors disabled:opacity-50">
               <AlertTriangle className="w-4 h-4" /> PLACE OOS
