@@ -1,8 +1,8 @@
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { base44 } from '@/api/base44Client';
-import { Plane, Wrench, CheckCircle, Clock, ExternalLink, Lock } from 'lucide-react';
+import { Plane, Wrench, CheckCircle, Clock, ExternalLink, Lock, Eye, EyeOff } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 const STATUS_CFG = {
@@ -22,8 +22,14 @@ const FILTER_OPTIONS = [
 
 export default function MccFleetStatus({ aircraft, oosEntries, logbookEntries, removeMode, selectedForDelete, onSelectForDelete }) {
   const [statusFilter, setStatusFilter] = useState('all');
+  const qc = useQueryClient();
   const openDiscrepancies = logbookEntries.filter(e => !e.is_cleared && e.entry_type === 'discrepancy');
   const filteredAircraft = statusFilter === 'all' ? aircraft : aircraft.filter(a => a.status === statusFilter);
+
+  const watchMutation = useMutation({
+    mutationFn: ({ id, mcc_watch }) => base44.entities.Aircraft.update(id, { mcc_watch }),
+    onSuccess: () => qc.invalidateQueries({ queryKey: ['fleet-aircraft'] }),
+  });
 
   const { data: locks = [] } = useQuery({
     queryKey: ['mcc-locks'],
@@ -95,9 +101,15 @@ export default function MccFleetStatus({ aircraft, oosEntries, logbookEntries, r
                 <div className="absolute top-2 right-2 text-[10px] font-extrabold text-red-300 bg-red-900/80 px-2 py-0.5 rounded-lg">SELECTED</div>
               )}
               <div className="flex items-center justify-between">
-                <div className="flex items-center gap-2">
+                <div className="flex items-center gap-2 flex-wrap">
                   <Plane className="w-4 h-4 text-gray-400" />
                   <span className="text-lg font-extrabold text-white font-mono">{ac.tail_number}</span>
+                  {ac.mcc_watch && (
+                    <div className="flex items-center gap-1 px-2 py-0.5 rounded-lg bg-amber-500 border border-amber-400 animate-pulse">
+                      <Eye className="w-3 h-3 text-black" />
+                      <span className="text-[9px] font-extrabold text-black">WATCH</span>
+                    </div>
+                  )}
                   {acLock && (
                     <div className="flex items-center gap-1 px-2 py-0.5 rounded-lg bg-red-600 border border-red-500" title={`MCC Lock: ${acLock.reason}`}>
                       <Lock className="w-3 h-3 text-white" />
@@ -128,6 +140,17 @@ export default function MccFleetStatus({ aircraft, oosEntries, logbookEntries, r
                   </span>
                 )}
               </div>
+              <button
+                onClick={(e) => { e.stopPropagation(); watchMutation.mutate({ id: ac.id, mcc_watch: !ac.mcc_watch }); }}
+                className={cn(
+                  'w-full flex items-center justify-center gap-2 py-1.5 rounded-lg text-[10px] font-extrabold transition-all border',
+                  ac.mcc_watch
+                    ? 'bg-amber-500/20 border-amber-500/50 text-amber-400 hover:bg-amber-500/30'
+                    : 'bg-white/5 border-white/10 text-gray-500 hover:text-amber-400 hover:border-amber-500/30'
+                )}
+              >
+                {ac.mcc_watch ? <><EyeOff className="w-3 h-3" /> REMOVE WATCH</> : <><Eye className="w-3 h-3" /> MCC WATCH</>}
+              </button>
             </div>
           );
         })}

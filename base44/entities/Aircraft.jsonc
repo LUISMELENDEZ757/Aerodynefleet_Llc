@@ -149,6 +149,11 @@
     "notes": {
       "type": "string",
       "description": "Additional operational notes"
+    },
+    "mcc_watch": {
+      "type": "boolean",
+      "default": false,
+      "description": "MCC has flagged this aircraft for heightened attention \u2014 all personnel should focus on this issue"
     }
   },
   "required": [

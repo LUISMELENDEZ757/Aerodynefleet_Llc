@@ -7,7 +7,7 @@ import { FleetBadge } from '@/components/fleet/FleetSwitcher';
 import {
   Plane, Search, LayoutGrid, List, Wrench, CheckCircle, Globe, Shield,
   BookOpen, MapPin, Cpu, X, AlertTriangle, UserCheck, Plus, Clock,
-  ChevronDown, Radio, Activity, Zap, Package, Brain, Settings2, Lock
+  ChevronDown, Radio, Activity, Zap, Package, Brain, Settings2, Lock, Eye
 } from 'lucide-react';
 
 const TerminalIcon = ({ className }) => (
@@ -533,8 +533,14 @@ function AircraftCard({ aircraft, onSelect, discrepancies, activeLocks = [] }) {
     )}>
     <div className="flex items-start justify-between">
       <div>
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2 flex-wrap">
           <p className="text-xl font-extrabold text-primary tracking-wide font-mono">{aircraft.tail_number}</p>
+          {aircraft.mcc_watch && (
+            <div className="flex items-center gap-1 px-2 py-0.5 rounded-lg bg-amber-500 border border-amber-400 animate-pulse" title="MCC Watch — Focus on this aircraft">
+              <Eye className="w-3 h-3 text-black" />
+              <span className="text-[9px] font-extrabold text-black">MCC WATCH</span>
+            </div>
+          )}
           {acLock && (
             <div className="flex items-center gap-1 px-2 py-0.5 rounded-lg bg-red-600 border border-red-500" title={`MCC Lock: ${acLock.reason}`}>
               <Lock className="w-3 h-3 text-white" />
@@ -586,10 +592,11 @@ function AircraftRow({ aircraft, onSelect, discrepancies, activeLocks = [] }) {
         acLock ? 'border-red-500/60 bg-red-950/10' : count > 0 ? 'border-amber-500/40' : 'border-border'
       )}>
       <div className="flex items-center gap-5 flex-1 min-w-0">
-        <div className="flex items-center gap-2 w-32">
-          <p className="text-sm font-extrabold text-primary font-mono">{aircraft.tail_number}</p>
-          {acLock && <Lock className="w-3.5 h-3.5 text-red-400 flex-shrink-0" title={`MCC Lock: ${acLock.reason}`} />}
-        </div>
+      <div className="flex items-center gap-2 w-40">
+        <p className="text-sm font-extrabold text-primary font-mono">{aircraft.tail_number}</p>
+        {aircraft.mcc_watch && <Eye className="w-3.5 h-3.5 text-amber-400 flex-shrink-0 animate-pulse" title="MCC Watch" />}
+        {acLock && <Lock className="w-3.5 h-3.5 text-red-400 flex-shrink-0" title={`MCC Lock: ${acLock.reason}`} />}
+      </div>
         <p className="text-xs text-gray-400 w-24">{aircraft.aircraft_type}</p>
         <p className="text-xs text-gray-500 hidden sm:block">{aircraft.base_station || '—'}</p>
         {aircraft.engine_type && <p className="text-xs text-gray-600 hidden lg:block">{aircraft.engine_type}</p>}
