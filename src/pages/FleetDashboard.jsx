@@ -533,12 +533,20 @@ function AircraftCard({ aircraft, onSelect, discrepancies, activeLocks = [], oos
   // Check if aircraft has been OOS for 24+ hours
   const isOosOver24h = (() => {
     if (aircraft.status !== 'oos' && aircraft.status !== 'maintenance') return false;
-    const tailEntry = oosEntries.find(e => e.aircraft_tail === aircraft.tail_number || e.tail_number === aircraft.tail_number);
+    const tailEntry = oosEntries.find(e => e.tail_number === aircraft.tail_number || e.aircraft_tail === aircraft.tail_number);
     if (!tailEntry) return false;
-    // Prefer oos_date field (backdatable), fall back to created_date
-    const dateStr = tailEntry.oos_date || tailEntry.created_date;
-    const entryDate = new Date(dateStr);
-    const hoursOos = (Date.now() - entryDate.getTime()) / (1000 * 60 * 60);
+    // Use oos_date if available (YYYY-MM-DD string), else fall back to created_date
+    let refDate;
+    if (tailEntry.oos_date) {
+      // oos_date is "YYYY-MM-DD" — compare as date strings against yesterday
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
+      const oosDay = new Date(tailEntry.oos_date + 'T00:00:00');
+      refDate = oosDay;
+    } else {
+      refDate = new Date(tailEntry.created_date);
+    }
+    const hoursOos = (Date.now() - refDate.getTime()) / (1000 * 60 * 60);
     return hoursOos >= 24;
   })();
   
