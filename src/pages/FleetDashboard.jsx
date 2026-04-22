@@ -369,6 +369,26 @@ function AircraftDetailOverlay({ aircraft: initialAircraft, onClose }) {
             <h2 className="text-xl font-extrabold text-white">Maintenance Timeline</h2>
           </div>
           <div className="flex flex-wrap gap-3">
+            {/* Ferry Flight Toggle */}
+            <button
+              onClick={async () => {
+                const newVal = !aircraft.ferry_flight;
+                await base44.entities.Aircraft.update(aircraft.id, { ferry_flight: newVal });
+                setAircraft(prev => ({ ...prev, ferry_flight: newVal }));
+                queryClient.setQueryData(['fleet-aircraft'], (old = []) =>
+                  old.map(a => a.tail_number === aircraft.tail_number ? { ...a, ferry_flight: newVal } : a)
+                );
+              }}
+              className={cn(
+                'flex items-center gap-2 px-5 py-2.5 rounded-xl border text-sm font-extrabold transition-colors',
+                aircraft.ferry_flight
+                  ? 'bg-sky-600 border-sky-500 text-white hover:bg-sky-700'
+                  : 'bg-[#1a1f2e] border-sky-500/40 text-sky-400 hover:bg-sky-500/10'
+              )}
+            >
+              <Plane className="w-4 h-4" />
+              {aircraft.ferry_flight ? 'REMOVE FERRY' : 'SCHEDULE FERRY'}
+            </button>
             <button onClick={() => setShowPlaceOOSModal(true)} disabled={createEntryMutation.isPending}
               className="flex items-center gap-2 px-5 py-2.5 rounded-xl bg-red-700/80 border border-red-600 text-white text-sm font-extrabold hover:bg-red-600 transition-colors disabled:opacity-50">
               <AlertTriangle className="w-4 h-4" /> PLACE OOS
@@ -547,6 +567,12 @@ function AircraftCard({ aircraft, onSelect, discrepancies, activeLocks = [] }) {
               <span className="text-[9px] font-extrabold text-black">MCC WATCH</span>
             </div>
           )}
+          {aircraft.ferry_flight && (
+            <div className="flex items-center gap-1 px-2 py-0.5 rounded-lg bg-sky-500 border border-sky-400 animate-pulse" title="Scheduled for Ferry Flight">
+              <Plane className="w-3 h-3 text-white" />
+              <span className="text-[9px] font-extrabold text-white">FERRY</span>
+            </div>
+          )}
           {acLock && (
             <div className="flex items-center gap-1 px-2 py-0.5 rounded-lg bg-red-600 border border-red-500" title={`MCC Lock: ${acLock.reason}`}>
               <Lock className="w-3 h-3 text-white" />
@@ -601,6 +627,7 @@ function AircraftRow({ aircraft, onSelect, discrepancies, activeLocks = [] }) {
       <div className="flex items-center gap-2 w-40">
         <p className="text-sm font-extrabold text-primary font-mono">{aircraft.tail_number}</p>
         {aircraft.mcc_watch && <Eye className="w-3.5 h-3.5 text-amber-400 flex-shrink-0 animate-pulse" title="MCC Watch" />}
+        {aircraft.ferry_flight && <Plane className="w-3.5 h-3.5 text-sky-400 flex-shrink-0 animate-pulse" title="Scheduled for Ferry Flight" />}
         {acLock && <Lock className="w-3.5 h-3.5 text-red-400 flex-shrink-0" title={`MCC Lock: ${acLock.reason}`} />}
       </div>
         <p className="text-xs text-gray-400 w-24">{aircraft.aircraft_type}</p>

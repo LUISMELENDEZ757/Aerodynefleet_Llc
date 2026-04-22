@@ -154,6 +154,11 @@
       "type": "boolean",
       "default": false,
       "description": "MCC has flagged this aircraft for heightened attention \u2014 all personnel should focus on this issue"
+    },
+    "ferry_flight": {
+      "type": "boolean",
+      "default": false,
+      "description": "Aircraft is scheduled for a ferry flight post-maintenance. Removed by MCC once ferry is complete."
     }
   },
   "required": [
