@@ -40,6 +40,7 @@ function ZuluClock() {
 const TABS = [
   { id: 'fleet',    label: 'Fleet Status' },
   { id: 'oos',      label: 'OOS / MX' },
+  { id: 'locks',    label: '🔒 MCC Locks' },
   { id: 'fieldtrip', label: 'Field Trip' },
   { id: 'mel',      label: 'MEL' },
   { id: 'faults',   label: 'Faults' },
@@ -47,7 +48,6 @@ const TABS = [
   { id: 'tooling',  label: 'Tooling' },
   { id: 'technician', label: 'MC Tech' },
   { id: 'supervisor', label: 'MC Supervisor' },
-  { id: 'locks',    label: '🔒 MCC Locks' },
   { id: 'mro',      label: '🔗 MRO Integrations' },
 ];
 
