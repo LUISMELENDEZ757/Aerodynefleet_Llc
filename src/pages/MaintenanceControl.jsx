@@ -16,6 +16,7 @@ import MccToolingBoard from '@/components/mcc/MccToolingBoard';
 import ShiftHandoverModule from '@/components/mcc/ShiftHandoverModule';
 import SupervisorHandoverModule from '@/components/mcc/SupervisorHandoverModule';
 import FieldTripModal from '@/components/mcc/FieldTripModal';
+import MccLockBoard from '@/components/mcc/MccLockBoard';
 import { Plus } from 'lucide-react';
 
 function ZuluClock() {
@@ -46,6 +47,7 @@ const TABS = [
   { id: 'tooling',  label: 'Tooling' },
   { id: 'technician', label: 'MC Tech' },
   { id: 'supervisor', label: 'MC Supervisor' },
+  { id: 'locks',    label: '🔒 MCC Locks' },
   { id: 'mro',      label: '🔗 MRO Integrations' },
 ];
 
@@ -438,6 +440,9 @@ export default function MaintenanceControl() {
               </div>
             </div>
           </div>
+        )}
+        {activeTab === 'locks' && (
+          <MccLockBoard aircraft={aircraft} />
         )}
         {activeTab === 'mro' && (
           <MROIntegrationHub />

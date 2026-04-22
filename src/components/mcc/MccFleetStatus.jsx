@@ -1,6 +1,8 @@
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
-import { Plane, Wrench, CheckCircle, Clock, ExternalLink } from 'lucide-react';
+import { useQuery } from '@tanstack/react-query';
+import { base44 } from '@/api/base44Client';
+import { Plane, Wrench, CheckCircle, Clock, ExternalLink, Lock } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 const STATUS_CFG = {
@@ -22,6 +24,13 @@ export default function MccFleetStatus({ aircraft, oosEntries, logbookEntries, r
   const [statusFilter, setStatusFilter] = useState('all');
   const openDiscrepancies = logbookEntries.filter(e => !e.is_cleared && e.entry_type === 'discrepancy');
   const filteredAircraft = statusFilter === 'all' ? aircraft : aircraft.filter(a => a.status === statusFilter);
+
+  const { data: locks = [] } = useQuery({
+    queryKey: ['mcc-locks'],
+    queryFn: () => base44.entities.MccLock.list('-created_date', 200),
+    refetchInterval: 30000,
+  });
+  const activeLocks = locks.filter(l => l.is_active);
 
   return (
     <div className="space-y-4">
@@ -67,6 +76,7 @@ export default function MccFleetStatus({ aircraft, oosEntries, logbookEntries, r
           const cfg = STATUS_CFG[ac.status] || STATUS_CFG.active;
           const acOOS = oosEntries.filter(e => e.tail_number === ac.tail_number && (e.status === 'in_work' || e.status === 'waiting_on_parts'));
           const acDiscr = openDiscrepancies.filter(e => e.aircraft_tail === ac.tail_number);
+          const acLock = activeLocks.find(l => l.aircraft_tail === ac.tail_number);
 
           return (
             <div
@@ -75,6 +85,7 @@ export default function MccFleetStatus({ aircraft, oosEntries, logbookEntries, r
               className={cn(
                 'relative bg-[#141922] border rounded-2xl p-4 space-y-3 transition-all',
                 removeMode ? 'cursor-pointer' : '',
+                acLock ? 'border-red-500/60 bg-red-950/20' :
                 removeMode && selectedForDelete === ac.id
                   ? 'border-red-500 bg-red-900/20'
                   : 'border-white/10'
@@ -87,6 +98,12 @@ export default function MccFleetStatus({ aircraft, oosEntries, logbookEntries, r
                 <div className="flex items-center gap-2">
                   <Plane className="w-4 h-4 text-gray-400" />
                   <span className="text-lg font-extrabold text-white font-mono">{ac.tail_number}</span>
+                  {acLock && (
+                    <div className="flex items-center gap-1 px-2 py-0.5 rounded-lg bg-red-600 border border-red-500" title={`MCC Lock: ${acLock.reason}`}>
+                      <Lock className="w-3 h-3 text-white" />
+                      <span className="text-[9px] font-extrabold text-white">LOCKED</span>
+                    </div>
+                  )}
                 </div>
                 <span className={cn('flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10px] font-bold text-white', cfg.bg)}>
                   <span className={cn('w-1.5 h-1.5 rounded-full', cfg.dot)} />{cfg.label}

@@ -7,7 +7,7 @@ import { FleetBadge } from '@/components/fleet/FleetSwitcher';
 import {
   Plane, Search, LayoutGrid, List, Wrench, CheckCircle, Globe, Shield,
   BookOpen, MapPin, Cpu, X, AlertTriangle, UserCheck, Plus, Clock,
-  ChevronDown, Radio, Activity, Zap, Package, Brain, Settings2
+  ChevronDown, Radio, Activity, Zap, Package, Brain, Settings2, Lock
 } from 'lucide-react';
 
 const TerminalIcon = ({ className }) => (
@@ -487,28 +487,37 @@ function DiscrepancyBadges({ discrepancies, melItems, aircraftStatus }) {
 }
 
 // ── Aircraft Card ────────────────────────────────────────────────────────────
-function AircraftCard({ aircraft, onSelect, discrepancies }) {
+function AircraftCard({ aircraft, onSelect, discrepancies, activeLocks = [] }) {
   const [locationType, setLocationType] = useState('terminal');
   const status = STATUS_STYLES[aircraft.status] || STATUS_STYLES.active;
   const StatusIcon = status.icon;
   const openDiscs = discrepancies?.filter(d => d.discrepancy_status !== 'CLOSED') || [];
   const hasHighRisk = openDiscs.length >= 3 || aircraft.status === 'oos' || aircraft.status === 'maintenance';
+  const acLock = activeLocks.find(l => l.aircraft_tail === aircraft.tail_number);
   
   const LocationIcon = locationType === 'terminal' ? TerminalIcon : HangarIcon;
   
   return (
     <div onClick={() => onSelect(aircraft)}
-      className={cn(
-        "bg-card rounded-2xl border p-5 flex flex-col gap-3 hover:border-primary/40 transition-all cursor-pointer active:scale-[0.97]",
-        hasHighRisk ? 'border-red-500/40' : openDiscs.length > 0 ? 'border-amber-500/40' : 'border-border'
-      )}>
-      <div className="flex items-start justify-between">
-        <div>
+    className={cn(
+      "bg-card rounded-2xl border p-5 flex flex-col gap-3 hover:border-primary/40 transition-all cursor-pointer active:scale-[0.97]",
+      acLock ? 'border-red-500/60 bg-red-950/10' : hasHighRisk ? 'border-red-500/40' : openDiscs.length > 0 ? 'border-amber-500/40' : 'border-border'
+    )}>
+    <div className="flex items-start justify-between">
+      <div>
+        <div className="flex items-center gap-2">
           <p className="text-xl font-extrabold text-primary tracking-wide font-mono">{aircraft.tail_number}</p>
-          <p className="text-xs text-gray-400 mt-0.5">{aircraft.aircraft_type}</p>
+          {acLock && (
+            <div className="flex items-center gap-1 px-2 py-0.5 rounded-lg bg-red-600 border border-red-500" title={`MCC Lock: ${acLock.reason}`}>
+              <Lock className="w-3 h-3 text-white" />
+              <span className="text-[9px] font-extrabold text-white">LOCKED</span>
+            </div>
+          )}
         </div>
-        <Plane className={cn("w-4 h-4 mt-1", aircraft.status === 'active' ? 'text-green-400' : aircraft.status === 'oos' ? 'text-red-400' : aircraft.status === 'maintenance' ? 'text-orange-400' : 'text-gray-600')} />
+        <p className="text-xs text-gray-400 mt-0.5">{aircraft.aircraft_type}</p>
       </div>
+      <Plane className={cn("w-4 h-4 mt-1", aircraft.status === 'active' ? 'text-green-400' : aircraft.status === 'oos' ? 'text-red-400' : aircraft.status === 'maintenance' ? 'text-orange-400' : 'text-gray-600')} />
+    </div>
       <div className="flex items-center justify-between">
         <p className="text-xs text-gray-500">
           Base: <span className="font-bold text-gray-300">{aircraft.base_station || '—'}</span>
@@ -537,18 +546,22 @@ function AircraftCard({ aircraft, onSelect, discrepancies }) {
   );
 }
 
-function AircraftRow({ aircraft, onSelect, discrepancies }) {
+function AircraftRow({ aircraft, onSelect, discrepancies, activeLocks = [] }) {
   const status = STATUS_STYLES[aircraft.status] || STATUS_STYLES.active;
   const StatusIcon = status.icon;
   const count = discrepancies?.length || 0;
+  const acLock = activeLocks.find(l => l.aircraft_tail === aircraft.tail_number);
   return (
     <div onClick={() => onSelect(aircraft)}
       className={cn(
         "flex items-center justify-between px-5 py-3 rounded-xl bg-card border hover:border-primary/30 transition-all cursor-pointer",
-        count > 0 ? 'border-amber-500/40' : 'border-border'
+        acLock ? 'border-red-500/60 bg-red-950/10' : count > 0 ? 'border-amber-500/40' : 'border-border'
       )}>
       <div className="flex items-center gap-5 flex-1 min-w-0">
-        <p className="text-sm font-extrabold text-primary font-mono w-24">{aircraft.tail_number}</p>
+        <div className="flex items-center gap-2 w-32">
+          <p className="text-sm font-extrabold text-primary font-mono">{aircraft.tail_number}</p>
+          {acLock && <Lock className="w-3.5 h-3.5 text-red-400 flex-shrink-0" title={`MCC Lock: ${acLock.reason}`} />}
+        </div>
         <p className="text-xs text-gray-400 w-24">{aircraft.aircraft_type}</p>
         <p className="text-xs text-gray-500 hidden sm:block">{aircraft.base_station || '—'}</p>
         {aircraft.engine_type && <p className="text-xs text-gray-600 hidden lg:block">{aircraft.engine_type}</p>}
@@ -605,6 +618,13 @@ export default function FleetDashboard() {
     queryFn: () => base44.entities.LogbookEntry.filter({ entry_type: 'discrepancy' }),
     refetchInterval: 60000,
   });
+
+  const { data: mccLocks = [] } = useQuery({
+    queryKey: ['mcc-locks'],
+    queryFn: () => base44.entities.MccLock.list('-created_date', 200),
+    refetchInterval: 30000,
+  });
+  const activeMccLocks = mccLocks.filter(l => l.is_active);
 
   // Map tail -> open (non-closed) discrepancy entries
   const discrepanciesByTail = openDiscrepancies.reduce((acc, e) => {
@@ -791,7 +811,7 @@ export default function FleetDashboard() {
             <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-6 gap-3">
               {filtered.map(a => (
                 <div key={a.id} className="relative">
-                  <AircraftCard aircraft={a} onSelect={setSelectedAircraft} discrepancies={discrepanciesByTail[a.tail_number]} />
+                  <AircraftCard aircraft={a} onSelect={setSelectedAircraft} discrepancies={discrepanciesByTail[a.tail_number]} activeLocks={activeMccLocks} />
                 </div>
               ))}
             </div>
@@ -799,7 +819,7 @@ export default function FleetDashboard() {
             <div className="flex flex-col gap-1.5">
               {filtered.map(a => (
                 <div key={a.id} className="relative">
-                  <AircraftRow aircraft={a} onSelect={setSelectedAircraft} discrepancies={discrepanciesByTail[a.tail_number]} />
+                  <AircraftRow aircraft={a} onSelect={setSelectedAircraft} discrepancies={discrepanciesByTail[a.tail_number]} activeLocks={activeMccLocks} />
                 </div>
               ))}
             </div>

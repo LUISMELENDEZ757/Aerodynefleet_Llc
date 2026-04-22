@@ -1,0 +1,66 @@
+{
+  "name": "MccLock",
+  "type": "object",
+  "description": "MCC Positive Fix Lock \u2014 placed by Maintenance Control when an aircraft requires a positive fix and technician concurrence before return to service.",
+  "properties": {
+    "aircraft_tail": {
+      "type": "string",
+      "description": "Aircraft tail number"
+    },
+    "reason": {
+      "type": "string",
+      "description": "Reason for the lock / required positive fix"
+    },
+    "placed_by": {
+      "type": "string",
+      "description": "MCC controller name who placed the lock"
+    },
+    "placed_by_id": {
+      "type": "string",
+      "description": "Employee ID of MCC controller"
+    },
+    "technician_concurrence": {
+      "type": "boolean",
+      "default": false,
+      "description": "Has a technician concurred with the required fix?"
+    },
+    "technician_name": {
+      "type": "string",
+      "description": "Technician who provided concurrence"
+    },
+    "technician_cert": {
+      "type": "string",
+      "description": "Technician certificate/employee number"
+    },
+    "concurrence_notes": {
+      "type": "string",
+      "description": "Technician concurrence notes"
+    },
+    "concurred_at": {
+      "type": "string",
+      "description": "ISO timestamp of technician concurrence"
+    },
+    "is_active": {
+      "type": "boolean",
+      "default": true,
+      "description": "Lock is currently active (true) or removed (false)"
+    },
+    "removed_by": {
+      "type": "string",
+      "description": "MCC controller who removed the lock"
+    },
+    "removed_at": {
+      "type": "string",
+      "description": "ISO timestamp when lock was removed"
+    },
+    "removal_reason": {
+      "type": "string",
+      "description": "Reason for removing the lock"
+    }
+  },
+  "required": [
+    "aircraft_tail",
+    "reason",
+    "placed_by"
+  ]
+}
