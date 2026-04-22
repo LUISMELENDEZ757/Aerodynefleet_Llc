@@ -373,6 +373,12 @@ function AircraftDetailOverlay({ aircraft: initialAircraft, onClose }) {
               className="flex items-center gap-2 px-5 py-2.5 rounded-xl bg-red-700/80 border border-red-600 text-white text-sm font-extrabold hover:bg-red-600 transition-colors disabled:opacity-50">
               <AlertTriangle className="w-4 h-4" /> PLACE OOS
             </button>
+            {aircraft.mcc_watch && (
+              <div className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-amber-500 border border-amber-400 animate-pulse">
+                <Eye className="w-4 h-4 text-black" />
+                <span className="text-sm font-extrabold text-black">MCC WATCH</span>
+              </div>
+            )}
             {activeTailLock && (
               <div className="flex items-center gap-2 px-5 py-2.5 rounded-xl bg-red-900/60 border border-red-500 text-red-300">
                 <Lock className="w-4 h-4 text-red-400" />
