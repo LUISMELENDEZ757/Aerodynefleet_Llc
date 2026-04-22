@@ -7,11 +7,13 @@ import { PHASES, isPhaseUnlocked } from '@/lib/engineWorkflowState';
 function SignOffModal({ task, onConfirm, onClose }) {
   const [name, setName] = useState('');
   const [cert, setCert] = useState('');
+  const [findings, setFindings] = useState('');
+  const [turnoverNote, setTurnoverNote] = useState('');
 
   const handleSubmit = (e) => {
     e.preventDefault();
     if (!name.trim()) return;
-    onConfirm(task.id, name.trim(), cert.trim());
+    onConfirm(task.id, name.trim(), cert.trim(), findings.trim(), turnoverNote.trim());
   };
 
   return (
@@ -62,6 +64,30 @@ function SignOffModal({ task, onConfirm, onClose }) {
               onChange={e => setCert(e.target.value)}
               placeholder={task.isRII ? 'e.g. A&P 1234567 (RII)' : 'e.g. A&P 1234567'}
               className="w-full bg-[#0d1117] border border-white/10 rounded-xl px-3 py-2.5 text-sm text-white placeholder-gray-600 outline-none focus:border-green-500 transition-colors"
+            />
+          </div>
+          <div>
+            <label className="text-[10px] font-bold text-gray-400 uppercase tracking-widest block mb-1.5">
+              Inspection / Technician Findings
+            </label>
+            <textarea
+              rows={3}
+              value={findings}
+              onChange={e => setFindings(e.target.value)}
+              placeholder="Describe inspection results, measurements, observations, or discrepancies found…"
+              className="w-full bg-[#0d1117] border border-white/10 rounded-xl px-3 py-2.5 text-sm text-white placeholder-gray-600 outline-none focus:border-green-500 transition-colors resize-none"
+            />
+          </div>
+          <div>
+            <label className="text-[10px] font-bold text-gray-400 uppercase tracking-widest block mb-1.5">
+              Turnover Note to Next Crew
+            </label>
+            <textarea
+              rows={2}
+              value={turnoverNote}
+              onChange={e => setTurnoverNote(e.target.value)}
+              placeholder="Any outstanding items, cautions, or instructions for the incoming crew…"
+              className="w-full bg-[#0d1117] border border-white/10 rounded-xl px-3 py-2.5 text-sm text-white placeholder-gray-600 outline-none focus:border-amber-500 transition-colors resize-none"
             />
           </div>
           <div className="flex gap-3 pt-1">
@@ -139,19 +165,33 @@ function TaskCard({ task, completion, onSignOff, phaseUnlocked }) {
 
       {/* Footer */}
       {isCompleted ? (
-        <div className="flex items-end justify-between border-t border-white/5 pt-3 mt-auto gap-4">
-          <div>
-            <p className="text-[10px] text-gray-500">Completed By</p>
-            <p className="text-sm font-extrabold text-white">{completion.name}</p>
-            <div className="flex items-center gap-1 mt-0.5">
-              <User className="w-2.5 h-2.5 text-primary" />
-              <p className="text-[10px] text-primary font-mono">{completion.cert || 'N/A'}</p>
+        <div className="border-t border-white/5 pt-3 mt-auto space-y-2">
+          <div className="flex items-end justify-between gap-4">
+            <div>
+              <p className="text-[10px] text-gray-500">Completed By</p>
+              <p className="text-sm font-extrabold text-white">{completion.name}</p>
+              <div className="flex items-center gap-1 mt-0.5">
+                <User className="w-2.5 h-2.5 text-primary" />
+                <p className="text-[10px] text-primary font-mono">{completion.cert || 'N/A'}</p>
+              </div>
+            </div>
+            <div className="text-right">
+              <p className="text-[10px] text-gray-500">Date/Time</p>
+              <p className="text-xs font-bold text-white">{completion.dateTime}</p>
             </div>
           </div>
-          <div className="text-right">
-            <p className="text-[10px] text-gray-500">Date/Time</p>
-            <p className="text-xs font-bold text-white">{completion.dateTime}</p>
-          </div>
+          {completion.findings && (
+            <div className="bg-[#0a0d14] border border-white/10 rounded-lg px-3 py-2">
+              <p className="text-[9px] font-bold text-gray-500 uppercase tracking-widest mb-0.5">Findings</p>
+              <p className="text-[11px] text-gray-300 leading-snug">{completion.findings}</p>
+            </div>
+          )}
+          {completion.turnoverNote && (
+            <div className="bg-amber-950/30 border border-amber-500/30 rounded-lg px-3 py-2">
+              <p className="text-[9px] font-bold text-amber-400 uppercase tracking-widest mb-0.5">Turnover Note</p>
+              <p className="text-[11px] text-amber-200 leading-snug">{completion.turnoverNote}</p>
+            </div>
+          )}
         </div>
       ) : locked ? (
         <div className="flex items-center gap-2 border-t border-white/5 pt-3 mt-auto">
@@ -207,9 +247,9 @@ export default function TaskWorkflowCards({ selectedPhaseId, completedTasks, onT
 
   const phaseUnlocked = isPhaseUnlocked(selectedPhaseId, completedTasks);
 
-  const handleConfirmSignOff = (taskId, name, cert) => {
+  const handleConfirmSignOff = (taskId, name, cert, findings, turnoverNote) => {
     const now = new Date().toLocaleString('en-US');
-    onTaskComplete(taskId, { name, cert, dateTime: now });
+    onTaskComplete(taskId, { name, cert, dateTime: now, findings, turnoverNote });
     setSigningOffTask(null);
   };
 
