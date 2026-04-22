@@ -535,7 +535,9 @@ function AircraftCard({ aircraft, onSelect, discrepancies, activeLocks = [], oos
     if (aircraft.status !== 'oos' && aircraft.status !== 'maintenance') return false;
     const tailEntry = oosEntries.find(e => e.aircraft_tail === aircraft.tail_number || e.tail_number === aircraft.tail_number);
     if (!tailEntry) return false;
-    const entryDate = new Date(tailEntry.created_date);
+    // Prefer oos_date field (backdatable), fall back to created_date
+    const dateStr = tailEntry.oos_date || tailEntry.created_date;
+    const entryDate = new Date(dateStr);
     const hoursOos = (Date.now() - entryDate.getTime()) / (1000 * 60 * 60);
     return hoursOos >= 24;
   })();
