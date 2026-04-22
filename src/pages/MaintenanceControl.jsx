@@ -46,7 +46,6 @@ const TABS = [
   { id: 'faults',   label: 'Faults' },
   { id: 'parts',    label: 'Parts' },
   { id: 'tooling',  label: 'Tooling' },
-  { id: 'technician', label: 'MC Tech' },
   { id: 'supervisor', label: 'MC Supervisor' },
   { id: 'mro',      label: '🔗 MRO Integrations' },
 ];
