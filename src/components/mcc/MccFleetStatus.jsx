@@ -89,6 +89,16 @@ export default function MccFleetStatus({ aircraft, oosEntries, logbookEntries, r
           const acDiscr = openDiscrepancies.filter(e => e.aircraft_tail === ac.tail_number);
           const acLock = activeLocks.find(l => l.aircraft_tail === ac.tail_number);
 
+          // 24h+ hourglass: check oos_date or created_date of most recent OOS entry
+          const isOosOver24h = (() => {
+            if (ac.status !== 'oos' && ac.status !== 'maintenance') return false;
+            const entry = oosEntries.find(e => e.tail_number === ac.tail_number);
+            if (!entry) return false;
+            const dateStr = entry.oos_date || entry.created_date;
+            const hoursOos = (Date.now() - new Date(dateStr).getTime()) / (1000 * 60 * 60);
+            return hoursOos >= 24;
+          })();
+
           return (
             <div
               key={ac.id}
@@ -119,6 +129,12 @@ export default function MccFleetStatus({ aircraft, oosEntries, logbookEntries, r
                     <div className="flex items-center gap-1 px-2 py-0.5 rounded-lg bg-sky-500 border border-sky-400 animate-pulse">
                       <Plane className="w-3 h-3 text-white" />
                       <span className="text-[9px] font-extrabold text-white">FERRY</span>
+                    </div>
+                  )}
+                  {isOosOver24h && (
+                    <div className="flex items-center gap-1 px-2 py-0.5 rounded-lg bg-amber-800/60 border border-amber-600/60" title="Aircraft has been OOS for 24+ hours">
+                      <span className="text-[11px]">⏳</span>
+                      <span className="text-[9px] font-extrabold text-amber-400">24H+</span>
                     </div>
                   )}
                   {acLock && (
