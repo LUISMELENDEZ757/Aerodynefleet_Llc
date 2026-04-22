@@ -7,7 +7,8 @@ import { differenceInDays, parseISO, addDays, format } from 'date-fns';
 import {
   Wrench, AlertTriangle, RefreshCw, Plus, CheckCircle,
   Search, Filter, X, Bell, Plane, ChevronDown, ChevronUp,
-  Clock, FileText, Eye, MapPin
+  Clock, FileText, Eye, MapPin, Brain, Wifi, Monitor, Shield,
+  Smile, ChevronRight, Loader2, Sparkles
 } from 'lucide-react';
 
 const STATIONS = ['All Stations','KEWR','KJFK','KLAX','KORD','KDFW','KATL','KMIA','KSFO','KBOS','KDEN','KPHX','KIAH','KLAS','KMCO'];
@@ -166,6 +167,227 @@ function MELCard({ item, onView, onClear }) {
           )}
         </div>
       </div>
+    </div>
+  );
+}
+
+// ── Passenger Comfort MEL categories (IFE, Wi-Fi, Cabin) ──────────────────────
+const COMFORT_ATA = ['23', '25', '33', '44', '45'];
+const RESTRICTIVE_KEYWORDS = ['etops', 'dispatch', 'not dispatchable', 'ground', 'do not operate', 'flight restriction', 'cannot be deferred'];
+const IFE_KEYWORDS = ['ife', 'entertainment', 'monitor', 'screen', 'seatback', 'video'];
+const WIFI_KEYWORDS = ['wifi', 'wi-fi', 'internet', 'connectivity', 'router', 'ku-band', 'ka-band', 'satcom'];
+
+function isComfort(item) {
+  const desc = (item.description || '').toLowerCase();
+  const ata = item.ata_chapter || '';
+  return COMFORT_ATA.includes(ata) || IFE_KEYWORDS.some(k => desc.includes(k)) || WIFI_KEYWORDS.some(k => desc.includes(k));
+}
+function isIFE(item) {
+  const desc = (item.description || '').toLowerCase();
+  return IFE_KEYWORDS.some(k => desc.includes(k));
+}
+function isWifi(item) {
+  const desc = (item.description || '').toLowerCase();
+  return WIFI_KEYWORDS.some(k => desc.includes(k));
+}
+function isRestrictive(item) {
+  const desc = (item.description || '').toLowerCase();
+  const restrictions = (item.flight_restrictions || '').toLowerCase();
+  return RESTRICTIVE_KEYWORDS.some(k => desc.includes(k) || restrictions.includes(k)) || item.category === 'A';
+}
+
+// ── AI MEL Intelligence Panel ──────────────────────────────────────────────────
+function AiMelIntelligencePanel({ items }) {
+  const [loading, setLoading] = useState(false);
+  const [result, setResult] = useState(null);
+  const [expanded, setExpanded] = useState(false);
+
+  const activeItems = items.filter(i => i.computedStatus !== 'cleared');
+  const comfortItems = activeItems.filter(isComfort);
+  const ifeItems = activeItems.filter(isIFE);
+  const wifiItems = activeItems.filter(isWifi);
+  const restrictiveItems = activeItems.filter(isRestrictive);
+
+  const runAnalysis = async () => {
+    setLoading(true);
+    try {
+      const res = await base44.integrations.Core.InvokeLLM({
+        prompt: `You are an expert aviation MEL (Minimum Equipment List) analyst specializing in passenger comfort systems and dispatch restrictions.
+
+Analyze this MEL/NEF deferral data and provide concise, actionable AI recommendations:
+
+TOTAL OPEN MELs: ${activeItems.length}
+COMFORT-RELATED MELs (IFE/Wi-Fi/Cabin): ${comfortItems.length} items
+IFE (Entertainment) MELs: ${ifeItems.length} items
+Wi-Fi / Connectivity MELs: ${wifiItems.length} items
+RESTRICTIVE MELs (may limit dispatch): ${restrictiveItems.length} items
+
+COMFORT MEL DETAILS:
+${comfortItems.slice(0,8).map(i => `- ${i.aircraft_tail || '?'} | ATA ${i.ata_chapter || '?'} | Cat ${i.category} | ${i.description?.slice(0,80)} | Expires: ${i.expiry_date || 'N/A'}`).join('\n')}
+
+RESTRICTIVE MEL DETAILS:
+${restrictiveItems.slice(0,5).map(i => `- ${i.aircraft_tail || '?'} | Cat ${i.category} | ${i.description?.slice(0,80)} | Restrictions: ${i.flight_restrictions || 'none stated'}`).join('\n')}
+
+Provide JSON with:
+1. comfort_recommendations: array of up to 4 objects with {tail, system, recommendation, priority ("HIGH"|"MEDIUM"|"LOW"), deferral_strategy}
+2. wifi_updates: array of up to 3 objects with {tail, issue, update_window, revenue_impact}
+3. restrictive_alerts: array of up to 4 objects with {tail, category, alert, dispatch_impact, urgency}
+4. summary: one paragraph executive summary (2-3 sentences)
+5. action_count: total recommended immediate actions (integer)`,
+        response_json_schema: {
+          type: 'object',
+          properties: {
+            comfort_recommendations: { type: 'array', items: { type: 'object', properties: { tail: { type: 'string' }, system: { type: 'string' }, recommendation: { type: 'string' }, priority: { type: 'string' }, deferral_strategy: { type: 'string' } } } },
+            wifi_updates: { type: 'array', items: { type: 'object', properties: { tail: { type: 'string' }, issue: { type: 'string' }, update_window: { type: 'string' }, revenue_impact: { type: 'string' } } } },
+            restrictive_alerts: { type: 'array', items: { type: 'object', properties: { tail: { type: 'string' }, category: { type: 'string' }, alert: { type: 'string' }, dispatch_impact: { type: 'string' }, urgency: { type: 'string' } } } },
+            summary: { type: 'string' },
+            action_count: { type: 'number' },
+          }
+        }
+      });
+      setResult(res);
+      setExpanded(true);
+    } catch (e) {
+      console.error(e);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const priorityColor = { HIGH: 'text-red-400 bg-red-500/15 border-red-500/30', MEDIUM: 'text-amber-400 bg-amber-500/15 border-amber-500/30', LOW: 'text-emerald-400 bg-emerald-500/15 border-emerald-500/30' };
+  const urgencyColor = { HIGH: 'text-red-400', MEDIUM: 'text-amber-400', LOW: 'text-emerald-400' };
+
+  return (
+    <div className="bg-card border border-violet-500/30 rounded-2xl overflow-hidden">
+      {/* Header */}
+      <div className="flex items-center justify-between px-4 py-3 bg-violet-500/10 border-b border-violet-500/20">
+        <div className="flex items-center gap-2">
+          <Brain className="w-4 h-4 text-violet-400" />
+          <p className="text-sm font-extrabold text-violet-300">AI MEL Intelligence</p>
+          <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-violet-500/20 text-violet-300 border border-violet-500/30">BETA</span>
+        </div>
+        <div className="flex items-center gap-3">
+          {/* Quick stats */}
+          <div className="hidden sm:flex items-center gap-3 text-[10px] font-bold">
+            <span className="flex items-center gap-1 text-sky-400"><Smile className="w-3 h-3" /> {comfortItems.length} Comfort</span>
+            <span className="flex items-center gap-1 text-cyan-400"><Wifi className="w-3 h-3" /> {wifiItems.length} Wi-Fi</span>
+            <span className="flex items-center gap-1 text-red-400"><Shield className="w-3 h-3" /> {restrictiveItems.length} Restrictive</span>
+          </div>
+          <button
+            onClick={runAnalysis}
+            disabled={loading}
+            className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-violet-600 text-white text-xs font-extrabold hover:bg-violet-500 disabled:opacity-60 transition-colors"
+          >
+            {loading ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Sparkles className="w-3.5 h-3.5" />}
+            {loading ? 'Analyzing…' : result ? 'Re-Analyze' : 'Run AI Analysis'}
+          </button>
+          {result && (
+            <button onClick={() => setExpanded(e => !e)} className="text-violet-400 hover:text-violet-300">
+              <ChevronDown className={cn('w-4 h-4 transition-transform', expanded && 'rotate-180')} />
+            </button>
+          )}
+        </div>
+      </div>
+
+      {/* Quick category tiles (always visible) */}
+      <div className="grid grid-cols-3 divide-x divide-border">
+        {[
+          { icon: Smile,   label: 'Passenger Comfort', value: comfortItems.length, color: 'text-sky-400',    sub: `${ifeItems.length} IFE · ${wifiItems.length} Wi-Fi` },
+          { icon: Monitor, label: 'Entertainment',      value: ifeItems.length,    color: 'text-cyan-400',   sub: 'Seatback / IFE systems' },
+          { icon: Shield,  label: 'Restrictive MELs',   value: restrictiveItems.length, color: restrictiveItems.length > 0 ? 'text-red-400' : 'text-muted-foreground', sub: 'Dispatch limiting' },
+        ].map(({ icon: Icon, label, value, color, sub }) => (
+          <div key={label} className="flex flex-col items-center py-3 px-2 text-center">
+            <Icon className={cn('w-4 h-4 mb-1', color)} />
+            <p className={cn('text-xl font-black', color)}>{value}</p>
+            <p className="text-[10px] font-bold text-muted-foreground leading-tight">{label}</p>
+            <p className="text-[9px] text-muted-foreground/60 mt-0.5">{sub}</p>
+          </div>
+        ))}
+      </div>
+
+      {/* AI Results */}
+      {result && expanded && (
+        <div className="px-4 pb-4 space-y-4 border-t border-violet-500/20 pt-4">
+          {/* Summary */}
+          <div className="bg-violet-500/10 border border-violet-500/20 rounded-xl px-4 py-3">
+            <p className="text-[10px] font-extrabold text-violet-400 uppercase tracking-widest mb-1">AI Summary</p>
+            <p className="text-xs text-slate-300 leading-relaxed">{result.summary}</p>
+          </div>
+
+          {/* Comfort Recommendations */}
+          {result.comfort_recommendations?.length > 0 && (
+            <div>
+              <p className="text-[10px] font-extrabold text-sky-400 uppercase tracking-widest mb-2 flex items-center gap-1.5">
+                <Smile className="w-3 h-3" /> Passenger Comfort Recommendations
+              </p>
+              <div className="space-y-2">
+                {result.comfort_recommendations.map((r, i) => (
+                  <div key={i} className="bg-secondary/50 border border-border rounded-xl px-3 py-2.5 space-y-1">
+                    <div className="flex items-center gap-2 flex-wrap">
+                      <span className="text-xs font-mono font-extrabold text-primary">{r.tail}</span>
+                      <span className="text-[10px] font-bold text-slate-400">{r.system}</span>
+                      <span className={cn('text-[9px] font-extrabold px-2 py-0.5 rounded-full border', priorityColor[r.priority] || priorityColor.LOW)}>{r.priority}</span>
+                    </div>
+                    <p className="text-xs text-foreground">{r.recommendation}</p>
+                    {r.deferral_strategy && <p className="text-[10px] text-muted-foreground italic">Strategy: {r.deferral_strategy}</p>}
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* Wi-Fi Updates */}
+          {result.wifi_updates?.length > 0 && (
+            <div>
+              <p className="text-[10px] font-extrabold text-cyan-400 uppercase tracking-widest mb-2 flex items-center gap-1.5">
+                <Wifi className="w-3 h-3" /> Wi-Fi / IFE Update Windows
+              </p>
+              <div className="space-y-2">
+                {result.wifi_updates.map((w, i) => (
+                  <div key={i} className="bg-cyan-500/5 border border-cyan-500/20 rounded-xl px-3 py-2.5">
+                    <div className="flex items-center justify-between flex-wrap gap-2">
+                      <div className="flex items-center gap-2">
+                        <span className="text-xs font-mono font-extrabold text-primary">{w.tail}</span>
+                        <span className="text-xs text-slate-300">{w.issue}</span>
+                      </div>
+                      <span className="text-[10px] font-bold text-cyan-400">{w.update_window}</span>
+                    </div>
+                    {w.revenue_impact && <p className="text-[10px] text-muted-foreground mt-1">Revenue impact: {w.revenue_impact}</p>}
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* Restrictive MEL Alerts */}
+          {result.restrictive_alerts?.length > 0 && (
+            <div>
+              <p className="text-[10px] font-extrabold text-red-400 uppercase tracking-widest mb-2 flex items-center gap-1.5">
+                <Shield className="w-3 h-3" /> Restrictive MEL Dispatch Alerts
+              </p>
+              <div className="space-y-2">
+                {result.restrictive_alerts.map((a, i) => (
+                  <div key={i} className="bg-red-500/10 border border-red-500/30 rounded-xl px-3 py-2.5 space-y-1">
+                    <div className="flex items-center gap-2 flex-wrap">
+                      <span className="text-xs font-mono font-extrabold text-primary">{a.tail}</span>
+                      <span className="text-[10px] font-bold px-1.5 py-0.5 rounded bg-red-700 text-white">Cat {a.category}</span>
+                      <span className={cn('text-[10px] font-bold', urgencyColor[a.urgency] || urgencyColor.MEDIUM)}>{a.urgency} URGENCY</span>
+                    </div>
+                    <p className="text-xs text-foreground">{a.alert}</p>
+                    {a.dispatch_impact && <p className="text-[10px] text-red-300 font-bold">⚠ {a.dispatch_impact}</p>}
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+        </div>
+      )}
+
+      {!result && !loading && (
+        <div className="px-4 py-3 text-center text-[11px] text-muted-foreground">
+          Click <span className="font-bold text-violet-400">Run AI Analysis</span> for passenger comfort MEL recommendations, Wi-Fi/IFE updates, and restrictive MEL dispatch alerts.
+        </div>
+      )}
     </div>
   );
 }
@@ -370,6 +592,9 @@ export default function MELDashboard() {
             </button>
           ))}
         </div>
+
+        {/* AI MEL Intelligence Panel */}
+        <AiMelIntelligencePanel items={enriched} />
 
         {/* Items */}
         {isLoading ? (
