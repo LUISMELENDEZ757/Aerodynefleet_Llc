@@ -115,6 +115,13 @@ function AircraftDetailOverlay({ aircraft: initialAircraft, onClose }) {
     queryFn: () => base44.entities.MELItem.filter({ aircraft_tail: aircraft.tail_number }),
   });
 
+  const { data: tailLocks = [] } = useQuery({
+    queryKey: ['mcc-locks-tail', aircraft.tail_number],
+    queryFn: () => base44.entities.MccLock.filter({ aircraft_tail: aircraft.tail_number, is_active: true }),
+    refetchInterval: 15000,
+  });
+  const activeTailLock = tailLocks[0] || null;
+
   // Derive max CAT capability from aircraft type
   // CAT IIIc: B777, B787, A350 (highest-tier autoland certified types)
   // CAT IIIb: B737 MAX, A320, A321
@@ -427,7 +434,7 @@ function AircraftDetailOverlay({ aircraft: initialAircraft, onClose }) {
           )}
 
           <AnimatePresence>
-            {showAddEventModal && <AddTimelineEventModal aircraftTail={aircraft.tail_number} onClose={() => setShowAddEventModal(false)} onSubmit={(data) => createEntryMutation.mutate(data)} isPending={createEntryMutation.isPending} />}
+            {showAddEventModal && <AddTimelineEventModal aircraftTail={aircraft.tail_number} onClose={() => setShowAddEventModal(false)} onSubmit={(data) => createEntryMutation.mutate(data)} isPending={createEntryMutation.isPending} activeLock={activeTailLock} />}
             {showTakingOwnershipModal && <TakingOwnershipModal aircraft={aircraft} onClose={() => setShowTakingOwnershipModal(false)} onSubmit={handleTakingOwnershipSubmit} isPending={createEntryMutation.isPending} />}
             {showPlaceOOSModal && <PlaceOOSModal aircraft={aircraft} onClose={() => setShowPlaceOOSModal(false)} onSubmit={handlePlaceOOSSubmit} isPending={createEntryMutation.isPending} />}
           </AnimatePresence>

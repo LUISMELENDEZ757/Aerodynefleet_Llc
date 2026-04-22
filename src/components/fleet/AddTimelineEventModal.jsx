@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { X, Clock } from 'lucide-react';
+import { X, Clock, Lock, AlertTriangle } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 const EVENT_TYPES = [
@@ -13,7 +13,7 @@ const EVENT_TYPES = [
   { value: 'other', label: 'Other' },
 ];
 
-export default function AddTimelineEventModal({ aircraftTail, onClose, onSubmit, isPending }) {
+export default function AddTimelineEventModal({ aircraftTail, onClose, onSubmit, isPending, activeLock }) {
   const [form, setForm] = useState({
     event_type: 'troubleshooting',
     event_title: '',
@@ -26,9 +26,12 @@ export default function AddTimelineEventModal({ aircraftTail, onClose, onSubmit,
 
   const set = (k, v) => setForm(p => ({ ...p, [k]: v }));
 
+  const isRtsBlocked = form.event_type === 'return_to_service' && !!activeLock;
+
   const handleSubmit = (e) => {
     e.preventDefault();
     if (!form.event_title.trim()) return;
+    if (isRtsBlocked) return;
     onSubmit({
       aircraft_tail: aircraftTail,
       entry_type: 'info',
@@ -79,6 +82,21 @@ export default function AddTimelineEventModal({ aircraftTail, onClose, onSubmit,
             </select>
             <p className="text-xs text-gray-600 mt-1.5 italic">"Return to Service" is only available when the aircraft is Out of Service / In-Work.</p>
           </div>
+
+          {/* MCC Lock Warning */}
+          {isRtsBlocked && (
+            <div className="flex items-start gap-3 bg-red-900/30 border border-red-500/50 rounded-xl px-4 py-3">
+              <Lock className="w-5 h-5 text-red-400 flex-shrink-0 mt-0.5" />
+              <div>
+                <p className="text-sm font-extrabold text-red-400">MCC LOCK — Return to Service Blocked</p>
+                <p className="text-xs text-red-300 mt-1">
+                  This aircraft has an active Maintenance Control lock placed by <span className="font-bold">{activeLock.placed_by}</span>.
+                </p>
+                <p className="text-xs text-red-300/80 mt-0.5 italic">"{activeLock.reason}"</p>
+                <p className="text-xs text-red-400 font-bold mt-2">The lock must be removed by Maintenance Control before this aircraft can be returned to service.</p>
+              </div>
+            </div>
+          )}
 
           {/* Event Title */}
           <div>
@@ -181,10 +199,15 @@ export default function AddTimelineEventModal({ aircraftTail, onClose, onSubmit,
             </button>
             <button
               type="submit"
-              disabled={isPending || !form.event_title.trim()}
-              className="flex-1 py-3 rounded-xl bg-primary text-primary-foreground text-sm font-bold hover:bg-primary/90 disabled:opacity-50 transition-colors"
+              disabled={isPending || !form.event_title.trim() || isRtsBlocked}
+              className={cn(
+                "flex-1 py-3 rounded-xl text-sm font-bold transition-colors disabled:opacity-50",
+                isRtsBlocked
+                  ? 'bg-red-900/40 border border-red-500/40 text-red-400 cursor-not-allowed'
+                  : 'bg-primary text-primary-foreground hover:bg-primary/90'
+              )}
             >
-              {isPending ? 'Adding...' : 'Add Event'}
+              {isPending ? 'Adding...' : isRtsBlocked ? 'Blocked — MCC Lock Active' : 'Add Event'}
             </button>
           </div>
         </form>
