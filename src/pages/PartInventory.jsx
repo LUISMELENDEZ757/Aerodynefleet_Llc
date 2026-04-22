@@ -464,7 +464,7 @@ export default function PartInventory() {
   });
 
   const { data: aircraft = [] } = useQuery({
-    queryKey: ['aircraft-list-parts'],
+    queryKey: ['fleet-aircraft'],
     queryFn: () => base44.entities.Aircraft.list('tail_number', 500),
   });
 
