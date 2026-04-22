@@ -279,12 +279,12 @@ export default function MccLockBoard({ aircraft }) {
   return (
     <div className="space-y-5">
       {/* Header */}
-      <div className="flex items-center justify-between flex-wrap gap-3">
+      <div className="flex flex-col items-center justify-center gap-4">
         <div className="flex items-center gap-3">
           <div className="w-10 h-10 rounded-xl bg-red-600/20 border border-red-500/40 flex items-center justify-center">
             <Lock className="w-5 h-5 text-red-400" />
           </div>
-          <div>
+          <div className="text-center">
             <p className="text-base font-extrabold text-white">MCC Positive Fix Locks</p>
             <p className="text-xs text-gray-500">Aircraft requiring technician concurrence before return to service</p>
           </div>
