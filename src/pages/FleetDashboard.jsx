@@ -583,7 +583,7 @@ function AircraftCard({ aircraft, onSelect, discrepancies, activeLocks = [], oos
           {acLock && (
             <div className={cn("flex items-center gap-1 px-2 py-0.5 rounded-lg border", acLock.is_active ? "bg-red-600 border-red-500" : "bg-green-600 border-green-500")} title={acLock.is_active ? `MCC Lock: ${acLock.reason}` : "Released by Maintenance Control"}>
               {acLock.is_active ? <Lock className="w-3 h-3 text-white" /> : <LockOpen className="w-3 h-3 text-white" />}
-              <span className="text-[9px] font-extrabold text-white">{acLock.is_active ? "LOCKED" : "RELEASED"}</span>
+              <span className="text-[9px] font-extrabold text-white">{acLock.is_active ? "LOCKED" : "UNLOCKED"}</span>
             </div>
           )}
         </div>
