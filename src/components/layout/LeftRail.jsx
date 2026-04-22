@@ -40,6 +40,7 @@ const TECHNICIAN_ITEMS = [
   { label: '📡 Avionics', path: '/AvionicsDashboard' },
   { label: '🧩 Engine Removal', path: '/EngineRemovalInstallation' },
   { label: '📦 Part Inventory', path: '/PartInventory' },
+  { label: '🔩 EBU Dashboard', path: '/EBUDashboard' },
   { label: '🏭 Heavy MxMRO', path: '/HeavyMxMRO' },
   { label: '📥 ROB/BOR Operations', path: '/BORROB' },
   { label: '📋 AD Tracking', path: '/ADTracking' },

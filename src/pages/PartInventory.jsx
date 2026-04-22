@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { base44 } from '@/api/base44Client';
 import { Link } from 'react-router-dom';
+// Link already imported above — used for nav
 import {
   ChevronLeft, Plus, Search, AlertTriangle, CheckCircle,
   Package, X, Edit2, Trash2, Activity,
@@ -557,6 +558,9 @@ export default function PartInventory() {
             <button onClick={() => refetch()} className="w-9 h-9 rounded-lg bg-white/10 flex items-center justify-center hover:bg-white/20 transition-colors">
               <RefreshCw className="w-4 h-4 text-gray-400" />
             </button>
+            <Link to="/EBUDashboard" className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-white/10 border border-white/10 text-white text-sm font-bold hover:bg-white/15 transition-colors">
+              <Activity className="w-4 h-4 text-primary" /> EBU Dashboard
+            </Link>
             <button onClick={() => { setEditingPart(null); setShowModal(true); }}
               className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-primary text-primary-foreground text-sm font-extrabold hover:bg-primary/90 transition-colors">
               <Plus className="w-4 h-4" /> Add Part

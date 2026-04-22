@@ -124,6 +124,7 @@ const MigrationControl         = lazy(() => import('@/pages/MigrationControl'));
 const AvionicsDashboard        = lazy(() => import('@/pages/AvionicsDashboard'));
 const ManpowerStaffing         = lazy(() => import('@/pages/ManpowerStaffing'));
 const PartInventory            = lazy(() => import('@/pages/PartInventory.jsx'));
+const EBUDashboard             = lazy(() => import('@/pages/EBUDashboard.jsx'));
 
 function PageFallback() {
   return (
@@ -326,6 +327,7 @@ const AuthenticatedApp = () => {
         <Route path="/AvionicsDashboard" element={<AvionicsDashboard />} />
         <Route path="/ManpowerStaffing" element={<ManpowerStaffing />} />
         <Route path="/PartInventory" element={<PartInventory />} />
+        <Route path="/EBUDashboard" element={<EBUDashboard />} />
       </Route>
       <Route path="*" element={<PageNotFound />} />
     </Routes>
