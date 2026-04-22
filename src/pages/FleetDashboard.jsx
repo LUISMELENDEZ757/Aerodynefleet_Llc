@@ -522,13 +522,23 @@ function DiscrepancyBadges({ discrepancies, melItems, aircraftStatus }) {
 }
 
 // ── Aircraft Card ────────────────────────────────────────────────────────────
-function AircraftCard({ aircraft, onSelect, discrepancies, activeLocks = [] }) {
+function AircraftCard({ aircraft, onSelect, discrepancies, activeLocks = [], oosEntries = [] }) {
   const [locationType, setLocationType] = useState('terminal');
   const status = STATUS_STYLES[aircraft.status] || STATUS_STYLES.active;
   const StatusIcon = status.icon;
   const openDiscs = discrepancies?.filter(d => d.discrepancy_status !== 'CLOSED') || [];
   const hasHighRisk = openDiscs.length >= 3 || aircraft.status === 'oos' || aircraft.status === 'maintenance';
   const acLock = activeLocks.find(l => l.aircraft_tail === aircraft.tail_number);
+
+  // Check if aircraft has been OOS for 24+ hours
+  const isOosOver24h = (() => {
+    if (aircraft.status !== 'oos' && aircraft.status !== 'maintenance') return false;
+    const tailEntry = oosEntries.find(e => e.aircraft_tail === aircraft.tail_number || e.tail_number === aircraft.tail_number);
+    if (!tailEntry) return false;
+    const entryDate = new Date(tailEntry.created_date);
+    const hoursOos = (Date.now() - entryDate.getTime()) / (1000 * 60 * 60);
+    return hoursOos >= 24;
+  })();
   
   const LocationIcon = locationType === 'terminal' ? TerminalIcon : HangarIcon;
   
@@ -552,6 +562,12 @@ function AircraftCard({ aircraft, onSelect, discrepancies, activeLocks = [] }) {
             <div className="flex items-center gap-1 px-2 py-0.5 rounded-lg bg-sky-500 border border-sky-400 animate-pulse" title="Scheduled for Ferry Flight">
               <Plane className="w-3 h-3 text-white" />
               <span className="text-[9px] font-extrabold text-white">FERRY</span>
+            </div>
+          )}
+          {isOosOver24h && (
+            <div className="flex items-center gap-1 px-2 py-0.5 rounded-lg bg-amber-800/60 border border-amber-600/60" title="Aircraft has been OOS for 24+ hours">
+              <span className="text-[11px]">⏳</span>
+              <span className="text-[9px] font-extrabold text-amber-400">24H+</span>
             </div>
           )}
           {acLock && (
@@ -665,6 +681,12 @@ export default function FleetDashboard() {
   const { data: openDiscrepancies = [] } = useQuery({
     queryKey: ['fleet-open-discrepancies'],
     queryFn: () => base44.entities.LogbookEntry.filter({ entry_type: 'discrepancy' }),
+    refetchInterval: 60000,
+  });
+
+  const { data: oosEntries = [] } = useQuery({
+    queryKey: ['fleet-oos-entries'],
+    queryFn: () => base44.entities.OOSEntry.list('-created_date', 500),
     refetchInterval: 60000,
   });
 
@@ -860,7 +882,7 @@ export default function FleetDashboard() {
             <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-6 gap-3">
               {filtered.map(a => (
                 <div key={a.id} className="relative">
-                  <AircraftCard aircraft={a} onSelect={setSelectedAircraft} discrepancies={discrepanciesByTail[a.tail_number]} activeLocks={activeMccLocks} />
+                  <AircraftCard aircraft={a} onSelect={setSelectedAircraft} discrepancies={discrepanciesByTail[a.tail_number]} activeLocks={activeMccLocks} oosEntries={oosEntries} />
                 </div>
               ))}
             </div>
