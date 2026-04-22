@@ -361,6 +361,15 @@ function AircraftDetailOverlay({ aircraft: initialAircraft, onClose }) {
               className="flex items-center gap-2 px-5 py-2.5 rounded-xl bg-red-700/80 border border-red-600 text-white text-sm font-extrabold hover:bg-red-600 transition-colors disabled:opacity-50">
               <AlertTriangle className="w-4 h-4" /> PLACE OOS
             </button>
+            {activeTailLock && (
+              <div className="flex items-center gap-2 px-5 py-2.5 rounded-xl bg-red-900/60 border border-red-500 text-red-300">
+                <Lock className="w-4 h-4 text-red-400" />
+                <div className="text-left">
+                  <p className="text-xs font-extrabold text-red-400 leading-none">MCC LOCK ACTIVE</p>
+                  <p className="text-[10px] text-red-300/80 mt-0.5">By {activeTailLock.placed_by} — RTS Blocked</p>
+                </div>
+              </div>
+            )}
             <button onClick={() => setShowTakingOwnershipModal(true)} disabled={createEntryMutation.isPending}
               className="flex items-center gap-2 px-5 py-2.5 rounded-xl bg-[#1a1f2e] border border-white/15 text-white text-sm font-extrabold hover:bg-white/10 transition-colors disabled:opacity-50">
               <UserCheck className="w-4 h-4" /> TAKING OWNERSHIP
