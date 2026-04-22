@@ -374,35 +374,11 @@ export default function MaintenanceControl() {
         {activeTab === 'parts'   && <MccPartsBoard parts={parts} oosEntries={oosEntries} />}
         {activeTab === 'tooling' && <MccToolingBoard tools={tools} />}
         {activeTab === 'technician' && (
-          <div className="space-y-5">
-            <ShiftHandoverModule />
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-              <div className="bg-card border border-border rounded-2xl p-5 space-y-3">
-                <div className="flex items-center gap-2">
-                  <Users className="w-4 h-4 text-primary" />
-                  <p className="text-sm font-bold text-foreground">Active Technicians</p>
-                </div>
-                <div className="bg-secondary/50 rounded-xl p-3 text-center">
-                  <p className="text-2xl font-black text-primary">12</p>
-                  <p className="text-xs text-muted-foreground mt-1">On shift today</p>
-                </div>
-              </div>
-              <div className="bg-card border border-border rounded-2xl p-5 space-y-3">
-                <div className="flex items-center gap-2">
-                  <Activity className="w-4 h-4 text-primary" />
-                  <p className="text-sm font-bold text-foreground">Assigned Tasks</p>
-                </div>
-                <div className="bg-secondary/50 rounded-xl p-3 text-center">
-                  <p className="text-2xl font-black text-amber-400">8</p>
-                  <p className="text-xs text-muted-foreground mt-1">In progress</p>
-                </div>
-              </div>
-            </div>
-            <div className="bg-card border border-border rounded-2xl p-5">
-              <p className="text-xs font-bold text-muted-foreground uppercase tracking-widest mb-3">Technician Dashboard</p>
-              <p className="text-sm text-muted-foreground">Maintenance Control Technician oversight and task management dashboard.</p>
-            </div>
-          </div>
+          <iframe
+            src="/TechnicianMode"
+            className="w-full h-[calc(100vh-300px)] border-0 rounded-xl"
+            title="Technician Mode"
+          />
         )}
         {activeTab === 'supervisor' && (
           <div className="space-y-5">
