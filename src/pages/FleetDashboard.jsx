@@ -770,7 +770,7 @@ export default function FleetDashboard() {
             <Plane className="w-6 h-6 text-primary" />
           </div>
           <h1 className="text-2xl sm:text-3xl font-black text-primary tracking-widest uppercase">
-            Aerodyne Fleet Management
+            Aerodyne Fleet Registry
           </h1>
           <div className="ml-auto flex items-center gap-4">
             <LiveClock />
