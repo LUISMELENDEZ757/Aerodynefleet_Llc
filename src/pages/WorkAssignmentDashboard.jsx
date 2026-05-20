@@ -23,10 +23,13 @@ export default function WorkAssignmentDashboard() {
   const qc = useQueryClient();
   const [activeTab, setActiveTab] = useState('daily');
 
-  // Aircraft list (shared by child panels)
+  // Aircraft list (shared by child panels) — exclude retired
   const { data: aircraft = [] } = useQuery({
     queryKey: ['wad-aircraft'],
-    queryFn: () => base44.entities.Aircraft.list('tail_number', 500),
+    queryFn: async () => {
+      const all = await base44.entities.Aircraft.list('tail_number', 500);
+      return all.filter(a => a.status !== 'retired');
+    },
     refetchInterval: 300000,
   });
 
