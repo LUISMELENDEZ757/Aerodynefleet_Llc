@@ -24,7 +24,6 @@ const TECHNICIAN_ITEMS = [
   { label: '📊 Reliability Tracking', path: '/Reliability' },
   { label: '📋 Planning & Checks', path: '/Planning' },
   { label: '🚫 OOS Aircraft', path: '/OOSDashboard' },
-  { label: '⚙️ Maintenance Control', path: '/MaintenanceControl' },
   { label: '✈️ Fleet Management', path: '/FleetDashboard' },
   { label: '📞 Comm Center', path: '/CommCenter' },
   { label: '📖 E-Logbook', path: '/TechOpsLogbook' },
@@ -100,6 +99,7 @@ const ADMIN_SYSTEM_ITEMS = [
 // ── HOME & CORE OPERATIONS (accessible to all) ──────────────────────────────────
 const CORE_ITEMS = [
   { label: '🏠 HOME', path: '/' },
+  { label: '⚙️ Maintenance Control', path: '/MaintenanceControl' },
   { label: '🎯 MCC OPS', path: '/OpsHub' },
   { label: '📊 AOCS Hub', path: '/AocsDashboard' },
 ];
