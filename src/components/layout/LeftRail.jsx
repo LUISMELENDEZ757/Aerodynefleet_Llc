@@ -36,6 +36,8 @@ const TECHNICIAN_ITEMS = [
   { label: '🔩 Tooling', path: '/ToolingManagement' },
   { label: '🔬 Engineering', path: '/EngineeringDashboard' },
   { label: '🤖 AI Forecasting', path: '/AIForecasting' },
+  { label: '✈️ Boeing AHM', path: '/BoeingAHM' },
+  { label: '🌐 Airbus Skywise', path: '/AirbusSkyw' },
   { label: '📡 Avionics', path: '/AvionicsDashboard' },
   { label: '🧩 Engine Removal', path: '/EngineRemovalInstallation' },
   { label: '📦 Part Inventory', path: '/PartInventory' },

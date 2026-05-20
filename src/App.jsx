@@ -124,6 +124,8 @@ const AvionicsDashboard        = lazy(() => import('@/pages/AvionicsDashboard'))
 const ManpowerStaffing         = lazy(() => import('@/pages/ManpowerStaffing'));
 const PartInventory            = lazy(() => import('@/pages/PartInventory.jsx'));
 const EBUDashboard             = lazy(() => import('@/pages/EBUDashboard.jsx'));
+const BoeingAHMDashboard       = lazy(() => import('@/pages/BoeingAHMDashboard.jsx'));
+const AirbusSkywiseDashboard   = lazy(() => import('@/pages/AirbusSkywiseDashboard.jsx'));
 
 function PageFallback() {
   return (
@@ -326,6 +328,8 @@ const AuthenticatedApp = () => {
         <Route path="/ManpowerStaffing" element={<ManpowerStaffing />} />
         <Route path="/PartInventory" element={<PartInventory />} />
         <Route path="/EBUDashboard" element={<EBUDashboard />} />
+        <Route path="/BoeingAHM" element={<BoeingAHMDashboard />} />
+        <Route path="/AirbusSkyw" element={<AirbusSkywiseDashboard />} />
       </Route>
       <Route path="*" element={<PageNotFound />} />
     </Routes>
