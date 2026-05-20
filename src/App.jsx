@@ -90,7 +90,6 @@ const PlanningWorkPackages      = lazy(() => import('@/components/planning/Plann
 const WorkAssignmentDashboard   = lazy(() => import('@/pages/WorkAssignmentDashboard'));
 const EngineRemovalInstallation = lazy(() => import('@/pages/EngineRemovalInstallation'));
 const PassengerServiceSystem   = lazy(() => import('@/pages/PassengerServiceSystem'));
-const RampOpsConsole           = lazy(() => import('@/pages/RampOpsConsole'));
 const PartsSupplyDashboard     = lazy(() => import('@/pages/PartsSupplyDashboard'));
 const LiveFlightTracker        = lazy(() => import('@/pages/LiveFlightTracker'));
 const AerodyneFleetOps         = lazy(() => import('@/pages/AerodyneFleetOps'));
@@ -285,7 +284,6 @@ const AuthenticatedApp = () => {
         <Route path="/HeavyMxMRO" element={<HeavyMxMRO />} />
         <Route path="/EngineRemovalInstallation" element={<EngineRemovalInstallation />} />
         <Route path="/PSS" element={<PassengerServiceSystem />} />
-        <Route path="/RampOps" element={<RampOpsConsole />} />
         <Route path="/PartsSupply" element={<PartsSupplyDashboard />} />
         <Route path="/LiveFlightTracker" element={<LiveFlightTracker />} />
         <Route path="/AerodyneFleetOps" element={<AerodyneFleetOps />} />
