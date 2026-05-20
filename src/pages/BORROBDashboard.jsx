@@ -21,6 +21,9 @@ const WORKFLOW_STAGES = [
 const STATUS_COLORS = {
   pending_mcc: 'text-orange-400 bg-orange-500/15 border-orange-500/40',
   mcc_approved: 'text-blue-400 bg-blue-500/15 border-blue-500/40',
+  pending_qc_inspection: 'text-yellow-400 bg-yellow-500/15 border-yellow-500/40',
+  qc_approved: 'text-green-400 bg-green-500/15 border-green-500/40',
+  qc_rejected: 'text-red-400 bg-red-500/15 border-red-500/40',
   technician_assigned: 'text-cyan-400 bg-cyan-500/15 border-cyan-500/40',
   installation_complete: 'text-green-400 bg-green-500/15 border-green-500/40',
   closed: 'text-gray-400 bg-gray-500/15 border-gray-500/40',
@@ -30,6 +33,9 @@ function StatusBadge({ status }) {
   const labels = {
     pending_mcc: 'Pending MCC Approval',
     mcc_approved: 'MCC Approved',
+    pending_qc_inspection: 'Pending QC Inspection',
+    qc_approved: 'QC Approved',
+    qc_rejected: 'QC Rejected',
     technician_assigned: 'Tech Assigned',
     installation_complete: 'Installation Complete',
     closed: 'Closed',
