@@ -57,7 +57,7 @@ const SupervisorDashboard   = lazy(() => import('@/pages/SupervisorDashboard'));
 const DispatchWorkstation   = lazy(() => import('@/pages/DispatchWorkstation'));
 const RecordRetentionPolicy = lazy(() => import('@/pages/RecordRetentionPolicy'));
 const GroundOpsPage         = lazy(() => import('@/pages/GroundOps'));
-const AirportGateMap        = lazy(() => import('@/pages/AirportGateMap'));
+
 const NOTAMsPage            = lazy(() => import('@/pages/NOTAMsPage'));
 const CrewDirectory         = lazy(() => import('@/pages/CrewDirectory'));
 const FlightBoard           = lazy(() => import('@/pages/FlightBoard'));
@@ -260,7 +260,7 @@ const AuthenticatedApp = () => {
         <Route path="/Dispatch" element={<DispatchWorkstation />} />
         <Route path="/RecordRetentionPolicy" element={<RecordRetentionPolicy />} />
         <Route path="/GroundOps" element={<GroundOpsPage />} />
-        <Route path="/AirportGateMap" element={<AirportGateMap />} />
+
         <Route path="/NOTAMs" element={<NOTAMsPage />} />
         <Route path="/CrewDirectory" element={<CrewDirectory />} />
         <Route path="/FlightBoard" element={<FlightBoard />} />
