@@ -45,9 +45,27 @@ export default function CreateTaskPanel({ aircraft = [] }) {
   const set = (k, v) => setForm(f => ({ ...f, [k]: v }));
 
   const mutation = useMutation({
-    mutationFn: (data) => base44.entities.SupplyRequisition.create(data),
+    mutationFn: async (data) => {
+      // 1. Create the supply requisition task
+      const task = await base44.entities.SupplyRequisition.create(data);
+
+      // 2. Mirror as a LogbookEntry so Fleet Dashboard shows it on the aircraft timeline
+      await base44.entities.LogbookEntry.create({
+        aircraft_tail: data.aircraft_tail,
+        entry_type: 'info',
+        discrepancy_status: 'IN_PROGRESS',
+        station: data.station || '',
+        description: `[TASK ASSIGNED] ${data.part_name} — Assigned to: ${data.requested_by}${data.notes ? ' | ' + data.notes : ''}`,
+        technician_name: data.requested_by,
+        ata_chapter: '',
+      });
+
+      return task;
+    },
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ['bow-daily-assignments'] });
+      qc.invalidateQueries({ queryKey: ['fleet-logbook'] });
+      qc.invalidateQueries({ queryKey: ['fleet-aircraft'] });
       setSubmitted(true);
       setTimeout(() => {
         setForm(EMPTY);
@@ -75,7 +93,7 @@ export default function CreateTaskPanel({ aircraft = [] }) {
       <div className="flex flex-col items-center justify-center py-20 gap-4">
         <CheckCircle className="w-16 h-16 text-green-400" />
         <p className="text-xl font-extrabold text-foreground">Task Created</p>
-        <p className="text-sm text-muted-foreground">Task has been added to Daily Assignments.</p>
+        <p className="text-sm text-muted-foreground">Task added to Daily Assignments and visible on the Fleet Dashboard aircraft timeline.</p>
       </div>
     );
   }

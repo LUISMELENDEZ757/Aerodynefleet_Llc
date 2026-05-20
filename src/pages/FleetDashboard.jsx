@@ -5,7 +5,7 @@ import { Link } from 'react-router-dom';
 import { useFleet } from '@/lib/FleetContext';
 import { FleetBadge } from '@/components/fleet/FleetSwitcher';
 import {
-  Plane, Search, LayoutGrid, List, Wrench, CheckCircle, Globe, Shield,
+  Plane, Search, LayoutGrid, List, Wrench, CheckCircle, Globe, Shield, ClipboardList,
   BookOpen, MapPin, Cpu, X, AlertTriangle, UserCheck, Plus, Clock,
   ChevronDown, Radio, Activity, Zap, Package, Brain, Settings2, Lock, LockOpen, Eye
 } from 'lucide-react';
@@ -522,13 +522,14 @@ function DiscrepancyBadges({ discrepancies, melItems, aircraftStatus }) {
 }
 
 // ── Aircraft Card ────────────────────────────────────────────────────────────
-function AircraftCard({ aircraft, onSelect, discrepancies, activeLocks = [], oosEntries = [], timelineEvents = [] }) {
+function AircraftCard({ aircraft, onSelect, discrepancies, activeLocks = [], oosEntries = [], timelineEvents = [], openTasks = [] }) {
   const [locationType, setLocationType] = useState('terminal');
   const status = STATUS_STYLES[aircraft.status] || STATUS_STYLES.active;
   const StatusIcon = status.icon;
   const openDiscs = discrepancies?.filter(d => d.discrepancy_status !== 'CLOSED') || [];
   const hasHighRisk = openDiscs.length >= 3 || aircraft.status === 'oos' || aircraft.status === 'maintenance';
   const acLock = activeLocks.find(l => l.aircraft_tail === aircraft.tail_number);
+  const tailOpenTasks = openTasks.filter(t => t.aircraft_tail === aircraft.tail_number);
 
   // Check if aircraft has been OOS for 24+ hours
   const isOosOver24h = (() => {
@@ -621,6 +622,12 @@ function AircraftCard({ aircraft, onSelect, discrepancies, activeLocks = [], oos
         )}
       </div>
       <DiscrepancyBadges discrepancies={discrepancies} melItems={[]} aircraftStatus={aircraft.status} />
+      {tailOpenTasks.length > 0 && (
+        <div className="border-t border-blue-500/20 pt-2 mt-1 flex items-center gap-1.5">
+          <Wrench className="w-3 h-3 text-blue-400" />
+          <span className="text-[10px] font-extrabold text-blue-400">{tailOpenTasks.length} Assigned Task{tailOpenTasks.length > 1 ? 's' : ''}</span>
+        </div>
+      )}
     </div>
   );
 }
@@ -715,6 +722,12 @@ export default function FleetDashboard() {
   const { data: timelineEvents = [] } = useQuery({
     queryKey: ['fleet-timeline-events'],
     queryFn: () => base44.entities.TimelineEvent.list('-created_date', 1000),
+    refetchInterval: 60000,
+  });
+
+  const { data: openTasks = [] } = useQuery({
+    queryKey: ['fleet-open-tasks'],
+    queryFn: () => base44.entities.SupplyRequisition.filter({ status: 'pending' }),
     refetchInterval: 60000,
   });
 
@@ -903,7 +916,7 @@ export default function FleetDashboard() {
             <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-6 gap-3">
               {filtered.map(a => (
                 <div key={a.id} className="relative">
-                  <AircraftCard aircraft={a} onSelect={setSelectedAircraft} discrepancies={discrepanciesByTail[a.tail_number]} activeLocks={mccLocks} oosEntries={oosEntries} timelineEvents={timelineEvents} />
+                  <AircraftCard aircraft={a} onSelect={setSelectedAircraft} discrepancies={discrepanciesByTail[a.tail_number]} activeLocks={mccLocks} oosEntries={oosEntries} timelineEvents={timelineEvents} openTasks={openTasks} />
                 </div>
               ))}
             </div>
