@@ -91,7 +91,7 @@ export default function OpsHub() {
         <div className="max-w-7xl mx-auto">
           <div className="flex items-center justify-between mb-3">
             <div>
-              <h1 className="text-2xl font-extrabold text-foreground">Operations Hub</h1>
+              <h1 className="text-2xl font-extrabold text-foreground">MCC Maintenance Control Dashboard</h1>
               <p className="text-xs text-muted-foreground tracking-widest uppercase">Fleet Status · Real-Time Monitoring</p>
             </div>
             <button onClick={() => setShowModules(!showModules)} className="w-10 h-10 rounded-lg bg-secondary flex items-center justify-center hover:bg-secondary/80">
