@@ -9,9 +9,11 @@ import DailyAssignmentsPanel from '@/components/workassignments/DailyAssignments
 import ForecastedWorkPanel from '@/components/workassignments/ForecastedWorkPanel';
 import ThroughFlightWorkPanel from '@/components/workassignments/ThroughFlightWorkPanel';
 import TechSupportPanel from '@/components/workassignments/TechSupportPanel';
+import CreateTaskPanel from '@/components/workassignments/CreateTaskPanel';
 
 const TABS = [
   { id: 'daily', label: '📋 Daily Assignments' },
+  { id: 'create', label: '➕ Create Task' },
   { id: 'through_flight', label: '✈️ Through-Flight' },
   { id: 'tech_support', label: '🔧 Tech Support' },
   { id: 'forecast', label: '📈 Forecast' },
@@ -134,6 +136,10 @@ export default function WorkAssignmentDashboard() {
               <ForecastedWorkPanel forecasts={forecasts} />
             </div>
           </div>
+        )}
+
+        {activeTab === 'create' && (
+          <CreateTaskPanel aircraft={aircraft} />
         )}
 
         {activeTab === 'through_flight' && (
