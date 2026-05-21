@@ -459,8 +459,11 @@ function AircraftDetailOverlay({ aircraft: initialAircraft, onClose }) {
           ) : (
             <div className="flex flex-col gap-3">
               {logEntries.map(entry => {
-                const pocMatch = entry.notes?.match(/POC:\s*([^|]+)/);
-                const phoneMatch = entry.notes?.match(/POC Phone:\s*([^|]+)/);
+                const notes = entry.notes || '';
+                const locationMatch = notes.match(/Location:\s*([^|]+)/);
+                const pocMatch = notes.match(/POC:\s*([^|]+)/);
+                const phoneMatch = notes.match(/POC Phone:\s*([^|]+)/);
+                const location = locationMatch ? locationMatch[1].trim() : null;
                 const poc = pocMatch ? pocMatch[1].trim() : null;
                 const phone = phoneMatch ? phoneMatch[1].trim() : null;
                 
@@ -477,13 +480,21 @@ function AircraftDetailOverlay({ aircraft: initialAircraft, onClose }) {
                         {entry.ata_chapter && <span className="text-[10px] text-gray-500">ATA {entry.ata_chapter}</span>}
                       </div>
                       <p className="text-sm text-gray-200">{entry.description}</p>
-                      <div className="flex items-center gap-4 mt-2 flex-wrap">
+                      <div className="flex items-center gap-3 mt-2 flex-wrap">
                         <p className="text-[10px] text-gray-600">{new Date(entry.created_date).toLocaleString()}</p>
+                        {location && location !== 'N/A' && (
+                          <div className="flex items-center gap-1 text-[10px]">
+                            <MapPin className="w-3 h-3 text-cyan-500" />
+                            <span className="text-cyan-400 font-semibold">{location}</span>
+                          </div>
+                        )}
                         {poc && poc !== 'N/A' && (
-                          <div className="flex items-center gap-1 text-[10px] text-gray-500">
-                            <span>POC:</span>
-                            <span className="text-gray-300 font-semibold">{poc}</span>
-                            {phone && phone !== 'N/A' && <span className="text-gray-400">{phone}</span>}
+                          <div className="flex items-center gap-1 text-[10px]">
+                            <UserCheck className="w-3 h-3 text-amber-500" />
+                            <span className="text-amber-400 font-semibold">{poc}</span>
+                            {phone && phone !== 'N/A' && (
+                              <span className="text-gray-400">· {phone}</span>
+                            )}
                           </div>
                         )}
                       </div>
