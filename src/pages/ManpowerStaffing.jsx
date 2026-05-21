@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { base44 } from '@/api/base44Client';
 import { useStations } from '@/hooks/useStations';
@@ -456,6 +456,30 @@ export default function ManpowerStaffing() {
   const [stationFilter, setStationFilter] = useState('All Stations');
   const [showModal, setShowModal] = useState(false);
   const [editTech, setEditTech] = useState(null);
+
+  // Seed mock technicians on mount
+  useEffect(() => {
+    const seedMockTechs = async () => {
+      const existing = await base44.entities.TrainingRecord.list('-created_date', 100);
+      if (existing.length < 8) {
+        const mockTechs = [
+          { employee_name: 'MARIA SANTOS', station: 'KDFW', years_experience: 12, certifications: ['A&P', 'Hydraulics'], specialty: 'Hydraulics Specialist', duty_status: 'available' },
+          { employee_name: 'JAMES HUANG', station: 'KATL', years_experience: 8, certifications: ['A&P', 'Avionics'], specialty: 'Avionics Technician', duty_status: 'available' },
+          { employee_name: 'RACHEL TORRES', station: 'KEWR', years_experience: 10, certifications: ['A&P', 'IA'], specialty: 'Lead Technician', duty_status: 'on_duty' },
+          { employee_name: 'MICHAEL CHEN', station: 'KLAX', years_experience: 7, certifications: ['A&P', 'Powerplant'], specialty: 'Powerplant Specialist', duty_status: 'available' },
+        ];
+        try {
+          for (const tech of mockTechs) {
+            await base44.entities.TrainingRecord.create(tech).catch(() => {});
+          }
+          qc.invalidateQueries({ queryKey: ['manpower-technicians'] });
+        } catch (e) {
+          console.error('Seed error:', e);
+        }
+      }
+    };
+    seedMockTechs();
+  }, []);
 
   const { data: aircraft = [] } = useQuery({
     queryKey: ['manpower-aircraft'],
