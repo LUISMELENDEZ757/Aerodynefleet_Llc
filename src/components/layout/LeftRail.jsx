@@ -46,6 +46,7 @@ const NAV_GROUPS = [
       { label: 'E-Logbook', icon: '📖', path: '/TechOpsLogbook' },
       { label: 'Aircraft Status', icon: '📚', path: '/MaintenanceLogbook' },
       { label: 'Mx Tracking', icon: '📡', path: '/MxTracking' },
+      { label: 'Manpower & Staffing', icon: '👷', path: '/ManpowerStaffing' },
       { label: 'Work Assignments', icon: '📝', path: '/WorkAssignments' },
       { label: 'Shift Turnover', icon: '🤝', path: '/ShiftHandover' },
       { label: 'Line Mx Tablet', icon: '📱', path: '/LineMxTablet' },
@@ -140,7 +141,6 @@ const NAV_GROUPS = [
       { label: 'EFB Dashboard', icon: '📱', path: '/EFB' },
       { label: 'Flight Planner', icon: '📈', path: '/FlightPlanner' },
       { label: 'Documents', icon: '📄', path: '/Documents' },
-      { label: 'Manpower & Staffing', icon: '👷', path: '/ManpowerStaffing' },
     ],
   },
   {
