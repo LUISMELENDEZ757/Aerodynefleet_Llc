@@ -1,4 +1,4 @@
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useMemo } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { base44 } from '@/api/base44Client';
 import { Link } from 'react-router-dom';
@@ -68,6 +68,8 @@ import AddTimelineEventModal from '@/components/fleet/AddTimelineEventModal';
 import TakingOwnershipModal from '@/components/fleet/TakingOwnershipModal';
 import PlaceOOSModal from '@/components/fleet/PlaceOOSModal';
 import FleetIngestionHub from '@/components/fleet/FleetIngestionHub';
+import VirtualizedFleetGrid from '@/components/fleet/VirtualizedFleetGrid';
+import { useThrottledFleet } from '@/hooks/useThrottledFleet';
 
 const STATUS_OPTIONS = ['All Status', 'active', 'oos', 'maintenance', 'retired'];
 
@@ -712,11 +714,14 @@ export default function FleetDashboard() {
 
   const { activeFleet, activeFleetId } = useFleet();
 
-  const { data: aircraft = [], isLoading } = useQuery({
+  const { data: rawAircraft = [], isLoading } = useQuery({
     queryKey: ['fleet-aircraft'],
     queryFn: () => base44.entities.Aircraft.list('-created_date', 1000),
     refetchInterval: 60000,
   });
+
+  // B+D: throttle real-time pushes to 500 ms, track last-5 viewed tails
+  const { aircraft, recentTails, recordTailView } = useThrottledFleet(rawAircraft);
 
   const { data: openDiscrepancies = [] } = useQuery({
     queryKey: ['fleet-open-discrepancies'],
@@ -800,6 +805,30 @@ export default function FleetDashboard() {
   const acTypeLabel = activeFleet
     ? `${activeFleet.name} Aircraft`
     : 'Boeing 737 Aircraft';
+
+  // A: derive column count from viewport width for virtualized grid
+  const columnCount = useMemo(() => {
+    const w = window.innerWidth;
+    if (w >= 1536) return 6;
+    if (w >= 1280) return 5;
+    if (w >= 1024) return 4;
+    if (w >= 640)  return 3;
+    return 2;
+  }, []);
+
+  // B: memoized renderCard so VirtualizedFleetGrid Row doesn't re-create closures
+  const renderCard = useCallback((a) => (
+    <AircraftCard
+      aircraft={a}
+      onSelect={(ac) => { setSelectedAircraft(ac); recordTailView(ac.tail_number); }}
+      discrepancies={discrepanciesByTail[a.tail_number]}
+      melItems={melByTail[a.tail_number] || []}
+      activeLocks={mccLocks}
+      oosEntries={oosEntries}
+      timelineEvents={timelineEvents}
+      openTasks={openTasks}
+    />
+  ), [discrepanciesByTail, melByTail, mccLocks, oosEntries, timelineEvents, openTasks, recordTailView]);
 
   return (
     <div className="min-h-screen bg-background pb-24">
@@ -974,13 +1003,13 @@ export default function FleetDashboard() {
           ) : filtered.length === 0 ? (
             <div className="text-center text-gray-600 py-20">No aircraft found</div>
           ) : viewMode === 'grid' ? (
-            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-6 gap-3">
-              {filtered.map(a => (
-                <div key={a.id} className="relative">
-                  <AircraftCard aircraft={a} onSelect={setSelectedAircraft} discrepancies={discrepanciesByTail[a.tail_number]} melItems={melByTail[a.tail_number] || []} activeLocks={mccLocks} oosEntries={oosEntries} timelineEvents={timelineEvents} openTasks={openTasks} />
-                </div>
-              ))}
-            </div>
+            /* A: Virtualized grid — only renders visible rows for smooth 1000-ac scroll */
+            <VirtualizedFleetGrid
+              items={filtered}
+              renderCard={renderCard}
+              columnCount={columnCount}
+              cardHeight={168}
+            />
           ) : (
             <div className="flex flex-col gap-1.5">
               {filtered.map(a => (
