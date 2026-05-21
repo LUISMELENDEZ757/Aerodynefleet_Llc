@@ -1,24 +1,27 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { base44 } from '@/api/base44Client';
 import { Link } from 'react-router-dom';
 import AircraftQRScanner from '@/components/techops/AircraftQRScanner';
 import {
   BookOpen, Plane, AlertTriangle, ChevronDown, Plus,
-  Printer, Clock, CheckCircle, XCircle, Wrench, Zap,
-  Radio, Flame, Wind, Settings, Shield, ChevronRight, FilePlus, QrCode
+  Printer, Clock, CheckCircle, Wrench, Zap, Tag,
+  Radio, Flame, Wind, Settings, Shield, ChevronRight,
+  FilePlus, QrCode, Filter, User, HardHat, Send,
+  XCircle, FileText, Package, Mic, TrendingUp
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import LiveClock from '@/components/ui/LiveClock';
 import NewLogEntryModal from '@/components/techops/NewLogEntryModal';
 import NewFaultModal from '@/components/techops/NewFaultModal';
-import DiscrepancyCard from '@/components/techops/DiscrepancyCard';
+import LogEntryCard from '@/components/techops/LogEntryCard';
 
+// ── Config ───────────────────────────────────────────────────────────────────
 const STATUS_STYLES = {
-  active:      { label: 'IN SERVICE',  bg: 'bg-green-600',  dot: 'bg-green-400' },
-  oos:         { label: 'OUT OF SERVICE', bg: 'bg-red-700', dot: 'bg-red-400' },
-  maintenance: { label: 'MAINTENANCE', bg: 'bg-orange-600', dot: 'bg-orange-400' },
-  retired:     { label: 'RETIRED',     bg: 'bg-gray-600',   dot: 'bg-gray-400' },
+  active:      { label: 'IN SERVICE',     bg: 'bg-green-600',  dot: 'bg-green-400' },
+  oos:         { label: 'OUT OF SERVICE', bg: 'bg-red-700',    dot: 'bg-red-400' },
+  maintenance: { label: 'MAINTENANCE',    bg: 'bg-orange-600', dot: 'bg-orange-400' },
+  retired:     { label: 'RETIRED',        bg: 'bg-gray-600',   dot: 'bg-gray-400' },
 };
 
 const SEVERITY_STYLES = {
@@ -28,19 +31,29 @@ const SEVERITY_STYLES = {
   memo:     { label: 'MEMO',     bg: 'bg-gray-700',   text: 'text-gray-300',   border: 'border-gray-600' },
 };
 
-const ENTRY_STYLES = {
-  discrepancy:      { label: 'DISCREPANCY',       color: 'text-red-400',    border: 'border-red-500/30' },
-  corrective_action:{ label: 'CORRECTIVE ACTION', color: 'text-green-400',  border: 'border-green-500/30' },
-  deferred:         { label: 'DEFERRED',          color: 'text-amber-400',  border: 'border-amber-500/30' },
-  cleared:          { label: 'CLEARED',           color: 'text-blue-400',   border: 'border-blue-500/30' },
-  info:             { label: 'INFO',              color: 'text-gray-400',   border: 'border-gray-500/30' },
-};
-
 const SYSTEM_ICONS = {
   engine: Flame, hydraulics: Settings, avionics: Radio,
   electrical: Zap, fuel: Plane, pneumatics: Wind,
   flight_controls: Plane, apu: Zap, landing_gear: Plane, other: AlertTriangle,
 };
+
+// ── Role tabs ─────────────────────────────────────────────────────────────────
+const ROLE_TABS = [
+  { id: 'mx',       label: 'MX / Tech Ops', icon: HardHat },
+  { id: 'pilot',    label: 'Pilot View',    icon: Plane },
+  { id: 'dispatch', label: 'Dispatch',      icon: Send },
+];
+
+// ── Quick filters ─────────────────────────────────────────────────────────────
+const QUICK_FILTERS = [
+  { id: 'all',       label: 'All' },
+  { id: 'open',      label: '🔴 Open' },
+  { id: 'mel',       label: '🟡 MEL / Deferred' },
+  { id: 'inwork',    label: '🔵 In Work' },
+  { id: 'closed',    label: '✅ Closed' },
+  { id: 'cabin',     label: '✈️ Cabin' },
+  { id: 'pilot',     label: '🛫 Pilot Reports' },
+];
 
 function useElapsedTime() {
   const [elapsed, setElapsed] = useState(0);
@@ -58,14 +71,16 @@ function useElapsedTime() {
 export default function TechOpsLogbook() {
   const urlParams = new URLSearchParams(window.location.search);
   const tailParam = urlParams.get('tail');
+
   const [selectedTail, setSelectedTail] = useState(tailParam || null);
   const [tailDropdown, setTailDropdown] = useState(false);
   const [showNewEntry, setShowNewEntry] = useState(false);
   const [showNewFault, setShowNewFault] = useState(false);
   const [showQRScanner, setShowQRScanner] = useState(false);
   const [faultTab, setFaultTab] = useState('active');
-  const [logTab, setLogTab] = useState('entries');
   const [entryPreset, setEntryPreset] = useState(null);
+  const [viewRole, setViewRole] = useState('mx');       // mx | pilot | dispatch
+  const [quickFilter, setQuickFilter] = useState('all');
   const elapsed = useElapsedTime();
   const queryClient = useQueryClient();
 
@@ -123,94 +138,93 @@ export default function TechOpsLogbook() {
         notes: `Auto-wired from FaultMessage ID: ${fault.id}. Detected: ${fault.detected_at ? new Date(fault.detected_at).toLocaleString() : '—'}`,
       });
     },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['logbook-entries'] });
-    },
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['logbook-entries'] }),
   });
 
+  // ── Derived stats ─────────────────────────────────────────────────────────
   const openItems = entries.filter(e => e.is_deferred && !e.is_cleared).length;
   const activeFaults = faults.filter(f => f.status === 'active');
   const clearedFaults = faults.filter(f => f.status === 'cleared');
   const nextLogPage = `LP#${String(entries.length + 1).padStart(4, '0')}`;
   const statusCfg = STATUS_STYLES[selectedAc?.status] || STATUS_STYLES.active;
 
+  // ── Filtered entries based on role + quickFilter ──────────────────────────
+  const filteredEntries = useMemo(() => {
+    let list = [...entries].sort((a, b) => new Date(b.created_date) - new Date(a.created_date));
+
+    // Role filter
+    if (viewRole === 'pilot') {
+      list = list.filter(e => e.entry_type === 'discrepancy' || e.is_deferred);
+    } else if (viewRole === 'dispatch') {
+      list = list.filter(e => e.is_deferred || e.entry_type === 'deferred' || e.mel_reference);
+    }
+
+    // Quick filter
+    switch (quickFilter) {
+      case 'open':   list = list.filter(e => e.discrepancy_status === 'OPEN'); break;
+      case 'mel':    list = list.filter(e => e.is_deferred && !e.is_cleared); break;
+      case 'inwork': list = list.filter(e => e.discrepancy_status === 'IN_PROGRESS'); break;
+      case 'closed': list = list.filter(e => e.discrepancy_status === 'CLOSED' || e.is_cleared); break;
+      case 'cabin':  list = list.filter(e => e.description?.toLowerCase().includes('cabin') || e.ata_chapter === '25'); break;
+      case 'pilot':  list = list.filter(e => e.description?.toLowerCase().includes('[pilot') || e.flight_number); break;
+      default: break;
+    }
+
+    return list;
+  }, [entries, viewRole, quickFilter]);
+
+  // ── Print handler ─────────────────────────────────────────────────────────
   const handlePrint = () => {
     const entriesHtml = entries.length === 0
       ? '<tr><td colspan="5" style="text-align:center;color:#888;padding:16px;">No log entries</td></tr>'
       : entries.map(e => {
-          const style = ENTRY_STYLES[e.entry_type] || ENTRY_STYLES.discrepancy;
           const date = new Date(e.created_date);
           return `<tr>
             <td>${e.log_page || '—'}</td>
-            <td><strong style="color:${style.color.replace('text-','')}">${style.label}</strong></td>
+            <td>${e.entry_type?.toUpperCase()}</td>
             <td>ATA ${e.ata_chapter || '—'}</td>
             <td>${e.description || '—'}${e.corrective_action ? `<br/><span style="color:green">✓ ${e.corrective_action}</span>` : ''}${e.is_deferred && !e.is_cleared ? `<br/><span style="color:orange">MEL ${e.mel_category} — ${e.mel_reference || ''}</span>` : ''}${e.is_cleared ? '<br/><span style="color:green">✓ CLEARED</span>' : ''}</td>
             <td>${e.technician_name || '—'}<br/><small>${date.toLocaleDateString()} ${date.toLocaleTimeString('en-US',{hour:'2-digit',minute:'2-digit',hour12:false})}</small></td>
           </tr>`;
         }).join('');
 
-    const faultsHtml = activeFaults.length === 0
-      ? '<tr><td colspan="4" style="text-align:center;color:#888;padding:12px;">No active faults</td></tr>'
-      : activeFaults.map(f => `<tr>
-          <td><strong>${f.fault_code}</strong></td>
-          <td>${f.severity?.toUpperCase() || '—'}</td>
-          <td>ATA ${f.ata_chapter || '—'}</td>
-          <td>${f.description || '—'}</td>
-        </tr>`).join('');
-
     const win = window.open('', '_blank');
     win.document.write(`
       <html><head><title>E-Logbook — ${selectedAc?.tail_number || ''}</title>
       <style>
         body { font-family: Arial, sans-serif; font-size: 12px; color: #111; margin: 32px; }
-        h1 { font-size: 20px; margin: 0 0 2px; }
-        .sub { color: #555; font-size: 11px; margin-bottom: 20px; }
+        h1 { font-size: 20px; margin: 0 0 2px; } .sub { color: #555; font-size: 11px; margin-bottom: 20px; }
         .info-grid { display: grid; grid-template-columns: repeat(4,1fr); gap: 12px; margin-bottom: 24px; }
         .info-box { border: 1px solid #ddd; border-radius: 8px; padding: 10px; }
         .info-box label { font-size: 10px; color: #888; text-transform: uppercase; letter-spacing: 1px; display: block; margin-bottom: 4px; }
         .info-box span { font-size: 18px; font-weight: 900; }
         h2 { font-size: 13px; text-transform: uppercase; letter-spacing: 1px; border-bottom: 2px solid #111; padding-bottom: 4px; margin: 20px 0 8px; }
         table { width: 100%; border-collapse: collapse; font-size: 11px; }
-        th { background: #f3f4f6; text-align: left; padding: 6px 8px; font-size: 10px; text-transform: uppercase; letter-spacing: 0.5px; }
+        th { background: #f3f4f6; text-align: left; padding: 6px 8px; font-size: 10px; text-transform: uppercase; }
         td { padding: 6px 8px; border-bottom: 1px solid #eee; vertical-align: top; }
         .footer { margin-top: 32px; font-size: 10px; color: #aaa; border-top: 1px solid #ddd; padding-top: 8px; }
-      </style>
-      </head><body>
+      </style></head><body>
       <h1>E-LOGBOOK — ${selectedAc?.tail_number || '—'}</h1>
-      <div class="sub">Aerodyne Fleet LLC &nbsp;|&nbsp; ${selectedAc?.aircraft_type || '—'} &nbsp;|&nbsp; Station: ${selectedAc?.base_station || '—'} &nbsp;|&nbsp; Status: ${statusCfg.label}</div>
-
+      <div class="sub">Aerodyne Fleet LLC | ${selectedAc?.aircraft_type || '—'} | Station: ${selectedAc?.base_station || '—'} | Status: ${statusCfg.label}</div>
       <div class="info-grid">
         <div class="info-box"><label>Log Entries</label><span>${entries.length}</span></div>
         <div class="info-box"><label>Open Items</label><span>${openItems}</span></div>
         <div class="info-box"><label>Active Faults</label><span>${activeFaults.length}</span></div>
         <div class="info-box"><label>Next Log Page</label><span>${nextLogPage}</span></div>
       </div>
-
-      <h2>Active Fault Messages (EICAS/BITE)</h2>
-      <table>
-        <thead><tr><th>Code</th><th>Severity</th><th>ATA</th><th>Description</th></tr></thead>
-        <tbody>${faultsHtml}</tbody>
-      </table>
-
       <h2>Log Entries</h2>
-      <table>
-        <thead><tr><th>Log Page</th><th>Type</th><th>ATA</th><th>Description</th><th>Technician / Date</th></tr></thead>
-        <tbody>${entriesHtml}</tbody>
-      </table>
-
-      <div class="footer">Printed: ${new Date().toLocaleString()} &nbsp;|&nbsp; ${selectedAc?.tail_number || ''} &nbsp;|&nbsp; Aerodyne Fleet LLC E-Logbook</div>
-      </body></html>
-    `);
-    win.document.close();
-    win.focus();
-    win.print();
-    win.close();
+      <table><thead><tr><th>Log Page</th><th>Type</th><th>ATA</th><th>Description</th><th>Technician / Date</th></tr></thead>
+      <tbody>${entriesHtml}</tbody></table>
+      <div class="footer">Printed: ${new Date().toLocaleString()} | ${selectedAc?.tail_number || ''} | Aerodyne Fleet LLC E-Logbook</div>
+      </body></html>`);
+    win.document.close(); win.focus(); win.print(); win.close();
   };
 
   return (
-    <div className="min-h-screen bg-[#0d1117] text-white">
-      {/* Header */}
-      <div className="flex items-center justify-between px-5 py-3 border-b border-white/10 bg-[#0d1117]">
+    <div className="min-h-screen bg-[#0d1117] text-white pb-28">
+
+      {/* ── HEADER ──────────────────────────────────────────────────────────── */}
+      <div className="flex items-center justify-between px-5 py-3 border-b border-white/10 bg-[#0d1117] sticky top-0 z-30">
         <div className="flex items-center gap-3">
           <Link to="/Home" className="w-8 h-8 rounded-lg bg-white/10 flex items-center justify-center hover:bg-white/20 transition-colors">
             <ChevronRight className="w-4 h-4 rotate-180" />
@@ -219,8 +233,8 @@ export default function TechOpsLogbook() {
             <BookOpen className="w-5 h-5 text-primary-foreground" />
           </div>
           <div>
-            <p className="text-base font-extrabold tracking-wide leading-none">E-logbook</p>
-            <p className="text-[10px] text-gray-500 tracking-widest uppercase">RECORDS SYSTEM</p>
+            <p className="text-base font-extrabold tracking-wide leading-none">E-Logbook</p>
+            <p className="text-[10px] text-gray-500 tracking-widest uppercase">FAA Records System</p>
           </div>
           <div className="flex items-center gap-1 bg-[#1a1f2e] border border-white/10 rounded-full px-3 py-1 ml-1">
             <Clock className="w-3 h-3 text-amber-400" />
@@ -229,27 +243,20 @@ export default function TechOpsLogbook() {
           <LiveClock />
         </div>
 
-        {/* Aircraft Selector */}
+        {/* Aircraft selector + actions */}
         <div className="flex items-center gap-2">
           <div className="relative">
-            <button
-              onClick={() => setTailDropdown(!tailDropdown)}
-              className="flex items-center gap-2 bg-[#1a1f2e] border border-white/10 rounded-xl px-4 py-2 hover:border-white/20 transition-all"
-            >
+            <button onClick={() => setTailDropdown(!tailDropdown)}
+              className="flex items-center gap-2 bg-[#1a1f2e] border border-white/10 rounded-xl px-4 py-2 hover:border-white/20 transition-all">
               <Plane className="w-4 h-4 text-gray-400" />
               <span className="font-bold text-sm tracking-wide">{selectedAc?.tail_number || '—'}</span>
               <ChevronDown className="w-4 h-4 text-gray-500" />
             </button>
             {tailDropdown && (
-              <div className="absolute right-0 top-full mt-1 w-52 bg-[#1a1f2e] border border-white/10 rounded-xl overflow-hidden z-50 shadow-xl">
+              <div className="absolute right-0 top-full mt-1 w-52 bg-[#1a1f2e] border border-white/10 rounded-xl overflow-hidden z-50 shadow-xl max-h-72 overflow-y-auto">
                 {aircraft.map(a => (
-                  <button
-                    key={a.id}
-                    onClick={() => { setSelectedTail(a.tail_number); setTailDropdown(false); }}
-                    className={cn('w-full flex items-center gap-3 px-4 py-2.5 text-sm hover:bg-white/5 transition-colors text-left',
-                      a.tail_number === selectedTail && 'bg-primary/10 text-primary'
-                    )}
-                  >
+                  <button key={a.id} onClick={() => { setSelectedTail(a.tail_number); setTailDropdown(false); }}
+                    className={cn('w-full flex items-center gap-3 px-4 py-2.5 text-sm hover:bg-white/5 transition-colors text-left', a.tail_number === selectedTail && 'bg-primary/10 text-primary')}>
                     <span className="font-bold">{a.tail_number}</span>
                     <span className="text-xs text-gray-400">{a.aircraft_type}</span>
                   </button>
@@ -257,37 +264,32 @@ export default function TechOpsLogbook() {
               </div>
             )}
           </div>
-          <button onClick={() => setShowQRScanner(true)} title="Scan Aircraft QR" className="w-9 h-9 bg-[#1a1f2e] border border-white/10 rounded-xl flex items-center justify-center hover:bg-primary/20 transition-colors">
+          <button onClick={() => setShowQRScanner(true)} className="w-9 h-9 bg-[#1a1f2e] border border-white/10 rounded-xl flex items-center justify-center hover:bg-primary/20 transition-colors">
             <QrCode className="w-4 h-4 text-primary" />
           </button>
-          <button onClick={handlePrint} title="Print Logbook" className="w-9 h-9 bg-[#1a1f2e] border border-white/10 rounded-xl flex items-center justify-center hover:bg-primary/20 transition-colors">
+          <button onClick={handlePrint} className="w-9 h-9 bg-[#1a1f2e] border border-white/10 rounded-xl flex items-center justify-center hover:bg-primary/20 transition-colors">
             <Printer className="w-4 h-4 text-primary" />
           </button>
         </div>
       </div>
 
       <div className="p-5 space-y-5 max-w-5xl mx-auto">
-        {/* Aircraft Info + Stats */}
+
+        {/* ── AIRCRAFT INFO + KPI STRIP ──────────────────────────────────────── */}
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-          {/* Aircraft Card */}
+          {/* Aircraft card */}
           <div className="bg-[#141922] border border-white/10 rounded-2xl p-5 space-y-4">
             <p className="text-[10px] font-bold text-gray-500 tracking-widest uppercase flex items-center gap-1.5">
               <Plane className="w-3 h-3" /> AIRCRAFT
             </p>
             <p className="text-5xl font-black tracking-wide text-white">{selectedAc?.tail_number || '—'}</p>
             <p className="text-sm text-gray-400 font-semibold">{selectedAc?.aircraft_type || '—'}</p>
-
             <div>
-              <p className="text-[10px] font-bold text-gray-500 tracking-widest uppercase flex items-center gap-1.5 mb-1">
-                STATION
-              </p>
+              <p className="text-[10px] font-bold text-gray-500 tracking-widest uppercase mb-1">STATION</p>
               <p className="text-3xl font-black tracking-wide">{selectedAc?.base_station || '—'}</p>
             </div>
-
             <div>
-              <p className="text-[10px] font-bold text-gray-500 tracking-widest uppercase flex items-center gap-1.5 mb-2">
-                STATUS
-              </p>
+              <p className="text-[10px] font-bold text-gray-500 tracking-widest uppercase mb-2">STATUS</p>
               <span className={cn('inline-flex items-center gap-2 px-4 py-1.5 rounded-full text-xs font-bold text-white', statusCfg.bg)}>
                 <span className={cn('w-2 h-2 rounded-full', statusCfg.dot)} />
                 {statusCfg.label}
@@ -295,40 +297,38 @@ export default function TechOpsLogbook() {
             </div>
           </div>
 
-          {/* Stats Panel */}
+          {/* KPI stats */}
           <div className="sm:col-span-2 grid grid-cols-3 gap-4">
-            <div className="bg-[#141922] border border-white/10 rounded-2xl p-5 flex flex-col justify-between">
-              <p className="text-[10px] font-bold text-gray-500 tracking-widest uppercase flex items-center gap-1.5">
-                <BookOpen className="w-3 h-3" /> LOG ENTRIES
-              </p>
-              <div>
-                <p className="text-5xl font-black text-white">{entries.length}</p>
-                <p className="text-xs text-gray-500 mt-1">total records</p>
+            {[
+              { label: 'LOG ENTRIES', value: entries.length, sub: 'total records', icon: BookOpen, color: 'text-white' },
+              { label: 'OPEN ITEMS',  value: openItems, sub: 'active deferrals', icon: AlertTriangle, color: openItems > 0 ? 'text-amber-400' : 'text-white' },
+              { label: 'ACTIVE FAULTS', value: activeFaults.length, sub: 'EICAS/BITE', icon: Zap, color: activeFaults.length > 0 ? 'text-red-400' : 'text-white' },
+            ].map(({ label, value, sub, icon: Icon, color }) => (
+              <div key={label} className="bg-[#141922] border border-white/10 rounded-2xl p-5 flex flex-col justify-between">
+                <p className="text-[10px] font-bold text-gray-500 tracking-widest uppercase flex items-center gap-1.5">
+                  <Icon className="w-3 h-3" /> {label}
+                </p>
+                <div>
+                  <p className={cn('text-5xl font-black', color)}>{value}</p>
+                  <p className="text-xs text-gray-500 mt-1">{sub}</p>
+                </div>
               </div>
-            </div>
-
-            <div className="bg-[#141922] border border-white/10 rounded-2xl p-5 flex flex-col justify-between">
-              <p className="text-[10px] font-bold text-gray-500 tracking-widest uppercase flex items-center gap-1.5">
-                <AlertTriangle className="w-3 h-3" /> OPEN ITEMS
-              </p>
+            ))}
+            {/* Next LP# */}
+            <div className="col-span-3 bg-[#141922] border border-white/10 rounded-2xl px-5 py-3 flex items-center justify-between">
               <div>
-                <p className={cn('text-5xl font-black', openItems > 0 ? 'text-amber-400' : 'text-white')}>{openItems}</p>
-                <p className="text-xs text-gray-500 mt-1">active deferrals</p>
+                <p className="text-[10px] font-bold text-gray-500 tracking-widest uppercase">NEXT LOG PAGE</p>
+                <p className="text-2xl font-black text-primary font-mono">{nextLogPage}</p>
               </div>
-            </div>
-
-            <div className="bg-[#141922] border border-white/10 rounded-2xl p-5 flex flex-col justify-between">
-              <p className="text-[10px] font-bold text-gray-500 tracking-widest uppercase flex items-center gap-1.5">
-                <Zap className="w-3 h-3" /> NEXT LOG PAGE
-              </p>
-              <div>
-                <p className="text-3xl font-black text-amber-400 font-mono">{nextLogPage}</p>
-              </div>
+              <button onClick={() => { setEntryPreset(null); setShowNewEntry(true); }}
+                className="flex items-center gap-2 px-5 py-2.5 rounded-xl bg-primary text-primary-foreground text-sm font-extrabold hover:bg-primary/90 transition-colors">
+                <Plus className="w-4 h-4" /> New Entry
+              </button>
             </div>
           </div>
         </div>
 
-        {/* Fault Messages (EICAS/BITE) */}
+        {/* ── FAULT MESSAGES ─────────────────────────────────────────────────── */}
         <div className="bg-[#141922] border border-white/10 rounded-2xl overflow-hidden">
           <div className="flex items-center justify-between px-5 py-4 border-b border-white/10">
             <div>
@@ -336,34 +336,22 @@ export default function TechOpsLogbook() {
               <p className="text-xs text-gray-500 mt-0.5">System-generated fault codes and maintenance alerts</p>
             </div>
             <div className="flex items-center gap-2">
-              <button
-                onClick={() => setFaultTab('active')}
-                className={cn('flex flex-col items-center px-5 py-2 rounded-lg transition-all',
-                  faultTab === 'active' ? 'bg-red-900/50 border border-red-700' : 'bg-[#1a1f2e] border border-white/10'
-                )}
-              >
-                <span className="text-xs text-gray-400">ACTIVE</span>
-                <span className={cn('text-xl font-black', activeFaults.length > 0 ? 'text-red-400' : 'text-white')}>{activeFaults.length}</span>
-              </button>
-              <button
-                onClick={() => setFaultTab('cleared')}
-                className={cn('flex flex-col items-center px-5 py-2 rounded-lg transition-all',
-                  faultTab === 'cleared' ? 'bg-white/10 border border-white/20' : 'bg-[#1a1f2e] border border-white/10'
-                )}
-              >
-                <span className="text-xs text-gray-400">CLEARED</span>
-                <span className="text-xl font-black text-gray-300">{clearedFaults.length}</span>
-              </button>
-              <button
-                onClick={() => setShowNewFault(true)}
-                className="flex items-center gap-1.5 bg-red-700 hover:bg-red-600 text-white text-xs font-bold px-3 py-2 rounded-lg transition-colors"
-              >
+              {[{ id: 'active', label: 'ACTIVE', count: activeFaults.length, urgent: activeFaults.length > 0 },
+                { id: 'cleared', label: 'CLEARED', count: clearedFaults.length, urgent: false }].map(t => (
+                <button key={t.id} onClick={() => setFaultTab(t.id)}
+                  className={cn('flex flex-col items-center px-4 py-2 rounded-lg transition-all',
+                    faultTab === t.id ? 'bg-red-900/50 border border-red-700' : 'bg-[#1a1f2e] border border-white/10')}>
+                  <span className="text-[10px] text-gray-400 uppercase">{t.label}</span>
+                  <span className={cn('text-xl font-black', t.urgent ? 'text-red-400' : 'text-white')}>{t.count}</span>
+                </button>
+              ))}
+              <button onClick={() => setShowNewFault(true)}
+                className="flex items-center gap-1.5 bg-red-700 hover:bg-red-600 text-white text-xs font-bold px-3 py-2 rounded-lg transition-colors">
                 <Plus className="w-3.5 h-3.5" /> LOG FAULT
               </button>
             </div>
           </div>
 
-          {/* Fault List */}
           <div className="divide-y divide-white/5">
             {(faultTab === 'active' ? activeFaults : clearedFaults).length === 0 ? (
               <div className="px-5 py-10 text-center text-gray-600 text-sm">
@@ -373,6 +361,7 @@ export default function TechOpsLogbook() {
               (faultTab === 'active' ? activeFaults : clearedFaults).map(fault => {
                 const sev = SEVERITY_STYLES[fault.severity] || SEVERITY_STYLES.caution;
                 const SysIcon = SYSTEM_ICONS[fault.system] || AlertTriangle;
+                const alreadyLogged = entries.some(e => e.description?.includes(`[FAULT → LOGBOOK] ${fault.fault_code}`));
                 return (
                   <div key={fault.id} className={cn('flex items-start justify-between px-5 py-4 hover:bg-white/5 transition-colors border-l-2', sev.border)}>
                     <div className="flex items-start gap-3">
@@ -391,38 +380,14 @@ export default function TechOpsLogbook() {
                     {fault.status === 'active' && (
                       <div className="flex flex-col gap-1.5 flex-shrink-0">
                         <button
-                          onClick={() => {
-                            const alreadyLogged = entries.some(e =>
-                              e.description?.includes(`FaultMessage ID: ${fault.id}`) ||
-                              e.description?.includes(`[FAULT → LOGBOOK] ${fault.fault_code}`)
-                            );
-                            if (!alreadyLogged) {
-                              wireToLogbookMutation.mutate({ fault, ac: selectedAc });
-                            }
-                          }}
-                          disabled={
-                            wireToLogbookMutation.isPending ||
-                            entries.some(e =>
-                              e.description?.includes(`FaultMessage ID: ${fault.id}`) ||
-                              e.description?.includes(`[FAULT → LOGBOOK] ${fault.fault_code}`)
-                            )
-                          }
-                          title="Create logbook discrepancy entry from this fault"
-                          className={cn(
-                            'text-xs font-bold px-3 py-1.5 rounded-lg border transition-colors flex items-center gap-1',
-                            entries.some(e => e.description?.includes(`[FAULT → LOGBOOK] ${fault.fault_code}`))
-                              ? 'bg-primary/10 text-primary border-primary/30 cursor-default opacity-60'
-                              : 'bg-primary/20 text-primary border-primary/40 hover:bg-primary/30'
-                          )}
-                        >
-                          <FilePlus className="w-3 h-3" />
-                          {entries.some(e => e.description?.includes(`[FAULT → LOGBOOK] ${fault.fault_code}`))
-                            ? 'LOGGED' : 'LOG ENTRY'}
+                          onClick={() => { if (!alreadyLogged) wireToLogbookMutation.mutate({ fault, ac: selectedAc }); }}
+                          disabled={wireToLogbookMutation.isPending || alreadyLogged}
+                          className={cn('text-xs font-bold px-3 py-1.5 rounded-lg border transition-colors flex items-center gap-1',
+                            alreadyLogged ? 'bg-primary/10 text-primary border-primary/30 opacity-60 cursor-default' : 'bg-primary/20 text-primary border-primary/40 hover:bg-primary/30')}>
+                          <FilePlus className="w-3 h-3" />{alreadyLogged ? 'LOGGED' : 'LOG ENTRY'}
                         </button>
-                        <button
-                          onClick={() => clearFaultMutation.mutate({ id: fault.id })}
-                          className="text-xs font-bold px-3 py-1.5 rounded-lg bg-green-800/50 text-green-400 border border-green-700 hover:bg-green-700/50 transition-colors"
-                        >
+                        <button onClick={() => clearFaultMutation.mutate({ id: fault.id })}
+                          className="text-xs font-bold px-3 py-1.5 rounded-lg bg-green-800/50 text-green-400 border border-green-700 hover:bg-green-700/50 transition-colors">
                           CLEAR
                         </button>
                       </div>
@@ -439,134 +404,124 @@ export default function TechOpsLogbook() {
           </div>
         </div>
 
-        {/* Create New Entry Panel */}
-        <div className="bg-[#141922] border border-white/10 rounded-2xl p-4 space-y-3">
-          <div className="flex items-center gap-2">
-            <div className="w-6 h-6 rounded-md border border-white/20 flex items-center justify-center">
-              <Plus className="w-3.5 h-3.5 text-gray-400" />
-            </div>
-            <p className="text-sm font-extrabold tracking-widest uppercase text-white">Create New Entry</p>
-          </div>
-          <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
-            {[
-              { label: 'Pilot Discrepancy',       type: 'discrepancy',       border: 'border-red-700',    text: 'text-red-400',    bg: 'bg-red-950/40' },
-              { label: 'Technician Discrepancy',  type: 'discrepancy',       border: 'border-amber-800',  text: 'text-amber-500',  bg: 'bg-amber-950/40' },
-              { label: 'Correction',              type: 'corrective_action', border: 'border-green-700',  text: 'text-green-400',  bg: 'bg-green-950/40' },
-              { label: 'Parts Installation',      type: 'corrective_action', border: 'border-purple-700', text: 'text-purple-400', bg: 'bg-purple-950/40' },
-              { label: 'Request Deferral Extension', type: 'deferred',       border: 'border-yellow-700', text: 'text-yellow-400', bg: 'bg-yellow-950/40' },
-              { label: 'Parts Ordering',          type: 'info',              border: 'border-amber-900',  text: 'text-amber-600',  bg: 'bg-amber-950/30' },
-              { label: 'Oil Service',             type: 'info',              border: 'border-blue-800',   text: 'text-blue-300',   bg: 'bg-blue-950/40' },
-              { label: 'Oxygen Service',          type: 'info',              border: 'border-cyan-700',   text: 'text-cyan-400',   bg: 'bg-cyan-950/40' },
-            ].map(({ label, type, border, text, bg }) => (
-              <button
-                key={label}
-                onClick={() => { setEntryPreset({ entry_type: type, description: label }); setShowNewEntry(true); }}
-                className={cn('px-3 py-2.5 rounded-xl border font-bold text-xs tracking-wide transition-all hover:brightness-125', border, text, bg)}
-              >
-                {label}
+        {/* ── LOG ENTRIES ─────────────────────────────────────────────────────── */}
+        <div className="bg-[#141922] border border-white/10 rounded-2xl overflow-hidden">
+
+          {/* Role tabs */}
+          <div className="flex items-center gap-0 border-b border-white/10 px-5 pt-4">
+            {ROLE_TABS.map(({ id, label, icon: Icon }) => (
+              <button key={id} onClick={() => setViewRole(id)}
+                className={cn(
+                  'flex items-center gap-1.5 px-4 py-2 text-xs font-bold rounded-t-lg transition-all mr-1',
+                  viewRole === id
+                    ? 'bg-primary/15 text-primary border border-primary/30 border-b-0'
+                    : 'text-gray-500 hover:text-gray-300'
+                )}>
+                <Icon className="w-3.5 h-3.5" /> {label}
               </button>
             ))}
           </div>
 
-          {/* Log Entries / MCC tabs */}
-          <div className="flex items-center gap-6 pt-2 border-t border-white/10 mt-1">
-            <button
-              onClick={() => setLogTab('entries')}
-              className={cn('text-sm font-bold pb-1 transition-colors', logTab === 'entries' ? 'text-amber-400 border-b-2 border-amber-400' : 'text-gray-500 hover:text-gray-300')}
-            >
-              Log Entries
-            </button>
-            <button
-              onClick={() => setLogTab('mcc')}
-              className={cn('flex items-center gap-1.5 text-sm font-bold pb-1 transition-colors', logTab === 'mcc' ? 'text-amber-400 border-b-2 border-amber-400' : 'text-gray-500 hover:text-gray-300')}
-            >
-              <Shield className="w-3.5 h-3.5" /> MCC Reopen Requests
-            </button>
+          {/* Quick filter bar */}
+          <div className="flex items-center gap-2 px-5 py-3 border-b border-white/6 overflow-x-auto scrollbar-hide">
+            <Filter className="w-3.5 h-3.5 text-gray-600 flex-shrink-0" />
+            {QUICK_FILTERS.map(f => (
+              <button key={f.id} onClick={() => setQuickFilter(f.id)}
+                className={cn('flex-shrink-0 px-3 py-1.5 rounded-lg text-[11px] font-bold border transition-all',
+                  quickFilter === f.id
+                    ? 'bg-primary/20 border-primary text-primary'
+                    : 'bg-[#1a1f2e] border-white/10 text-gray-400 hover:text-white hover:border-white/20')}>
+                {f.label}
+              </button>
+            ))}
           </div>
-        </div>
 
-        {/* Log Entries */}
-        <div className="bg-[#141922] border border-white/10 rounded-2xl overflow-hidden">
-          <div className="flex items-center justify-between px-5 py-4 border-b border-white/10">
-            <div>
-              <p className="text-base font-extrabold tracking-wide">{logTab === 'entries' ? 'LOG ENTRIES' : 'MCC REOPEN REQUESTS'}</p>
-              <p className="text-xs text-gray-500 mt-0.5">Discrepancies, corrective actions, and deferrals</p>
-            </div>
-            <button
-              onClick={() => { setEntryPreset(null); setShowNewEntry(true); }}
-              className="flex items-center gap-1.5 bg-primary text-primary-foreground text-xs font-bold px-4 py-2 rounded-lg hover:bg-primary/90 transition-colors"
-            >
+          {/* Section header */}
+          <div className="flex items-center justify-between px-5 py-3">
+            <p className="text-sm text-gray-500">
+              {filteredEntries.length} {filteredEntries.length === 1 ? 'entry' : 'entries'}
+              {quickFilter !== 'all' && <span className="text-primary ml-1 font-bold">· filtered</span>}
+            </p>
+            <button onClick={() => { setEntryPreset(null); setShowNewEntry(true); }}
+              className="flex items-center gap-1.5 bg-primary text-primary-foreground text-xs font-bold px-4 py-2 rounded-lg hover:bg-primary/90 transition-colors">
               <Plus className="w-3.5 h-3.5" /> NEW ENTRY
             </button>
           </div>
 
-          <div className="divide-y divide-white/5">
-            {entries.length === 0 ? (
-              <div className="px-5 py-10 text-center text-gray-600 text-sm">
-                No log entries yet — tap "NEW ENTRY" to create the first record
+          {/* Entry list */}
+          <div className="px-5 pb-5 space-y-3">
+            {filteredEntries.length === 0 ? (
+              <div className="py-14 text-center text-gray-600 text-sm space-y-2">
+                <BookOpen className="w-10 h-10 text-gray-800 mx-auto" />
+                <p>No log entries match this filter</p>
               </div>
             ) : (
-              <div className="p-4 space-y-3">
-                {entries.map((entry) => {
-                  if (entry.entry_type === 'discrepancy') {
-                    return (
-                      <DiscrepancyCard key={entry.id} entry={entry} aircraftTail={selectedTail} />
-                    );
-                  }
-                  const style = ENTRY_STYLES[entry.entry_type] || ENTRY_STYLES.discrepancy;
-                  return (
-                    <div key={entry.id} className={cn('px-5 py-4 border-l-2 rounded-xl bg-[#141922] hover:bg-white/5 transition-colors', style.border)}>
-                      <div className="flex items-start justify-between gap-3">
-                        <div className="flex-1">
-                          <div className="flex items-center gap-2 mb-1">
-                            <span className={cn('text-[10px] font-bold tracking-widest', style.color)}>{style.label}</span>
-                            {entry.log_page && <span className="text-[10px] font-mono font-bold text-sky-400 bg-sky-500/15 border border-sky-500/30 px-2 py-0.5 rounded">{entry.log_page}</span>}
-                            {entry.ata_chapter && <span className="text-[10px] text-gray-600">ATA {entry.ata_chapter}</span>}
-                          </div>
-                          <p className="text-sm text-gray-200 font-medium">{entry.description}</p>
-                          {entry.corrective_action && (
-                            <p className="text-xs text-green-400 mt-1">✓ {entry.corrective_action}</p>
-                          )}
-                          <div className="flex items-center gap-3 mt-1.5">
-                            {entry.technician_name && (
-                              <span className="text-[10px] text-gray-600 flex items-center gap-1">
-                                <Wrench className="w-2.5 h-2.5" /> {entry.technician_name}
-                              </span>
-                            )}
-                            {entry.is_deferred && !entry.is_cleared && (
-                              <span className="text-[10px] font-bold text-amber-400 bg-amber-500/10 px-2 py-0.5 rounded">
-                                MEL {entry.mel_category} — {entry.mel_reference}
-                              </span>
-                            )}
-                            {entry.is_cleared && (
-                              <span className="text-[10px] font-bold text-green-400 flex items-center gap-1">
-                                <CheckCircle className="w-2.5 h-2.5" /> CLEARED
-                              </span>
-                            )}
-                          </div>
-                        </div>
-                        <div className="text-right flex-shrink-0">
-                          <p className="text-[10px] font-mono text-gray-600">{new Date(entry.created_date).toLocaleDateString()}</p>
-                          <p className="text-[10px] font-mono text-gray-600">{new Date(entry.created_date).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: false })}</p>
-                        </div>
-                      </div>
-                    </div>
-                  );
-                })}
-              </div>
+              filteredEntries.map(entry => (
+                <LogEntryCard key={entry.id} entry={entry} viewRole={viewRole} />
+              ))
             )}
+          </div>
+        </div>
+
+        {/* ── CREATE ENTRY QUICK PANEL ──────────────────────────────────────── */}
+        <div className="bg-[#141922] border border-white/10 rounded-2xl p-4">
+          <p className="text-xs font-extrabold text-gray-500 uppercase tracking-widest mb-3 flex items-center gap-2">
+            <Plus className="w-3.5 h-3.5" /> Quick Entry Templates
+          </p>
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+            {[
+              { label: 'Pilot Discrepancy',       type: 'discrepancy',       border: 'border-red-700',    text: 'text-red-400',    bg: 'bg-red-950/40' },
+              { label: 'Tech Discrepancy',         type: 'discrepancy',       border: 'border-amber-800',  text: 'text-amber-500',  bg: 'bg-amber-950/40' },
+              { label: 'Corrective Action',        type: 'corrective_action', border: 'border-green-700',  text: 'text-green-400',  bg: 'bg-green-950/40' },
+              { label: 'Parts Installation',       type: 'corrective_action', border: 'border-purple-700', text: 'text-purple-400', bg: 'bg-purple-950/40' },
+              { label: 'Deferral / MEL',           type: 'deferred',          border: 'border-yellow-700', text: 'text-yellow-400', bg: 'bg-yellow-950/40' },
+              { label: 'Parts Ordering',           type: 'info',              border: 'border-amber-900',  text: 'text-amber-600',  bg: 'bg-amber-950/30' },
+              { label: 'Oil Service',              type: 'info',              border: 'border-blue-800',   text: 'text-blue-300',   bg: 'bg-blue-950/40' },
+              { label: 'Oxygen Service',           type: 'info',              border: 'border-cyan-700',   text: 'text-cyan-400',   bg: 'bg-cyan-950/40' },
+            ].map(({ label, type, border, text, bg }) => (
+              <button key={label}
+                onClick={() => { setEntryPreset({ entry_type: type, description: label }); setShowNewEntry(true); }}
+                className={cn('px-3 py-2.5 rounded-xl border font-bold text-xs tracking-wide transition-all hover:brightness-125', border, text, bg)}>
+                {label}
+              </button>
+            ))}
           </div>
         </div>
       </div>
 
-      {showQRScanner && (
-        <AircraftQRScanner
-          aircraft={aircraft}
-          onScan={(tail) => setSelectedTail(tail)}
-          onClose={() => setShowQRScanner(false)}
-        />
-      )}
+      {/* ── STICKY MOBILE ACTIONS ─────────────────────────────────────────────── */}
+      <div className="fixed bottom-0 left-0 right-0 z-40 bg-[#0d1117]/95 backdrop-blur border-t border-white/10 px-5 py-3 flex items-center gap-2 lg:hidden">
+        <button onClick={() => { setEntryPreset({ entry_type: 'discrepancy' }); setShowNewEntry(true); }}
+          className="flex-1 flex flex-col items-center gap-1 py-2 rounded-xl bg-red-900/40 border border-red-700/50 text-red-400 hover:bg-red-900/60 transition-colors">
+          <AlertTriangle className="w-4 h-4" />
+          <span className="text-[9px] font-bold uppercase">Discrepancy</span>
+        </button>
+        <button onClick={() => { setEntryPreset({ entry_type: 'corrective_action' }); setShowNewEntry(true); }}
+          className="flex-1 flex flex-col items-center gap-1 py-2 rounded-xl bg-green-900/40 border border-green-700/50 text-green-400 hover:bg-green-900/60 transition-colors">
+          <CheckCircle className="w-4 h-4" />
+          <span className="text-[9px] font-bold uppercase">Fix / RTS</span>
+        </button>
+        <button onClick={() => { setEntryPreset({ entry_type: 'deferred' }); setShowNewEntry(true); }}
+          className="flex-1 flex flex-col items-center gap-1 py-2 rounded-xl bg-amber-900/40 border border-amber-700/50 text-amber-400 hover:bg-amber-900/60 transition-colors">
+          <Tag className="w-4 h-4" />
+          <span className="text-[9px] font-bold uppercase">Defer</span>
+        </button>
+        <button onClick={() => { setEntryPreset({ entry_type: 'info', description: 'Parts Installation' }); setShowNewEntry(true); }}
+          className="flex-1 flex flex-col items-center gap-1 py-2 rounded-xl bg-purple-900/40 border border-purple-700/50 text-purple-400 hover:bg-purple-900/60 transition-colors">
+          <Package className="w-4 h-4" />
+          <span className="text-[9px] font-bold uppercase">Add Part</span>
+        </button>
+        <button onClick={() => { setEntryPreset({ entry_type: 'info', description: 'Photo documentation' }); setShowNewEntry(true); }}
+          className="flex-1 flex flex-col items-center gap-1 py-2 rounded-xl bg-blue-900/40 border border-blue-700/50 text-blue-400 hover:bg-blue-900/60 transition-colors">
+          <FileText className="w-4 h-4" />
+          <span className="text-[9px] font-bold uppercase">Notes</span>
+        </button>
+      </div>
 
+      {/* ── MODALS ───────────────────────────────────────────────────────────── */}
+      {showQRScanner && (
+        <AircraftQRScanner aircraft={aircraft} onScan={(tail) => setSelectedTail(tail)} onClose={() => setShowQRScanner(false)} />
+      )}
       {showNewEntry && (
         <NewLogEntryModal
           aircraftTail={selectedTail}
@@ -576,13 +531,8 @@ export default function TechOpsLogbook() {
           onSave={(data) => createEntryMutation.mutate(data)}
         />
       )}
-
       {showNewFault && (
-        <NewFaultModal
-          aircraftTail={selectedTail}
-          onClose={() => setShowNewFault(false)}
-          onSave={(data) => createFaultMutation.mutate(data)}
-        />
+        <NewFaultModal aircraftTail={selectedTail} onClose={() => setShowNewFault(false)} onSave={(data) => createFaultMutation.mutate(data)} />
       )}
     </div>
   );
