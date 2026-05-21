@@ -7,22 +7,17 @@ export function SupabaseAuthProvider({ children }) {
   const [session, setSession] = useState(undefined); // undefined = loading
 
   useEffect(() => {
-    let subscription;
+    const client = getSupabaseAuthClient();
 
-    getSupabaseAuthClient().then((client) => {
-      client.auth.getSession().then(({ data: { session } }) => {
-        setSession(session);
-      });
-
-      const { data } = client.auth.onAuthStateChange((_event, session) => {
-        setSession(session);
-      });
-      subscription = data.subscription;
-    }).catch(() => {
-      setSession(null);
+    client.auth.getSession().then(({ data: { session } }) => {
+      setSession(session);
     });
 
-    return () => subscription?.unsubscribe();
+    const { data } = client.auth.onAuthStateChange((_event, session) => {
+      setSession(session);
+    });
+
+    return () => data.subscription.unsubscribe();
   }, []);
 
   return (

@@ -3,7 +3,7 @@ import { getSupabaseAuthClient } from '@/lib/supabaseAuth';
 import { Plane, Lock, Mail, Eye, EyeOff, UserPlus, LogIn } from 'lucide-react';
 
 export default function SupabaseLogin() {
-  const [mode, setMode] = useState('login'); // 'login' | 'signup'
+  const [mode, setMode] = useState('login');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
@@ -18,7 +18,7 @@ export default function SupabaseLogin() {
     setLoading(true);
 
     try {
-      const client = await getSupabaseAuthClient();
+      const client = getSupabaseAuthClient();
 
       if (mode === 'login') {
         const { error } = await client.auth.signInWithPassword({ email, password });
@@ -26,7 +26,7 @@ export default function SupabaseLogin() {
       } else {
         const { error } = await client.auth.signUp({ email, password });
         if (error) setError(error.message);
-        else setSuccess('Account created! Check your email to confirm your account, then sign in.');
+        else setSuccess('Account created! Check your email to confirm, then sign in.');
       }
     } catch (err) {
       setError(err.message);
@@ -91,14 +91,7 @@ export default function SupabaseLogin() {
             <label className="text-xs font-bold text-muted-foreground uppercase tracking-widest">Email</label>
             <div className="relative">
               <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-              <input
-                type="email"
-                value={email}
-                onChange={e => setEmail(e.target.value)}
-                required
-                placeholder="you@aerodyne.com"
-                className={inputCls}
-              />
+              <input type="email" value={email} onChange={e => setEmail(e.target.value)} required placeholder="you@aerodyne.com" className={inputCls} />
             </div>
           </div>
 
@@ -114,21 +107,15 @@ export default function SupabaseLogin() {
                 placeholder="••••••••"
                 className="w-full bg-background border border-border rounded-xl pl-10 pr-10 py-3 text-sm text-foreground placeholder-muted-foreground outline-none focus:border-primary transition-colors"
               />
-              <button
-                type="button"
-                onClick={() => setShowPassword(v => !v)}
-                className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
-              >
+              <button type="button" onClick={() => setShowPassword(v => !v)}
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors">
                 {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
               </button>
             </div>
           </div>
 
-          <button
-            type="submit"
-            disabled={loading}
-            className="w-full py-3 rounded-xl bg-primary text-primary-foreground font-extrabold text-sm hover:bg-primary/90 disabled:opacity-50 transition-colors tracking-wide"
-          >
+          <button type="submit" disabled={loading}
+            className="w-full py-3 rounded-xl bg-primary text-primary-foreground font-extrabold text-sm hover:bg-primary/90 disabled:opacity-50 transition-colors tracking-wide">
             {loading
               ? (mode === 'login' ? 'Signing in…' : 'Creating account…')
               : (mode === 'login' ? 'Sign In' : 'Create Account')}
