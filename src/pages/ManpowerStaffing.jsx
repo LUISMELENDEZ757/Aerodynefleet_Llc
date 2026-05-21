@@ -315,43 +315,7 @@ function AssignmentBoard({ technicians, aircraft, onAssign }) {
         </div>
       </div>
 
-      {/* Aircraft palette — grouped by station */}
-      <div className="px-5">
-        <div className="bg-[#111827] border border-white/8 rounded-xl p-3 space-y-3">
-          <p className="text-[10px] font-extrabold text-gray-500 uppercase tracking-widest">Aircraft by Station — drag onto calendar cells</p>
-          {(() => {
-            const byStation = aircraft.reduce((acc, a) => {
-              const s = a.base_station || 'UNKNOWN';
-              if (!acc[s]) acc[s] = [];
-              acc[s].push(a);
-              return acc;
-            }, {});
-            return Object.entries(byStation).sort(([a], [b]) => a.localeCompare(b)).map(([station, acList]) => (
-              <div key={station}>
-                <div className="flex items-center gap-2 mb-1.5">
-                  <MapPin className="w-3 h-3 text-gray-500" />
-                  <span className="text-[10px] font-extrabold text-gray-400 uppercase tracking-widest">{station}</span>
-                  <span className="text-[9px] text-gray-600">({acList.length})</span>
-                </div>
-                <div className="flex flex-wrap gap-2">
-                  {acList.map(a => (
-                    <div
-                      key={a.id}
-                      draggable
-                      onDragStart={e => e.dataTransfer.setData('tail', a.tail_number)}
-                      className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-[#1a2235] border border-white/10 cursor-grab active:cursor-grabbing hover:border-cyan-500/40 transition-colors select-none"
-                    >
-                      <Plane className="w-3 h-3 text-cyan-400" />
-                      <span className="text-xs font-bold text-white font-mono">{a.tail_number}</span>
-                      <span className="text-[10px] text-gray-500">{a.aircraft_type?.replace('B737-', '737-').replace('B737', '737')}</span>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            ));
-          })()}
-        </div>
-      </div>
+
 
       {/* Board grid */}
       <div className="px-5 pb-6 overflow-x-auto">
