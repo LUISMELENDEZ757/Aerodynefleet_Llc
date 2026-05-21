@@ -71,12 +71,27 @@ import FleetIngestionHub from '@/components/fleet/FleetIngestionHub';
 
 const STATUS_OPTIONS = ['All Status', 'active', 'oos', 'maintenance', 'retired'];
 
+// Industry-standard aviation status color palette
 const STATUS_STYLES = {
-  active:      { label: 'RELEASED',      bg: 'bg-green-600',  icon: CheckCircle },
-  oos:         { label: 'OUT OF SERVICE', bg: 'bg-red-600',    icon: Wrench },
-  maintenance: { label: 'MAINTENANCE',   bg: 'bg-orange-500', icon: Wrench },
-  retired:     { label: 'RETIRED',       bg: 'bg-gray-600',   icon: Plane },
+  active:      { label: 'IN SERVICE',    bg: 'bg-[#388E3C]',  border: 'border-[#388E3C]', text: 'text-[#66BB6A]', icon: CheckCircle },
+  oos:         { label: 'AOG',           bg: 'bg-[#D32F2F]',  border: 'border-[#D32F2F]', text: 'text-[#EF5350]', icon: Wrench },
+  maintenance: { label: 'IN WORK',       bg: 'bg-[#1565C0]',  border: 'border-[#1565C0]', text: 'text-[#42A5F5]', icon: Wrench },
+  retired:     { label: 'RETIRED',       bg: 'bg-[#616161]',  border: 'border-[#616161]', text: 'text-[#9E9E9E]', icon: Plane },
+  ron:         { label: 'RON',           bg: 'bg-[#546E7A]',  border: 'border-[#546E7A]', text: 'text-[#90A4AE]', icon: Clock },
 };
+
+// MCC priority sort order: AOG → IN WORK → RON → IN SERVICE → RETIRED
+const STATUS_PRIORITY = { oos: 0, maintenance: 1, ron: 2, active: 3, retired: 4 };
+
+// Quick filter definitions
+const QUICK_FILTERS = [
+  { id: null,          label: 'All',           color: 'text-gray-400' },
+  { id: 'aog',         label: '🔴 AOG',         color: 'text-red-400' },
+  { id: 'mel',         label: '🟡 MEL',         color: 'text-amber-400' },
+  { id: 'etops',       label: '🌍 ETOPS',       color: 'text-cyan-400' },
+  { id: 'maintenance', label: '🔵 In Work',     color: 'text-blue-400' },
+  { id: 'active',      label: '🟢 In Service',  color: 'text-green-400' },
+];
 
 // ── KPI Card ─────────────────────────────────────────────────────────────────
 function KpiCard({ label, value, sublabel, valueColor, icon: Icon, iconColor, onClick }) {
@@ -521,111 +536,114 @@ function DiscrepancyBadges({ discrepancies, melItems, aircraftStatus }) {
   );
 }
 
+// ── Turn Readiness Score ─────────────────────────────────────────────────────
+function ReadinessScore({ aircraft, openDiscs = [], melItems = [] }) {
+  const issues = [];
+  if (aircraft.status === 'oos') issues.push('AOG');
+  if (aircraft.status === 'maintenance') issues.push('In Work');
+  if (openDiscs.length > 0) issues.push(`${openDiscs.length} write-up${openDiscs.length > 1 ? 's' : ''}`);
+  const expiredMels = melItems.filter(m => m.status === 'expired');
+  if (expiredMels.length > 0) issues.push(`${expiredMels.length} expired MEL`);
+
+  const score = issues.length === 0 ? 'green' : issues.length <= 1 ? 'yellow' : 'red';
+  const colors = { green: 'bg-[#388E3C] text-white', yellow: 'bg-[#FFA000] text-black', red: 'bg-[#D32F2F] text-white' };
+  const labels = { green: 'RDY', yellow: 'AT RISK', red: 'NOT RDY' };
+
+  return (
+    <div className={cn('flex items-center gap-1 px-1.5 py-0.5 rounded text-[9px] font-black tracking-wide', colors[score])}>
+      {labels[score]}
+    </div>
+  );
+}
+
 // ── Aircraft Card ────────────────────────────────────────────────────────────
-function AircraftCard({ aircraft, onSelect, discrepancies, activeLocks = [], oosEntries = [], timelineEvents = [], openTasks = [] }) {
-  const [locationType, setLocationType] = useState('terminal');
+function AircraftCard({ aircraft, onSelect, discrepancies, melItems = [], activeLocks = [], oosEntries = [], timelineEvents = [], openTasks = [] }) {
   const status = STATUS_STYLES[aircraft.status] || STATUS_STYLES.active;
   const StatusIcon = status.icon;
   const openDiscs = discrepancies?.filter(d => d.discrepancy_status !== 'CLOSED') || [];
-  const hasHighRisk = openDiscs.length >= 3 || aircraft.status === 'oos' || aircraft.status === 'maintenance';
   const acLock = activeLocks.find(l => l.aircraft_tail === aircraft.tail_number);
   const tailOpenTasks = openTasks.filter(t => t.aircraft_tail === aircraft.tail_number);
+  const activeMels = melItems.filter(m => m.status !== 'cleared' && m.status !== 'voided');
+  const expiredMels = melItems.filter(m => m.status === 'expired');
 
-  // Check if aircraft has been OOS for 24+ hours
+  // OOS duration check
   const isOosOver24h = (() => {
     if (aircraft.status !== 'oos' && aircraft.status !== 'maintenance') return false;
     const tailEntry = oosEntries.find(e => e.tail_number === aircraft.tail_number || e.aircraft_tail === aircraft.tail_number);
     if (!tailEntry) return false;
-    // Use oos_date if available (YYYY-MM-DD string), else fall back to created_date
-    let refDate;
-    if (tailEntry.oos_date) {
-      // oos_date is "YYYY-MM-DD" — compare as date strings against yesterday
-      const today = new Date();
-      today.setHours(0, 0, 0, 0);
-      const oosDay = new Date(tailEntry.oos_date + 'T00:00:00');
-      refDate = oosDay;
-    } else {
-      refDate = new Date(tailEntry.created_date);
-    }
-    const hoursOos = (Date.now() - refDate.getTime()) / (1000 * 60 * 60);
-    return hoursOos >= 24;
+    const refDate = tailEntry.oos_date
+      ? new Date(tailEntry.oos_date + 'T00:00:00')
+      : new Date(tailEntry.created_date);
+    return (Date.now() - refDate.getTime()) / 3600000 >= 24;
   })();
-  
-  const LocationIcon = locationType === 'terminal' ? TerminalIcon : HangarIcon;
-  
-  // Check if aircraft is OOS without ownership taken via Taking Ownership modal
-  const oosEntry = oosEntries.find(e => e.aircraft_tail === aircraft.tail_number || e.tail_number === aircraft.tail_number);
-  const hasOwnershipEvent = timelineEvents?.some(e => e.aircraft_tail === aircraft.tail_number && e.event_type === 'taking_ownership');
-  const shouldPulsate = aircraft.status === 'oos' && oosEntry && !hasOwnershipEvent && aircraft.tail_number === 'N505AD';
+
+  // Card border based on urgency
+  const borderCls = acLock ? 'border-[#D32F2F]/70 bg-red-950/10' :
+    aircraft.status === 'oos' ? 'border-[#D32F2F]/50' :
+    aircraft.status === 'maintenance' ? 'border-[#1565C0]/50' :
+    expiredMels.length > 0 ? 'border-[#FFA000]/50' :
+    openDiscs.length > 0 ? 'border-[#FFA000]/30' : 'border-border';
 
   return (
     <div onClick={() => onSelect(aircraft)}
-    className={cn(
-      "bg-card rounded-2xl border p-5 flex flex-col gap-3 hover:border-primary/40 transition-all cursor-pointer active:scale-[0.97]",
-      shouldPulsate ? 'animate-pulse border-orange-500 bg-orange-950/20' :
-      acLock ? 'border-red-500/60 bg-red-950/10' : hasHighRisk ? 'border-red-500/40' : openDiscs.length > 0 ? 'border-amber-500/40' : 'border-border'
-    )}>
-    <div className="flex items-start justify-between">
-      <div>
-        <div className="flex items-center gap-2 flex-wrap">
-          <p className="text-xl font-extrabold text-primary tracking-wide font-mono">{aircraft.tail_number}</p>
-          {aircraft.mcc_watch && (
-            <div className="flex items-center gap-1 px-2 py-0.5 rounded-lg bg-amber-500 border border-amber-400 animate-pulse" title="MCC Watch — Focus on this aircraft">
-              <Eye className="w-3 h-3 text-black" />
-              <span className="text-[9px] font-extrabold text-black">MCC WATCH</span>
-            </div>
-          )}
-          {aircraft.ferry_flight && (
-            <div className="flex items-center gap-1 px-2 py-0.5 rounded-lg bg-sky-500 border border-sky-400 animate-pulse" title="Scheduled for Ferry Flight">
-              <Plane className="w-3 h-3 text-white" />
-              <span className="text-[9px] font-extrabold text-white">FERRY</span>
-            </div>
-          )}
-          {isOosOver24h && (
-            <div className="flex items-center gap-1 px-2 py-0.5 rounded-lg bg-amber-800/60 border border-amber-600/60" title="Aircraft has been OOS for 24+ hours">
-              <span className="text-[11px]">⏳</span>
-              <span className="text-[9px] font-extrabold text-amber-400">24H+</span>
-            </div>
-          )}
-          {acLock && (
-            <div className={cn("flex items-center gap-1 px-2 py-0.5 rounded-lg border", acLock.is_active ? "bg-red-600 border-red-500" : "bg-green-600 border-green-500")} title={acLock.is_active ? `MCC Lock: ${acLock.reason}` : "Released by Maintenance Control"}>
-              {acLock.is_active ? <Lock className="w-3 h-3 text-white" /> : <LockOpen className="w-3 h-3 text-white" />}
-              <span className="text-[9px] font-extrabold text-white">{acLock.is_active ? "LOCKED" : "UNLOCKED"}</span>
-            </div>
-          )}
+      className={cn('bg-card rounded-xl border flex flex-col cursor-pointer hover:brightness-110 transition-all active:scale-[0.97]', borderCls)}>
+
+      {/* ── ROW 1: Identity ── */}
+      <div className="px-3 pt-3 pb-2">
+        <div className="flex items-start justify-between gap-1">
+          <div className="min-w-0">
+            <p className="text-base font-black text-primary tracking-wide font-mono leading-none">{aircraft.tail_number}</p>
+            <p className="text-[11px] font-medium text-gray-400 mt-0.5">{aircraft.aircraft_type}</p>
+            <p className="text-[10px] text-gray-600 mt-0.5">{aircraft.base_station || '—'}</p>
+          </div>
+          <ReadinessScore aircraft={aircraft} openDiscs={openDiscs} melItems={melItems} />
         </div>
-        <p className="text-xs text-gray-400 mt-0.5">{aircraft.aircraft_type}</p>
       </div>
-      <Plane className={cn("w-4 h-4 mt-1", aircraft.status === 'active' ? 'text-green-400' : aircraft.status === 'oos' ? 'text-red-400' : aircraft.status === 'maintenance' ? 'text-orange-400' : 'text-gray-600')} />
-    </div>
-      <div className="flex items-center justify-between">
-        <p className="text-xs text-gray-500">
-          Base: <span className="font-bold text-gray-300">{aircraft.base_station || '—'}</span>
-        </p>
-        <button
-          onClick={(e) => {
-            e.stopPropagation();
-            setLocationType(locationType === 'terminal' ? 'hangar' : 'terminal');
-          }}
-          className="flex-shrink-0 ml-2 p-2 rounded-lg bg-secondary hover:bg-secondary/80 transition-colors"
-          title={`Click to switch to ${locationType === 'terminal' ? 'hangar' : 'terminal'}`}
-        >
-          <LocationIcon className="w-6 h-6 text-primary" />
-        </button>
-      </div>
-      <div className="flex flex-wrap gap-1.5">
-        <span className={cn('flex items-center gap-1 px-2.5 py-1 rounded-lg text-[10px] font-extrabold text-white', status.bg)}>
-          <StatusIcon className="w-3 h-3" /> {status.label}
+
+      {/* ── ROW 2: Status + Badges ── */}
+      <div className="px-3 pb-2 flex flex-wrap gap-1 items-center">
+        <span className={cn('flex items-center gap-1 px-2 py-0.5 rounded text-[9px] font-black text-white', status.bg)}>
+          <StatusIcon className="w-2.5 h-2.5" /> {status.label}
         </span>
-        {aircraft.engine_type && (
-          <span className="text-[10px] font-bold px-2 py-1 rounded-lg bg-white/5 text-gray-400 truncate max-w-[100px]">{aircraft.engine_type}</span>
+        {aircraft.etops_approval && (
+          <span className="text-[9px] font-bold px-1.5 py-0.5 rounded bg-cyan-900/60 text-cyan-400 border border-cyan-700/40">
+            ETOPS-{aircraft.etops_approval}
+          </span>
+        )}
+        {aircraft.cat_approval && aircraft.cat_approval !== 'CAT I' && (
+          <span className="text-[9px] font-bold px-1.5 py-0.5 rounded bg-indigo-900/60 text-indigo-300 border border-indigo-700/40">
+            {aircraft.cat_approval}
+          </span>
+        )}
+        {activeMels.length > 0 && (
+          <span className="text-[9px] font-black px-1.5 py-0.5 rounded bg-[#FFA000]/20 text-[#FFA000] border border-[#FFA000]/40">
+            MEL {activeMels.length}
+          </span>
+        )}
+        {acLock && (
+          <span className="text-[9px] font-black px-1.5 py-0.5 rounded bg-[#D32F2F]/20 text-[#EF5350] border border-[#D32F2F]/40 flex items-center gap-0.5">
+            <Lock className="w-2 h-2" /> LOCKED
+          </span>
+        )}
+        {aircraft.mcc_watch && (
+          <span className="text-[9px] font-black px-1.5 py-0.5 rounded bg-amber-500/20 text-amber-400 border border-amber-500/40 animate-pulse flex items-center gap-0.5">
+            <Eye className="w-2 h-2" /> WATCH
+          </span>
+        )}
+        {aircraft.ferry_flight && (
+          <span className="text-[9px] font-bold px-1.5 py-0.5 rounded bg-sky-500/20 text-sky-400 border border-sky-500/40">
+            FERRY
+          </span>
         )}
       </div>
-      <DiscrepancyBadges discrepancies={discrepancies} melItems={[]} aircraftStatus={aircraft.status} />
-      {tailOpenTasks.length > 0 && (
-        <div className="border-t border-blue-500/20 pt-2 mt-1 flex items-center gap-1.5">
-          <Wrench className="w-3 h-3 text-blue-400" />
-          <span className="text-[10px] font-extrabold text-blue-400">{tailOpenTasks.length} Assigned Task{tailOpenTasks.length > 1 ? 's' : ''}</span>
+
+      {/* ── ROW 3: Risk indicators ── */}
+      {(openDiscs.length > 0 || expiredMels.length > 0 || isOosOver24h || tailOpenTasks.length > 0) && (
+        <div className="px-3 pb-2.5 pt-1 border-t border-white/6 flex flex-col gap-0.5">
+          {isOosOver24h && <span className="text-[9px] text-amber-400 font-bold">⏳ OOS 24h+</span>}
+          {openDiscs.length > 0 && <span className="text-[9px] text-amber-400 font-bold">⚠️ {openDiscs.length} Open write-up{openDiscs.length > 1 ? 's' : ''}</span>}
+          {expiredMels.length > 0 && <span className="text-[9px] text-red-400 font-bold">🔴 {expiredMels.length} Expired MEL</span>}
+          {tailOpenTasks.length > 0 && <span className="text-[9px] text-blue-400 font-bold">🔧 {tailOpenTasks.length} task{tailOpenTasks.length > 1 ? 's' : ''} assigned</span>}
         </div>
       )}
     </div>
@@ -688,9 +706,8 @@ export default function FleetDashboard() {
   const [viewMode, setViewMode] = useState('grid');
   const [selectedAircraft, setSelectedAircraft] = useState(null);
   const [kpiFilter, setKpiFilter] = useState(null);
+  const [quickFilter, setQuickFilter] = useState(null); // 'aog' | 'mel' | 'etops' | 'maintenance' | 'active' | null
   const [showAddWizard, setShowAddWizard] = useState(false);
-  const [removeMode, setRemoveMode] = useState(false);
-  const [selectedForDelete, setSelectedForDelete] = useState(null);
   const queryClient = useQueryClient();
 
   const { activeFleet, activeFleetId } = useFleet();
@@ -731,6 +748,12 @@ export default function FleetDashboard() {
     refetchInterval: 60000,
   });
 
+  const { data: allMelItems = [] } = useQuery({
+    queryKey: ['fleet-all-mel'],
+    queryFn: () => base44.entities.MELItem.list('-created_date', 2000),
+    refetchInterval: 120000,
+  });
+
   // Map tail -> open (non-closed) discrepancy entries
   const discrepanciesByTail = openDiscrepancies.reduce((acc, e) => {
     if (e.discrepancy_status !== 'CLOSED') {
@@ -740,21 +763,39 @@ export default function FleetDashboard() {
     return acc;
   }, {});
 
+  // Map tail -> MEL items
+  const melByTail = allMelItems.reduce((acc, m) => {
+    if (!acc[m.aircraft_tail]) acc[m.aircraft_tail] = [];
+    acc[m.aircraft_tail].push(m);
+    return acc;
+  }, {});
+
   const total       = aircraft.length;
   const inService   = aircraft.filter(a => a.status === 'active').length;
   const inWork      = aircraft.filter(a => a.status === 'maintenance').length;
   const outOfSvc    = aircraft.filter(a => a.status === 'oos').length;
+  const aogCount    = outOfSvc;
 
-  const filtered = aircraft.filter(a => {
-    const matchesSearch =
-      !search ||
-      a.tail_number?.toLowerCase().includes(search.toLowerCase()) ||
-      a.base_station?.toLowerCase().includes(search.toLowerCase()) ||
-      a.aircraft_type?.toLowerCase().includes(search.toLowerCase());
-    const matchesStatus = statusFilter === 'All Status' || a.status === statusFilter;
-    const matchesKpi = !kpiFilter || a.status === kpiFilter;
-    return matchesSearch && matchesStatus && matchesKpi;
-  });
+  const filtered = aircraft
+    .filter(a => {
+      const matchesSearch =
+        !search ||
+        a.tail_number?.toLowerCase().includes(search.toLowerCase()) ||
+        a.base_station?.toLowerCase().includes(search.toLowerCase()) ||
+        a.aircraft_type?.toLowerCase().includes(search.toLowerCase());
+      const matchesStatus = statusFilter === 'All Status' || a.status === statusFilter;
+      const matchesKpi = !kpiFilter || a.status === kpiFilter;
+      // Quick filter logic
+      let matchesQuick = true;
+      if (quickFilter === 'aog') matchesQuick = a.status === 'oos';
+      else if (quickFilter === 'mel') matchesQuick = (melByTail[a.tail_number] || []).some(m => m.status !== 'cleared' && m.status !== 'voided');
+      else if (quickFilter === 'etops') matchesQuick = !!a.etops_approval;
+      else if (quickFilter === 'maintenance') matchesQuick = a.status === 'maintenance';
+      else if (quickFilter === 'active') matchesQuick = a.status === 'active';
+      return matchesSearch && matchesStatus && matchesKpi && matchesQuick;
+    })
+    // MCC priority sort: AOG → IN WORK → RON → IN SERVICE → RETIRED
+    .sort((a, b) => (STATUS_PRIORITY[a.status] ?? 99) - (STATUS_PRIORITY[b.status] ?? 99));
 
   const acTypeLabel = activeFleet
     ? `${activeFleet.name} Aircraft`
@@ -867,6 +908,24 @@ export default function FleetDashboard() {
       {/* ── TAB CONTENT ── */}
       {activeTab === 'fleet' && (
         <div className="px-6">
+          {/* Quick Filter Bar */}
+          <div className="flex items-center gap-2 mb-3 flex-wrap">
+            {QUICK_FILTERS.map(f => (
+              <button
+                key={String(f.id)}
+                onClick={() => setQuickFilter(quickFilter === f.id ? null : f.id)}
+                className={cn(
+                  'px-3 py-1.5 rounded-lg text-[11px] font-bold border transition-all',
+                  quickFilter === f.id
+                    ? 'bg-primary/20 border-primary text-primary'
+                    : 'bg-card border-border text-gray-400 hover:text-white hover:border-white/20'
+                )}
+              >
+                {f.label}
+              </button>
+            ))}
+          </div>
+
           {/* Search + Filters */}
           <div className="flex flex-col sm:flex-row gap-3 mb-4">
             <div className="flex-1 flex items-center gap-2 bg-card border border-border rounded-xl px-4 py-2.5">
@@ -894,17 +953,19 @@ export default function FleetDashboard() {
           </div>
 
           <div className="flex items-center justify-between mb-4">
-            <p className="text-xs text-gray-600">Showing {filtered.length.toLocaleString()} of {total.toLocaleString()} aircraft</p>
+            <p className="text-xs text-gray-500">
+              Showing {filtered.length.toLocaleString()} of {total.toLocaleString()} aircraft
+              {quickFilter && <span className="ml-1 text-primary font-bold">· filtered</span>}
+            </p>
             <div className="flex items-center gap-2">
-              {kpiFilter && (
+              {(kpiFilter || quickFilter) && (
                 <button
-                  onClick={() => setKpiFilter(null)}
+                  onClick={() => { setKpiFilter(null); setQuickFilter(null); }}
                   className="text-xs font-bold text-primary hover:text-primary/80 flex items-center gap-1"
                 >
-                  <X className="w-3 h-3" /> Clear filter
+                  <X className="w-3 h-3" /> Clear filters
                 </button>
               )}
-
             </div>
           </div>
 
@@ -916,7 +977,7 @@ export default function FleetDashboard() {
             <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-6 gap-3">
               {filtered.map(a => (
                 <div key={a.id} className="relative">
-                  <AircraftCard aircraft={a} onSelect={setSelectedAircraft} discrepancies={discrepanciesByTail[a.tail_number]} activeLocks={mccLocks} oosEntries={oosEntries} timelineEvents={timelineEvents} openTasks={openTasks} />
+                  <AircraftCard aircraft={a} onSelect={setSelectedAircraft} discrepancies={discrepanciesByTail[a.tail_number]} melItems={melByTail[a.tail_number] || []} activeLocks={mccLocks} oosEntries={oosEntries} timelineEvents={timelineEvents} openTasks={openTasks} />
                 </div>
               ))}
             </div>
