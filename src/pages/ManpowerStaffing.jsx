@@ -1,86 +1,79 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { base44 } from '@/api/base44Client';
 import { useStations } from '@/hooks/useStations';
 import { Link } from 'react-router-dom';
 import {
-  ChevronLeft, Users, UserCheck, Coffee, Navigation2, GraduationCap,
-  AlertTriangle, Plus, Search, MapPin, Pencil, X, RefreshCw, Shield,
-  Wrench, Clock, CheckCircle, Zap, MoreHorizontal, Trash2, Plane,
-  ChevronDown
+  Users, Plus, Search, X, Trash2, Pencil, ChevronDown,
+  ChevronLeft, ChevronRight, Calendar, List, RefreshCw,
+  MapPin, Plane, Clock, AlertTriangle
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
-// ── Live clock ────────────────────────────────────────────────────────────────
-function LiveClock() {
-  const [t, setT] = useState(new Date());
-  useEffect(() => { const id = setInterval(() => setT(new Date()), 1000); return () => clearInterval(id); }, []);
-  return (
-    <div className="text-right">
-      <p className="text-[9px] font-extrabold text-cyan-400 tracking-widest uppercase">Aerodyne Fleet</p>
-      <p className="text-lg font-black text-white font-mono tracking-wider">
-        {t.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', second: '2-digit' })}
-      </p>
-    </div>
-  );
-}
-
-// ── Status config ─────────────────────────────────────────────────────────────
+// ── Status config ──────────────────────────────────────────────────────────────
 const STATUS_CFG = {
-  on_duty:    { label: 'On Duty',     color: 'text-cyan-400',   bg: 'bg-cyan-500/20',   border: 'border-cyan-500/40',   dot: 'bg-cyan-400' },
-  assigned:   { label: 'Assigned',    color: 'text-green-400',  bg: 'bg-green-500/20',  border: 'border-green-500/40',  dot: 'bg-green-400' },
-  available:  { label: 'Available',   color: 'text-blue-400',   bg: 'bg-blue-500/20',   border: 'border-blue-500/40',   dot: 'bg-blue-400' },
-  on_break:   { label: 'On Break',    color: 'text-amber-400',  bg: 'bg-amber-500/20',  border: 'border-amber-500/40',  dot: 'bg-amber-400' },
-  in_transit: { label: 'In Transit',  color: 'text-purple-400', bg: 'bg-purple-500/20', border: 'border-purple-500/40', dot: 'bg-purple-400' },
-  training:   { label: 'Training',    color: 'text-indigo-400', bg: 'bg-indigo-500/20', border: 'border-indigo-500/40', dot: 'bg-indigo-400' },
-  aog:        { label: 'AOG Response',color: 'text-red-400',    bg: 'bg-red-500/20',    border: 'border-red-500/40',    dot: 'bg-red-400 animate-pulse' },
-  off_duty:   { label: 'Off Duty',    color: 'text-gray-500',   bg: 'bg-gray-500/10',   border: 'border-gray-500/20',   dot: 'bg-gray-500' },
+  on_duty:    { label: 'On Duty',      color: 'text-cyan-300',   bg: 'bg-cyan-500/20',   border: 'border-cyan-500/40',   dot: 'bg-cyan-400',   icon: '▲' },
+  assigned:   { label: 'On Job',       color: 'text-green-300',  bg: 'bg-green-500/20',  border: 'border-green-500/40',  dot: 'bg-green-400',  icon: '▲' },
+  available:  { label: 'Available',    color: 'text-blue-300',   bg: 'bg-blue-500/20',   border: 'border-blue-500/40',   dot: 'bg-blue-400',   icon: '●' },
+  on_break:   { label: 'On Break',     color: 'text-amber-300',  bg: 'bg-amber-500/20',  border: 'border-amber-500/40',  dot: 'bg-amber-400',  icon: '■' },
+  in_transit: { label: 'In Transit',   color: 'text-purple-300', bg: 'bg-purple-500/20', border: 'border-purple-500/40', dot: 'bg-purple-400', icon: '►' },
+  training:   { label: 'Training',     color: 'text-indigo-300', bg: 'bg-indigo-500/20', border: 'border-indigo-500/40', dot: 'bg-indigo-400', icon: '►' },
+  aog:        { label: 'AOG Response', color: 'text-red-300',    bg: 'bg-red-500/20',    border: 'border-red-500/40',    dot: 'bg-red-400 animate-pulse', icon: '⚠' },
+  off_duty:   { label: 'Day Off',      color: 'text-gray-400',   bg: 'bg-gray-500/10',   border: 'border-gray-500/20',   dot: 'bg-gray-500',   icon: '▼' },
 };
 
-const KPI_ITEMS = [
-  { status: 'on_duty',    label: 'On Duty',      icon: Users,       iconColor: 'text-cyan-400',   bg: 'bg-[#0f2030] border-cyan-500/30' },
-  { status: 'assigned',   label: 'Assigned',     icon: UserCheck,   iconColor: 'text-green-400',  bg: 'bg-[#0f2218] border-green-500/30' },
-  { status: 'available',  label: 'Available',    icon: Zap,         iconColor: 'text-blue-400',   bg: 'bg-[#0f1828] border-blue-500/30' },
-  { status: 'on_break',   label: 'On Break',     icon: Coffee,      iconColor: 'text-amber-400',  bg: 'bg-[#1f1a0a] border-amber-500/30' },
-  { status: 'in_transit', label: 'In Transit',   icon: Navigation2, iconColor: 'text-purple-400', bg: 'bg-[#160f28] border-purple-500/30' },
-  { status: 'training',   label: 'Training',     icon: GraduationCap, iconColor: 'text-indigo-400', bg: 'bg-[#0f1020] border-indigo-500/30' },
-  { status: 'aog',        label: 'AOG Response', icon: AlertTriangle, iconColor: 'text-red-400',  bg: 'bg-[#200a0a] border-red-500/30' },
-];
-
-// STATIONS list is now loaded live from the Global Station registry via useStations()
-
-const CERT_COLORS = {
-  'A&P': 'bg-blue-500/20 text-blue-300 border-blue-500/30',
-  'IA':  'bg-purple-500/20 text-purple-300 border-purple-500/30',
-  'Avionics': 'bg-cyan-500/20 text-cyan-300 border-cyan-500/30',
-  'Airframe': 'bg-green-500/20 text-green-300 border-green-500/30',
-  'Powerplant': 'bg-orange-500/20 text-orange-300 border-orange-500/30',
-  'NDT': 'bg-amber-500/20 text-amber-300 border-amber-500/30',
-  'RII': 'bg-red-500/20 text-red-300 border-red-500/30',
-  'Lead A&P': 'bg-indigo-500/20 text-indigo-300 border-indigo-500/30',
-};
-function certClass(c) { return CERT_COLORS[c] || 'bg-gray-500/20 text-gray-300 border-gray-500/20'; }
-
-// Initials avatar
-function Avatar({ name, status }) {
-  const initials = name ? name.split(' ').map(p => p[0]).join('').slice(0,2).toUpperCase() : '??';
-  const colors = ['bg-cyan-600','bg-blue-600','bg-green-600','bg-purple-600','bg-amber-600','bg-red-600','bg-indigo-600'];
-  const color = colors[(name?.charCodeAt(0) || 0) % colors.length];
-  return (
-    <div className={cn('w-10 h-10 rounded-full flex items-center justify-center text-sm font-extrabold text-white flex-shrink-0 relative', color)}>
-      {initials}
-      <span className={cn('absolute bottom-0 right-0 w-2.5 h-2.5 rounded-full border-2 border-[#0d1117]', STATUS_CFG[status]?.dot || 'bg-gray-500')} />
-    </div>
-  );
-}
-
-// ── Add/Edit Technician Modal ─────────────────────────────────────────────────
-const CERT_OPTIONS = ['A&P', 'IA', 'Avionics', 'Lead A&P', 'Airframe', 'Powerplant', 'NDT', 'RII'];
+const SHIFTS = ['Day', 'Mid', 'Night', 'Swing', 'On-Call'];
+const CERT_OPTIONS = ['A&P', 'IA', 'Avionics', 'Lead A&P', 'ETOPS', 'CAT II/III', 'Run/Taxi', 'Fuel Tank', 'Inspector', 'NDT', 'RII', 'Airframe', 'Powerplant'];
 const STATUS_OPTIONS = Object.keys(STATUS_CFG);
 
+// ── Avatar ─────────────────────────────────────────────────────────────────────
+function Avatar({ name, size = 8 }) {
+  const initials = name ? name.split(' ').map(p => p[0]).join('').slice(0, 2).toUpperCase() : '??';
+  const colors = ['bg-cyan-600', 'bg-blue-600', 'bg-green-600', 'bg-purple-600', 'bg-amber-600', 'bg-rose-600', 'bg-indigo-600'];
+  const color = colors[(name?.charCodeAt(0) || 0) % colors.length];
+  return (
+    <div className={cn(`w-${size} h-${size} rounded-full flex items-center justify-center text-xs font-black text-white flex-shrink-0`, color)}>
+      {initials}
+    </div>
+  );
+}
+
+// ── Status Badge with Dropdown ─────────────────────────────────────────────────
+function StatusDropdown({ tech, onChange }) {
+  const [open, setOpen] = useState(false);
+  const sc = STATUS_CFG[tech.status] || STATUS_CFG.off_duty;
+  return (
+    <div className="relative">
+      <button
+        onClick={() => setOpen(v => !v)}
+        className={cn('flex items-center gap-1.5 px-3 py-1.5 rounded-lg border text-[11px] font-bold transition-all', sc.bg, sc.border, sc.color)}
+      >
+        <span className={cn('w-1.5 h-1.5 rounded-full flex-shrink-0', sc.dot)} />
+        {sc.label}
+        <ChevronDown className="w-3 h-3 ml-0.5 opacity-60" />
+      </button>
+      {open && (
+        <div className="absolute right-0 top-full mt-1 z-50 bg-[#1a2235] border border-white/10 rounded-xl shadow-2xl min-w-[160px] py-1 overflow-hidden">
+          {STATUS_OPTIONS.map(key => {
+            const cfg = STATUS_CFG[key];
+            return (
+              <button key={key} onClick={() => { onChange(tech, key); setOpen(false); }}
+                className={cn('w-full flex items-center gap-2 px-3 py-2 text-[11px] font-bold hover:bg-white/10 transition-colors', cfg.color)}>
+                <span className={cn('w-1.5 h-1.5 rounded-full flex-shrink-0', cfg.dot)} />
+                {cfg.label}
+              </button>
+            );
+          })}
+        </div>
+      )}
+    </div>
+  );
+}
+
+// ── Add/Edit Technician Modal ──────────────────────────────────────────────────
 function TechModal({ tech, onClose, onSave, stationList = [] }) {
   const [form, setForm] = useState(tech || {
-    name: '', employee_id: '', station: '', years_experience: 0,
+    name: '', employee_id: '', station: '', shift: 'Day',
     certifications: [], specialty: '', status: 'available',
     current_assignment: '', shift_hours_remaining: 8, notes: '',
   });
@@ -106,12 +99,13 @@ function TechModal({ tech, onClose, onSave, stationList = [] }) {
             <div>
               <label className="text-[10px] font-bold text-gray-400 uppercase tracking-widest block mb-1">Full Name *</label>
               <input value={form.name} onChange={e => set('name', e.target.value)}
+                placeholder="e.g. Luis Martinez"
                 className="w-full bg-[#1a2235] border border-white/10 rounded-xl px-3 py-2 text-sm text-white outline-none focus:border-cyan-500/50" />
             </div>
             <div>
               <label className="text-[10px] font-bold text-gray-400 uppercase tracking-widest block mb-1">Employee ID</label>
               <input value={form.employee_id || ''} onChange={e => set('employee_id', e.target.value)}
-                placeholder="e.g. KN-5598"
+                placeholder="e.g. OS-10123"
                 className="w-full bg-[#1a2235] border border-white/10 rounded-xl px-3 py-2 text-sm text-white outline-none focus:border-cyan-500/50" />
             </div>
           </div>
@@ -125,9 +119,11 @@ function TechModal({ tech, onClose, onSave, stationList = [] }) {
               </select>
             </div>
             <div>
-              <label className="text-[10px] font-bold text-gray-400 uppercase tracking-widest block mb-1">Years Experience</label>
-              <input type="number" value={form.years_experience || 0} onChange={e => set('years_experience', Number(e.target.value))}
-                className="w-full bg-[#1a2235] border border-white/10 rounded-xl px-3 py-2 text-sm text-white outline-none focus:border-cyan-500/50" />
+              <label className="text-[10px] font-bold text-gray-400 uppercase tracking-widest block mb-1">Shift</label>
+              <select value={form.shift || 'Day'} onChange={e => set('shift', e.target.value)}
+                className="w-full bg-[#1a2235] border border-white/10 rounded-xl px-3 py-2 text-sm text-white outline-none focus:border-cyan-500/50">
+                {SHIFTS.map(s => <option key={s} value={s}>{s}</option>)}
+              </select>
             </div>
           </div>
           <div className="grid grid-cols-2 gap-3">
@@ -145,26 +141,15 @@ function TechModal({ tech, onClose, onSave, stationList = [] }) {
                 className="w-full bg-[#1a2235] border border-white/10 rounded-xl px-3 py-2 text-sm text-white outline-none focus:border-cyan-500/50" />
             </div>
           </div>
-          <div className="grid grid-cols-2 gap-3">
-            <div>
-              <label className="text-[10px] font-bold text-gray-400 uppercase tracking-widest block mb-1">Current Assignment</label>
-              <input value={form.current_assignment || ''} onChange={e => set('current_assignment', e.target.value)}
-                placeholder="e.g. N801EB"
-                className="w-full bg-[#1a2235] border border-white/10 rounded-xl px-3 py-2 text-sm text-white outline-none focus:border-cyan-500/50" />
-            </div>
-            <div>
-              <label className="text-[10px] font-bold text-gray-400 uppercase tracking-widest block mb-1">Shift Hours Remaining</label>
-              <input type="number" step="0.5" value={form.shift_hours_remaining ?? 8} onChange={e => set('shift_hours_remaining', Number(e.target.value))}
-                className="w-full bg-[#1a2235] border border-white/10 rounded-xl px-3 py-2 text-sm text-white outline-none focus:border-cyan-500/50" />
-            </div>
-          </div>
           <div>
-            <label className="text-[10px] font-bold text-gray-400 uppercase tracking-widest block mb-2">Certifications</label>
+            <label className="text-[10px] font-bold text-gray-400 uppercase tracking-widest block mb-2">Qualifications</label>
             <div className="flex flex-wrap gap-2">
               {CERT_OPTIONS.map(c => (
                 <button key={c} type="button" onClick={() => toggleCert(c)}
-                  className={cn('text-[10px] font-bold px-3 py-1.5 rounded-lg border transition-all',
-                    form.certifications?.includes(c) ? certClass(c) : 'border-white/10 text-gray-600 hover:text-gray-400')}>
+                  className={cn('text-[10px] font-bold px-2.5 py-1 rounded-lg border transition-all',
+                    form.certifications?.includes(c)
+                      ? 'bg-cyan-500/20 text-cyan-300 border-cyan-500/40'
+                      : 'border-white/10 text-gray-600 hover:text-gray-400')}>
                   {c}
                 </button>
               ))}
@@ -188,245 +173,296 @@ function TechModal({ tech, onClose, onSave, stationList = [] }) {
   );
 }
 
-// ── Actions Dropdown ──────────────────────────────────────────────────────────
-function ActionsMenu({ tech, onEdit, onDelete, onChangeStatus, onAssign }) {
-  const [open, setOpen] = useState(false);
+// ── Technician Row ─────────────────────────────────────────────────────────────
+function TechRow({ tech, onEdit, onDelete, onChangeStatus }) {
+  const certs = tech.certifications || [];
+  const visible = certs.slice(0, 3);
+  const extra = certs.length - 3;
   const [confirmDelete, setConfirmDelete] = useState(false);
-  const [menuPos, setMenuPos] = useState({ top: 0, right: 0 });
-  const btnRef = useRef(null);
-
-  const menuRef = useRef(null);
-
-  useEffect(() => {
-    if (!open) return;
-    const handler = (e) => {
-      if (
-        btnRef.current && !btnRef.current.contains(e.target) &&
-        menuRef.current && !menuRef.current.contains(e.target)
-      ) {
-        setOpen(false);
-      }
-    };
-    document.addEventListener('mousedown', handler);
-    return () => document.removeEventListener('mousedown', handler);
-  }, [open]);
-
-  const handleOpen = () => {
-    if (btnRef.current) {
-      const rect = btnRef.current.getBoundingClientRect();
-      setMenuPos({
-        top: rect.bottom + window.scrollY + 4,
-        right: window.innerWidth - rect.right,
-      });
-    }
-    setConfirmDelete(false);
-    setOpen(v => !v);
-  };
-
-  const statusOptions = Object.entries(STATUS_CFG).filter(([k]) => k !== tech.status);
 
   return (
-    <>
-      <button
-        ref={btnRef}
-        onClick={handleOpen}
-        className="w-9 h-9 rounded-xl bg-blue-500/15 border border-blue-500/20 flex items-center justify-center hover:bg-blue-500/30 transition-colors"
-      >
-        <MoreHorizontal className="w-4 h-4 text-blue-400" />
-      </button>
-
-      {open && (
-        <div
-          ref={menuRef}
-          style={{ position: 'fixed', top: menuPos.top, right: menuPos.right, zIndex: 9999 }}
-          className="bg-[#141922] border border-white/10 rounded-xl shadow-2xl min-w-[210px] py-1 overflow-hidden"
-        >
-          {/* Edit */}
-          <button onClick={() => { onEdit(tech); setOpen(false); }}
-            className="w-full flex items-center gap-2.5 px-4 py-2.5 text-xs font-bold text-gray-300 hover:bg-white/10 hover:text-white transition-colors">
-            <Pencil className="w-3.5 h-3.5 text-blue-400" /> Edit Details
-          </button>
-
-          {/* Assign Aircraft */}
-          <button onClick={() => { onAssign(tech); setOpen(false); }}
-            className="w-full flex items-center gap-2.5 px-4 py-2.5 text-xs font-bold text-gray-300 hover:bg-white/10 hover:text-white transition-colors">
-            <Plane className="w-3.5 h-3.5 text-cyan-400" /> Assign Aircraft
-          </button>
-
-          {/* Change Status */}
-          <div className="border-t border-white/8 mt-1 pt-1">
-            <p className="px-4 py-1 text-[9px] font-extrabold text-gray-600 uppercase tracking-widest">Change Status</p>
-            {statusOptions.map(([key, cfg]) => (
-              <button key={key} onClick={() => { onChangeStatus(tech, key); setOpen(false); }}
-                className="w-full flex items-center gap-2.5 px-4 py-2 text-xs font-bold text-gray-400 hover:bg-white/10 hover:text-white transition-colors">
-                <span className={cn('w-2 h-2 rounded-full flex-shrink-0', cfg.dot)} />
-                {cfg.label}
-              </button>
-            ))}
-          </div>
-
-          {/* Delete */}
-          <div className="border-t border-white/8 mt-1 pt-1">
-            {confirmDelete ? (
-              <div className="px-4 py-2.5 space-y-2">
-                <p className="text-[10px] text-red-400 font-bold">Confirm remove {tech.name}?</p>
-                <div className="flex gap-2">
-                  <button
-                    onClick={() => { setConfirmDelete(false); setOpen(false); onDelete(tech); }}
-                    className="flex-1 py-1.5 rounded-lg bg-red-600 text-white text-[10px] font-extrabold hover:bg-red-500 transition-colors">
-                    Yes, Remove
-                  </button>
-                  <button
-                    onClick={() => setConfirmDelete(false)}
-                    className="flex-1 py-1.5 rounded-lg bg-white/10 text-gray-300 text-[10px] font-bold hover:bg-white/20 transition-colors">
-                    Cancel
-                  </button>
-                </div>
-              </div>
-            ) : (
-              <button onClick={() => setConfirmDelete(true)}
-                className="w-full flex items-center gap-2.5 px-4 py-2.5 text-xs font-bold text-red-400 hover:bg-red-500/10 transition-colors">
-                <Trash2 className="w-3.5 h-3.5" /> Remove Technician
-              </button>
-            )}
+    <tr className="border-b border-white/5 hover:bg-white/[0.02] transition-colors">
+      {/* Name */}
+      <td className="px-5 py-3">
+        <div className="flex items-center gap-3">
+          <Avatar name={tech.name} size={8} />
+          <div>
+            <p className="text-sm font-bold text-white">{tech.name}</p>
+            <p className="text-[10px] text-cyan-400/80 font-mono">{tech.email || `${tech.name?.toLowerCase().replace(/ /g, '.')}@aerodyne.example`}</p>
           </div>
         </div>
-      )}
-    </>
+      </td>
+      {/* Emp ID */}
+      <td className="px-4 py-3">
+        <span className="text-xs font-mono text-cyan-300">{tech.employee_id || '—'}</span>
+      </td>
+      {/* Station */}
+      <td className="px-4 py-3">
+        <span className="text-xs font-bold text-white">{tech.station || '—'}</span>
+      </td>
+      {/* Shift */}
+      <td className="px-4 py-3">
+        <span className="text-xs text-gray-300">{tech.shift || 'Day'}</span>
+      </td>
+      {/* Quals */}
+      <td className="px-4 py-3">
+        <div className="flex flex-wrap gap-1">
+          {visible.map(c => (
+            <span key={c} className="text-[10px] font-bold px-2 py-0.5 rounded bg-blue-500/15 text-blue-300 border border-blue-500/20">{c}</span>
+          ))}
+          {extra > 0 && <span className="text-[10px] font-bold px-2 py-0.5 rounded bg-gray-500/15 text-gray-400 border border-gray-500/20">+{extra}</span>}
+          {certs.length === 0 && <span className="text-[10px] text-gray-600">—</span>}
+        </div>
+      </td>
+      {/* Status */}
+      <td className="px-4 py-3">
+        <StatusDropdown tech={tech} onChange={onChangeStatus} />
+      </td>
+      {/* Actions */}
+      <td className="px-4 py-3">
+        <div className="flex items-center gap-2">
+          <button onClick={() => onEdit(tech)}
+            className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-white/5 border border-white/10 text-[11px] font-bold text-gray-300 hover:text-white hover:bg-white/10 transition-colors">
+            <Pencil className="w-3 h-3" /> Docs
+          </button>
+          {confirmDelete ? (
+            <div className="flex items-center gap-1">
+              <button onClick={() => { onDelete(tech); setConfirmDelete(false); }}
+                className="px-2 py-1 rounded-lg bg-red-600 text-white text-[10px] font-bold hover:bg-red-500">Yes</button>
+              <button onClick={() => setConfirmDelete(false)}
+                className="px-2 py-1 rounded-lg bg-white/10 text-gray-300 text-[10px] font-bold">No</button>
+            </div>
+          ) : (
+            <button onClick={() => setConfirmDelete(true)}
+              className="text-[11px] font-bold text-red-400 hover:text-red-300 transition-colors px-1">
+              Delete
+            </button>
+          )}
+        </div>
+      </td>
+    </tr>
   );
 }
 
-// ── Assign Aircraft Modal ─────────────────────────────────────────────────────
-function AssignModal({ tech, aircraft, onClose, onSave }) {
-  const [tail, setTail] = useState(tech.current_assignment || '');
-  const [task, setTask] = useState('Support');
+// ── Assignment Board (Calendar) ────────────────────────────────────────────────
+function AssignmentBoard({ technicians, aircraft, onAssign }) {
+  const today = new Date();
+  const [weekOffset, setWeekOffset] = useState(0);
+
+  // Build 7-day week
+  const weekDays = Array.from({ length: 7 }, (_, i) => {
+    const d = new Date(today);
+    d.setDate(today.getDate() - today.getDay() + i + weekOffset * 7);
+    return d;
+  });
+
+  const [dragging, setDragging] = useState(null); // { techId }
+  const [assignments, setAssignments] = useState({}); // { "techId-dateStr": tailNumber }
+  const [selectedCell, setSelectedCell] = useState(null); // { techId, dateStr }
+  const [cellPickerTail, setCellPickerTail] = useState('');
+
+  const getKey = (techId, dateStr) => `${techId}-${dateStr}`;
+  const dateStr = (d) => d.toISOString().split('T')[0];
+
+  const handleDrop = (e, techId, day) => {
+    e.preventDefault();
+    const tail = e.dataTransfer.getData('tail');
+    if (!tail || !techId) return;
+    const key = getKey(techId, dateStr(day));
+    setAssignments(prev => ({ ...prev, [key]: tail }));
+  };
+
+  const handleCellClick = (techId, day) => {
+    const key = getKey(techId, dateStr(day));
+    setSelectedCell({ techId, dateStr: dateStr(day), key });
+    setCellPickerTail(assignments[key] || '');
+  };
+
+  const handleAssignCell = () => {
+    if (!selectedCell) return;
+    setAssignments(prev => ({ ...prev, [selectedCell.key]: cellPickerTail || undefined }));
+    setSelectedCell(null);
+  };
+
+  const dayLabels = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+  const todayStr = dateStr(today);
+
+  // Group technicians by station for display
+  const stations = [...new Set(technicians.map(t => t.station || 'KEWR'))].sort();
+
   return (
-    <div className="fixed inset-0 z-50 bg-black/80 flex items-center justify-center p-4">
-      <div className="w-full max-w-sm bg-[#111827] border border-white/10 rounded-2xl overflow-hidden shadow-2xl">
-        <div className="flex items-center justify-between px-5 py-4 border-b border-white/10">
-          <p className="font-extrabold text-white text-sm uppercase tracking-widest flex items-center gap-2">
-            <Plane className="w-4 h-4 text-cyan-400" /> Assign Aircraft
-          </p>
-          <button onClick={onClose} className="w-8 h-8 rounded-lg bg-white/10 flex items-center justify-center hover:bg-white/20">
-            <X className="w-4 h-4 text-white" />
+    <div className="space-y-4">
+      {/* Week nav */}
+      <div className="flex items-center justify-between px-5 pt-4">
+        <div>
+          <h2 className="text-base font-extrabold text-white">Assignment Board</h2>
+          <p className="text-xs text-gray-500">Drag aircraft tails onto technician cells to assign workload</p>
+        </div>
+        <div className="flex items-center gap-2">
+          <button onClick={() => setWeekOffset(0)}
+            className="text-xs font-bold px-3 py-2 rounded-lg bg-white/5 border border-white/10 text-gray-300 hover:text-white">Today</button>
+          <button onClick={() => setWeekOffset(v => v - 1)}
+            className="w-8 h-8 rounded-lg bg-white/5 border border-white/10 flex items-center justify-center hover:bg-white/10 text-gray-300">
+            <ChevronLeft className="w-4 h-4" />
+          </button>
+          <span className="text-sm font-bold text-white min-w-[180px] text-center">
+            {weekDays[0].toLocaleDateString('en-US', { month: 'short', day: 'numeric' })} – {weekDays[6].toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
+          </span>
+          <button onClick={() => setWeekOffset(v => v + 1)}
+            className="w-8 h-8 rounded-lg bg-white/5 border border-white/10 flex items-center justify-center hover:bg-white/10 text-gray-300">
+            <ChevronRight className="w-4 h-4" />
           </button>
         </div>
-        <div className="p-5 space-y-4">
-          <div className="flex items-center gap-3 bg-white/5 rounded-xl px-3 py-2.5">
-            <Avatar name={tech.name} status={tech.status} />
-            <div>
-              <p className="text-sm font-extrabold text-white">{tech.name}</p>
-              <p className="text-[10px] text-gray-500">{tech.employee_id} · {tech.station}</p>
-            </div>
+      </div>
+
+      {/* Aircraft palette — drag source */}
+      <div className="px-5">
+        <div className="bg-[#111827] border border-white/8 rounded-xl p-3">
+          <p className="text-[10px] font-extrabold text-gray-500 uppercase tracking-widest mb-2">Aircraft — drag onto calendar cells</p>
+          <div className="flex flex-wrap gap-2">
+            {aircraft.slice(0, 30).map(a => (
+              <div
+                key={a.id}
+                draggable
+                onDragStart={e => e.dataTransfer.setData('tail', a.tail_number)}
+                className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-[#1a2235] border border-white/10 cursor-grab active:cursor-grabbing hover:border-cyan-500/40 transition-colors select-none"
+              >
+                <Plane className="w-3 h-3 text-cyan-400" />
+                <span className="text-xs font-bold text-white font-mono">{a.tail_number}</span>
+                <span className="text-[10px] text-gray-500">{a.aircraft_type?.replace('B737-', '737-').replace('B', '')}</span>
+              </div>
+            ))}
           </div>
-          <div>
-            <label className="text-[10px] font-bold text-gray-400 uppercase tracking-widest block mb-1">Aircraft Tail</label>
-            <select value={tail} onChange={e => setTail(e.target.value)}
-              className="w-full bg-[#1a2235] border border-white/10 rounded-xl px-3 py-2 text-sm text-white outline-none focus:border-cyan-500/50">
+        </div>
+      </div>
+
+      {/* Board grid */}
+      <div className="px-5 pb-6 overflow-x-auto">
+        <table className="w-full min-w-[900px] border-separate border-spacing-0">
+          <thead>
+            <tr>
+              <th className="text-left px-4 py-2 text-[10px] font-extrabold text-gray-500 uppercase tracking-widest bg-[#0d1117] sticky left-0 z-10 w-52 border-b border-r border-white/8">
+                Technician
+              </th>
+              {weekDays.map((day, i) => {
+                const isToday = dateStr(day) === todayStr;
+                return (
+                  <th key={i} className={cn('px-3 py-2 text-center text-[10px] font-extrabold uppercase tracking-widest border-b border-r border-white/8 min-w-[110px]',
+                    isToday ? 'bg-cyan-500/10 text-cyan-300' : 'bg-[#0d1117] text-gray-500')}>
+                    <div>{dayLabels[day.getDay()]}</div>
+                    <div className={cn('text-base font-black', isToday ? 'text-cyan-300' : 'text-white')}>
+                      {day.getDate()}
+                    </div>
+                  </th>
+                );
+              })}
+            </tr>
+          </thead>
+          <tbody>
+            {stations.map(station => {
+              const stationTechs = technicians.filter(t => (t.station || 'KEWR') === station);
+              return [
+                // Station header row
+                <tr key={`station-${station}`}>
+                  <td colSpan={8} className="px-4 py-1.5 bg-[#141922] border-b border-white/5">
+                    <div className="flex items-center gap-2">
+                      <MapPin className="w-3 h-3 text-gray-500" />
+                      <span className="text-[10px] font-extrabold text-gray-400 uppercase tracking-widest">{station}</span>
+                      <span className="text-[9px] text-gray-600">({stationTechs.length} techs)</span>
+                    </div>
+                  </td>
+                </tr>,
+                // Tech rows
+                ...stationTechs.map(tech => {
+                  const sc = STATUS_CFG[tech.status] || STATUS_CFG.off_duty;
+                  return (
+                    <tr key={tech.id} className="group">
+                      {/* Tech name cell */}
+                      <td className="px-4 py-2 bg-[#0d1117] border-b border-r border-white/5 sticky left-0 z-10">
+                        <div className="flex items-center gap-2.5">
+                          <Avatar name={tech.name} size={7} />
+                          <div className="min-w-0">
+                            <p className="text-xs font-bold text-white truncate">{tech.name}</p>
+                            <div className="flex items-center gap-1.5 mt-0.5">
+                              <span className={cn('text-[9px] font-bold px-1.5 py-0.5 rounded border', sc.bg, sc.color, sc.border)}>
+                                {sc.label}
+                              </span>
+                              <span className="text-[9px] text-gray-600">{tech.shift || 'Day'}</span>
+                            </div>
+                          </div>
+                        </div>
+                      </td>
+                      {/* Day cells */}
+                      {weekDays.map((day, i) => {
+                        const key = getKey(tech.id, dateStr(day));
+                        const assigned = assignments[key];
+                        const isToday = dateStr(day) === todayStr;
+                        const isSelected = selectedCell?.key === key;
+                        return (
+                          <td
+                            key={i}
+                            className={cn('border-b border-r border-white/5 p-1 min-h-[52px] cursor-pointer transition-colors',
+                              isToday ? 'bg-cyan-500/5' : 'bg-[#0d1117]',
+                              isSelected ? 'ring-2 ring-inset ring-cyan-500' : 'hover:bg-white/5'
+                            )}
+                            onDragOver={e => e.preventDefault()}
+                            onDrop={e => handleDrop(e, tech.id, day)}
+                            onClick={() => handleCellClick(tech.id, day)}
+                          >
+                            {assigned ? (
+                              <div className="flex items-center justify-between gap-1 bg-cyan-500/15 border border-cyan-500/30 rounded-lg px-2 py-1">
+                                <div className="flex items-center gap-1">
+                                  <Plane className="w-2.5 h-2.5 text-cyan-400 flex-shrink-0" />
+                                  <span className="text-[10px] font-extrabold text-cyan-300 font-mono">{assigned}</span>
+                                </div>
+                                <button
+                                  onClick={e => { e.stopPropagation(); setAssignments(prev => { const n = { ...prev }; delete n[key]; return n; }); }}
+                                  className="text-gray-500 hover:text-red-400 transition-colors">
+                                  <X className="w-2.5 h-2.5" />
+                                </button>
+                              </div>
+                            ) : (
+                              <div className="h-8 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
+                                <Plus className="w-3 h-3 text-gray-600" />
+                              </div>
+                            )}
+                          </td>
+                        );
+                      })}
+                    </tr>
+                  );
+                })
+              ];
+            })}
+          </tbody>
+        </table>
+      </div>
+
+      {/* Cell picker popover */}
+      {selectedCell && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50" onClick={() => setSelectedCell(null)}>
+          <div className="bg-[#111827] border border-white/10 rounded-2xl shadow-2xl p-5 w-72" onClick={e => e.stopPropagation()}>
+            <p className="text-sm font-extrabold text-white mb-3 flex items-center gap-2">
+              <Calendar className="w-4 h-4 text-cyan-400" /> Assign Aircraft
+            </p>
+            <p className="text-[10px] text-gray-500 mb-3">{selectedCell.dateStr}</p>
+            <select value={cellPickerTail} onChange={e => setCellPickerTail(e.target.value)}
+              className="w-full bg-[#1a2235] border border-white/10 rounded-xl px-3 py-2 text-sm text-white outline-none focus:border-cyan-500/50 mb-4">
               <option value="">— Unassign —</option>
               {aircraft.map(a => (
                 <option key={a.id} value={a.tail_number}>{a.tail_number} · {a.aircraft_type}</option>
               ))}
             </select>
-          </div>
-          <div>
-            <label className="text-[10px] font-bold text-gray-400 uppercase tracking-widest block mb-1">Task / Role</label>
-            <input value={task} onChange={e => setTask(e.target.value)}
-              placeholder="e.g. Support, Line Check, RON"
-              className="w-full bg-[#1a2235] border border-white/10 rounded-xl px-3 py-2 text-sm text-white outline-none focus:border-cyan-500/50" />
-          </div>
-        </div>
-        <div className="px-5 py-4 border-t border-white/10 flex gap-3">
-          <button onClick={onClose} className="flex-1 py-2.5 rounded-xl border border-white/10 text-sm font-bold text-gray-400 hover:bg-white/5">Cancel</button>
-          <button onClick={() => onSave(tech, tail, task)}
-            className="flex-1 py-2.5 rounded-xl bg-cyan-600 text-white text-sm font-bold hover:bg-cyan-500 transition-colors">
-            Assign
-          </button>
-        </div>
-      </div>
-    </div>
-  );
-}
-
-// ── Technician Row ─────────────────────────────────────────────────────────────
-function TechRow({ tech, onEdit, onDelete, onChangeStatus, onAssign }) {
-  const sc = STATUS_CFG[tech.status] || STATUS_CFG.off_duty;
-  const certs = tech.certifications || [];
-  const visibleCerts = certs.slice(0, 3);
-  const extraCerts = certs.length - 3;
-
-  return (
-    <tr className="border-b border-white/5 hover:bg-white/3 transition-colors group">
-      {/* Technician */}
-      <td className="px-5 py-4">
-        <div className="flex items-center gap-3">
-          <Avatar name={tech.name} status={tech.status} />
-          <div>
-            <div className="flex items-center gap-1.5">
-              <p className="text-sm font-extrabold text-white">{tech.name}</p>
-              {tech.status === 'aog' && <AlertTriangle className="w-3.5 h-3.5 text-red-400" />}
+            <div className="flex gap-2">
+              <button onClick={() => setSelectedCell(null)}
+                className="flex-1 py-2 rounded-xl border border-white/10 text-sm font-bold text-gray-400 hover:bg-white/5">Cancel</button>
+              <button onClick={handleAssignCell}
+                className="flex-1 py-2 rounded-xl bg-cyan-600 text-white text-sm font-bold hover:bg-cyan-500 transition-colors">Assign</button>
             </div>
-            <p className="text-[10px] text-gray-500 font-mono">{tech.employee_id || '—'}</p>
-            <p className="text-[10px] text-gray-600">{tech.years_experience ? `${tech.years_experience} years exp` : ''}</p>
           </div>
         </div>
-      </td>
-
-      {/* Station */}
-      <td className="px-4 py-4">
-        <div className="flex items-center gap-1.5 text-sm font-bold text-white">
-          <MapPin className="w-3.5 h-3.5 text-gray-500" />
-          {tech.station || '—'}
-        </div>
-      </td>
-
-      {/* Certifications */}
-      <td className="px-4 py-4">
-        <div>
-          {tech.specialty && <p className="text-xs font-bold text-cyan-300 mb-1">{tech.specialty}</p>}
-          <div className="flex flex-wrap gap-1">
-            {visibleCerts.map(c => (
-              <span key={c} className={cn('text-[9px] font-bold px-1.5 py-0.5 rounded border', certClass(c))}>{c}</span>
-            ))}
-            {extraCerts > 0 && (
-              <span className="text-[9px] font-bold px-1.5 py-0.5 rounded border border-white/10 text-gray-500">+{extraCerts}</span>
-            )}
-          </div>
-        </div>
-      </td>
-
-      {/* Status */}
-      <td className="px-4 py-4">
-        <div>
-          <span className={cn('flex items-center gap-1.5 text-[10px] font-extrabold px-2.5 py-1 rounded-full w-fit', sc.bg, sc.color, sc.border, 'border')}>
-            <span className={cn('w-1.5 h-1.5 rounded-full flex-shrink-0', sc.dot)} />
-            {sc.label}
-          </span>
-          {tech.shift_hours_remaining != null && (
-            <p className="text-[10px] text-gray-500 mt-1 flex items-center gap-1">
-              <Clock className="w-3 h-3" /> {tech.shift_hours_remaining}h remaining
-            </p>
-          )}
-        </div>
-      </td>
-
-      {/* Current Assignment */}
-      <td className="px-4 py-4">
-        {tech.current_assignment ? (
-          <div className="bg-green-900/30 border border-green-500/30 rounded-xl px-3 py-2 min-w-[100px]">
-            <p className="text-sm font-extrabold text-green-300 font-mono">{tech.current_assignment}</p>
-            <p className="text-[9px] text-green-500/70">Support</p>
-          </div>
-        ) : (
-          <span className="text-[10px] text-gray-600">—</span>
-        )}
-      </td>
-
-      {/* Actions */}
-      <td className="px-4 py-4">
-        <ActionsMenu tech={tech} onEdit={onEdit} onDelete={onDelete} onChangeStatus={onChangeStatus} onAssign={onAssign} />
-      </td>
-    </tr>
+      )}
+    </div>
   );
 }
 
@@ -434,12 +470,11 @@ function TechRow({ tech, onEdit, onDelete, onChangeStatus, onAssign }) {
 export default function ManpowerStaffing() {
   const qc = useQueryClient();
   const { icaoCodes: stationList } = useStations();
-  const [statusFilter, setStatusFilter] = useState('all');
-  const [stationFilter, setStationFilter] = useState('All Stations');
+  const [activeTab, setActiveTab] = useState('roster');
   const [search, setSearch] = useState('');
+  const [stationFilter, setStationFilter] = useState('All Stations');
   const [showModal, setShowModal] = useState(false);
   const [editTech, setEditTech] = useState(null);
-  const [assignTech, setAssignTech] = useState(null);
 
   const { data: aircraft = [] } = useQuery({
     queryKey: ['manpower-aircraft'],
@@ -450,12 +485,12 @@ export default function ManpowerStaffing() {
   const { data: technicians = [], isLoading, refetch } = useQuery({
     queryKey: ['manpower-technicians'],
     queryFn: () => base44.entities.TrainingRecord.list('-created_date', 500),
-    // Use TrainingRecord as proxy — maps role/name/station fields
     select: (data) => data.map(r => ({
       id: r.id,
       name: r.employee_name || r.crew_name || 'Unknown',
       employee_id: r.employee_id || '',
       station: r.station || 'KEWR',
+      shift: r.specialty?.includes('Night') ? 'Night' : r.specialty?.includes('Mid') ? 'Mid' : 'Day',
       years_experience: r.years_experience || 0,
       certifications: r.certifications || [],
       specialty: r.specialty || '',
@@ -502,188 +537,132 @@ export default function ManpowerStaffing() {
     onSuccess: () => qc.invalidateQueries({ queryKey: ['manpower-technicians'] }),
   });
 
-  const assignMutation = useMutation({
-    mutationFn: ({ id, tail }) => base44.entities.TrainingRecord.update(id, {
-      current_aircraft: tail,
-      duty_status: tail ? 'assigned' : 'available',
-    }),
-    onSuccess: () => {
-      qc.invalidateQueries({ queryKey: ['manpower-technicians'] });
-      setAssignTech(null);
-    },
-  });
-
-  const handleEdit = (tech) => { setEditTech(tech); setShowModal(true); };
-  const handleNew  = () => { setEditTech(null); setShowModal(true); };
-  const handleDelete = (tech) => { deleteMutation.mutate(tech.id); };
-  const handleChangeStatus = (tech, newStatus) => statusMutation.mutate({ id: tech.id, status: newStatus });
-  const handleAssign = (tech) => setAssignTech(tech);
-  const handleAssignSave = (tech, tail) => assignMutation.mutate({ id: tech.id, tail });
-
-  // KPI counts
-  const counts = KPI_ITEMS.reduce((acc, k) => {
-    acc[k.status] = technicians.filter(t => t.status === k.status).length;
-    return acc;
-  }, {});
-  const totalOnDuty = technicians.filter(t => t.status !== 'off_duty').length;
-
-  // Filtered list
   const filtered = technicians.filter(t => {
-    const matchStatus  = statusFilter === 'all' || t.status === statusFilter;
     const matchStation = stationFilter === 'All Stations' || t.station === stationFilter;
     const q = search.toLowerCase();
-    const matchSearch  = !search ||
+    const matchSearch = !search ||
       t.name?.toLowerCase().includes(q) ||
       t.employee_id?.toLowerCase().includes(q) ||
       t.station?.toLowerCase().includes(q) ||
-      t.certifications?.some(c => c.toLowerCase().includes(q)) ||
-      t.specialty?.toLowerCase().includes(q);
-    return matchStatus && matchStation && matchSearch;
+      t.certifications?.some(c => c.toLowerCase().includes(q));
+    return matchStation && matchSearch;
   });
 
-  // Filter tab config
-  const filterTabs = [
-    { id: 'all',       label: `All (${technicians.length})` },
-    { id: 'on_duty',   label: `On Duty (${counts.on_duty || 0})` },
-    { id: 'assigned',  label: `Assigned (${counts.assigned || 0})` },
-    { id: 'available', label: `Available (${counts.available || 0})` },
-    { id: 'off_duty',  label: `Off Duty (${technicians.filter(t => t.status === 'off_duty').length})` },
-  ];
-
   return (
-    <div className="min-h-screen bg-[#080c14] text-white pb-24">
+    <div className="min-h-screen bg-background text-white pb-24">
       {/* ── Header ── */}
-      <div className="px-5 py-4 border-b border-white/8 bg-gradient-to-r from-[#0a1628] via-[#0d1f3c] to-[#081428]">
-        <div className="flex items-center justify-between gap-4">
-          <div className="flex items-center gap-3">
-            <Link to="/WorkAssignments"
-              className="w-9 h-9 rounded-xl bg-white/10 flex items-center justify-center hover:bg-white/20 transition-colors flex-shrink-0">
-              <ChevronLeft className="w-5 h-5 text-white" />
-            </Link>
-            <div className="w-10 h-10 rounded-xl bg-cyan-500/20 border border-cyan-500/30 flex items-center justify-center flex-shrink-0">
-              <Users className="w-5 h-5 text-cyan-400" />
-            </div>
-            <div>
-              <h1 className="text-xl font-black text-white tracking-wide uppercase">Manpower & Staffing</h1>
-              <p className="text-[10px] text-cyan-400/80 tracking-widest uppercase">Technician Management & Assignment Control Center</p>
-            </div>
+      <div className="px-6 pt-6 pb-4 border-b border-border">
+        <div className="flex items-start justify-between gap-4">
+          <div>
+            <p className="text-[10px] font-extrabold text-cyan-400 uppercase tracking-widest mb-1">People</p>
+            <h1 className="text-3xl font-black text-white">Technicians</h1>
+            <p className="text-sm text-gray-400 mt-1">Roster, qualifications, and live status.</p>
           </div>
-          <div className="flex items-center gap-3">
-            <button onClick={handleNew}
-              className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-cyan-500 text-white text-sm font-extrabold hover:bg-cyan-400 transition-colors shadow-lg shadow-cyan-500/20">
-              <Plus className="w-4 h-4" /> Add Technician
-            </button>
-            <button onClick={() => refetch()} className="w-9 h-9 rounded-xl bg-white/10 flex items-center justify-center hover:bg-white/20">
+          <div className="flex items-center gap-2">
+            <button onClick={() => refetch()}
+              className="w-9 h-9 rounded-xl bg-secondary border border-border flex items-center justify-center hover:bg-secondary/80">
               <RefreshCw className={cn('w-4 h-4 text-gray-400', isLoading && 'animate-spin')} />
             </button>
-            <LiveClock />
+            <button onClick={() => { setEditTech(null); setShowModal(true); }}
+              className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-cyan-600 text-white text-sm font-extrabold hover:bg-cyan-500 transition-colors shadow-lg shadow-cyan-500/20">
+              <Plus className="w-4 h-4" /> Add technician
+            </button>
           </div>
         </div>
       </div>
 
-      {/* ── KPI Cards ── */}
-      <div className="px-5 pt-4 pb-2 grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-7 gap-3">
-        {KPI_ITEMS.map(({ status, label, icon: Icon, iconColor, bg }) => (
-          <button key={status} onClick={() => setStatusFilter(statusFilter === status ? 'all' : status)}
-            className={cn('rounded-2xl border p-3 flex flex-col items-center gap-1.5 transition-all hover:brightness-110',
-              bg, statusFilter === status ? 'ring-2 ring-white/30' : '')}>
-            <Icon className={cn('w-5 h-5', iconColor)} />
-            <p className={cn('text-2xl font-black leading-none', iconColor)}>{counts[status] || 0}</p>
-            <p className="text-[9px] font-bold text-gray-400 text-center leading-tight">{label}</p>
+      {/* ── Tabs ── */}
+      <div className="px-6 pt-4 flex items-center gap-1 border-b border-border">
+        {[
+          { id: 'roster', label: 'Roster', icon: List },
+          { id: 'board', label: 'Assignment Board', icon: Calendar },
+        ].map(({ id, label, icon: Icon }) => (
+          <button key={id} onClick={() => setActiveTab(id)}
+            className={cn('flex items-center gap-2 px-4 py-2.5 text-sm font-bold border-b-2 -mb-px transition-all',
+              activeTab === id
+                ? 'border-cyan-400 text-cyan-300'
+                : 'border-transparent text-gray-500 hover:text-white'
+            )}>
+            <Icon className="w-4 h-4" /> {label}
           </button>
         ))}
       </div>
 
-      {/* ── Filter Bar ── */}
-      <div className="px-5 py-3 flex items-center gap-2 flex-wrap border-b border-white/8">
-        <div className="flex items-center gap-1">
-          {filterTabs.map(tab => (
-            <button key={tab.id} onClick={() => setStatusFilter(tab.id)}
-              className={cn('text-[10px] font-extrabold px-3 py-2 rounded-xl transition-all',
-                statusFilter === tab.id
-                  ? 'bg-cyan-500 text-white'
-                  : 'bg-[#141922] border border-white/8 text-gray-400 hover:text-white')}>
-              {tab.label}
-            </button>
-          ))}
-        </div>
+      {/* ── Roster Tab ── */}
+      {activeTab === 'roster' && (
+        <div className="px-6 pt-4">
+          {/* Search + Filter */}
+          <div className="flex items-center gap-3 mb-4 flex-wrap">
+            <div className="flex items-center gap-2 bg-card border border-border rounded-xl px-4 py-2.5 flex-1 max-w-xs">
+              <Search className="w-4 h-4 text-gray-500 flex-shrink-0" />
+              <input value={search} onChange={e => setSearch(e.target.value)}
+                placeholder="Search by name or employee ID"
+                className="bg-transparent text-sm text-white placeholder-gray-600 outline-none flex-1" />
+            </div>
+            <select value={stationFilter} onChange={e => setStationFilter(e.target.value)}
+              className="bg-card border border-border rounded-xl px-3 py-2.5 text-sm text-white outline-none">
+              <option value="All Stations">All Stations</option>
+              {stationList.map(s => <option key={s} value={s}>{s}</option>)}
+            </select>
+            <span className="text-xs text-gray-500 ml-auto">{filtered.length} technicians</span>
+          </div>
 
-        <select value={stationFilter} onChange={e => setStationFilter(e.target.value)}
-          className="bg-[#141922] border border-white/10 rounded-xl px-3 py-2 text-xs text-white outline-none focus:border-cyan-500/50 min-w-[130px]">
-          <option value="All Stations">All Stations</option>
-          {stationList.map(s => <option key={s} value={s}>{s}</option>)}
-        </select>
-
-        <div className="flex items-center gap-2 bg-[#141922] border border-white/10 rounded-xl px-3 py-2 flex-1 max-w-xs">
-          <Search className="w-3.5 h-3.5 text-gray-500 flex-shrink-0" />
-          <input value={search} onChange={e => setSearch(e.target.value)}
-            placeholder="Search by name, employee #, cert…"
-            className="bg-transparent text-xs text-white placeholder-gray-600 outline-none flex-1 min-w-0" />
-        </div>
-
-        <span className="text-[10px] text-gray-600 ml-auto">{filtered.length} technicians</span>
-      </div>
-
-      {/* ── Table ── */}
-      <div className="px-5 pt-3">
-        <div className="bg-[#0d1117] border border-white/8 rounded-2xl overflow-hidden">
-          <table className="w-full">
-            <thead>
-              <tr className="border-b border-white/8 bg-[#111827]">
-                {['TECHNICIAN','STATION / GATE','CERTIFICATION','STATUS','CURRENT ASSIGNMENT','ACTIONS'].map(h => (
-                  <th key={h} className="text-left px-5 py-3 text-[10px] font-extrabold text-gray-500 uppercase tracking-widest whitespace-nowrap">
-                    {h}
-                  </th>
-                ))}
-              </tr>
-            </thead>
-            <tbody>
-              {isLoading ? (
-                <tr><td colSpan={6} className="text-center py-16 text-gray-600">Loading technicians…</td></tr>
-              ) : filtered.length === 0 ? (
-                <tr>
-                  <td colSpan={6} className="text-center py-16">
-                    <Users className="w-10 h-10 text-gray-700 mx-auto mb-3" />
-                    <p className="text-gray-500 font-bold">No technicians found</p>
-                    <p className="text-gray-600 text-xs mt-1">
-                      {technicians.length === 0 ? 'Click "+ Add Technician" to get started' : 'Try adjusting your filters'}
-                    </p>
-                  </td>
+          {/* Table */}
+          <div className="bg-card border border-border rounded-2xl overflow-hidden">
+            <table className="w-full">
+              <thead>
+                <tr className="border-b border-border bg-card">
+                  {['NAME', 'EMP ID', 'STATION', 'SHIFT', 'QUALS', 'STATUS', 'ACTIONS'].map(h => (
+                    <th key={h} className="text-left px-5 py-3 text-[10px] font-extrabold text-gray-500 uppercase tracking-widest whitespace-nowrap">
+                      {h}
+                    </th>
+                  ))}
                 </tr>
-              ) : (
-                filtered.map(tech => (
-                  <TechRow key={tech.id} tech={tech} onEdit={handleEdit}
-                    onDelete={handleDelete} onChangeStatus={handleChangeStatus} onAssign={handleAssign} />
-                ))
-              )}
-            </tbody>
-          </table>
+              </thead>
+              <tbody>
+                {isLoading ? (
+                  <tr><td colSpan={7} className="text-center py-16 text-gray-600">Loading technicians…</td></tr>
+                ) : filtered.length === 0 ? (
+                  <tr>
+                    <td colSpan={7} className="text-center py-16">
+                      <Users className="w-10 h-10 text-gray-700 mx-auto mb-3" />
+                      <p className="text-gray-500 font-bold">No technicians found</p>
+                      <p className="text-gray-600 text-xs mt-1">
+                        {technicians.length === 0 ? 'Click "+ Add technician" to get started' : 'Try adjusting your filters'}
+                      </p>
+                    </td>
+                  </tr>
+                ) : filtered.map(tech => (
+                  <TechRow
+                    key={tech.id}
+                    tech={tech}
+                    onEdit={(t) => { setEditTech(t); setShowModal(true); }}
+                    onDelete={(t) => deleteMutation.mutate(t.id)}
+                    onChangeStatus={(t, s) => statusMutation.mutate({ id: t.id, status: s })}
+                  />
+                ))}
+              </tbody>
+            </table>
+          </div>
         </div>
+      )}
 
-        {filtered.length > 0 && (
-          <p className="text-[10px] text-gray-600 text-center mt-3">
-            Showing {filtered.length} of {technicians.length} technicians
-          </p>
-        )}
-      </div>
+      {/* ── Assignment Board Tab ── */}
+      {activeTab === 'board' && (
+        <AssignmentBoard
+          technicians={technicians}
+          aircraft={aircraft}
+          onAssign={(techId, tail) => statusMutation.mutate({ id: techId, status: tail ? 'assigned' : 'available' })}
+        />
+      )}
 
-      {/* ── Edit Modal ── */}
+      {/* ── Modals ── */}
       {showModal && (
         <TechModal
           tech={editTech}
           stationList={stationList}
           onClose={() => { setShowModal(false); setEditTech(null); }}
-          onSave={(data) => saveMutation.mutate(data)}
-        />
-      )}
-
-      {/* ── Assign Modal ── */}
-      {assignTech && (
-        <AssignModal
-          tech={assignTech}
-          aircraft={aircraft}
-          onClose={() => setAssignTech(null)}
-          onSave={handleAssignSave}
+          onSave={(data) => saveMutation.mutate({ ...editTech, ...data })}
         />
       )}
     </div>
