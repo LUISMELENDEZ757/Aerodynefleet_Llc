@@ -16,18 +16,15 @@ export default function AppHeader() {
   return (
     <header className="sticky top-0 z-50 bg-card/95 backdrop-blur-md border-b border-border">
       <div className="flex items-center justify-between px-4 h-14">
-        <Link to="/Dashboard" className="flex items-center gap-2">
-          <div className="w-8 h-8 rounded-lg bg-primary/20 flex items-center justify-center">
-            <Plane className="w-4 h-4 text-primary" />
-          </div>
-          <div>
-            <h1 className="text-sm font-bold tracking-wide text-primary">OOS TRACKER</h1>
-          </div>
-        </Link>
-
-        <div className="flex items-center gap-2">
-          <WifiIndicator />
-          <StarlinkIndicator />
+        <div className="flex items-center gap-3">
+          <Link to="/Dashboard" className="flex items-center gap-2">
+            <div className="w-8 h-8 rounded-lg bg-primary/20 flex items-center justify-center">
+              <Plane className="w-4 h-4 text-primary" />
+            </div>
+            <div>
+              <h1 className="text-sm font-bold tracking-wide text-primary">OOS TRACKER</h1>
+            </div>
+          </Link>
           <Button
             size="sm"
             onClick={() => { signOut().then(() => window.location.href = '/'); }}
@@ -37,6 +34,11 @@ export default function AppHeader() {
             <LogOut className="w-3.5 h-3.5 mr-1" />
             Sign Out
           </Button>
+        </div>
+
+        <div className="flex items-center gap-2">
+          <WifiIndicator />
+          <StarlinkIndicator />
           <NotificationsBell />
           <Link to="/NewOOS">
             <Button size="sm" className="bg-primary text-primary-foreground hover:bg-primary/90 font-semibold text-xs">
