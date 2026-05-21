@@ -8,17 +8,19 @@ import { createClient } from 'npm:@supabase/supabase-js@2';
 
 Deno.serve(async (req) => {
   try {
-    const supabaseUrl = Deno.env.get('VITE_SUPABASE_URL');
-    const serviceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY');
-
-    const anonKey = Deno.env.get('VITE_SUPABASE_ANON_KEY');
+    const supabaseUrl = (Deno.env.get('VITE_SUPABASE_URL') || '').trim();
+    const serviceKey = (Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') || '').trim();
+    const anonKey = (Deno.env.get('VITE_SUPABASE_ANON_KEY') || '').trim();
 
     if (!supabaseUrl || !serviceKey || !anonKey) {
       return Response.json({ error: 'Supabase credentials not configured' }, { status: 500 });
     }
 
+
+
     const supabase = createClient(supabaseUrl, serviceKey, {
-      auth: { autoRefreshToken: false, persistSession: false }
+      auth: { autoRefreshToken: false, persistSession: false },
+      global: { headers: { Authorization: `Bearer ${serviceKey}` } }
     });
 
     const body = await req.json();
