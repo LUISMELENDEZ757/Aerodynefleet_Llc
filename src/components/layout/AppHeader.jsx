@@ -36,12 +36,12 @@ export default function AppHeader() {
           </Link>
           <Button
             size="sm"
-            variant="ghost"
             onClick={() => base44.auth.logout('/')}
-            className="text-muted-foreground hover:text-foreground hover:bg-secondary text-xs font-semibold"
+            className="bg-destructive/20 text-destructive hover:bg-destructive/30 font-semibold text-xs"
             title="Sign out"
           >
-            <LogOut className="w-3.5 h-3.5" />
+            <LogOut className="w-3.5 h-3.5 mr-1" />
+            Sign Out
           </Button>
           <UserMenu />
         </div>
