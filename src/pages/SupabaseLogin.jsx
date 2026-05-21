@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { supabaseAuth } from '@/lib/supabaseAuth';
+import { getSupabaseAuthClient } from '@/lib/supabaseAuth';
 import { Plane, Lock, Mail, Eye, EyeOff } from 'lucide-react';
 
 export default function SupabaseLogin() {
@@ -14,13 +14,15 @@ export default function SupabaseLogin() {
     setError(null);
     setLoading(true);
 
-    const { error } = await supabaseAuth.auth.signInWithPassword({ email, password });
-
-    if (error) {
-      setError(error.message);
+    try {
+      const client = await getSupabaseAuthClient();
+      const { error } = await client.auth.signInWithPassword({ email, password });
+      if (error) setError(error.message);
+    } catch (err) {
+      setError(err.message);
+    } finally {
+      setLoading(false);
     }
-
-    setLoading(false);
   };
 
   return (
