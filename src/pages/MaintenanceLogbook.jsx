@@ -501,7 +501,7 @@ export default function MaintenanceLogbook() {
           <div className="space-y-3">
             {/* History filters */}
             <div className="bg-card border border-border rounded-xl p-4 space-y-3">
-              <p className="text-xs font-extrabold text-muted-foreground uppercase tracking-widest">Filter History — up to 10 years</p>
+              <p className="text-xs font-extrabold text-muted-foreground uppercase tracking-widest">Filter History</p>
               <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
                 <div>
                   <label className="text-xs text-muted-foreground block mb-1">ATA Chapter</label>
@@ -521,8 +521,6 @@ export default function MaintenanceLogbook() {
                   <input
                     type="date"
                     value={historyFrom}
-                    min={new Date(Date.now() - 10 * 365.25 * 24 * 60 * 60 * 1000).toISOString().split('T')[0]}
-                    max={new Date().toISOString().split('T')[0]}
                     onChange={e => setHistoryFrom(e.target.value)}
                     className="w-full h-9 bg-secondary border border-border rounded-lg px-3 text-sm text-foreground focus:outline-none focus:ring-1 focus:ring-primary"
                   />
@@ -532,8 +530,6 @@ export default function MaintenanceLogbook() {
                   <input
                     type="date"
                     value={historyTo}
-                    min={new Date(Date.now() - 10 * 365.25 * 24 * 60 * 60 * 1000).toISOString().split('T')[0]}
-                    max={new Date().toISOString().split('T')[0]}
                     onChange={e => setHistoryTo(e.target.value)}
                     className="w-full h-9 bg-secondary border border-border rounded-lg px-3 text-sm text-foreground focus:outline-none focus:ring-1 focus:ring-primary"
                   />
