@@ -273,10 +273,26 @@ export default function MaintenanceLogbook() {
   const filteredPendingRii = filterEntries(pendingRii);
   const filteredOpenMel    = openMel.filter(m => !tailFilter || m.aircraft_tail === tailFilter);
 
+  // History filters
+  const [historyAta, setHistoryAta] = useState('');
+  const [historyFrom, setHistoryFrom] = useState('');
+  const [historyTo, setHistoryTo] = useState('');
+
+  const historyEntries = logbook.filter(e => {
+    const matchesTail = !tailFilter || e.aircraft_tail === tailFilter;
+    const matchesAta  = !historyAta || e.ata_chapter?.startsWith(historyAta);
+    const entryDate   = new Date(e.created_date);
+    const matchesFrom = !historyFrom || entryDate >= new Date(historyFrom);
+    const matchesTo   = !historyTo   || entryDate <= new Date(historyTo + 'T23:59:59');
+    const matchesSearch = !search || e.description?.toLowerCase().includes(search.toLowerCase()) || e.aircraft_tail?.toLowerCase().includes(search.toLowerCase());
+    return matchesTail && matchesAta && matchesFrom && matchesTo && matchesSearch;
+  }).sort((a, b) => new Date(b.created_date) - new Date(a.created_date));
+
   const TABS = [
     { key: 'discrepancies', label: 'Discrepancies', count: filteredOpenDisc.length + filteredInProgress.length + filteredPendingRii.length },
     { key: 'mel',           label: 'MEL Deferrals', count: filteredOpenMel.length },
     { key: 'aircraft',      label: 'Fleet Status',  count: aircraft.length },
+    { key: 'history',       label: 'History',       count: historyEntries.length },
   ];
 
   return (
@@ -476,6 +492,108 @@ export default function MaintenanceLogbook() {
                     </div>
                   );
                 })}
+            </div>
+          </div>
+        )}
+
+        {/* History tab */}
+        {tab === 'history' && (
+          <div className="space-y-3">
+            {/* History filters */}
+            <div className="bg-card border border-border rounded-xl p-4 space-y-3">
+              <p className="text-xs font-extrabold text-muted-foreground uppercase tracking-widest">Filter History — up to 10 years</p>
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                <div>
+                  <label className="text-xs text-muted-foreground block mb-1">ATA Chapter</label>
+                  <select
+                    value={historyAta}
+                    onChange={e => setHistoryAta(e.target.value)}
+                    className="w-full h-9 bg-secondary border border-border rounded-lg px-3 text-sm text-foreground focus:outline-none focus:ring-1 focus:ring-primary"
+                  >
+                    <option value="">All ATA Chapters</option>
+                    {ATA_CHAPTERS.map(c => (
+                      <option key={c} value={c.split(' - ')[0]}>{c}</option>
+                    ))}
+                  </select>
+                </div>
+                <div>
+                  <label className="text-xs text-muted-foreground block mb-1">From Date</label>
+                  <input
+                    type="date"
+                    value={historyFrom}
+                    min={new Date(Date.now() - 10 * 365.25 * 24 * 60 * 60 * 1000).toISOString().split('T')[0]}
+                    max={new Date().toISOString().split('T')[0]}
+                    onChange={e => setHistoryFrom(e.target.value)}
+                    className="w-full h-9 bg-secondary border border-border rounded-lg px-3 text-sm text-foreground focus:outline-none focus:ring-1 focus:ring-primary"
+                  />
+                </div>
+                <div>
+                  <label className="text-xs text-muted-foreground block mb-1">To Date</label>
+                  <input
+                    type="date"
+                    value={historyTo}
+                    min={new Date(Date.now() - 10 * 365.25 * 24 * 60 * 60 * 1000).toISOString().split('T')[0]}
+                    max={new Date().toISOString().split('T')[0]}
+                    onChange={e => setHistoryTo(e.target.value)}
+                    className="w-full h-9 bg-secondary border border-border rounded-lg px-3 text-sm text-foreground focus:outline-none focus:ring-1 focus:ring-primary"
+                  />
+                </div>
+              </div>
+              {(historyAta || historyFrom || historyTo) && (
+                <button
+                  onClick={() => { setHistoryAta(''); setHistoryFrom(''); setHistoryTo(''); }}
+                  className="text-xs text-primary hover:underline"
+                >
+                  Clear filters
+                </button>
+              )}
+            </div>
+
+            {/* Results */}
+            <div className="rounded-xl bg-card border border-border overflow-hidden">
+              {historyEntries.length === 0 ? (
+                <div className="py-12 text-center">
+                  <BookOpen className="w-10 h-10 text-muted-foreground mx-auto mb-2 opacity-30" />
+                  <p className="text-sm font-bold text-foreground">No records found</p>
+                  <p className="text-xs text-muted-foreground mt-1">Try adjusting your filters</p>
+                </div>
+              ) : (
+                <div className="divide-y divide-border/50">
+                  {historyEntries.map(e => {
+                    const st = DISC_STATUS[e.discrepancy_status] || DISC_STATUS.OPEN;
+                    return (
+                      <button
+                        key={e.id}
+                        onClick={() => setSelectedEntry(e)}
+                        className="w-full flex items-start gap-3 px-4 py-3 hover:bg-secondary/30 transition-colors text-left"
+                      >
+                        <div className="flex-shrink-0 text-center min-w-[56px]">
+                          <p className="text-[10px] font-bold text-muted-foreground">{new Date(e.created_date).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}</p>
+                          <p className="text-[10px] text-muted-foreground/60">{new Date(e.created_date).getFullYear()}</p>
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <div className="flex items-center gap-2 flex-wrap">
+                            <span className="text-xs font-mono font-bold text-primary">{e.aircraft_tail}</span>
+                            {e.ata_chapter && <span className="text-[10px] font-bold px-1.5 py-0.5 rounded bg-secondary text-muted-foreground">ATA {e.ata_chapter}</span>}
+                            {e.flight_number && <span className="text-[10px] text-muted-foreground">{e.flight_number}</span>}
+                            {e.station && <span className="text-[10px] text-muted-foreground">{e.station}</span>}
+                          </div>
+                          <p className="text-sm text-foreground mt-0.5 line-clamp-2">{e.description}</p>
+                          {e.corrective_action && (
+                            <p className="text-xs text-green-400 mt-0.5 line-clamp-1">✓ {e.corrective_action}</p>
+                          )}
+                        </div>
+                        <div className="flex flex-col items-end gap-1 flex-shrink-0">
+                          <span className={cn('text-[10px] font-bold px-2 py-0.5 rounded-full capitalize', st.bg, st.color)}>
+                            {e.entry_type?.replace('_', ' ') || st.label}
+                          </span>
+                          {e.technician_name && <span className="text-[10px] text-muted-foreground">{e.technician_name}</span>}
+                        </div>
+                      </button>
+                    );
+                  })}
+                </div>
+              )}
             </div>
           </div>
         )}
