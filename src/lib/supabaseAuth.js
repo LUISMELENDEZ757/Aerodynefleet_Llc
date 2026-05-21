@@ -1,20 +1,8 @@
 import { createClient } from "@supabase/supabase-js";
-import { appParams } from '@/lib/app-params';
+import { base44 } from '@/api/base44Client';
 
 let _client = null;
 let _initPromise = null;
-
-async function fetchConfigFromBackend() {
-  const appId = appParams.appId;
-  const baseUrl = appParams.appBaseUrl || `https://api.base44.com`;
-  const res = await fetch(`${baseUrl}/api/apps/${appId}/functions/getSupabaseConfig`, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({}),
-  });
-  if (!res.ok) throw new Error('Failed to fetch Supabase config from backend');
-  return res.json();
-}
 
 export async function initSupabaseAuthClient() {
   if (_client) return _client;
@@ -25,9 +13,9 @@ export async function initSupabaseAuthClient() {
     let key = import.meta.env.VITE_SUPABASE_ANON_KEY;
 
     if (!url || !key) {
-      const config = await fetchConfigFromBackend();
-      url = config.supabaseUrl;
-      key = config.supabaseKey;
+      const res = await base44.functions.invoke('getSupabaseConfig', {});
+      url = res.data?.supabaseUrl;
+      key = res.data?.supabaseKey;
     }
 
     if (!url || !key) {
@@ -42,6 +30,6 @@ export async function initSupabaseAuthClient() {
 }
 
 export function getSupabaseAuthClient() {
-  if (!_client) throw new Error('Supabase client not initialized yet. Call initSupabaseAuthClient() first.');
+  if (!_client) throw new Error('Supabase client not initialized yet.');
   return _client;
 }
