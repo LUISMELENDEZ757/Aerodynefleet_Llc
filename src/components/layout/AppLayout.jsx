@@ -9,6 +9,8 @@ import { TabHistoryProvider, useTabHistory } from '@/lib/TabHistoryContext';
 import PageTransition from '@/components/ui/PageTransition';
 import SupportButton from './SupportButton';
 import LocalModeToggle from './LocalModeToggle';
+import { signOut } from '@/lib/supabaseAuth';
+import { LogOut } from 'lucide-react';
 
 // Syncs location changes into TabHistoryContext so lastPaths stays accurate
 function LocationSync() {
@@ -71,6 +73,14 @@ function AppContent() {
           <StarlinkIndicator />
           <NotificationsBell />
           <SupportButton />
+          <button
+            onClick={() => signOut().then(() => window.location.href = '/')}
+            className="flex items-center gap-1 px-2 py-1 rounded-lg bg-destructive/15 text-destructive hover:bg-destructive/25 transition-colors text-[11px] font-bold"
+            title="Sign out"
+          >
+            <LogOut className="w-3 h-3" />
+            Sign Out
+          </button>
         </div>
         <main className="pb-safe-bottom">
           <PageTransition>
