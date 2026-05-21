@@ -27,13 +27,6 @@ export default function AppHeader() {
         <div className="flex items-center gap-2">
           <WifiIndicator />
           <StarlinkIndicator />
-          <NotificationsBell />
-          <Link to="/NewOOS">
-            <Button size="sm" className="bg-primary text-primary-foreground hover:bg-primary/90 font-semibold text-xs">
-              <Plus className="w-3.5 h-3.5 mr-1" />
-              NEW
-            </Button>
-          </Link>
           <Button
             size="sm"
             onClick={() => base44.auth.logout('/')}
@@ -43,6 +36,13 @@ export default function AppHeader() {
             <LogOut className="w-3.5 h-3.5 mr-1" />
             Sign Out
           </Button>
+          <NotificationsBell />
+          <Link to="/NewOOS">
+            <Button size="sm" className="bg-primary text-primary-foreground hover:bg-primary/90 font-semibold text-xs">
+              <Plus className="w-3.5 h-3.5 mr-1" />
+              NEW
+            </Button>
+          </Link>
           <UserMenu />
         </div>
       </div>
