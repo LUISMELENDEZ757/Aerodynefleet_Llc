@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { base44 } from '@/api/base44Client';
 import {
@@ -217,6 +217,15 @@ export default function MaintenanceLogbook() {
   const [showNewModal, setShowNewModal] = useState(false);
   const [selectedEntry, setSelectedEntry] = useState(null);
   const [tailFilter, setTailFilter] = useState('');
+
+  // Read tail from query params
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const tailParam = params.get('tail');
+    if (tailParam) {
+      setTailFilter(tailParam);
+    }
+  }, []);
 
   const { data: logbook = [] } = useQuery({
     queryKey: ['mx-logbook'],
