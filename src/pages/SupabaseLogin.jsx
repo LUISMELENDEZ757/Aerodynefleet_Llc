@@ -1,29 +1,41 @@
 import { useState } from 'react';
 import { getSupabaseAuthClient } from '@/lib/supabaseAuth';
-import { Plane, Lock, Mail, Eye, EyeOff } from 'lucide-react';
+import { Plane, Lock, Mail, Eye, EyeOff, UserPlus, LogIn } from 'lucide-react';
 
 export default function SupabaseLogin() {
+  const [mode, setMode] = useState('login'); // 'login' | 'signup'
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
+  const [success, setSuccess] = useState(null);
 
-  const handleLogin = async (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     setError(null);
+    setSuccess(null);
     setLoading(true);
 
     try {
       const client = await getSupabaseAuthClient();
-      const { error } = await client.auth.signInWithPassword({ email, password });
-      if (error) setError(error.message);
+
+      if (mode === 'login') {
+        const { error } = await client.auth.signInWithPassword({ email, password });
+        if (error) setError(error.message);
+      } else {
+        const { error } = await client.auth.signUp({ email, password });
+        if (error) setError(error.message);
+        else setSuccess('Account created! Check your email to confirm your account, then sign in.');
+      }
     } catch (err) {
       setError(err.message);
     } finally {
       setLoading(false);
     }
   };
+
+  const inputCls = "w-full bg-background border border-border rounded-xl pl-10 pr-4 py-3 text-sm text-foreground placeholder-muted-foreground outline-none focus:border-primary transition-colors";
 
   return (
     <div className="min-h-screen bg-background flex items-center justify-center p-4">
@@ -36,16 +48,42 @@ export default function SupabaseLogin() {
           </div>
           <div className="text-center">
             <h1 className="text-2xl font-black text-foreground tracking-wide">Aerodyne Fleet OS</h1>
-            <p className="text-sm text-muted-foreground mt-1">Sign in to your account</p>
+            <p className="text-sm text-muted-foreground mt-1">
+              {mode === 'login' ? 'Sign in to your account' : 'Create a new account'}
+            </p>
           </div>
         </div>
 
+        {/* Mode Toggle */}
+        <div className="flex rounded-xl overflow-hidden border border-border bg-card p-1 gap-1">
+          <button
+            type="button"
+            onClick={() => { setMode('login'); setError(null); setSuccess(null); }}
+            className={`flex-1 flex items-center justify-center gap-2 py-2.5 rounded-lg text-sm font-bold transition-all ${mode === 'login' ? 'bg-primary text-primary-foreground' : 'text-muted-foreground hover:text-foreground'}`}
+          >
+            <LogIn className="w-4 h-4" /> Sign In
+          </button>
+          <button
+            type="button"
+            onClick={() => { setMode('signup'); setError(null); setSuccess(null); }}
+            className={`flex-1 flex items-center justify-center gap-2 py-2.5 rounded-lg text-sm font-bold transition-all ${mode === 'signup' ? 'bg-primary text-primary-foreground' : 'text-muted-foreground hover:text-foreground'}`}
+          >
+            <UserPlus className="w-4 h-4" /> Create Account
+          </button>
+        </div>
+
         {/* Form */}
-        <form onSubmit={handleLogin} className="bg-card border border-border rounded-2xl p-8 space-y-5 shadow-xl">
+        <form onSubmit={handleSubmit} className="bg-card border border-border rounded-2xl p-8 space-y-5 shadow-xl">
 
           {error && (
             <div className="bg-red-900/20 border border-red-500/40 rounded-xl px-4 py-3 text-sm text-red-400 font-medium">
               {error}
+            </div>
+          )}
+
+          {success && (
+            <div className="bg-green-900/20 border border-green-500/40 rounded-xl px-4 py-3 text-sm text-green-400 font-medium">
+              {success}
             </div>
           )}
 
@@ -59,7 +97,7 @@ export default function SupabaseLogin() {
                 onChange={e => setEmail(e.target.value)}
                 required
                 placeholder="you@aerodyne.com"
-                className="w-full bg-background border border-border rounded-xl pl-10 pr-4 py-3 text-sm text-foreground placeholder-muted-foreground outline-none focus:border-primary transition-colors"
+                className={inputCls}
               />
             </div>
           </div>
@@ -91,7 +129,9 @@ export default function SupabaseLogin() {
             disabled={loading}
             className="w-full py-3 rounded-xl bg-primary text-primary-foreground font-extrabold text-sm hover:bg-primary/90 disabled:opacity-50 transition-colors tracking-wide"
           >
-            {loading ? 'Signing in…' : 'Sign In'}
+            {loading
+              ? (mode === 'login' ? 'Signing in…' : 'Creating account…')
+              : (mode === 'login' ? 'Sign In' : 'Create Account')}
           </button>
         </form>
 
