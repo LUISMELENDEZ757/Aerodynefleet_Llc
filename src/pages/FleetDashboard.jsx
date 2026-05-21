@@ -461,8 +461,8 @@ function AircraftDetailOverlay({ aircraft: initialAircraft, onClose }) {
               {logEntries.map(entry => {
                 const notes = entry.notes || '';
                 const locationMatch = notes.match(/Location:\s*([^|]+)/);
-                const pocMatch = notes.match(/POC:\s*([^|]+)/);
                 const phoneMatch = notes.match(/POC Phone:\s*([^|]+)/);
+                const pocMatch = notes.match(/POC:\s*(?!Phone)([^|]+)/);
                 const location = locationMatch ? locationMatch[1].trim() : null;
                 const poc = pocMatch ? pocMatch[1].trim() : null;
                 const phone = phoneMatch ? phoneMatch[1].trim() : null;
