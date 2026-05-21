@@ -1,8 +1,9 @@
 import React from 'react';
 import { Link, useLocation } from 'react-router-dom';
-import { Plane, Plus, Menu } from 'lucide-react';
+import { Plane, Plus, Menu, LogOut } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
+import { base44 } from '@/api/base44Client';
 import UserMenu from './UserMenu';
 import WifiIndicator from './WifiIndicator';
 import StarlinkIndicator from './StarlinkIndicator';
@@ -33,6 +34,15 @@ export default function AppHeader() {
               NEW
             </Button>
           </Link>
+          <Button
+            size="sm"
+            variant="ghost"
+            onClick={() => base44.auth.logout('/')}
+            className="text-muted-foreground hover:text-foreground hover:bg-secondary text-xs font-semibold"
+            title="Sign out"
+          >
+            <LogOut className="w-3.5 h-3.5" />
+          </Button>
           <UserMenu />
         </div>
       </div>
