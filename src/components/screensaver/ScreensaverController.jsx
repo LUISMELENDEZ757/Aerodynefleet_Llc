@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import { AnimatePresence } from 'framer-motion';
 import Screensaver from './Screensaver';
 
@@ -6,19 +6,17 @@ const IDLE_TIMEOUT_MS = 5 * 60 * 1000; // 5 minutes
 
 export default function ScreensaverController() {
   const [idle, setIdle] = useState(false);
+  const timerRef = useRef(null);
 
-  const reset = useCallback(() => setIdle(false), []);
+  const startTimer = useCallback(() => {
+    clearTimeout(timerRef.current);
+    timerRef.current = setTimeout(() => setIdle(true), IDLE_TIMEOUT_MS);
+  }, []);
 
   useEffect(() => {
-    let timer;
-
-    const startTimer = () => {
-      clearTimeout(timer);
-      timer = setTimeout(() => setIdle(true), IDLE_TIMEOUT_MS);
-    };
-
     const onActivity = () => {
-      if (!idle) startTimer();
+      setIdle(false);
+      startTimer();
     };
 
     const events = ['mousemove', 'mousedown', 'keydown', 'touchstart', 'scroll', 'click'];
@@ -26,16 +24,15 @@ export default function ScreensaverController() {
     startTimer();
 
     return () => {
-      clearTimeout(timer);
+      clearTimeout(timerRef.current);
       events.forEach(e => window.removeEventListener(e, onActivity));
     };
-  }, [idle]);
+  }, [startTimer]);
 
   const dismiss = useCallback(() => {
     setIdle(false);
-    // Reset timer after dismiss
-    setTimeout(() => {}, 0);
-  }, []);
+    startTimer();
+  }, [startTimer]);
 
   return (
     <AnimatePresence>
