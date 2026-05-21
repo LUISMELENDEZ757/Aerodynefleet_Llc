@@ -370,15 +370,7 @@ export default function LogEntryCard({ entry, viewRole = 'mx' }) {
                 <div className="space-y-3">
                   {action !== 'correct' ? (
                     <div className="space-y-3">
-                      <SectionInput label="Troubleshooting Notes" rows={2} value={progressForm.troubleshooting_notes}
-                        onChange={e => setProgressForm(p => ({ ...p, troubleshooting_notes: e.target.value }))} placeholder="Test results, troubleshooting steps…" />
-                      <SectionInput label="Parts Used" rows={1} value={progressForm.parts_used}
-                        onChange={e => setProgressForm(p => ({ ...p, parts_used: e.target.value }))} placeholder="P/N, S/N, description…" />
                       <div className="flex gap-2">
-                        <button onClick={handleSaveProgress} disabled={updateMutation.isPending}
-                          className="flex-1 py-2.5 rounded-xl bg-white/10 border border-white/15 text-sm font-bold text-gray-300 hover:bg-white/15 disabled:opacity-50 transition-colors">
-                          Save Progress
-                        </button>
                         <button onClick={() => setAction('correct')}
                           className="flex-1 py-2.5 rounded-xl bg-green-700 text-white text-sm font-extrabold hover:bg-green-600 transition-colors flex items-center justify-center gap-2">
                           <Send className="w-4 h-4" /> SUBMIT CORRECTION
