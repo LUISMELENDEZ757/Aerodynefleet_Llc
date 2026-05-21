@@ -280,7 +280,14 @@ export default function MaintenanceLogbook() {
       <div className="border-b border-border bg-card sticky top-0 z-30 px-5 py-4">
         <div className="max-w-5xl mx-auto flex items-center justify-between gap-4">
           <div>
-            <h1 className="text-2xl font-extrabold text-foreground">Maintenance Logbook</h1>
+            <div className="flex items-center gap-3">
+              <h1 className="text-2xl font-extrabold text-foreground">Maintenance Logbook</h1>
+              {tailFilter && (
+                <span className="px-3 py-1 rounded-lg bg-primary/20 border border-primary/30 text-primary text-sm font-bold">
+                  {tailFilter}
+                </span>
+              )}
+            </div>
             <p className="text-xs text-muted-foreground uppercase tracking-widest mt-0.5">Discrepancies · MEL Deferrals · Fleet Status</p>
           </div>
           <button
