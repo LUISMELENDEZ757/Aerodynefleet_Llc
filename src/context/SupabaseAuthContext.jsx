@@ -1,37 +1,18 @@
 import { createContext, useContext, useEffect, useState } from 'react';
-import { initSupabaseAuthClient } from '@/lib/supabaseAuth';
+import { getSession, onSessionChange } from '@/lib/supabaseAuth';
 
 const SupabaseAuthContext = createContext(null);
 
 export function SupabaseAuthProvider({ children }) {
-  const [session, setSession] = useState(undefined); // undefined = loading
-  const [initError, setInitError] = useState(null);
+  const [session, setSession] = useState(getSession()); // null = not logged in
 
   useEffect(() => {
-    let subscription;
-
-    initSupabaseAuthClient()
-      .then((client) => {
-        client.auth.getSession().then(({ data: { session } }) => {
-          setSession(session);
-        });
-
-        const { data } = client.auth.onAuthStateChange((_event, session) => {
-          setSession(session);
-        });
-        subscription = data.subscription;
-      })
-      .catch((err) => {
-        console.error('Supabase init error:', err);
-        setInitError(err.message);
-        setSession(null);
-      });
-
-    return () => subscription?.unsubscribe();
+    const unsub = onSessionChange((s) => setSession(s));
+    return unsub;
   }, []);
 
   return (
-    <SupabaseAuthContext.Provider value={{ session, loading: session === undefined, initError }}>
+    <SupabaseAuthContext.Provider value={{ session, loading: false }}>
       {children}
     </SupabaseAuthContext.Provider>
   );

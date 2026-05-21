@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { initSupabaseAuthClient } from '@/lib/supabaseAuth';
+import { signIn, signUp } from '@/lib/supabaseAuth';
 import { Plane, Lock, Mail, Eye, EyeOff, UserPlus, LogIn } from 'lucide-react';
 
 export default function SupabaseLogin() {
@@ -18,15 +18,16 @@ export default function SupabaseLogin() {
     setLoading(true);
 
     try {
-      const client = await initSupabaseAuthClient();
-
       if (mode === 'login') {
-        const { error } = await client.auth.signInWithPassword({ email, password });
-        if (error) setError(error.message);
+        await signIn(email, password);
+        // session is set — SupabaseAuthGate will re-render automatically
       } else {
-        const { error } = await client.auth.signUp({ email, password });
-        if (error) setError(error.message);
-        else setSuccess('Account created! Check your email to confirm, then sign in.');
+        const result = await signUp(email, password);
+        if (result.session) {
+          // auto-confirmed
+        } else {
+          setSuccess('Account created! Check your email to confirm, then sign in.');
+        }
       }
     } catch (err) {
       setError(err.message);
