@@ -342,6 +342,20 @@ a:focus-visible {
 .weather-ifr { color: hsl(0, 84%, 60%); font-weight: 600; }
 .weather-lifr { color: hsl(280, 85%, 65%); font-weight: 600; }
 
+/* ─── Aviation Status Color System ─────────────────────────────────────── */
+/* Industry-standard color coding for MX status across all modules */
+.status-aog { color: hsl(0, 84%, 60%); font-weight: 700; }
+.status-aog-bg { background: hsl(0, 84%, 60%, 0.12); border-color: hsl(0, 84%, 60%, 0.3); }
+.status-mel { color: hsl(38, 92%, 50%); font-weight: 700; }
+.status-mel-bg { background: hsl(38, 92%, 50%, 0.12); border-color: hsl(38, 92%, 50%, 0.3); }
+.status-open { color: hsl(210, 90%, 60%); font-weight: 600; }
+.status-open-bg { background: hsl(210, 90%, 60%, 0.12); border-color: hsl(210, 90%, 60%, 0.3); }
+.status-rts { color: hsl(142, 71%, 45%); font-weight: 700; }
+.status-rts-bg { background: hsl(142, 71%, 45%, 0.12); border-color: hsl(142, 71%, 45%, 0.3); }
+.status-deferred { color: hsl(38, 92%, 50%); font-weight: 600; }
+.status-in-work { color: hsl(210, 90%, 60%); font-weight: 600; }
+.status-closed { color: hsl(0, 0%, 50%); font-weight: 600; }
+
 /* Performance metric values - high contrast */
 .metric-value {
   color: hsl(210 20% 95%);
