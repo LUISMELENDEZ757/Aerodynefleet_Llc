@@ -67,26 +67,78 @@ const inputCls = "w-full bg-[#1a2035] border border-white/10 rounded-lg px-3 py-
 const textareaCls = `${inputCls} resize-none`;
 
 // ── Oil Service sub-section ──────────────────────────────────────────────────
+const OIL_MAX = 12; // quarts — visual scale max
+
+function OilGauge({ label, before, after, added }) {
+  const bVal = parseFloat(before) || 0;
+  const aVal = parseFloat(after) || 0;
+  const addVal = parseFloat(added) || 0;
+  const pctBefore = Math.min((bVal / OIL_MAX) * 100, 100);
+  const pctAfter  = Math.min((aVal / OIL_MAX) * 100, 100);
+  const low = bVal < 3;
+  const ok  = aVal >= 6;
+
+  return (
+    <div className="flex flex-col items-center gap-2 flex-1">
+      <p className="text-[10px] font-extrabold text-gray-500 uppercase tracking-widest">{label}</p>
+
+      {/* Vertical tank gauge */}
+      <div className="relative w-10 h-24 bg-[#0a0f1a] border border-white/10 rounded-lg overflow-hidden">
+        {/* After fill */}
+        <div
+          className={cn('absolute bottom-0 left-0 right-0 transition-all duration-500', ok ? 'bg-cyan-500/60' : 'bg-amber-500/60')}
+          style={{ height: `${pctAfter}%` }}
+        />
+        {/* Before fill (overlay, slightly darker) */}
+        <div
+          className="absolute bottom-0 left-0 right-0 transition-all duration-500 bg-cyan-800/40"
+          style={{ height: `${pctBefore}%` }}
+        />
+        {/* Level marks */}
+        {[25, 50, 75].map(p => (
+          <div key={p} className="absolute left-0 right-0 border-t border-white/10" style={{ bottom: `${p}%` }} />
+        ))}
+        {/* LOW label */}
+        {low && (
+          <div className="absolute inset-0 flex items-center justify-center">
+            <span className="text-[8px] font-black text-red-400 tracking-wider rotate-0">LOW</span>
+          </div>
+        )}
+      </div>
+
+      {/* Values */}
+      <div className="text-center space-y-0.5">
+        <p className="text-[9px] text-gray-600">Before <span className="text-cyan-300 font-bold">{bVal > 0 ? `${bVal}qt` : '—'}</span></p>
+        {addVal > 0 && <p className="text-[9px] text-green-400 font-bold">+{addVal}qt</p>}
+        <p className="text-[9px] text-gray-600">After <span className={cn('font-bold', ok ? 'text-green-400' : 'text-amber-400')}>{aVal > 0 ? `${aVal}qt` : '—'}</span></p>
+      </div>
+    </div>
+  );
+}
+
 function OilServiceSection({ oil, setOil }) {
   const [open, setOpen] = useState(false);
-  const set = (k, v) => setOil(p => ({ ...p, [k]: v }));
+  const set = (k, v) => {
+    setOil(p => {
+      const updated = { ...p, [k]: v };
+      // Auto-calculate "after" = before + added for each unit
+      for (const prefix of ['e1', 'e2', 'apu']) {
+        const b = parseFloat(updated[`${prefix}_before`]) || 0;
+        const a = parseFloat(updated[`${prefix}_added`]) || 0;
+        if ((k === `${prefix}_before` || k === `${prefix}_added`) && (b > 0 || a > 0)) {
+          updated[`${prefix}_after`] = (b + a).toFixed(1);
+        }
+      }
+      return updated;
+    });
+  };
 
-  const OilCard = ({ title, bKey, dKey, aKey }) => (
-    <div className="bg-[#0d1423] border border-white/8 rounded-lg p-3 space-y-2">
-      <p className="text-[10px] font-bold text-gray-500 uppercase tracking-widest">{title}</p>
-      <div className="grid grid-cols-3 gap-2">
-        {[['BEFORE', bKey], ['ADDED', dKey], ['AFTER', aKey]].map(([lbl, k]) => (
-          <div key={k}>
-            <label className="text-[9px] font-bold text-gray-600 block mb-1">{lbl}</label>
-            <div className="relative">
-              <input type="number" step="0.1" min="0" placeholder="0.0" value={oil[k]}
-                onChange={e => set(k, e.target.value)}
-                className="w-full bg-[#111827] border border-white/10 rounded-lg px-2 py-2 text-sm text-white placeholder-gray-700 outline-none focus:border-cyan-400 pr-6" />
-              <span className="absolute right-2 top-1/2 -translate-y-1/2 text-[10px] text-gray-600">qt</span>
-            </div>
-          </div>
-        ))}
-      </div>
+  const inputNum = (k) => (
+    <div className="relative">
+      <input type="number" step="0.1" min="0" placeholder="0.0" value={oil[k]}
+        onChange={e => set(k, e.target.value)}
+        className="w-full bg-[#111827] border border-white/10 rounded-lg px-2 py-2 text-sm text-white placeholder-gray-700 outline-none focus:border-cyan-400 pr-7" />
+      <span className="absolute right-2 top-1/2 -translate-y-1/2 text-[10px] text-gray-600">qt</span>
     </div>
   );
 
@@ -100,11 +152,46 @@ function OilServiceSection({ oil, setOil }) {
         </div>
         <ChevronDown className={cn('w-4 h-4 text-gray-500 transition-transform', open && 'rotate-180')} />
       </button>
+
       {open && (
-        <div className="border-t border-cyan-500/20 bg-[#0d1423] p-4 space-y-3">
-          <OilCard title="Engine 1" bKey="e1_before" dKey="e1_added" aKey="e1_after" />
-          <OilCard title="Engine 2" bKey="e2_before" dKey="e2_added" aKey="e2_after" />
-          <OilCard title="APU"      bKey="apu_before" dKey="apu_added" aKey="apu_after" />
+        <div className="border-t border-cyan-500/20 bg-[#0d1423] p-4 space-y-4">
+
+          {/* ── Graphical gauges ── */}
+          <div className="flex items-start justify-around gap-2 py-2">
+            <OilGauge label="ENG 1" before={oil.e1_before} added={oil.e1_added} after={oil.e1_after} />
+            <OilGauge label="ENG 2" before={oil.e2_before} added={oil.e2_added} after={oil.e2_after} />
+            <OilGauge label="APU"   before={oil.apu_before} added={oil.apu_added} after={oil.apu_after} />
+          </div>
+
+          {/* ── Numeric inputs — Before / Added / After (auto) ── */}
+          {[
+            { title: 'Engine 1', bKey: 'e1_before',  dKey: 'e1_added',  aKey: 'e1_after' },
+            { title: 'Engine 2', bKey: 'e2_before',  dKey: 'e2_added',  aKey: 'e2_after' },
+            { title: 'APU',      bKey: 'apu_before', dKey: 'apu_added', aKey: 'apu_after' },
+          ].map(({ title, bKey, dKey, aKey }) => (
+            <div key={title} className="bg-[#0d1117] border border-white/8 rounded-lg p-3 space-y-2">
+              <p className="text-[10px] font-bold text-cyan-500/70 uppercase tracking-widest">{title}</p>
+              <div className="grid grid-cols-3 gap-2">
+                <div>
+                  <label className="text-[9px] font-bold text-gray-600 block mb-1">BEFORE</label>
+                  {inputNum(bKey)}
+                </div>
+                <div>
+                  <label className="text-[9px] font-bold text-green-500 block mb-1">ADDED</label>
+                  {inputNum(dKey)}
+                </div>
+                <div>
+                  <label className="text-[9px] font-bold text-cyan-400 block mb-1">AFTER (auto)</label>
+                  <div className="relative">
+                    <input readOnly value={oil[aKey]}
+                      className="w-full bg-[#0a1020] border border-cyan-500/20 rounded-lg px-2 py-2 text-sm text-cyan-300 font-bold outline-none pr-7 cursor-not-allowed opacity-80" />
+                    <span className="absolute right-2 top-1/2 -translate-y-1/2 text-[10px] text-gray-600">qt</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          ))}
+
           <div>
             <label className="text-[10px] font-bold text-gray-500 uppercase tracking-widest block mb-1.5">Oil Grade / Spec</label>
             <input value={oil.grade} onChange={e => set('grade', e.target.value)} placeholder="e.g. MIL-PRF-7808"
