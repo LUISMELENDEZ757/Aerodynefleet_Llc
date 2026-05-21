@@ -1,4 +1,3 @@
-import { createClientFromRequest } from 'npm:@base44/sdk@0.8.25';
 import { createClient } from 'npm:@supabase/supabase-js@2';
 
 /**
@@ -9,16 +8,12 @@ import { createClient } from 'npm:@supabase/supabase-js@2';
 
 Deno.serve(async (req) => {
   try {
-    const base44 = createClientFromRequest(req);
-    const user = await base44.auth.me();
-    if (!user || user.role !== 'admin') {
-      return Response.json({ error: 'Admin access required' }, { status: 403 });
-    }
-
     const supabaseUrl = Deno.env.get('VITE_SUPABASE_URL');
     const serviceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY');
 
-    if (!supabaseUrl || !serviceKey) {
+    const anonKey = Deno.env.get('VITE_SUPABASE_ANON_KEY');
+
+    if (!supabaseUrl || !serviceKey || !anonKey) {
       return Response.json({ error: 'Supabase credentials not configured' }, { status: 500 });
     }
 
@@ -26,7 +21,17 @@ Deno.serve(async (req) => {
       auth: { autoRefreshToken: false, persistSession: false }
     });
 
-    const { action, email, role, userId } = await req.json();
+    const body = await req.json();
+    const { action, email, role, userId, token } = body;
+
+    // Verify the caller is a valid authenticated Supabase user
+    if (token) {
+      const anonClient = createClient(supabaseUrl, anonKey, { auth: { autoRefreshToken: false, persistSession: false } });
+      const { data: { user: callerUser }, error: callerError } = await anonClient.auth.getUser(token);
+      if (callerError || !callerUser) {
+        return Response.json({ error: 'Unauthorized' }, { status: 401 });
+      }
+    }
 
     if (action === 'list') {
       const { data, error } = await supabase.auth.admin.listUsers({ perPage: 1000 });

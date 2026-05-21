@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { base44 } from '@/api/base44Client';
+import { getSession } from '@/lib/supabaseAuth';
 import { Link } from 'react-router-dom';
 import { Shield, UserPlus, RefreshCw, Search, Crown, User, Trash2 } from 'lucide-react';
 import { cn } from '@/lib/utils';
@@ -20,7 +21,8 @@ function InviteModal({ onClose }) {
   const handleInvite = async () => {
     setStatus('loading');
     setError(null);
-    const res = await base44.functions.invoke('getSupabaseUsers', { action: 'invite', email, role });
+    const token = getSession()?.access_token;
+    const res = await base44.functions.invoke('getSupabaseUsers', { action: 'invite', email, role, token });
     if (res.data?.error) {
       setError(res.data.error);
       setStatus(null);
@@ -114,7 +116,8 @@ export default function UserManagement() {
   const { data, isLoading, refetch } = useQuery({
     queryKey: ['supabase-users'],
     queryFn: async () => {
-      const res = await base44.functions.invoke('getSupabaseUsers', { action: 'list' });
+      const token = getSession()?.access_token;
+      const res = await base44.functions.invoke('getSupabaseUsers', { action: 'list', token });
       return res.data?.users || [];
     },
     refetchInterval: 60000,
@@ -123,12 +126,12 @@ export default function UserManagement() {
   const users = data || [];
 
   const updateRole = useMutation({
-    mutationFn: ({ userId, role }) => base44.functions.invoke('getSupabaseUsers', { action: 'updateRole', userId, role }),
+    mutationFn: ({ userId, role }) => base44.functions.invoke('getSupabaseUsers', { action: 'updateRole', userId, role, token: getSession()?.access_token }),
     onSuccess: () => qc.invalidateQueries({ queryKey: ['supabase-users'] }),
   });
 
   const deleteUser = useMutation({
-    mutationFn: (userId) => base44.functions.invoke('getSupabaseUsers', { action: 'deleteUser', userId }),
+    mutationFn: (userId) => base44.functions.invoke('getSupabaseUsers', { action: 'deleteUser', userId, token: getSession()?.access_token }),
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ['supabase-users'] });
       setDeleteConfirm(null);
