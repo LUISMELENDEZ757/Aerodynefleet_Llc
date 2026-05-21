@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { getSupabaseAuthClient } from '@/lib/supabaseAuth';
+import { initSupabaseAuthClient } from '@/lib/supabaseAuth';
 import { Plane, Lock, Mail, Eye, EyeOff, UserPlus, LogIn } from 'lucide-react';
 
 export default function SupabaseLogin() {
@@ -18,7 +18,7 @@ export default function SupabaseLogin() {
     setLoading(true);
 
     try {
-      const client = getSupabaseAuthClient();
+      const client = await initSupabaseAuthClient();
 
       if (mode === 'login') {
         const { error } = await client.auth.signInWithPassword({ email, password });
