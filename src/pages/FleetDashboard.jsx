@@ -458,23 +458,39 @@ function AircraftDetailOverlay({ aircraft: initialAircraft, onClose }) {
             </div>
           ) : (
             <div className="flex flex-col gap-3">
-              {logEntries.map(entry => (
-                <div key={entry.id} className="flex items-start gap-4 bg-[#141922] border border-white/10 rounded-xl px-5 py-4">
-                  <div className="w-2 h-2 rounded-full bg-primary mt-1.5 flex-shrink-0" />
-                  <div className="flex-1">
-                    <div className="flex items-center gap-2 mb-1">
-                      <span className={cn('text-[10px] font-bold px-2 py-0.5 rounded uppercase',
-                        entry.entry_type === 'discrepancy' ? 'bg-red-900/50 text-red-400' :
-                        entry.entry_type === 'corrective_action' ? 'bg-green-900/50 text-green-400' :
-                        'bg-blue-900/50 text-blue-400'
-                      )}>{entry.entry_type}</span>
-                      {entry.ata_chapter && <span className="text-[10px] text-gray-500">ATA {entry.ata_chapter}</span>}
+              {logEntries.map(entry => {
+                const pocMatch = entry.notes?.match(/POC:\s*([^|]+)/);
+                const phoneMatch = entry.notes?.match(/POC Phone:\s*([^|]+)/);
+                const poc = pocMatch ? pocMatch[1].trim() : null;
+                const phone = phoneMatch ? phoneMatch[1].trim() : null;
+                
+                return (
+                  <div key={entry.id} className="flex items-start gap-4 bg-[#141922] border border-white/10 rounded-xl px-5 py-4">
+                    <div className="w-2 h-2 rounded-full bg-primary mt-1.5 flex-shrink-0" />
+                    <div className="flex-1">
+                      <div className="flex items-center gap-2 mb-1">
+                        <span className={cn('text-[10px] font-bold px-2 py-0.5 rounded uppercase',
+                          entry.entry_type === 'discrepancy' ? 'bg-red-900/50 text-red-400' :
+                          entry.entry_type === 'corrective_action' ? 'bg-green-900/50 text-green-400' :
+                          'bg-blue-900/50 text-blue-400'
+                        )}>{entry.entry_type}</span>
+                        {entry.ata_chapter && <span className="text-[10px] text-gray-500">ATA {entry.ata_chapter}</span>}
+                      </div>
+                      <p className="text-sm text-gray-200">{entry.description}</p>
+                      <div className="flex items-center gap-4 mt-2 flex-wrap">
+                        <p className="text-[10px] text-gray-600">{new Date(entry.created_date).toLocaleString()}</p>
+                        {poc && poc !== 'N/A' && (
+                          <div className="flex items-center gap-1 text-[10px] text-gray-500">
+                            <span>POC:</span>
+                            <span className="text-gray-300 font-semibold">{poc}</span>
+                            {phone && phone !== 'N/A' && <span className="text-gray-400">{phone}</span>}
+                          </div>
+                        )}
+                      </div>
                     </div>
-                    <p className="text-sm text-gray-200">{entry.description}</p>
-                    <p className="text-[10px] text-gray-600 mt-1">{new Date(entry.created_date).toLocaleString()}</p>
                   </div>
-                </div>
-              ))}
+                );
+              })}
             </div>
           )}
 
