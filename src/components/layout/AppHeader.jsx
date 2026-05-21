@@ -4,6 +4,7 @@ import { Plane, Plus, Menu, LogOut } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
 import { base44 } from '@/api/base44Client';
+import { signOut } from '@/lib/supabaseAuth';
 import UserMenu from './UserMenu';
 import WifiIndicator from './WifiIndicator';
 import StarlinkIndicator from './StarlinkIndicator';
@@ -29,7 +30,7 @@ export default function AppHeader() {
           <StarlinkIndicator />
           <Button
             size="sm"
-            onClick={() => base44.auth.logout('/')}
+            onClick={() => { signOut().then(() => window.location.href = '/'); }}
             className="bg-destructive/20 text-destructive hover:bg-destructive/30 font-semibold text-xs"
             title="Sign out"
           >
