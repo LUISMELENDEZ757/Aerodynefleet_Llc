@@ -26,7 +26,10 @@ Deno.serve(async (req) => {
 
     // Verify the caller is a valid authenticated Supabase user
     if (token) {
-      const anonClient = createClient(supabaseUrl, anonKey, { auth: { autoRefreshToken: false, persistSession: false } });
+      const anonClient = createClient(supabaseUrl, anonKey, {
+        auth: { autoRefreshToken: false, persistSession: false },
+        global: { headers: { Authorization: `Bearer ${token}` } }
+      });
       const { data: { user: callerUser }, error: callerError } = await anonClient.auth.getUser(token);
       if (callerError || !callerUser) {
         return Response.json({ error: 'Unauthorized' }, { status: 401 });
