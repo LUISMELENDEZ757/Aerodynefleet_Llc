@@ -596,7 +596,7 @@ export default function MaintenanceLogbook() {
 
         {/* Entry detail panel */}
         {selectedEntry && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4">
+          <div className="fixed inset-0 z-50 flex items-start justify-center bg-black/60 p-4 pt-[96px]">
             <div className="w-full max-w-lg bg-card border border-border rounded-2xl shadow-2xl overflow-hidden">
               <div className="flex items-center justify-between px-5 py-4 border-b border-border">
                 <p className="font-extrabold text-foreground">Discrepancy Detail</p>
