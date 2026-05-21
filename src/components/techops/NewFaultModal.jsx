@@ -23,7 +23,7 @@ export default function NewFaultModal({ aircraftTail, onClose, onSave }) {
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 p-4">
+    <div className="fixed inset-0 z-50 flex items-start justify-center bg-black/70 p-4 pt-24">
       <div className="w-full max-w-md bg-[#141922] border border-white/10 rounded-2xl overflow-hidden shadow-2xl">
         <div className="flex items-center justify-between px-5 py-4 border-b border-white/10">
           <p className="font-extrabold text-white tracking-wide">LOG FAULT MESSAGE</p>
