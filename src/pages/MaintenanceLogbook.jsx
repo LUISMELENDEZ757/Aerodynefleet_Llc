@@ -302,7 +302,7 @@ export default function MaintenanceLogbook() {
         <div className="max-w-5xl mx-auto flex items-center justify-between gap-4">
           <div>
             <div className="flex items-center gap-3">
-              <h1 className="text-2xl font-extrabold text-foreground">Maintenance Logbook</h1>
+              <h1 className="text-2xl font-extrabold text-foreground">Aircraft Technical Status</h1>
               {tailFilter && (
                 <span className="px-3 py-1 rounded-lg bg-primary/20 border border-primary/30 text-primary text-sm font-bold">
                   {tailFilter}
