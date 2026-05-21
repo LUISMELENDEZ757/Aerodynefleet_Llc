@@ -3,7 +3,6 @@ import { useQuery } from '@tanstack/react-query';
 import { base44 } from '@/api/base44Client';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Plane, Shield, X, ChevronLeft, ChevronRight } from 'lucide-react';
-import { cn } from '@/lib/utils';
 
 const CATEGORY_ICONS = {
   safety: '🛡️', engine: '⚙️', hydraulics: '🔧', avionics: '📡',
@@ -80,9 +79,9 @@ const DEFAULT_SLIDES = [
     id: 'default-9', order: 8, is_active: true, duration_seconds: 10, category: 'engine',
     ata_chapter: '72', accent_color: '#f97316',
     image_url: 'https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=1600&q=80',
-    title: 'GE90-115B — World’s Most Powerful Turbofan',
+    title: 'GE90-115B — World\'s Most Powerful Turbofan',
     subtitle: 'Boeing 777-300ER · ATA 72 · 115,300 lbf Thrust',
-    narration: 'The GE90-115B holds the world record for highest thrust produced by a commercial jet engine at 127,900 lbf during certification testing. Its 128-inch composite fan — the largest in commercial aviation — delivers exceptional bypass efficiency at a 9:1 ratio. On-wing life monitoring via GE’s Flight Pulse system tracks EGT margins, vibration signatures, and LLP cycle counts in real time. Oil consumption trending above baseline on either module requires immediate borescope evaluation before the next revenue flight.',
+    narration: 'The GE90-115B holds the world record for highest thrust produced by a commercial jet engine at 127,900 lbf during certification testing. Its 128-inch composite fan — the largest in commercial aviation — delivers exceptional bypass efficiency at a 9:1 ratio. On-wing life monitoring via GE\'s Flight Pulse system tracks EGT margins, vibration signatures, and LLP cycle counts in real time. Oil consumption trending above baseline on either module requires immediate borescope evaluation before the next revenue flight.',
   },
   {
     id: 'default-10', order: 9, is_active: true, duration_seconds: 10, category: 'avionics',
@@ -90,7 +89,72 @@ const DEFAULT_SLIDES = [
     image_url: 'https://images.unsplash.com/photo-1556388158-158ea5ccacbd?w=1600&q=80',
     title: 'Boeing 787 Dreamliner Cockpit — ATA 31',
     subtitle: 'Common Core System · Five 15.1" LCD Displays',
-    narration: 'The 787 flight deck introduces the Common Core System — a centralised computing architecture replacing traditional line-replaceable avionics boxes with a network of standardised blade servers. Five large-format LCD displays present primary flight, navigation, engine, and systems data with fully configurable crew formats. The dual Head-Up Displays provide primary flight reference down to CAT IIIa minimums. Electronic checklists, e-enabled maintenance access, and real-time Boeing Airplane Health Management data are all integrated through the aircraft’s IP-based avionics network.',
+    narration: 'The 787 flight deck introduces the Common Core System — a centralised computing architecture replacing traditional line-replaceable avionics boxes with a network of standardised blade servers. Five large-format LCD displays present primary flight, navigation, engine, and systems data with fully configurable crew formats. The dual Head-Up Displays provide primary flight reference down to CAT IIIa minimums. Electronic checklists, e-enabled maintenance access, and real-time Boeing Airplane Health Management data are all integrated through the aircraft\'s IP-based avionics network.',
+  },
+  // ── Fleet & Modules Showcase slides ──
+  {
+    id: 'fleet-1', order: 10, is_active: true, duration_seconds: 12, category: 'general',
+    accent_color: '#f59e0b',
+    image_url: 'https://images.unsplash.com/photo-1436491865332-7a61a109cc05?w=1600&q=80',
+    title: 'Aerodyne Fleet — Supported Aircraft',
+    subtitle: 'B737 Family · B777 · B787 · A320/A321 · A350 · E-Series · CRJ',
+    narration: 'Aerodyne Fleet OS supports the full spectrum of modern commercial airframes: Boeing 737-700/800/900, 737 MAX 8/9, 757, 767, 777, and 787; Airbus A320, A321, and A350; Embraer E175 and E190; and Bombardier CRJ700/900. Each tail is tracked with type-specific MEL, ETOPS, CAT approval, engine configuration, and performance profile — ensuring accurate dispatch decisions and compliant maintenance actions across every fleet type.',
+  },
+  {
+    id: 'fleet-2', order: 11, is_active: true, duration_seconds: 12, category: 'avionics',
+    ata_chapter: '34', accent_color: '#06b6d4',
+    image_url: 'https://images.unsplash.com/photo-1464037866556-6812c9d1c72e?w=1600&q=80',
+    title: 'ILS CAT Approval System',
+    subtitle: 'CAT I · CAT II · CAT IIIa · CAT IIIb · CAT IIIc · Per-Tail Authorization',
+    narration: 'The CAT Approval module tracks per-tail ILS landing category authorizations — from CAT I (DH 200 ft / RVR 1800 ft) down to CAT IIIc (zero DH / zero RVR). Each tail\'s qualification is cross-referenced against its avionics configuration, autopilot channel status, and current MEL deferrals. Dispatcher and MCC can see in real time whether a tail is downgraded below its certified CAT level before a low-visibility dispatch is issued.',
+  },
+  {
+    id: 'fleet-3', order: 12, is_active: true, duration_seconds: 12, category: 'regulatory',
+    ata_chapter: '34', accent_color: '#10b981',
+    image_url: 'https://images.unsplash.com/photo-1474302770737-173ee21bab63?w=1600&q=80',
+    title: 'RVSM — Reduced Vertical Separation Minima',
+    subtitle: 'FL290–FL410 · 1,000 ft Vertical Separation · Altimetry Monitoring',
+    narration: 'Reduced Vertical Separation Minima compresses vertical spacing in upper airspace from 2,000 ft to 1,000 ft between FL290 and FL410, significantly increasing capacity. Every RVSM-approved aircraft must maintain altimetry system accuracy within ±65 ft during a four-hour cruise. The RVSM module monitors approval status per tail, flags any avionics writeups that would invalidate airspace authorization, and alerts MCC if a tail enters RVSM airspace without current approval.',
+  },
+  {
+    id: 'fleet-4', order: 13, is_active: true, duration_seconds: 12, category: 'regulatory',
+    ata_chapter: '34', accent_color: '#a78bfa',
+    image_url: 'https://images.unsplash.com/photo-1530521954074-e64f6810b32d?w=1600&q=80',
+    title: 'ETOPS — Extended Operations Monitor',
+    subtitle: '120 · 180 · 370 Minute Authorization · Per-Tail Tracking · Real-Time Alerts',
+    narration: 'ETOPS authorization determines how far from an adequate airport a twin-engine aircraft may operate. The ETOPS Monitor tracks per-tail approval levels — 120, 180, or 370 minutes — and cross-checks against current engine health, oil consumption trends, MEL deferrals, and maintenance actions that could invalidate authorization. Real-time alerts notify dispatch and MCC when an engine parameter approaches the threshold that triggers ETOPS downgrade before a long oceanic or polar flight.',
+  },
+  {
+    id: 'fleet-5', order: 14, is_active: true, duration_seconds: 12, category: 'avionics',
+    ata_chapter: '34', accent_color: '#38bdf8',
+    image_url: 'https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=1600&q=80',
+    title: 'Avionics Health Dashboard',
+    subtitle: 'Boeing AHM · Airbus Skywise · Embraer AHEAD · ATA 22/31/34/73',
+    narration: 'The Avionics Dashboard aggregates health data from manufacturer telemetry streams — Boeing AHM, Airbus Skywise, and Embraer AHEAD — presenting a unified fault view across the fleet. FMS versions, Nav DB AIRAC cycles, and system-level fault codes (ATA 22 Autopilot, ATA 31 Instruments, ATA 34 Navigation, ATA 73 EEC) are monitored in real time. Write-ups are automatically wired to the electronic logbook and cross-checked against the MEL for dispatch legality.',
+  },
+  {
+    id: 'fleet-6', order: 15, is_active: true, duration_seconds: 12, category: 'flight_controls',
+    ata_chapter: '22', accent_color: '#f97316',
+    image_url: 'https://images.unsplash.com/photo-1517479149777-5f3b1511d5ad?w=1600&q=80',
+    title: 'Flight Operations Suite',
+    subtitle: 'Dispatch · EFB · Crew Legality · FAR 117 · Flight Monitoring',
+    narration: 'The Flight Operations Suite spans the full departure-to-arrival workflow: the Dispatch Workstation issues electronic flight releases with integrated ETOPS validation and CAT authorization; the EFB provides crews with weight & balance, runway analysis, weather briefings, and NOTAM review; the Crew Legality engine enforces FAR 117 rest rules and flags pairing violations in real time; and the Flight Monitoring Console tracks live position, ETA, and fuel burn via FlightAware integration.',
+  },
+  {
+    id: 'fleet-7', order: 16, is_active: true, duration_seconds: 12, category: 'engine',
+    ata_chapter: '79', accent_color: '#fb923c',
+    image_url: 'https://images.unsplash.com/photo-1540962351504-03099e0a754b?w=1600&q=80',
+    title: 'Engine Health & ETOPS Analytics',
+    subtitle: 'EGT Margin · Oil Consumption · LLP Life Tracking · OEM Telemetry',
+    narration: 'Engine Health Analytics provides real-time EGT margin trending, oil consumption rate monitoring, and Life-Limited Parts cycle tracking for every engine in the fleet. The system ingests OEM telemetry and cross-references against CFM, GE, and Pratt & Whitney serviceability limits. When EGT margin erodes beyond threshold or LLP cycles approach their hard limit, automated alerts escalate to MCC and Engineering — enabling proactive shop visit scheduling before in-service reliability is impacted.',
+  },
+  {
+    id: 'fleet-8', order: 17, is_active: true, duration_seconds: 12, category: 'safety',
+    accent_color: '#ef4444',
+    image_url: 'https://images.unsplash.com/photo-1578615437406-511cafe4a5c7?w=1600&q=80',
+    title: 'Maintenance Control Center (MCC)',
+    subtitle: 'MCC Lock · AOG Management · Field Trip Ops · Positive Fix Protocol',
+    narration: 'The Maintenance Control Center is the nerve center of fleet airworthiness. MCC controllers place Positive Fix Locks on aircraft requiring technician concurrence before return to service, manage AOG recovery field trips with full team and logistics tracking, coordinate BOR/ROB supply chain requests, and maintain live oversight of all open OOS entries. Real-time notifications and escalation alerts ensure no aircraft slips through the gap between maintenance completion and airworthiness certification.',
   },
 ];
 
@@ -178,7 +242,6 @@ export default function Screensaver({ onDismiss }) {
             className="absolute inset-0 w-full h-full object-cover opacity-20 transition-opacity duration-1000"
             onError={e => e.currentTarget.style.display = 'none'}
           />
-          {/* Dark gradient overlay for text legibility */}
           <div className="absolute inset-0" style={{ background: 'linear-gradient(to top, #030508 30%, rgba(3,5,8,0.55) 70%, rgba(3,5,8,0.4) 100%)' }} />
         </>
       )}
@@ -293,7 +356,6 @@ export default function Screensaver({ onDismiss }) {
 
       {/* Bottom controls */}
       <div className="flex-shrink-0 px-8 pb-8 relative z-10 space-y-4">
-        {/* Progress bar */}
         <div className="max-w-xl mx-auto">
           <ProgressBar
             key={`${idx}-${slide?.duration_seconds}`}
