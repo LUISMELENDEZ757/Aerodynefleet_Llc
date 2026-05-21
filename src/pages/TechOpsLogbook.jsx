@@ -8,7 +8,7 @@ import {
   Printer, Clock, CheckCircle, Wrench, Zap, Tag,
   Radio, Flame, Wind, Settings, Shield, ChevronRight,
   FilePlus, QrCode, Filter, User, HardHat, Send,
-  XCircle, FileText, Package, Mic, TrendingUp
+  XCircle, FileText, Package, Mic, TrendingUp, History, Archive, ExternalLink
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import LiveClock from '@/components/ui/LiveClock';
@@ -445,7 +445,6 @@ export default function TechOpsLogbook() {
               {[
                 { label: 'Pilot Discrepancy',       type: 'discrepancy',       border: 'border-red-700',    text: 'text-red-400',    bg: 'bg-red-950/40' },
                 { label: 'Tech Discrepancy',         type: 'discrepancy',       border: 'border-amber-800',  text: 'text-amber-500',  bg: 'bg-amber-950/40' },
-                { label: 'Corrective Action',        type: 'corrective_action', border: 'border-green-700',  text: 'text-green-400',  bg: 'bg-green-950/40' },
                 { label: 'Parts Installation',       type: 'corrective_action', border: 'border-purple-700', text: 'text-purple-400', bg: 'bg-purple-950/40' },
                 { label: 'Deferral / MEL',           type: 'deferred',          border: 'border-yellow-700', text: 'text-yellow-400', bg: 'bg-yellow-950/40' },
                 { label: 'Parts Ordering',           type: 'info',              border: 'border-amber-900',  text: 'text-amber-600',  bg: 'bg-amber-950/30' },
@@ -458,6 +457,19 @@ export default function TechOpsLogbook() {
                   {label}
                 </button>
               ))}
+              {/* Aircraft History tab */}
+              <Link
+                to={`/MaintenanceLogbook?tail=${selectedTail || ''}`}
+                className="px-3 py-2.5 rounded-xl border border-indigo-700 text-indigo-300 bg-indigo-950/40 font-bold text-xs tracking-wide transition-all hover:brightness-125 flex items-center justify-center gap-1.5"
+              >
+                <History className="w-3.5 h-3.5" /> Aircraft History
+              </Link>
+              <Link
+                to={`/ReleaseArchive?tail=${selectedTail || ''}`}
+                className="px-3 py-2.5 rounded-xl border border-slate-600 text-slate-300 bg-slate-900/40 font-bold text-xs tracking-wide transition-all hover:brightness-125 flex items-center justify-center gap-1.5"
+              >
+                <Archive className="w-3.5 h-3.5" /> Archived Records
+              </Link>
             </div>
           </div>
 
