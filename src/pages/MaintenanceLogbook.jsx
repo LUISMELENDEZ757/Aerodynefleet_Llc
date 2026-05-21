@@ -290,12 +290,6 @@ export default function MaintenanceLogbook() {
             </div>
             <p className="text-xs text-muted-foreground uppercase tracking-widest mt-0.5">Discrepancies · MEL Deferrals · Fleet Status</p>
           </div>
-          <button
-            onClick={() => setShowNewModal(true)}
-            className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-primary text-primary-foreground text-sm font-bold hover:bg-primary/90 transition-colors"
-          >
-            <Plus className="w-4 h-4" /> Log Discrepancy
-          </button>
         </div>
       </div>
 
