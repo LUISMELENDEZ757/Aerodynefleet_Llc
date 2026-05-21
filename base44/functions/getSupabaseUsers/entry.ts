@@ -35,32 +35,32 @@ Deno.serve(async (req) => {
     }
 
     if (action === 'invite') {
-      if (!email) return Response.json({ error: 'email required' }, { status: 400 });
+      if (!email) return Response.json({ error: 'email required' });
       const { data, error } = await supabase.auth.admin.inviteUserByEmail(email, {
         data: { role: role || 'user' }
       });
-      if (error) return Response.json({ error: error.message }, { status: 400 });
+      if (error) return Response.json({ error: error.message });
       return Response.json({ user: data.user });
     }
 
     if (action === 'updateRole') {
-      if (!userId || !role) return Response.json({ error: 'userId and role required' }, { status: 400 });
+      if (!userId || !role) return Response.json({ error: 'userId and role required' });
       const { data, error } = await supabase.auth.admin.updateUserById(userId, {
         user_metadata: { role },
         app_metadata: { role }
       });
-      if (error) return Response.json({ error: error.message }, { status: 400 });
+      if (error) return Response.json({ error: error.message });
       return Response.json({ user: data.user });
     }
 
     if (action === 'deleteUser') {
-      if (!userId) return Response.json({ error: 'userId required' }, { status: 400 });
+      if (!userId) return Response.json({ error: 'userId required' });
       const { error } = await supabase.auth.admin.deleteUser(userId);
-      if (error) return Response.json({ error: error.message }, { status: 400 });
+      if (error) return Response.json({ error: error.message });
       return Response.json({ success: true });
     }
 
-    return Response.json({ error: `Unknown action: ${action}` }, { status: 400 });
+    return Response.json({ error: `Unknown action: ${action}` });
 
   } catch (error) {
     return Response.json({ error: error.message }, { status: 500 });
