@@ -6,7 +6,7 @@ import { Link } from 'react-router-dom';
 import {
   Users, Plus, Search, X, Trash2, Pencil, ChevronDown,
   ChevronLeft, ChevronRight, Calendar, List, RefreshCw,
-  MapPin, Plane, Clock, AlertTriangle
+  MapPin, Plane, Clock, AlertTriangle, Zap, Globe, ExternalLink, Shield
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
@@ -244,61 +244,94 @@ function TechRow({ tech, onEdit, onDelete, onChangeStatus }) {
   );
 }
 
+// ── Task type config ───────────────────────────────────────────────────────────
+const TASK_TYPES = {
+  aircraft: { label: 'Aircraft',    icon: Plane,          color: 'text-cyan-300',   bg: 'bg-cyan-500/15',   border: 'border-cyan-500/30'   },
+  mel:      { label: 'MEL Check',   icon: Zap,            color: 'text-amber-300',  bg: 'bg-amber-500/15',  border: 'border-amber-500/30'  },
+  aog:      { label: 'AOG',         icon: AlertTriangle,  color: 'text-red-300',    bg: 'bg-red-500/15',    border: 'border-red-500/30'    },
+  etops:    { label: 'ETOPS Check', icon: Globe,          color: 'text-indigo-300', bg: 'bg-indigo-500/15', border: 'border-indigo-500/30' },
+};
+
+// ── Cell chip renderer ─────────────────────────────────────────────────────────
+function AssignmentChip({ assignment, onRemove }) {
+  const cfg = TASK_TYPES[assignment.type] || TASK_TYPES.aircraft;
+  const TypeIcon = cfg.icon;
+  return (
+    <div className={cn('flex items-center justify-between gap-1 rounded-lg px-2 py-1 border', cfg.bg, cfg.border)}>
+      <div className="flex items-center gap-1 min-w-0">
+        <TypeIcon className={cn('w-2.5 h-2.5 flex-shrink-0', cfg.color)} />
+        <span className={cn('text-[10px] font-extrabold font-mono truncate', cfg.color)}>{assignment.label}</span>
+      </div>
+      <button onClick={e => { e.stopPropagation(); onRemove(); }} className="text-gray-500 hover:text-red-400 transition-colors flex-shrink-0">
+        <X className="w-2.5 h-2.5" />
+      </button>
+    </div>
+  );
+}
+
 // ── Assignment Board (Calendar) ────────────────────────────────────────────────
-function AssignmentBoard({ technicians, aircraft, onAssign }) {
+function AssignmentBoard({ technicians, aircraft, oosEntries, melItems }) {
   const today = new Date();
   const [weekOffset, setWeekOffset] = useState(0);
 
-  // Build 7-day week
   const weekDays = Array.from({ length: 7 }, (_, i) => {
     const d = new Date(today);
     d.setDate(today.getDate() - today.getDay() + i + weekOffset * 7);
     return d;
   });
 
-  const [dragging, setDragging] = useState(null); // { techId }
-  const [assignments, setAssignments] = useState({}); // { "techId-dateStr": tailNumber }
-  const [selectedCell, setSelectedCell] = useState(null); // { techId, dateStr }
-  const [cellPickerTail, setCellPickerTail] = useState('');
+  // assignments: { "techId-dateStr": [{ type, label, id }] }
+  const [assignments, setAssignments] = useState({});
+  const [selectedCell, setSelectedCell] = useState(null); // { techId, dateStr, key }
 
-  const getKey = (techId, dateStr) => `${techId}-${dateStr}`;
-  const dateStr = (d) => d.toISOString().split('T')[0];
-
-  const handleDrop = (e, techId, day) => {
-    e.preventDefault();
-    const tail = e.dataTransfer.getData('tail');
-    if (!tail || !techId) return;
-    const key = getKey(techId, dateStr(day));
-    setAssignments(prev => ({ ...prev, [key]: tail }));
-  };
+  const getKey = (techId, ds) => `${techId}-${ds}`;
+  const toDateStr = (d) => d.toISOString().split('T')[0];
 
   const handleCellClick = (techId, day) => {
-    const key = getKey(techId, dateStr(day));
-    setSelectedCell({ techId, dateStr: dateStr(day), key });
-    setCellPickerTail(assignments[key] || '');
+    const key = getKey(techId, toDateStr(day));
+    setSelectedCell({ techId, dateStr: toDateStr(day), key });
   };
 
-  const handleAssignCell = () => {
-    if (!selectedCell) return;
-    setAssignments(prev => ({ ...prev, [selectedCell.key]: cellPickerTail || undefined }));
+  const addAssignment = (key, task) => {
+    setAssignments(prev => ({
+      ...prev,
+      [key]: [...(prev[key] || []), task],
+    }));
     setSelectedCell(null);
   };
 
-  const dayLabels = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
-  const todayStr = dateStr(today);
+  const removeAssignment = (key, idx) => {
+    setAssignments(prev => {
+      const updated = (prev[key] || []).filter((_, i) => i !== idx);
+      if (updated.length === 0) { const n = { ...prev }; delete n[key]; return n; }
+      return { ...prev, [key]: updated };
+    });
+  };
 
-  // Group technicians by station for display
+  const dayLabels = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+  const todayStr = toDateStr(today);
   const stations = [...new Set(technicians.map(t => t.station || 'KEWR'))].sort();
+
+  // Active AOG tails from OOS entries
+  const aogTails = oosEntries.filter(e => e.status === 'in_work' || e.status === 'waiting_on_parts');
+  // Open MEL items
+  const openMels = melItems.filter(m => m.status !== 'cleared' && m.status !== 'voided');
+  // ETOPS aircraft
+  const etopsAircraft = aircraft.filter(a => a.etops_approval);
 
   return (
     <div className="space-y-4">
-      {/* Week nav */}
-      <div className="flex items-center justify-between px-5 pt-4">
+      {/* Week nav + Fleet link */}
+      <div className="flex items-center justify-between px-5 pt-4 flex-wrap gap-3">
         <div>
           <h2 className="text-base font-extrabold text-white">Assignment Board</h2>
-          <p className="text-xs text-gray-500">Drag aircraft tails onto technician cells to assign workload</p>
+          <p className="text-xs text-gray-500">Click any cell to assign tasks — aircraft, MEL checks, AOG response, or ETOPS</p>
         </div>
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2 flex-wrap">
+          <Link to="/FleetDashboard"
+            className="flex items-center gap-1.5 px-3 py-2 rounded-lg bg-primary/20 border border-primary/30 text-primary text-xs font-bold hover:bg-primary/30 transition-colors">
+            <ExternalLink className="w-3.5 h-3.5" /> Fleet Dashboard
+          </Link>
           <button onClick={() => setWeekOffset(0)}
             className="text-xs font-bold px-3 py-2 rounded-lg bg-white/5 border border-white/10 text-gray-300 hover:text-white">Today</button>
           <button onClick={() => setWeekOffset(v => v - 1)}
@@ -315,7 +348,26 @@ function AssignmentBoard({ technicians, aircraft, onAssign }) {
         </div>
       </div>
 
-
+      {/* Live alerts summary bar */}
+      {(aogTails.length > 0 || openMels.length > 0) && (
+        <div className="mx-5 flex flex-wrap gap-2">
+          {aogTails.length > 0 && (
+            <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-red-500/10 border border-red-500/30 text-red-300 text-[11px] font-bold">
+              <AlertTriangle className="w-3.5 h-3.5 animate-pulse" /> {aogTails.length} AOG aircraft requiring assignment
+            </div>
+          )}
+          {openMels.length > 0 && (
+            <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-amber-500/10 border border-amber-500/30 text-amber-300 text-[11px] font-bold">
+              <Zap className="w-3.5 h-3.5" /> {openMels.length} open MEL items
+            </div>
+          )}
+          {etopsAircraft.length > 0 && (
+            <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-indigo-500/10 border border-indigo-500/30 text-indigo-300 text-[11px] font-bold">
+              <Globe className="w-3.5 h-3.5" /> {etopsAircraft.length} ETOPS aircraft
+            </div>
+          )}
+        </div>
+      )}
 
       {/* Board grid */}
       <div className="px-5 pb-6 overflow-x-auto">
@@ -326,14 +378,12 @@ function AssignmentBoard({ technicians, aircraft, onAssign }) {
                 Technician
               </th>
               {weekDays.map((day, i) => {
-                const isToday = dateStr(day) === todayStr;
+                const isToday = toDateStr(day) === todayStr;
                 return (
-                  <th key={i} className={cn('px-3 py-2 text-center text-[10px] font-extrabold uppercase tracking-widest border-b border-r border-white/8 min-w-[110px]',
+                  <th key={i} className={cn('px-3 py-2 text-center text-[10px] font-extrabold uppercase tracking-widest border-b border-r border-white/8 min-w-[130px]',
                     isToday ? 'bg-cyan-500/10 text-cyan-300' : 'bg-[#0d1117] text-gray-500')}>
                     <div>{dayLabels[day.getDay()]}</div>
-                    <div className={cn('text-base font-black', isToday ? 'text-cyan-300' : 'text-white')}>
-                      {day.getDate()}
-                    </div>
+                    <div className={cn('text-base font-black', isToday ? 'text-cyan-300' : 'text-white')}>{day.getDate()}</div>
                   </th>
                 );
               })}
@@ -343,7 +393,6 @@ function AssignmentBoard({ technicians, aircraft, onAssign }) {
             {stations.map(station => {
               const stationTechs = technicians.filter(t => (t.station || 'KEWR') === station);
               return [
-                // Station header row
                 <tr key={`station-${station}`}>
                   <td colSpan={8} className="px-4 py-1.5 bg-[#141922] border-b border-white/5">
                     <div className="flex items-center gap-2">
@@ -353,60 +402,51 @@ function AssignmentBoard({ technicians, aircraft, onAssign }) {
                     </div>
                   </td>
                 </tr>,
-                // Tech rows
                 ...stationTechs.map(tech => {
                   const sc = STATUS_CFG[tech.status] || STATUS_CFG.off_duty;
                   return (
                     <tr key={tech.id} className="group">
-                      {/* Tech name cell */}
                       <td className="px-4 py-2 bg-[#0d1117] border-b border-r border-white/5 sticky left-0 z-10">
                         <div className="flex items-center gap-2.5">
                           <Avatar name={tech.name} size={7} />
                           <div className="min-w-0">
                             <p className="text-xs font-bold text-white truncate">{tech.name}</p>
                             <div className="flex items-center gap-1.5 mt-0.5">
-                              <span className={cn('text-[9px] font-bold px-1.5 py-0.5 rounded border', sc.bg, sc.color, sc.border)}>
-                                {sc.label}
-                              </span>
+                              <span className={cn('text-[9px] font-bold px-1.5 py-0.5 rounded border', sc.bg, sc.color, sc.border)}>{sc.label}</span>
                               <span className="text-[9px] text-gray-600">{tech.shift || 'Day'}</span>
                             </div>
                           </div>
                         </div>
                       </td>
-                      {/* Day cells */}
                       {weekDays.map((day, i) => {
-                        const key = getKey(tech.id, dateStr(day));
-                        const assigned = assignments[key];
-                        const isToday = dateStr(day) === todayStr;
+                        const key = getKey(tech.id, toDateStr(day));
+                        const cellTasks = assignments[key] || [];
+                        const isToday = toDateStr(day) === todayStr;
                         const isSelected = selectedCell?.key === key;
                         return (
                           <td
                             key={i}
-                            className={cn('border-b border-r border-white/5 p-1 min-h-[52px] cursor-pointer transition-colors',
+                            className={cn('border-b border-r border-white/5 p-1 cursor-pointer transition-colors align-top',
                               isToday ? 'bg-cyan-500/5' : 'bg-[#0d1117]',
                               isSelected ? 'ring-2 ring-inset ring-cyan-500' : 'hover:bg-white/5'
                             )}
-                            onDragOver={e => e.preventDefault()}
-                            onDrop={e => handleDrop(e, tech.id, day)}
+                            style={{ minHeight: 52 }}
                             onClick={() => handleCellClick(tech.id, day)}
                           >
-                            {assigned ? (
-                              <div className="flex items-center justify-between gap-1 bg-cyan-500/15 border border-cyan-500/30 rounded-lg px-2 py-1">
-                                <div className="flex items-center gap-1">
-                                  <Plane className="w-2.5 h-2.5 text-cyan-400 flex-shrink-0" />
-                                  <span className="text-[10px] font-extrabold text-cyan-300 font-mono">{assigned}</span>
+                            <div className="flex flex-col gap-0.5">
+                              {cellTasks.map((task, idx) => (
+                                <AssignmentChip
+                                  key={idx}
+                                  assignment={task}
+                                  onRemove={() => removeAssignment(key, idx)}
+                                />
+                              ))}
+                              {cellTasks.length === 0 && (
+                                <div className="h-8 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
+                                  <Plus className="w-3 h-3 text-gray-600" />
                                 </div>
-                                <button
-                                  onClick={e => { e.stopPropagation(); setAssignments(prev => { const n = { ...prev }; delete n[key]; return n; }); }}
-                                  className="text-gray-500 hover:text-red-400 transition-colors">
-                                  <X className="w-2.5 h-2.5" />
-                                </button>
-                              </div>
-                            ) : (
-                              <div className="h-8 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
-                                <Plus className="w-3 h-3 text-gray-600" />
-                              </div>
-                            )}
+                              )}
+                            </div>
                           </td>
                         );
                       })}
@@ -419,30 +459,125 @@ function AssignmentBoard({ technicians, aircraft, onAssign }) {
         </table>
       </div>
 
-      {/* Cell picker popover */}
+      {/* Assignment picker modal */}
       {selectedCell && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50" onClick={() => setSelectedCell(null)}>
-          <div className="bg-[#111827] border border-white/10 rounded-2xl shadow-2xl p-5 w-72" onClick={e => e.stopPropagation()}>
-            <p className="text-sm font-extrabold text-white mb-3 flex items-center gap-2">
-              <Calendar className="w-4 h-4 text-cyan-400" /> Assign Aircraft
+        <AssignmentPickerModal
+          cell={selectedCell}
+          aircraft={aircraft}
+          aogTails={aogTails}
+          openMels={openMels}
+          etopsAircraft={etopsAircraft}
+          onAssign={(task) => addAssignment(selectedCell.key, task)}
+          onClose={() => setSelectedCell(null)}
+        />
+      )}
+    </div>
+  );
+}
+
+// ── Assignment Picker Modal ────────────────────────────────────────────────────
+function AssignmentPickerModal({ cell, aircraft, aogTails, openMels, etopsAircraft, onAssign, onClose }) {
+  const [taskType, setTaskType] = useState('aircraft');
+  const [selectedId, setSelectedId] = useState('');
+  const [notes, setNotes] = useState('');
+
+  const getOptions = () => {
+    if (taskType === 'aircraft') return aircraft.map(a => ({ value: a.tail_number, label: `${a.tail_number} · ${a.aircraft_type}` }));
+    if (taskType === 'aog') return aogTails.map(e => ({ value: e.tail_number || e.id, label: `${e.tail_number} — ${e.work_description || 'AOG'}` }));
+    if (taskType === 'mel') return openMels.map(m => ({ value: m.id, label: `${m.aircraft_tail} · ${m.mel_number || m.title || m.description || 'MEL Item'}` }));
+    if (taskType === 'etops') return etopsAircraft.map(a => ({ value: a.tail_number, label: `${a.tail_number} · ETOPS-${a.etops_approval}` }));
+    return [];
+  };
+
+  const handleAssign = () => {
+    if (!selectedId) return;
+    const opts = getOptions();
+    const opt = opts.find(o => o.value === selectedId);
+    onAssign({ type: taskType, label: opt?.label?.split(' · ')[0] || selectedId, id: selectedId, notes });
+  };
+
+  const typeCfg = TASK_TYPES[taskType];
+  const TypeIcon = typeCfg.icon;
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60" onClick={onClose}>
+      <div className="bg-[#111827] border border-white/10 rounded-2xl shadow-2xl p-5 w-96 max-w-[90vw]" onClick={e => e.stopPropagation()}>
+        {/* Header */}
+        <div className="flex items-center justify-between mb-4">
+          <div>
+            <p className="text-sm font-extrabold text-white flex items-center gap-2">
+              <Calendar className="w-4 h-4 text-cyan-400" /> Assign Task
             </p>
-            <p className="text-[10px] text-gray-500 mb-3">{selectedCell.dateStr}</p>
-            <select value={cellPickerTail} onChange={e => setCellPickerTail(e.target.value)}
-              className="w-full bg-[#1a2235] border border-white/10 rounded-xl px-3 py-2 text-sm text-white outline-none focus:border-cyan-500/50 mb-4">
-              <option value="">— Unassign —</option>
-              {aircraft.map(a => (
-                <option key={a.id} value={a.tail_number}>{a.tail_number} · {a.aircraft_type}</option>
-              ))}
-            </select>
-            <div className="flex gap-2">
-              <button onClick={() => setSelectedCell(null)}
-                className="flex-1 py-2 rounded-xl border border-white/10 text-sm font-bold text-gray-400 hover:bg-white/5">Cancel</button>
-              <button onClick={handleAssignCell}
-                className="flex-1 py-2 rounded-xl bg-cyan-600 text-white text-sm font-bold hover:bg-cyan-500 transition-colors">Assign</button>
-            </div>
+            <p className="text-[10px] text-gray-500 mt-0.5">{cell.dateStr}</p>
+          </div>
+          <button onClick={onClose} className="w-7 h-7 rounded-lg bg-white/10 flex items-center justify-center hover:bg-white/20">
+            <X className="w-3.5 h-3.5 text-white" />
+          </button>
+        </div>
+
+        {/* Task type selector */}
+        <div className="mb-4">
+          <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-2">Task Type</p>
+          <div className="grid grid-cols-2 gap-2">
+            {Object.entries(TASK_TYPES).map(([key, cfg]) => {
+              const TIcon = cfg.icon;
+              return (
+                <button key={key} onClick={() => { setTaskType(key); setSelectedId(''); }}
+                  className={cn('flex items-center gap-2 px-3 py-2.5 rounded-xl border text-[11px] font-bold transition-all',
+                    taskType === key ? `${cfg.bg} ${cfg.border} ${cfg.color}` : 'border-white/10 text-gray-500 hover:text-gray-300 hover:bg-white/5')}>
+                  <TIcon className="w-3.5 h-3.5 flex-shrink-0" /> {cfg.label}
+                </button>
+              );
+            })}
           </div>
         </div>
-      )}
+
+        {/* Selection */}
+        <div className="mb-3">
+          <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-2">
+            {taskType === 'aircraft' ? 'Select Aircraft' :
+             taskType === 'aog' ? 'Select AOG Aircraft' :
+             taskType === 'mel' ? 'Select MEL Item' : 'Select ETOPS Aircraft'}
+          </p>
+          <select value={selectedId} onChange={e => setSelectedId(e.target.value)}
+            className="w-full bg-[#1a2235] border border-white/10 rounded-xl px-3 py-2 text-sm text-white outline-none focus:border-cyan-500/50">
+            <option value="">— Select —</option>
+            {getOptions().map(o => <option key={o.value} value={o.value}>{o.label}</option>)}
+          </select>
+          {getOptions().length === 0 && (
+            <p className="text-[10px] text-gray-600 mt-1">
+              {taskType === 'aog' ? 'No active AOG entries' :
+               taskType === 'mel' ? 'No open MEL items' :
+               taskType === 'etops' ? 'No ETOPS-approved aircraft' : 'No aircraft found'}
+            </p>
+          )}
+        </div>
+
+        {/* Notes */}
+        <div className="mb-4">
+          <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-1">Notes (optional)</p>
+          <input value={notes} onChange={e => setNotes(e.target.value)}
+            placeholder="e.g. #2 engine hydraulic check"
+            className="w-full bg-[#1a2235] border border-white/10 rounded-xl px-3 py-2 text-sm text-white outline-none focus:border-cyan-500/50" />
+        </div>
+
+        {/* Fleet Dashboard shortcut */}
+        <Link to="/FleetDashboard" onClick={onClose}
+          className="flex items-center gap-1.5 text-[11px] text-primary font-bold hover:underline mb-4">
+          <ExternalLink className="w-3 h-3" /> Open Fleet Dashboard for full aircraft details
+        </Link>
+
+        {/* Actions */}
+        <div className="flex gap-2">
+          <button onClick={onClose}
+            className="flex-1 py-2 rounded-xl border border-white/10 text-sm font-bold text-gray-400 hover:bg-white/5">Cancel</button>
+          <button onClick={handleAssign} disabled={!selectedId}
+            className={cn('flex-1 py-2 rounded-xl text-sm font-bold transition-colors disabled:opacity-40',
+              typeCfg.bg, typeCfg.color, typeCfg.border, 'border hover:brightness-125')}>
+            <TypeIcon className="w-3.5 h-3.5 inline mr-1.5" /> Assign
+          </button>
+        </div>
+      </div>
     </div>
   );
 }
@@ -485,6 +620,18 @@ export default function ManpowerStaffing() {
     queryKey: ['manpower-aircraft'],
     queryFn: () => base44.entities.Aircraft.list('tail_number', 500),
     refetchInterval: 300000,
+  });
+
+  const { data: oosEntries = [] } = useQuery({
+    queryKey: ['manpower-oos'],
+    queryFn: () => base44.entities.OOSEntry.list('-created_date', 200),
+    refetchInterval: 60000,
+  });
+
+  const { data: melItems = [] } = useQuery({
+    queryKey: ['manpower-mel'],
+    queryFn: () => base44.entities.MELItem.list('-created_date', 200),
+    refetchInterval: 60000,
   });
 
   const { data: technicians = [], isLoading, refetch } = useQuery({
@@ -657,7 +804,8 @@ export default function ManpowerStaffing() {
         <AssignmentBoard
           technicians={technicians}
           aircraft={aircraft}
-          onAssign={(techId, tail) => statusMutation.mutate({ id: techId, status: tail ? 'assigned' : 'available' })}
+          oosEntries={oosEntries}
+          melItems={melItems}
         />
       )}
 
