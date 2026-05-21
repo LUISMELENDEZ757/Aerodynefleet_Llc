@@ -44,7 +44,7 @@ const NAV_GROUPS = [
       { label: 'Line Maintenance', icon: '🔧', path: '/LineMaintenanceDashboard' },
       { label: 'TechOps Dashboard', icon: '🛠️', path: '/TechOps' },
       { label: 'E-Logbook', icon: '📖', path: '/TechOpsLogbook' },
-      { label: 'Mx Logbook', icon: '📚', path: '/MaintenanceLogbook' },
+      { label: 'Aircraft Status', icon: '📚', path: '/MaintenanceLogbook' },
       { label: 'Mx Tracking', icon: '📡', path: '/MxTracking' },
       { label: 'Work Assignments', icon: '📝', path: '/WorkAssignments' },
       { label: 'Shift Turnover', icon: '🤝', path: '/ShiftHandover' },
