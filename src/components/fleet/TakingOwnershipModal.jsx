@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { X, Shield, Wrench, Clock, AlertCircle } from 'lucide-react';
+import { X, Shield, Wrench, Clock, AlertCircle, MapPin, Phone } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 const SHIFTS = ['Day', 'Night', 'Swing', 'On-Call'];
@@ -15,6 +15,9 @@ export default function TakingOwnershipModal({ aircraft, onClose, onSubmit, isPe
     work_order: '',
     scope_of_work: '',
     special_instructions: '',
+    point_of_contact: '',
+    contact_phone: '',
+    location: '',
     date: new Date().toISOString().split('T')[0],
     time: new Date().toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: true }),
   });
@@ -30,7 +33,7 @@ export default function TakingOwnershipModal({ aircraft, onClose, onSubmit, isPe
       description: `[TAKING OWNERSHIP - ${priority.toUpperCase()}] ${form.technician_name} - ${form.scope_of_work}`,
       technician_name: form.technician_name,
       technician_id: form.cert_number,
-      notes: `Shift: ${form.shift} | Role: ${form.role} | Work Order: ${form.work_order || 'N/A'} | Safety Notes: ${form.special_instructions || 'None'}`,
+      notes: `Shift: ${form.shift} | Role: ${form.role} | Work Order: ${form.work_order || 'N/A'} | Location: ${form.location || 'N/A'} | POC: ${form.point_of_contact || 'N/A'} | POC Phone: ${form.contact_phone || 'N/A'} | Safety Notes: ${form.special_instructions || 'None'}`,
     });
     setForm({
       technician_name: '',
@@ -40,6 +43,9 @@ export default function TakingOwnershipModal({ aircraft, onClose, onSubmit, isPe
       work_order: '',
       scope_of_work: '',
       special_instructions: '',
+      point_of_contact: '',
+      contact_phone: '',
+      location: '',
       date: new Date().toISOString().split('T')[0],
       time: new Date().toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: true }),
     });
@@ -223,6 +229,53 @@ export default function TakingOwnershipModal({ aircraft, onClose, onSubmit, isPe
                 rows={3}
                 className="w-full bg-[#0d1117] border border-white/15 rounded-lg px-4 py-2.5 text-white placeholder-gray-600 text-sm outline-none focus:border-primary transition-colors resize-none"
               />
+            </div>
+          </div>
+
+          {/* Location & Point of Contact */}
+          <div className="rounded-xl border border-white/10 bg-[#141922] p-4 space-y-4">
+            <p className="text-sm font-bold text-primary flex items-center gap-2">
+              <MapPin className="w-4 h-4" /> LOCATION & CONTACT
+            </p>
+
+            <div>
+              <label className="text-xs font-bold text-gray-400 uppercase tracking-widest block mb-2">
+                Location (Optional)
+              </label>
+              <input
+                type="text"
+                value={form.location}
+                onChange={(e) => set('location', e.target.value)}
+                placeholder="Gate A2, Hangar 1, Ramp Zone C, etc."
+                className="w-full bg-[#0d1117] border border-white/15 rounded-lg px-4 py-2.5 text-white placeholder-gray-600 text-sm outline-none focus:border-primary transition-colors"
+              />
+            </div>
+
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <label className="text-xs font-bold text-gray-400 uppercase tracking-widest block mb-2">
+                  Point of Contact (Optional)
+                </label>
+                <input
+                  type="text"
+                  value={form.point_of_contact}
+                  onChange={(e) => set('point_of_contact', e.target.value)}
+                  placeholder="Name or dept."
+                  className="w-full bg-[#0d1117] border border-white/15 rounded-lg px-4 py-2.5 text-white placeholder-gray-600 text-sm outline-none focus:border-primary transition-colors"
+                />
+              </div>
+              <div>
+                <label className="text-xs font-bold text-gray-400 uppercase tracking-widest block mb-2 flex items-center gap-1">
+                  <Phone className="w-3.5 h-3.5" /> Phone (Optional)
+                </label>
+                <input
+                  type="tel"
+                  value={form.contact_phone}
+                  onChange={(e) => set('contact_phone', e.target.value)}
+                  placeholder="+1 (555) 0000"
+                  className="w-full bg-[#0d1117] border border-white/15 rounded-lg px-4 py-2.5 text-white placeholder-gray-600 text-sm outline-none focus:border-primary transition-colors"
+                />
+              </div>
             </div>
           </div>
 
