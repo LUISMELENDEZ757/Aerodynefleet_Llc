@@ -268,9 +268,14 @@ export default function MaintenanceLogbook() {
     return matchesSearch && matchesTail;
   });
 
+  const filteredOpenDisc   = filterEntries(openDisc);
+  const filteredInProgress = filterEntries(inProgress);
+  const filteredPendingRii = filterEntries(pendingRii);
+  const filteredOpenMel    = openMel.filter(m => !tailFilter || m.aircraft_tail === tailFilter);
+
   const TABS = [
-    { key: 'discrepancies', label: 'Discrepancies', count: openDisc.length + inProgress.length + pendingRii.length },
-    { key: 'mel',           label: 'MEL Deferrals', count: openMel.length },
+    { key: 'discrepancies', label: 'Discrepancies', count: filteredOpenDisc.length + filteredInProgress.length + filteredPendingRii.length },
+    { key: 'mel',           label: 'MEL Deferrals', count: filteredOpenMel.length },
     { key: 'aircraft',      label: 'Fleet Status',  count: aircraft.length },
   ];
 
@@ -349,11 +354,9 @@ export default function MaintenanceLogbook() {
               )}
             >
               {label}
-              {count > 0 && (
-                <span className={cn('text-[10px] font-extrabold px-1.5 py-0.5 rounded-full', tab === key ? 'bg-primary text-primary-foreground' : 'bg-secondary text-muted-foreground')}>
-                  {count}
-                </span>
-              )}
+              <span className={cn('text-[10px] font-extrabold px-1.5 py-0.5 rounded-full', tab === key ? 'bg-primary text-primary-foreground' : 'bg-secondary text-muted-foreground')}>
+                {count}
+              </span>
             </button>
           ))}
         </div>
