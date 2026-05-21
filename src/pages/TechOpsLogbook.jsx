@@ -436,6 +436,31 @@ export default function TechOpsLogbook() {
             ))}
           </div>
 
+          {/* CREATE ENTRY QUICK PANEL */}
+          <div className="px-5 py-4 border-b border-white/6">
+            <p className="text-xs font-extrabold text-gray-500 uppercase tracking-widest mb-3 flex items-center gap-2">
+              <Plus className="w-3.5 h-3.5" /> Quick Entry Templates
+            </p>
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+              {[
+                { label: 'Pilot Discrepancy',       type: 'discrepancy',       border: 'border-red-700',    text: 'text-red-400',    bg: 'bg-red-950/40' },
+                { label: 'Tech Discrepancy',         type: 'discrepancy',       border: 'border-amber-800',  text: 'text-amber-500',  bg: 'bg-amber-950/40' },
+                { label: 'Corrective Action',        type: 'corrective_action', border: 'border-green-700',  text: 'text-green-400',  bg: 'bg-green-950/40' },
+                { label: 'Parts Installation',       type: 'corrective_action', border: 'border-purple-700', text: 'text-purple-400', bg: 'bg-purple-950/40' },
+                { label: 'Deferral / MEL',           type: 'deferred',          border: 'border-yellow-700', text: 'text-yellow-400', bg: 'bg-yellow-950/40' },
+                { label: 'Parts Ordering',           type: 'info',              border: 'border-amber-900',  text: 'text-amber-600',  bg: 'bg-amber-950/30' },
+                { label: 'Oil Service',              type: 'info',              border: 'border-blue-800',   text: 'text-blue-300',   bg: 'bg-blue-950/40' },
+                { label: 'Oxygen Service',           type: 'info',              border: 'border-cyan-700',   text: 'text-cyan-400',   bg: 'bg-cyan-950/40' },
+              ].map(({ label, type, border, text, bg }) => (
+                <button key={label}
+                  onClick={() => { setEntryPreset({ entry_type: type, description: label }); setShowNewEntry(true); }}
+                  className={cn('px-3 py-2.5 rounded-xl border font-bold text-xs tracking-wide transition-all hover:brightness-125', border, text, bg)}>
+                  {label}
+                </button>
+              ))}
+            </div>
+          </div>
+
           {/* Section header */}
           <div className="flex items-center justify-between px-5 py-3">
             <p className="text-sm text-gray-500">
