@@ -51,139 +51,41 @@ const CYCLE_ORDER = ['gate', 'hangar', 'ramp', 'unknown'];
 
 /**
  * AircraftLocationBadge
+ * Display-only badge showing aircraft location type and label.
  *
  * Props:
- *   aircraftId    – entity record id
  *   locationType  – 'gate' | 'hangar' | 'ramp' | 'unknown'
  *   locationLabel – optional freetext e.g. "Gate B14"
- *   editable      – if true, clicking cycles through types + opens label input
  *   size          – 'sm' (default) | 'md'
  */
 export default function AircraftLocationBadge({
-  aircraftId,
   locationType = 'unknown',
   locationLabel = '',
-  editable = false,
   size = 'sm',
 }) {
-  const qc = useQueryClient();
-  const [editing, setEditing] = useState(false);
-  const [draftLabel, setDraftLabel] = useState(locationLabel);
-  const inputRef = useRef(null);
-
   const cfg = LOCATION_CONFIG[locationType] || LOCATION_CONFIG.unknown;
   const { Icon } = cfg;
 
-  const mutation = useMutation({
-    mutationFn: ({ type, label }) =>
-      base44.entities.Aircraft.update(aircraftId, {
-        location_type: type,
-        location_label: label,
-      }),
-    onSuccess: () => {
-      qc.invalidateQueries({ queryKey: ['fleet-aircraft'] });
-    },
-  });
-
-  // Cycle to next location type on badge click
-  const handleCycle = (e) => {
-    if (!editable) return;
-    e.stopPropagation();
-    const idx = CYCLE_ORDER.indexOf(locationType);
-    const next = CYCLE_ORDER[(idx + 1) % CYCLE_ORDER.length];
-    mutation.mutate({ type: next, label: draftLabel });
-  };
-
-  // Open label input on long-press or right-click
-  const handleContextMenu = (e) => {
-    if (!editable) return;
-    e.preventDefault();
-    e.stopPropagation();
-    setDraftLabel(locationLabel);
-    setEditing(true);
-  };
-
-  // Close + save on blur / enter
-  const handleLabelSave = () => {
-    mutation.mutate({ type: locationType, label: draftLabel.trim() });
-    setEditing(false);
-  };
-
-  useEffect(() => {
-    if (editing) inputRef.current?.focus();
-  }, [editing]);
+  if (locationType === 'unknown') return null;
 
   const isSm = size === 'sm';
 
-  if (locationType === 'unknown' && !editable) return null;
-
   return (
-    <div className="relative" onClick={(e) => e.stopPropagation()}>
-      {/* Badge */}
-      <button
-        type="button"
-        disabled={!editable || mutation.isPending}
-        onClick={handleCycle}
-        onContextMenu={handleContextMenu}
-        title={editable ? 'Click to change location · Right-click to set label' : undefined}
-        className={cn(
-          'flex items-center gap-1 rounded border font-bold transition-all',
-          isSm ? 'px-1.5 py-0.5 text-[9px]' : 'px-2 py-1 text-[11px]',
-          cfg.bg, cfg.border, cfg.color,
-          editable && 'hover:brightness-125 cursor-pointer active:scale-95',
-          !editable && 'cursor-default',
-          mutation.isPending && 'opacity-50'
-        )}
-      >
-        {Icon && (
-          <Icon className={cn('flex-shrink-0', isSm ? 'w-3 h-3' : 'w-3.5 h-3.5')} />
-        )}
-        <span>
-          {locationLabel && locationLabel !== '—'
-            ? locationLabel
-            : cfg.label}
-        </span>
-        {editable && locationType !== 'unknown' && (
-          <span className="opacity-40 text-[8px] ml-0.5">↻</span>
-        )}
-      </button>
-
-      {/* Label editor popover */}
-      {editing && (
-        <div
-          className="absolute bottom-full left-0 mb-1.5 z-50 bg-[#1a2235] border border-white/15 rounded-xl shadow-2xl p-3 flex flex-col gap-2 w-48"
-          onClick={(e) => e.stopPropagation()}
-        >
-          <p className={cn('text-[10px] font-bold uppercase tracking-widest', cfg.color)}>
-            Set {cfg.label} Label
-          </p>
-          <input
-            ref={inputRef}
-            value={draftLabel}
-            onChange={(e) => setDraftLabel(e.target.value)}
-            onKeyDown={(e) => {
-              if (e.key === 'Enter') handleLabelSave();
-              if (e.key === 'Escape') setEditing(false);
-            }}
-            placeholder={`e.g. ${locationType === 'gate' ? 'Gate B14' : locationType === 'hangar' ? 'Hangar 3' : 'Ramp C7'}`}
-            className="bg-[#0d1117] border border-white/10 rounded-lg px-3 py-1.5 text-xs text-white outline-none focus:border-cyan-500/50 w-full"
-          />
-          <div className="flex gap-2">
-            <button
-              onClick={() => setEditing(false)}
-              className="flex-1 py-1 rounded-lg border border-white/10 text-[10px] font-bold text-gray-400 hover:bg-white/5"
-            >
-              Cancel
-            </button>
-            <button
-              onClick={handleLabelSave}
-              className={cn('flex-1 py-1 rounded-lg text-[10px] font-bold border', cfg.bg, cfg.border, cfg.color, 'hover:brightness-125')}
-            >
-              Save
-            </button>
-          </div>
-        </div>
+    <div className="flex items-center gap-1 rounded border font-bold"
+      style={{
+        backgroundColor: cfg.bg.replace('bg-', ''),
+        borderColor: cfg.border.replace('border-', ''),
+        color: cfg.color.replace('text-', ''),
+        padding: isSm ? '2px 6px' : '4px 8px',
+        fontSize: isSm ? '9px' : '11px'
+      }}
+    >
+      {Icon && (
+        <Icon className={cn('flex-shrink-0', isSm ? 'w-3 h-3' : 'w-3.5 h-3.5')} />
       )}
+      <span>
+        {locationLabel && locationLabel !== '—' ? locationLabel : cfg.label}
+      </span>
     </div>
   );
 }
