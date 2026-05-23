@@ -103,6 +103,7 @@ const NAV_GROUPS = [
       { label: 'AI Dispatch Copilot', icon: '🤖', path: '/AIDispatchCopilot' },
       { label: 'Flight Board', icon: '🛫', path: '/FlightBoard' },
       { label: 'Live Flight Tracker', icon: '🛫', path: '/LiveFlightTracker' },
+      { label: 'World Route Map', icon: '🌐', path: '/WorldRouteMap' },
       { label: 'Fleet Ops Board', icon: '🎛️', path: '/AerodyneFleetOps' },
       { label: 'OTP Dashboard', icon: '📊', path: '/OTPDashboard' },
       { label: 'Weather', icon: '⛅', path: '/Weather' },
