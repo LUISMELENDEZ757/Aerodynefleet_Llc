@@ -2,6 +2,7 @@ import React, { useEffect, useState, useRef } from 'react';
 import { Outlet, useLocation } from 'react-router-dom';
 import LeftRail from './LeftRail';
 import BottomTabBar from './BottomTabBar';
+import MobileLeftRail from './MobileLeftRail';
 
 import WifiIndicator from './WifiIndicator';
 import StarlinkIndicator from './StarlinkIndicator';
@@ -109,16 +110,27 @@ function AppContent() {
       )}
 
       {/* ── Mobile slide-out drawer ── */}
-      {isMobile && mobileDrawerOpen && (
+      {isMobile && (
         <>
           {/* Backdrop */}
-          <div
-            className="fixed inset-0 z-40 bg-black/60 backdrop-blur-sm"
-            onClick={() => setMobileDrawerOpen(false)}
-          />
-          {/* Drawer */}
-          <div className="fixed left-0 top-0 bottom-0 z-50 w-64 bg-sidebar border-r border-border shadow-2xl overflow-y-auto">
-            <LeftRail onCollapsedChange={() => {}} />
+          {mobileDrawerOpen && (
+            <div
+              className="fixed inset-0 z-40 bg-black/60 backdrop-blur-sm"
+              onClick={() => setMobileDrawerOpen(false)}
+            />
+          )}
+          {/* Drawer — always mounted, slide in/out via transform */}
+          <div className={`fixed left-0 top-0 bottom-0 z-50 w-56 bg-sidebar border-r border-border shadow-2xl overflow-y-auto transition-transform duration-300 ${mobileDrawerOpen ? 'translate-x-0' : '-translate-x-full'}`}>
+            {/* Close button */}
+            <div className="flex justify-end px-3 pt-3 pb-1">
+              <button
+                onClick={() => setMobileDrawerOpen(false)}
+                className="w-7 h-7 flex items-center justify-center rounded-lg bg-white/10 text-white/60 hover:bg-white/20 transition-colors"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+            <MobileLeftRail onNavigate={() => setMobileDrawerOpen(false)} />
           </div>
         </>
       )}
