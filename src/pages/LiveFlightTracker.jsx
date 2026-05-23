@@ -97,8 +97,8 @@ function FlightDetail({ flight, onClose }) {
   ];
 
   return (
-    <div className="fixed inset-0 z-60 flex items-end sm:items-center justify-center bg-black/80 p-3">
-      <div className="w-full max-w-md bg-[#0d1117] border border-white/10 rounded-2xl shadow-2xl flex flex-col max-h-[90vh]">
+    <div className="fixed inset-0 z-60 flex items-start justify-center bg-black/80 p-3 pt-24">
+      <div className="w-full max-w-md bg-[#0d1117] border border-white/10 rounded-2xl shadow-2xl flex flex-col max-h-[calc(100vh-8rem)]">
         <div className="flex items-center justify-between px-5 py-4 border-b border-white/10 flex-shrink-0">
           <div className="flex items-center gap-3">
             <div className="w-9 h-9 rounded-xl bg-sky-500/15 flex items-center justify-center">
