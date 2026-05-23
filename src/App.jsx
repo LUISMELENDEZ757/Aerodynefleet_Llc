@@ -130,6 +130,7 @@ const BoeingAHMDashboard       = lazy(() => import('@/pages/BoeingAHMDashboard.j
 const AirbusSkywiseDashboard   = lazy(() => import('@/pages/AirbusSkywiseDashboard.jsx'));
 const Test                     = lazy(() => import('@/pages/Test'));
 const AICopilot                = lazy(() => import('@/pages/AICopilot'));
+const WorldRouteMap            = lazy(() => import('@/pages/WorldRouteMap.jsx'));
 
 function PageFallback() {
   return (
@@ -336,6 +337,7 @@ const AuthenticatedApp = () => {
         <Route path="/AirbusSkyw" element={<AirbusSkywiseDashboard />} />
         <Route path="/Test" element={<Test />} />
         <Route path="/AICopilot" element={<AICopilot />} />
+        <Route path="/WorldRouteMap" element={<WorldRouteMap />} />
       </Route>
       <Route path="*" element={<PageNotFound />} />
     </Routes>

@@ -1,80 +1,110 @@
 import { createClientFromRequest } from 'npm:@base44/sdk@0.8.25';
 
-const BASE = 'https://aeroapi.flightaware.com/aeroapi';
+const FA_BASE = 'https://aeroapi.flightaware.com/aeroapi';
+const API_KEY = Deno.env.get('FLIGHTAWARE_API_KEY');
+
+async function faFetch(path) {
+  const res = await fetch(`${FA_BASE}${path}`, {
+    headers: { 'x-apikey': API_KEY, 'Accept': 'application/json' },
+  });
+  if (!res.ok) {
+    const text = await res.text();
+    throw new Error(`FlightAware ${res.status}: ${text}`);
+  }
+  return res.json();
+}
 
 Deno.serve(async (req) => {
   try {
     const base44 = createClientFromRequest(req);
     const user = await base44.auth.me();
-    if (!user) {
-      return Response.json({ error: 'Unauthorized' }, { status: 401 });
-    }
+    if (!user) return Response.json({ error: 'Unauthorized' }, { status: 401 });
 
-    const apiKey = Deno.env.get('FLIGHTAWARE_API_KEY');
-    if (!apiKey) {
-      return Response.json({ error: 'FlightAware API key not configured' }, { status: 500 });
-    }
+    const body = await req.json();
+    const { type, ident, airline_icao, airport } = body;
 
-    const headers = { 'x-apikey': apiKey, 'Accept': 'application/json' };
-
-    // Search for in-air flights
-    const flightsRes = await fetch(
-      `${BASE}/flights/search?query=-inAir+1&max_pages=2`,
-      { headers }
-    );
-    
-    if (!flightsRes.ok) {
-      const errText = await flightsRes.text();
-      console.error('FlightAware flights error:', flightsRes.status, errText);
-      return Response.json({ aircraft: [] });
-    }
-
-    const flightsData = await flightsRes.json();
-    const flights = flightsData.flights || [];
-
-    // Fetch positions for active flights (limit to avoid rate limits)
-    const positions = [];
-    for (const flight of flights.slice(0, 20)) {
-      if (!flight.fa_flight_id) continue;
-
-      try {
-        const trackRes = await fetch(
-          `${BASE}/flights/${flight.fa_flight_id}/track`,
-          { headers }
-        );
-
-        if (trackRes.ok) {
-          const trackData = await trackRes.json();
-          const track = trackData.positions || [];
-          
-          if (track.length > 0) {
-            const latest = track[track.length - 1];
-            positions.push({
-              id: flight.fa_flight_id,
-              flight_number: flight.ident_iata || flight.ident,
-              callsign: flight.callsign,
-              airline: flight.operator_iata || flight.operator || 'UNK',
-              aircraft_type: flight.aircraft_type,
-              tail: flight.registration,
-              latitude: latest.latitude,
-              longitude: latest.longitude,
-              altitude: latest.altitude,
-              ground_speed: latest.groundspeed,
-              heading: latest.heading,
-              origin: flight.origin?.code_iata,
-              destination: flight.destination?.code_iata,
-              status: flight.status,
-            });
+    // Get live positions for multiple flights by airline at a hub
+    if (type === 'airline_positions' && airline_icao) {
+      const code = airline_icao.toUpperCase();
+      const HUB_MAP = {
+        UAL: ['KORD', 'KEWR', 'KIAH'],
+        AAL: ['KDFW', 'KPHL', 'KLAX'],
+        DAL: ['KATL', 'KLAX', 'KJFK'],
+        SWA: ['KMDW', 'KLAS', 'KBWI'],
+        BAW: ['EGLL'], AFR: ['LFPG'], DLH: ['EDDF'],
+        UAE: ['OMDB'], QTR: ['OTHH'], ETD: ['OMAA'],
+        SIA: ['WSSS'], CPA: ['VHHH'], KAL: ['RKSI'],
+        ANA: ['RJTT'], JAL: ['RJTT'],
+      };
+      const hubs = HUB_MAP[code] || ['KEWR', 'KLAX'];
+      const results = await Promise.allSettled(
+        hubs.map(hub => faFetch(`/airports/${hub}/flights/departures?max_pages=1&per_page=20`))
+      );
+      const seen = new Set();
+      const flights = [];
+      for (const r of results) {
+        if (r.status !== 'fulfilled') continue;
+        for (const f of (r.value.departures || [])) {
+          const operatorMatch =
+            (f.operator_icao || '').toUpperCase() === code ||
+            (f.ident_icao || f.ident || '').toUpperCase().startsWith(code);
+          const isEnRoute = f.status === 'En Route' || f.status === 'Departed';
+          if (operatorMatch && isEnRoute && !seen.has(f.fa_flight_id || f.ident)) {
+            seen.add(f.fa_flight_id || f.ident);
+            flights.push(f);
           }
         }
-      } catch (e) {
-        console.error(`Failed to get track for ${flight.fa_flight_id}:`, e.message);
       }
+      // Attach last known positions
+      const withPositions = await Promise.allSettled(
+        flights.slice(0, 15).map(async (f) => {
+          try {
+            const id = f.fa_flight_id || f.ident;
+            const trackData = await faFetch(`/flights/${encodeURIComponent(id)}/track`);
+            const positions = trackData.positions || [];
+            const last = positions[positions.length - 1];
+            return { ...f, lat: last?.latitude, lon: last?.longitude, heading: last?.groundspeed ? last.heading : null, altitude: last?.altitude, groundspeed: last?.groundspeed };
+          } catch {
+            return f;
+          }
+        })
+      );
+      return Response.json({
+        flights: withPositions.map(r => r.status === 'fulfilled' ? r.value : null).filter(Boolean)
+      });
     }
 
-    return Response.json({ aircraft: positions });
+    // Get track for a single flight
+    if (type === 'flight_track' && ident) {
+      const data = await faFetch(`/flights/${encodeURIComponent(ident.toUpperCase())}/track`);
+      return Response.json({ track: data });
+    }
+
+    // Get airport departures with positions
+    if (type === 'airport_enroute' && airport) {
+      const code = airport.toUpperCase();
+      const depData = await faFetch(`/airports/${code}/flights/departures?max_pages=1&per_page=30`);
+      const enroute = (depData.departures || []).filter(f => f.status === 'En Route' || f.status === 'Departed');
+      const withPositions = await Promise.allSettled(
+        enroute.slice(0, 20).map(async (f) => {
+          try {
+            const id = f.fa_flight_id || f.ident;
+            const trackData = await faFetch(`/flights/${encodeURIComponent(id)}/track`);
+            const positions = trackData.positions || [];
+            const last = positions[positions.length - 1];
+            return { ...f, lat: last?.latitude, lon: last?.longitude, heading: last?.heading, altitude: last?.altitude, groundspeed: last?.groundspeed };
+          } catch {
+            return f;
+          }
+        })
+      );
+      return Response.json({
+        flights: withPositions.map(r => r.status === 'fulfilled' ? r.value : null).filter(Boolean)
+      });
+    }
+
+    return Response.json({ error: 'Invalid request' }, { status: 400 });
   } catch (error) {
-    console.error('Position fetch error:', error.message);
-    return Response.json({ error: error.message, aircraft: [] }, { status: 500 });
+    return Response.json({ error: error.message }, { status: 500 });
   }
 });
