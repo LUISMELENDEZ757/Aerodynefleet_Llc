@@ -60,6 +60,7 @@ const HangarIcon = ({ className }) => (
   </svg>
 );
 import AiMaintenanceInsights from '@/components/fleet/AiMaintenanceInsights';
+import AircraftLocationBadge from '@/components/fleet/AircraftLocationBadge';
 import AiMaintenanceCard from '@/components/ai/AiMaintenanceCard';
 import { cn } from '@/lib/utils';
 import LiveClock from '@/components/ui/LiveClock';
@@ -586,7 +587,7 @@ function ReadinessScore({ aircraft, openDiscs = [], melItems = [] }) {
 }
 
 // ── Aircraft Card ────────────────────────────────────────────────────────────
-function AircraftCard({ aircraft, onSelect, discrepancies, melItems = [], activeLocks = [], oosEntries = [], timelineEvents = [], openTasks = [] }) {
+function AircraftCard({ aircraft, onSelect, discrepancies, melItems = [], activeLocks = [], oosEntries = [], timelineEvents = [], openTasks = [], editable = false }) {
   const status = STATUS_STYLES[aircraft.status] || STATUS_STYLES.active;
   const StatusIcon = status.icon;
   const openDiscs = discrepancies?.filter(d => d.discrepancy_status !== 'CLOSED') || [];
@@ -664,6 +665,13 @@ function AircraftCard({ aircraft, onSelect, discrepancies, melItems = [], active
             FERRY
           </span>
         )}
+        <AircraftLocationBadge
+          aircraftId={aircraft.id}
+          locationType={aircraft.location_type || 'unknown'}
+          locationLabel={aircraft.location_label || ''}
+          editable={editable}
+          size="sm"
+        />
       </div>
 
       {/* ── ROW 3: Risk indicators ── */}
@@ -854,6 +862,7 @@ export default function FleetDashboard() {
       oosEntries={oosEntries}
       timelineEvents={timelineEvents}
       openTasks={openTasks}
+      editable
     />
   ), [discrepanciesByTail, melByTail, mccLocks, oosEntries, timelineEvents, openTasks, recordTailView]);
 
@@ -1042,6 +1051,15 @@ export default function FleetDashboard() {
               {filtered.map(a => (
                 <div key={a.id} className="relative">
                   <AircraftRow aircraft={a} onSelect={setSelectedAircraft} discrepancies={discrepanciesByTail[a.tail_number]} activeLocks={mccLocks} />
+                  <div className="absolute right-24 top-1/2 -translate-y-1/2" onClick={e => e.stopPropagation()}>
+                    <AircraftLocationBadge
+                      aircraftId={a.id}
+                      locationType={a.location_type || 'unknown'}
+                      locationLabel={a.location_label || ''}
+                      editable
+                      size="sm"
+                    />
+                  </div>
                 </div>
               ))}
             </div>

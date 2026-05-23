@@ -68,6 +68,21 @@
       "default": "active",
       "description": "Current operational status"
     },
+    "location_type": {
+      "type": "string",
+      "enum": [
+        "gate",
+        "hangar",
+        "ramp",
+        "unknown"
+      ],
+      "default": "unknown",
+      "description": "Current physical location of the aircraft \u2014 gate (terminal jetway), hangar (enclosed maintenance bay), ramp (open apron/hardstand), or unknown"
+    },
+    "location_label": {
+      "type": "string",
+      "description": "Specific location label set by technician e.g. 'Gate B14', 'Hangar 3', 'Ramp C7'"
+    },
     "delivery_date": {
       "type": "string",
       "format": "date",
