@@ -206,7 +206,7 @@ function NewCRSModal({ aircraft, onClose, onCreate }) {
   const [form, setForm] = useState({
     aircraft_tail: '', aircraft_type: '', station: '', maintenance_type: 'line_maintenance',
     description_of_work: '', regulatory_reference: '14 CFR 43.9',
-    parts: [], parts_replaced: '', work_start_date: new Date().toISOString().split('T')[0],
+    parts: [], parts_replaced: '', parts_replaced_pn: '', parts_replaced_sn: '', work_start_date: new Date().toISOString().split('T')[0],
     work_end_date: '', return_to_service_date: new Date().toISOString().split('T')[0],
     return_to_service_time: '', total_manhours: '', rii_required: false, limitations: '',
     next_inspection_due: '', notes: '',
@@ -216,8 +216,12 @@ function NewCRSModal({ aircraft, onClose, onCreate }) {
 
   const handleSubmit = (e) => {
     e.preventDefault();
+    const singlePartStr = !multiPart && (form.parts_replaced_pn || form.parts_replaced_sn)
+      ? `P/N: ${form.parts_replaced_pn || '—'} | S/N: ${form.parts_replaced_sn || '—'}`
+      : form.parts_replaced;
     onCreate({
       ...form,
+      parts_replaced: singlePartStr,
       crs_number: `CRS-${new Date().getFullYear()}-${seq}`,
       total_manhours: form.total_manhours ? Number(form.total_manhours) : undefined,
       status: 'draft',
@@ -283,10 +287,19 @@ function NewCRSModal({ aircraft, onClose, onCreate }) {
             </div>
 
             {!multiPart ? (
-              /* Single free-text field */
-              <input value={form.parts_replaced} onChange={e => set('parts_replaced', e.target.value)}
-                placeholder="e.g. P/N 67890-001 S/N ABC123, P/N 11223-004 S/N XYZ789…"
-                className={inputCls} />
+              /* Single part — separate P/N and S/N fields */
+              <div className="flex gap-2">
+                <div className="flex-1">
+                  <label className="text-[9px] text-muted-foreground block mb-0.5">Part Number (P/N)</label>
+                  <input value={form.parts_replaced_pn} onChange={e => set('parts_replaced_pn', e.target.value)}
+                    placeholder="e.g. 67890-001" className={inputCls} />
+                </div>
+                <div className="flex-1">
+                  <label className="text-[9px] text-muted-foreground block mb-0.5">Serial Number (S/N)</label>
+                  <input value={form.parts_replaced_sn} onChange={e => set('parts_replaced_sn', e.target.value)}
+                    placeholder="e.g. SN-12345678" className={inputCls} />
+                </div>
+              </div>
             ) : (
               /* Structured P/N + S/N table */
               <div className="space-y-2">
