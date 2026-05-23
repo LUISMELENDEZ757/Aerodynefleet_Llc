@@ -205,7 +205,7 @@ function NewCRSModal({ aircraft, onClose, onCreate }) {
   const [form, setForm] = useState({
     aircraft_tail: '', aircraft_type: '', station: '', maintenance_type: 'line_maintenance',
     description_of_work: '', regulatory_reference: '14 CFR 43.9',
-    parts_replaced: '', work_start_date: new Date().toISOString().split('T')[0],
+    parts: [], work_start_date: new Date().toISOString().split('T')[0],
     work_end_date: '', return_to_service_date: new Date().toISOString().split('T')[0],
     return_to_service_time: '', total_manhours: '', rii_required: false, limitations: '',
     next_inspection_due: '', notes: '',
@@ -268,9 +268,41 @@ function NewCRSModal({ aircraft, onClose, onCreate }) {
               <input required value={form.work_order_ref} onChange={e => set('work_order_ref', e.target.value)} placeholder="WO# or LP#0001" className={inputCls} />
             </div>
           </div>
+          {/* Parts table */}
           <div>
-            <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest block mb-1">Parts Replaced (P/N, S/N)</label>
-            <input value={form.parts_replaced} onChange={e => set('parts_replaced', e.target.value)} className={inputCls} />
+            <div className="flex items-center justify-between mb-2">
+              <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest">Parts Replaced</label>
+              <button type="button" onClick={() => set('parts', [...form.parts, { part_number: '', serial_number: '' }])}
+                className="text-[10px] px-2 py-1 rounded bg-primary/20 text-primary font-bold hover:bg-primary/30">+ Add Part</button>
+            </div>
+            {form.parts.length === 0 ? (
+              <div className="text-[10px] text-muted-foreground italic px-3 py-2 bg-secondary/30 rounded-xl border border-border">No parts added</div>
+            ) : (
+              <div className="space-y-2">
+                {form.parts.map((part, idx) => (
+                  <div key={idx} className="flex gap-2 items-end">
+                    <div className="flex-1">
+                      <label className="text-[9px] text-muted-foreground block mb-0.5">Part Number</label>
+                      <input value={part.part_number} onChange={e => {
+                        const updated = [...form.parts];
+                        updated[idx].part_number = e.target.value;
+                        set('parts', updated);
+                      }} placeholder="P/N" className={inputCls} />
+                    </div>
+                    <div className="flex-1">
+                      <label className="text-[9px] text-muted-foreground block mb-0.5">Serial Number</label>
+                      <input value={part.serial_number} onChange={e => {
+                        const updated = [...form.parts];
+                        updated[idx].serial_number = e.target.value;
+                        set('parts', updated);
+                      }} placeholder="S/N" className={inputCls} />
+                    </div>
+                    <button type="button" onClick={() => set('parts', form.parts.filter((_, i) => i !== idx))}
+                      className="flex-shrink-0 w-8 h-8 rounded-lg bg-red-900/20 border border-red-500/20 text-red-400 hover:bg-red-900/40 text-xs font-bold flex items-center justify-center">×</button>
+                  </div>
+                ))}
+              </div>
+            )}
           </div>
           <div className="grid grid-cols-3 gap-3">
             <div>
@@ -346,7 +378,7 @@ const handlePrint = (crs) => {
     </div>
     <div class="field" style="margin:16px 0"><label>Description of Work Performed</label><p style="margin-top:4px">${crs.description_of_work}</p></div>
     <div class="field" style="margin:16px 0"><label>Regulatory Reference</label><span>${crs.regulatory_reference || '—'}</span></div>
-    ${crs.parts_replaced ? `<div class="field" style="margin:16px 0"><label>Parts Replaced</label><p>${crs.parts_replaced}</p></div>` : ''}
+    ${Array.isArray(crs.parts) && crs.parts.length > 0 ? `<div class="field" style="margin:16px 0"><label>Parts Replaced</label><table style="width:100%;border-collapse:collapse;margin-top:8px"><tr style="border-bottom:1px solid #ddd"><th style="text-align:left;padding:6px;font-weight:bold">Part Number</th><th style="text-align:left;padding:6px;font-weight:bold">Serial Number</th></tr>${crs.parts.map(p => `<tr style="border-bottom:1px solid #eee"><td style="padding:6px">${p.part_number || '—'}</td><td style="padding:6px">${p.serial_number || '—'}</td></tr>`).join('')}</table></div>` : ''}
     ${crs.limitations ? `<div style="background:#fffbeb;border:1px solid #f59e0b;border-radius:6px;padding:10px;margin:16px 0"><strong>⚠ Limitations:</strong> ${crs.limitations}</div>` : ''}
     <h2 style="font-size:13px;margin-top:24px;border-bottom:1px solid #ddd;padding-bottom:4px">SIGNATURE CHAIN</h2>
     <div class="sig-box ${crs.certifying_technician_signed_at ? 'signed' : ''}">
