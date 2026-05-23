@@ -1,6 +1,7 @@
 import React, { useEffect, useState, useRef } from 'react';
 import { Outlet, useLocation } from 'react-router-dom';
 import LeftRail from './LeftRail';
+import BottomTabBar from './BottomTabBar';
 
 import WifiIndicator from './WifiIndicator';
 import StarlinkIndicator from './StarlinkIndicator';
@@ -10,7 +11,7 @@ import PageTransition from '@/components/ui/PageTransition';
 import SupportButton from './SupportButton';
 import LocalModeToggle from './LocalModeToggle';
 import { signOut, getSession } from '@/lib/supabaseAuth';
-import { LogOut, Clock } from 'lucide-react';
+import { LogOut, Clock, Menu, X } from 'lucide-react';
 
 // Syncs location changes into TabHistoryContext so lastPaths stays accurate
 function LocationSync() {
@@ -22,13 +23,47 @@ function LocationSync() {
   return null;
 }
 
+// Detect device class
+function useDeviceClass() {
+  const [device, setDevice] = useState(() => {
+    const w = window.innerWidth;
+    if (w < 768) return 'mobile';
+    if (w < 1024) return 'tablet';
+    return 'desktop';
+  });
+  useEffect(() => {
+    const update = () => {
+      const w = window.innerWidth;
+      if (w < 768) setDevice('mobile');
+      else if (w < 1024) setDevice('tablet');
+      else setDevice('desktop');
+    };
+    window.addEventListener('resize', update, { passive: true });
+    return () => window.removeEventListener('resize', update);
+  }, []);
+  return device;
+}
+
 function AppContent() {
-  const [hidden, setHidden] = useState(false);
   const [railCollapsed, setRailCollapsed] = useState(false);
+  const [mobileDrawerOpen, setMobileDrawerOpen] = useState(false);
   const lastScrollY = useRef(0);
   const [isDemoMode, setIsDemoMode] = useState(false);
   const [zuluTime, setZuluTime] = useState('');
   const [userInfo, setUserInfo] = useState(null);
+  const location = useLocation();
+  const device = useDeviceClass();
+
+  // Auto-collapse rail on tablet, auto-expand on desktop
+  useEffect(() => {
+    if (device === 'tablet') setRailCollapsed(true);
+    else if (device === 'desktop') setRailCollapsed(false);
+  }, [device]);
+
+  // Close mobile drawer on navigation
+  useEffect(() => {
+    setMobileDrawerOpen(false);
+  }, [location.pathname]);
 
   const exitDemoMode = () => {
     localStorage.removeItem('demoMode');
@@ -38,7 +73,6 @@ function AppContent() {
 
   useEffect(() => {
     setIsDemoMode(localStorage.getItem('demoMode') === 'true');
-    // Get user info from session
     const session = getSession();
     if (session?.user) {
       const meta = session.user.user_metadata || {};
@@ -48,48 +82,71 @@ function AppContent() {
         initials: (meta.full_name || session.user.email || 'U').split(' ').map(n => n[0]).join('').slice(0, 2).toUpperCase(),
       });
     }
-    // Zulu clock
     const tick = () => {
       const now = new Date();
-      const hh = String(now.getUTCHours()).padStart(2, '0');
-      const mm = String(now.getUTCMinutes()).padStart(2, '0');
-      setZuluTime(`${hh}:${mm}Z`);
+      setZuluTime(`${String(now.getUTCHours()).padStart(2,'0')}:${String(now.getUTCMinutes()).padStart(2,'0')}Z`);
     };
     tick();
     const id = setInterval(tick, 10000);
     return () => clearInterval(id);
   }, []);
 
-  useEffect(() => {
-    const root = document.getElementById('root');
-    if (!root) return;
-    const handleScroll = () => {
-      const currentY = root.scrollTop;
-      setHidden(currentY > lastScrollY.current && currentY > 60);
-      lastScrollY.current = currentY;
-    };
-    root.addEventListener('scroll', handleScroll, { passive: true });
-    return () => root.removeEventListener('scroll', handleScroll);
-  }, []);
-
   const roleColor = userInfo?.role === 'admin' ? 'text-primary' : 'text-blue-400';
-  const roleBg = userInfo?.role === 'admin' ? 'bg-primary/15' : 'bg-blue-500/15';
+  const isMobile = device === 'mobile';
+  const isTablet = device === 'tablet';
+  const isDesktop = device === 'desktop';
+
+  // Rail margin: mobile=0, tablet=collapsed(48px), desktop=full(208px) or collapsed(48px)
+  const mainMargin = isMobile ? 'ml-0' : railCollapsed ? 'ml-12' : 'ml-52';
 
   return (
     <div className="min-h-screen bg-background flex">
       <LocationSync />
-      <LeftRail onCollapsedChange={setRailCollapsed} />
-      <div className={`flex-1 min-h-screen transition-all duration-300 ${railCollapsed ? 'ml-12' : 'ml-52'}`}>
-        {/* Top header bar */}
-        <div className="sticky top-0 z-50 bg-card/95 backdrop-blur-md border-b border-border px-4 h-11 flex items-center justify-between gap-3">
-          {/* Left: brand */}
+
+      {/* ── Left Rail — hidden on mobile, always shown on tablet/desktop ── */}
+      {!isMobile && (
+        <LeftRail onCollapsedChange={setRailCollapsed} />
+      )}
+
+      {/* ── Mobile slide-out drawer ── */}
+      {isMobile && mobileDrawerOpen && (
+        <>
+          {/* Backdrop */}
+          <div
+            className="fixed inset-0 z-40 bg-black/60 backdrop-blur-sm"
+            onClick={() => setMobileDrawerOpen(false)}
+          />
+          {/* Drawer */}
+          <div className="fixed left-0 top-0 bottom-0 z-50 w-64 bg-sidebar border-r border-border shadow-2xl overflow-y-auto">
+            <LeftRail onCollapsedChange={() => {}} />
+          </div>
+        </>
+      )}
+
+      <div className={`flex-1 min-h-screen transition-all duration-300 ${mainMargin}`}>
+        {/* ── Top header bar ── */}
+        <div className="sticky top-0 z-40 bg-card/95 backdrop-blur-md border-b border-border px-3 h-11 flex items-center justify-between gap-2">
+          
+          {/* Mobile: hamburger menu button */}
+          {isMobile && (
+            <button
+              onClick={() => setMobileDrawerOpen(true)}
+              className="w-8 h-8 flex items-center justify-center rounded-lg bg-secondary/60 border border-border text-muted-foreground hover:text-white transition-colors flex-shrink-0"
+            >
+              <Menu className="w-4 h-4" />
+            </button>
+          )}
+
+          {/* Brand — hide long subtitle on mobile */}
           <div className="flex flex-col leading-none">
             <span className="text-[11px] font-black text-primary tracking-widest uppercase">Aerodyne Fleet LLC</span>
-            <span className="text-[9px] text-muted-foreground tracking-widest uppercase">Aircraft Maintenance Management System</span>
+            {!isMobile && (
+              <span className="text-[9px] text-muted-foreground tracking-widest uppercase">Aircraft Maintenance Management System</span>
+            )}
           </div>
 
           {/* Right: indicators */}
-          <div className="flex items-center gap-2 ml-auto">
+          <div className="flex items-center gap-1.5 ml-auto">
             {isDemoMode && (
               <button onClick={exitDemoMode}
                 className="text-[10px] font-extrabold px-2 py-0.5 rounded-full bg-orange-500/20 text-orange-400 border border-orange-500/30 hover:bg-orange-500/30 transition-colors">
@@ -97,28 +154,31 @@ function AppContent() {
               </button>
             )}
 
-            {/* Zulu clock */}
+            {/* Zulu clock — hide label on mobile */}
             <div className="flex items-center gap-1 px-2 py-1 rounded-lg bg-secondary/60 border border-border">
               <Clock className="w-3 h-3 text-muted-foreground" />
               <span className="text-[11px] font-mono font-semibold text-foreground tabular-nums">{zuluTime}</span>
             </div>
 
-            <LocalModeToggle />
+            {/* Hide some indicators on mobile to keep header clean */}
+            {!isMobile && <LocalModeToggle />}
             <WifiIndicator />
-            <StarlinkIndicator />
+            {!isMobile && <StarlinkIndicator />}
             <NotificationsBell />
-            <SupportButton />
+            {!isMobile && <SupportButton />}
 
-            {/* User avatar + role */}
+            {/* User avatar */}
             {userInfo && (
-              <div className="flex items-center gap-1.5 pl-2 border-l border-border">
-                <div className="w-6 h-6 rounded-full bg-primary/20 flex items-center justify-center">
+              <div className="flex items-center gap-1.5 pl-1.5 border-l border-border">
+                <div className="w-6 h-6 rounded-full bg-primary/20 flex items-center justify-center flex-shrink-0">
                   <span className="text-[9px] font-black text-primary">{userInfo.initials}</span>
                 </div>
-                <div className="hidden md:flex flex-col leading-none">
-                  <span className="text-[10px] font-semibold text-foreground truncate max-w-[80px]">{userInfo.name}</span>
-                  <span className={`text-[9px] font-bold uppercase tracking-wider ${roleColor}`}>{userInfo.role}</span>
-                </div>
+                {isDesktop && (
+                  <div className="flex flex-col leading-none">
+                    <span className="text-[10px] font-semibold text-foreground truncate max-w-[80px]">{userInfo.name}</span>
+                    <span className={`text-[9px] font-bold uppercase tracking-wider ${roleColor}`}>{userInfo.role}</span>
+                  </div>
+                )}
               </div>
             )}
 
@@ -128,16 +188,21 @@ function AppContent() {
               title="Sign out"
             >
               <LogOut className="w-3 h-3" />
-              <span className="hidden sm:inline">Sign Out</span>
+              {!isMobile && <span>Sign Out</span>}
             </button>
           </div>
         </div>
-        <main className="pb-safe-bottom">
+
+        {/* ── Page content ── */}
+        <main className={isMobile ? 'pb-20' : 'pb-safe-bottom'}>
           <PageTransition>
             <Outlet />
           </PageTransition>
         </main>
       </div>
+
+      {/* ── Bottom tab bar — mobile only ── */}
+      {isMobile && <BottomTabBar />}
     </div>
   );
 }

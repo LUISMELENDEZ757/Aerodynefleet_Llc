@@ -261,7 +261,7 @@ const BrandHeader = ({ collapsed, onToggle }) => (
 
 export default function LeftRail({ onCollapsedChange }) {
   const location = useLocation();
-  const [collapsed, setCollapsed] = useState(false);
+  const [collapsed, setCollapsed] = useState(() => window.innerWidth < 1024);
 
   // Default: expand group if it contains the active route
   const getDefaultExpanded = () => {
