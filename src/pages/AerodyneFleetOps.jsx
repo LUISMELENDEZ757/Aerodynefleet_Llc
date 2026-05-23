@@ -687,10 +687,11 @@ export default function AerodyneFleetOps() {
         </div>
       </div>
 
-      {/* ── Secondary toolbar: Filters, My Views, Quick Views, Period ── */}
+      {/* ── Combined toolbar: Filters + Live params + Period ── */}
       <div className="flex items-center gap-2 px-4 py-2 border-b border-white/8 bg-[#0a0e18] flex-shrink-0 flex-wrap">
+        {/* Filters toggle */}
         <button onClick={() => setShowFilters(v => !v)}
-          className={cn('flex items-center gap-1.5 text-[10px] font-extrabold px-3 py-2 rounded-lg border transition-all',
+          className={cn('flex items-center gap-1.5 text-[10px] font-extrabold px-3 py-1.5 rounded-lg border transition-all',
             showFilters ? 'bg-primary text-primary-foreground border-primary' : 'border-white/15 text-gray-400 hover:text-white hover:border-white/30')}>
           <SlidersHorizontal className="w-3 h-3" /> FILTERS
           {Object.values(activeFilters).reduce((s, a) => s + (a?.length || 0), 0) > 0 && (
@@ -698,10 +699,11 @@ export default function AerodyneFleetOps() {
           )}
         </button>
 
+        {/* My Views */}
         <div className="relative">
           <button onClick={() => { setShowMyViews(v => !v); setShowQuickViews(false); }}
-            className="flex items-center gap-1 text-[10px] font-extrabold px-3 py-2 rounded-lg border border-white/15 text-gray-400 hover:text-white transition-all">
-            <Bookmark className="w-3 h-3" /> MY VIEWS <ChevronDown className="w-2.5 h-2.5" />
+            className="flex items-center gap-1 text-[10px] font-extrabold px-3 py-1.5 rounded-lg border border-white/15 text-gray-400 hover:text-white transition-all">
+            <Bookmark className="w-3 h-3" /> VIEWS <ChevronDown className="w-2.5 h-2.5" />
           </button>
           {showMyViews && (
             <div className="absolute top-full left-0 mt-1 bg-[#141922] border border-white/10 rounded-xl shadow-2xl z-30 min-w-[180px] py-1">
@@ -717,10 +719,11 @@ export default function AerodyneFleetOps() {
           )}
         </div>
 
+        {/* Quick Views */}
         <div className="relative">
           <button onClick={() => { setShowQuickViews(v => !v); setShowMyViews(false); }}
-            className="flex items-center gap-1 text-[10px] font-extrabold px-3 py-2 rounded-lg border border-white/15 text-gray-400 hover:text-white transition-all">
-            <Layers className="w-3 h-3" /> QUICK VIEWS <ChevronDown className="w-2.5 h-2.5" />
+            className="flex items-center gap-1 text-[10px] font-extrabold px-3 py-1.5 rounded-lg border border-white/15 text-gray-400 hover:text-white transition-all">
+            <Layers className="w-3 h-3" /> QUICK <ChevronDown className="w-2.5 h-2.5" />
           </button>
           {showQuickViews && (
             <div className="absolute top-full left-0 mt-1 bg-[#141922] border border-white/10 rounded-xl shadow-2xl z-30 min-w-[200px] py-1">
@@ -740,9 +743,10 @@ export default function AerodyneFleetOps() {
 
         <div className="h-4 w-px bg-white/10" />
 
+        {/* Period */}
         <div className="relative">
           <button onClick={() => setShowPeriod(v => !v)}
-            className="flex items-center gap-1.5 text-[10px] font-extrabold px-3 py-2 rounded-lg border border-white/15 text-primary bg-primary/10 hover:bg-primary/20 transition-all">
+            className="flex items-center gap-1.5 text-[10px] font-extrabold px-3 py-1.5 rounded-lg border border-white/15 text-primary bg-primary/10 hover:bg-primary/20 transition-all">
             <Clock className="w-3 h-3" /> {period} <ChevronDown className="w-2.5 h-2.5" />
           </button>
           {showPeriod && (
@@ -755,12 +759,44 @@ export default function AerodyneFleetOps() {
             </div>
           )}
         </div>
-      </div>
 
-      {/* ── Live filter bar (only in live mode) ── */}
-      {mode === 'live' && (
-        <LiveFilterBar params={liveParams} setParams={setLiveParams} onFetch={fetchLive} loading={liveLoading} />
-      )}
+        {/* Live params inline (only in live mode) */}
+        {mode === 'live' && (
+          <>
+            <div className="h-4 w-px bg-white/10" />
+            <input
+              value={liveParams.airport}
+              onChange={e => setLiveParams(p => ({ ...p, airport: e.target.value.toUpperCase() }))}
+              placeholder="ICAO"
+              maxLength={4}
+              title="Airport ICAO"
+              className="w-20 bg-[#111620] border border-white/10 rounded-lg px-2 py-1.5 text-xs text-white font-mono placeholder-gray-600 outline-none focus:border-primary/50"
+            />
+            <input
+              value={liveParams.airline}
+              onChange={e => setLiveParams(p => ({ ...p, airline: e.target.value.toUpperCase() }))}
+              placeholder="Airline"
+              maxLength={4}
+              title="Airline ICAO"
+              className="w-20 bg-[#111620] border border-white/10 rounded-lg px-2 py-1.5 text-xs text-white font-mono placeholder-gray-600 outline-none focus:border-primary/50"
+            />
+            <div className="flex gap-1">
+              {['arrivals','departures','airline'].map(d => (
+                <button key={d} onClick={() => setLiveParams(p => ({ ...p, dir: d }))}
+                  className={cn('text-[10px] font-bold px-2 py-1.5 rounded-lg capitalize transition-all',
+                    liveParams.dir === d ? 'bg-primary text-primary-foreground' : 'bg-[#111620] border border-white/10 text-gray-500 hover:text-gray-300')}>
+                  {d === 'arrivals' ? 'ARR' : d === 'departures' ? 'DEP' : 'AL'}
+                </button>
+              ))}
+            </div>
+            <button onClick={fetchLive} disabled={liveLoading || (!liveParams.airport && !liveParams.airline)}
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-green-600 text-white text-[10px] font-extrabold hover:bg-green-500 disabled:opacity-50 transition-colors">
+              {liveLoading ? <RefreshCw className="w-3 h-3 animate-spin" /> : <Radio className="w-3 h-3" />}
+              {liveLoading ? '…' : 'Fetch'}
+            </button>
+          </>
+        )}
+      </div>
 
       {/* ── Body ── */}
       <div className="flex flex-1 overflow-hidden" onClick={() => { setShowMyViews(false); setShowQuickViews(false); setShowPeriod(false); }}>
