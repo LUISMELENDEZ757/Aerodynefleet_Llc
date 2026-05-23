@@ -14,6 +14,12 @@ async function faFetch(path) {
   return res.json();
 }
 
+function isEnRoute(status) {
+  if (!status) return false;
+  const s = status.toLowerCase();
+  return s.includes('en route') || s.includes('departed') || s.includes('airborne');
+}
+
 Deno.serve(async (req) => {
   try {
     const base44 = createClientFromRequest(req);
@@ -23,52 +29,32 @@ Deno.serve(async (req) => {
     const body = await req.json();
     const { type, ident, airline_icao, airport } = body;
 
-    // Get live positions for multiple flights by airline at a hub
+    // Get live positions for flights by airline using /operators/:id/flights
     if (type === 'airline_positions' && airline_icao) {
       const code = airline_icao.toUpperCase();
-      const HUB_MAP = {
-        UAL: ['KORD', 'KEWR', 'KIAH'],
-        AAL: ['KDFW', 'KPHL', 'KLAX'],
-        DAL: ['KATL', 'KLAX', 'KJFK'],
-        SWA: ['KMDW', 'KLAS', 'KBWI'],
-        BAW: ['EGLL'], AFR: ['LFPG'], DLH: ['EDDF'],
-        UAE: ['OMDB'], QTR: ['OTHH'], ETD: ['OMAA'],
-        SIA: ['WSSS'], CPA: ['VHHH'], KAL: ['RKSI'],
-        ANA: ['RJTT'], JAL: ['RJTT'],
-      };
-      const hubs = HUB_MAP[code] || ['KEWR', 'KLAX'];
-      const results = await Promise.allSettled(
-        hubs.map(hub => faFetch(`/airports/${hub}/flights/departures?max_pages=1&per_page=20`))
-      );
-      const seen = new Set();
-      const flights = [];
-      for (const r of results) {
-        if (r.status !== 'fulfilled') continue;
-        for (const f of (r.value.departures || [])) {
-          const operatorMatch =
-            (f.operator_icao || '').toUpperCase() === code ||
-            (f.ident_icao || f.ident || '').toUpperCase().startsWith(code);
-          const isEnRoute = f.status === 'En Route' || f.status === 'Departed';
-          if (operatorMatch && isEnRoute && !seen.has(f.fa_flight_id || f.ident)) {
-            seen.add(f.fa_flight_id || f.ident);
-            flights.push(f);
-          }
-        }
-      }
-      // Attach last known positions
+      const data = await faFetch(`/operators/${code}/flights?max_pages=2`);
+      const flights = (data.flights || []).filter(f => isEnRoute(f.status));
+
+      // Attach positions
       const withPositions = await Promise.allSettled(
-        flights.slice(0, 15).map(async (f) => {
+        flights.slice(0, 20).map(async (f) => {
           try {
             const id = f.fa_flight_id || f.ident;
-            const trackData = await faFetch(`/flights/${encodeURIComponent(id)}/track`);
-            const positions = trackData.positions || [];
-            const last = positions[positions.length - 1];
-            return { ...f, lat: last?.latitude, lon: last?.longitude, heading: last?.groundspeed ? last.heading : null, altitude: last?.altitude, groundspeed: last?.groundspeed };
+            const posData = await faFetch(`/flights/${encodeURIComponent(id)}/position`);
+            return {
+              ...f,
+              lat: posData.latitude,
+              lon: posData.longitude,
+              heading: posData.heading,
+              altitude: posData.altitude,
+              groundspeed: posData.groundspeed,
+            };
           } catch {
             return f;
           }
         })
       );
+
       return Response.json({
         flights: withPositions.map(r => r.status === 'fulfilled' ? r.value : null).filter(Boolean)
       });
@@ -76,28 +62,35 @@ Deno.serve(async (req) => {
 
     // Get track for a single flight
     if (type === 'flight_track' && ident) {
-      const data = await faFetch(`/flights/${encodeURIComponent(ident.toUpperCase())}/track`);
+      const data = await faFetch(`/flights/${encodeURIComponent(ident)}/track`);
       return Response.json({ track: data });
     }
 
-    // Get airport departures with positions
+    // Get airport en-route flights
     if (type === 'airport_enroute' && airport) {
       const code = airport.toUpperCase();
-      const depData = await faFetch(`/airports/${code}/flights/departures?max_pages=1&per_page=30`);
-      const enroute = (depData.departures || []).filter(f => f.status === 'En Route' || f.status === 'Departed');
+      const data = await faFetch(`/airports/${code}/flights/enroute?max_pages=2`);
+      const flights = (data.arrivals || data.enroute || []);
+
       const withPositions = await Promise.allSettled(
-        enroute.slice(0, 20).map(async (f) => {
+        flights.slice(0, 20).map(async (f) => {
           try {
             const id = f.fa_flight_id || f.ident;
-            const trackData = await faFetch(`/flights/${encodeURIComponent(id)}/track`);
-            const positions = trackData.positions || [];
-            const last = positions[positions.length - 1];
-            return { ...f, lat: last?.latitude, lon: last?.longitude, heading: last?.heading, altitude: last?.altitude, groundspeed: last?.groundspeed };
+            const posData = await faFetch(`/flights/${encodeURIComponent(id)}/position`);
+            return {
+              ...f,
+              lat: posData.latitude,
+              lon: posData.longitude,
+              heading: posData.heading,
+              altitude: posData.altitude,
+              groundspeed: posData.groundspeed,
+            };
           } catch {
             return f;
           }
         })
       );
+
       return Response.json({
         flights: withPositions.map(r => r.status === 'fulfilled' ? r.value : null).filter(Boolean)
       });

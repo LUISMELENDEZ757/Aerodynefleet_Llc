@@ -119,11 +119,25 @@ export default function WorldRouteMap() {
     setSelectedFlight(null);
     setTrackData(null);
     try {
-      const payload = mode === 'airline'
-        ? { type: 'airline_positions', airline_icao: airline }
-        : { type: 'airport_enroute', airport };
-      const res = await base44.functions.invoke('flightAwarePositions', payload);
-      setFlights((res.data?.flights || []).filter(f => f.lat && f.lon));
+      let res;
+      if (mode === 'airline') {
+        res = await base44.functions.invoke('flightAwareSearch', { type: 'airline_enroute', airline_icao: airline });
+      } else {
+        res = await base44.functions.invoke('flightAwareSearch', { type: 'airport_board', airport });
+      }
+      const raw = mode === 'airline'
+        ? (res.data?.flights || [])
+        : [...(res.data?.departures || []), ...(res.data?.arrivals || [])];
+      // Extract lat/lon from last_position if available
+      const mapped = raw.map(f => ({
+        ...f,
+        lat: f.last_position?.latitude ?? f.lat,
+        lon: f.last_position?.longitude ?? f.lon,
+        heading: f.last_position?.heading ?? f.heading,
+        altitude: f.last_position?.altitude ?? f.altitude,
+        groundspeed: f.last_position?.groundspeed ?? f.groundspeed,
+      }));
+      setFlights(mapped.filter(f => f.lat && f.lon));
     } catch (e) {
       setError(e.message?.includes('429') ? 'API rate limit reached. Please wait before retrying.' : (e.message || 'Failed to load'));
     } finally {
