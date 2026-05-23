@@ -129,6 +129,7 @@ const EBUDashboard             = lazy(() => import('@/pages/EBUDashboard.jsx'));
 const BoeingAHMDashboard       = lazy(() => import('@/pages/BoeingAHMDashboard.jsx'));
 const AirbusSkywiseDashboard   = lazy(() => import('@/pages/AirbusSkywiseDashboard.jsx'));
 const Test                     = lazy(() => import('@/pages/Test'));
+const AICopilot                = lazy(() => import('@/pages/AICopilot'));
 
 function PageFallback() {
   return (
@@ -334,6 +335,7 @@ const AuthenticatedApp = () => {
         <Route path="/BoeingAHM" element={<BoeingAHMDashboard />} />
         <Route path="/AirbusSkyw" element={<AirbusSkywiseDashboard />} />
         <Route path="/Test" element={<Test />} />
+        <Route path="/AICopilot" element={<AICopilot />} />
       </Route>
       <Route path="*" element={<PageNotFound />} />
     </Routes>

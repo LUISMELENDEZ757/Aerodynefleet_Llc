@@ -31,6 +31,7 @@ const NAV_GROUPS = [
       { label: 'Airbus Skywise', icon: '🌐', path: '/AirbusSkyw' },
       { label: 'Telemetry Hub', icon: '📶', path: '/TelemetryHub' },
       { label: 'AI Forecasting', icon: '🤖', path: '/AIForecasting' },
+      { label: 'AI MX Copilot', icon: '🧠', path: '/AICopilot' },
       { label: 'AOG Forecast', icon: '⚠️', path: '/AOGForecast' },
     ],
   },
