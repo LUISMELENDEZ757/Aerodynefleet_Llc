@@ -124,11 +124,20 @@ function CRSCard({ crs, onSign, onPrint }) {
 function SignModal({ crs, sigType, onClose, onConfirm }) {
   const [name, setName] = useState('');
   const [cert, setCert] = useState('');
-  const labelMap = { tech: 'Certifying Technician', rii: 'RII Inspector', supervisor: 'Supervisor' };
+  const [confirmed43b, setConfirmed43b] = useState(false);
+  const labelMap = { tech: 'Certifying Technician (A&P)', rii: 'RII Inspector', supervisor: 'Supervisor / QC' };
   const now = new Date().toISOString();
+
+  // 14 CFR 43.9(a)(4) / Part 43 Appendix B certification statement
+  const certStatement43b = sigType === 'tech'
+    ? `I certify that the work identified in this record was performed in accordance with the requirements of 14 CFR Part 43, and in respect to that work, the aircraft is approved for return to service.`
+    : sigType === 'rii'
+    ? `I, the undersigned, certify that the Required Inspection Item (RII) described herein was performed and found to be in accordance with 14 CFR Part 43 and all applicable regulations. The work was accomplished in accordance with the applicable manufacturer's instructions or FAA-approved data.`
+    : `I certify that the maintenance described herein has been reviewed and approved. The aircraft is returned to service in airworthy condition per 14 CFR Part 43.`;
 
   const handleSubmit = (e) => {
     e.preventDefault();
+    if (!cert.trim()) return;
     const updates = { signed_at: now };
     if (sigType === 'tech') {
       updates.certifying_technician_name = name;
@@ -154,24 +163,37 @@ function SignModal({ crs, sigType, onClose, onConfirm }) {
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 p-4">
       <div className="w-full max-w-md bg-card border border-border rounded-2xl shadow-2xl">
         <div className="flex items-center justify-between px-5 py-4 border-b border-border">
-          <p className="font-extrabold text-foreground text-sm">{labelMap[sigType]} Sign-Off</p>
+          <div>
+            <p className="font-extrabold text-foreground text-sm">{labelMap[sigType]} Sign-Off</p>
+            <p className="text-[10px] text-muted-foreground mt-0.5">14 CFR 43.9(a)(4) · Part 43 Appendix B</p>
+          </div>
           <button onClick={onClose}><X className="w-4 h-4 text-muted-foreground hover:text-foreground" /></button>
         </div>
         <form onSubmit={handleSubmit} className="p-5 space-y-3">
           <div>
-            <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest block mb-1">Full Name *</label>
-            <input required value={name} onChange={e => setName(e.target.value)} className={inputCls} />
+            <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest block mb-1">Full Legal Name *</label>
+            <input required value={name} onChange={e => setName(e.target.value)} placeholder="First Last" className={inputCls} />
           </div>
           <div>
-            <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest block mb-1">Certificate / License #</label>
-            <input value={cert} onChange={e => setCert(e.target.value)} placeholder="e.g. AMT-12345" className={inputCls} />
+            <label className="text-[10px] font-bold text-red-400 uppercase tracking-widest block mb-1">A&P / IA / RII Certificate # * (Required by 14 CFR 43.9)</label>
+            <input required value={cert} onChange={e => setCert(e.target.value)} placeholder="e.g. AMT-12345 or IA-67890" className={inputCls} />
+            {!cert.trim() && <p className="text-[10px] text-red-400 mt-1">⚠ Certificate number is mandatory per 14 CFR 43.9(a)(4)</p>}
+          </div>
+          {/* Part 43 Appendix B certification statement */}
+          <div className="bg-blue-900/15 border border-blue-500/30 rounded-xl px-3 py-3 space-y-2">
+            <p className="text-[10px] font-extrabold text-blue-400 uppercase tracking-widest">14 CFR Part 43 Appendix B — Certification Statement</p>
+            <p className="text-xs text-blue-200 leading-relaxed italic">{certStatement43b}</p>
+            <label className="flex items-start gap-2 cursor-pointer mt-2">
+              <input type="checkbox" required checked={confirmed43b} onChange={e => setConfirmed43b(e.target.checked)} className="mt-0.5 accent-blue-500" />
+              <span className="text-xs text-blue-300 font-semibold">I understand and affirm the above certification statement *</span>
+            </label>
           </div>
           <div className="bg-amber-900/20 border border-amber-500/20 rounded-xl px-3 py-2 text-[10px] text-amber-400">
-            ⚠ By signing, you certify the described maintenance was performed per applicable regulations and the aircraft is airworthy for release to service.
+            ⚠ False entries in aircraft maintenance records are a federal offense under 18 U.S.C. § 1001 and may result in certificate action under 14 CFR Part 43.
           </div>
           <div className="flex gap-3">
             <button type="button" onClick={onClose} className="flex-1 py-2.5 rounded-xl border border-border text-sm font-bold text-muted-foreground hover:bg-secondary">Cancel</button>
-            <button type="submit" className="flex-1 py-2.5 rounded-xl bg-primary text-primary-foreground text-sm font-extrabold hover:bg-primary/90">Sign & Release</button>
+            <button type="submit" disabled={!cert.trim() || !confirmed43b} className="flex-1 py-2.5 rounded-xl bg-primary text-primary-foreground text-sm font-extrabold hover:bg-primary/90 disabled:opacity-40">Sign & Certify</button>
           </div>
         </form>
       </div>
@@ -238,12 +260,12 @@ function NewCRSModal({ aircraft, onClose, onCreate }) {
           </div>
           <div className="grid grid-cols-2 gap-3">
             <div>
-              <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest block mb-1">Regulatory Reference</label>
-              <input value={form.regulatory_reference} onChange={e => set('regulatory_reference', e.target.value)} className={inputCls} />
+              <label className="text-[10px] font-bold text-red-400 uppercase tracking-widest block mb-1">Regulatory Basis * (14 CFR 43.9)</label>
+              <input required value={form.regulatory_reference} onChange={e => set('regulatory_reference', e.target.value)} placeholder="14 CFR 43.9 / AMM 05-10-00" className={inputCls} />
             </div>
             <div>
-              <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest block mb-1">Work Order / Log Page Ref</label>
-              <input value={form.work_order_ref} onChange={e => set('work_order_ref', e.target.value)} placeholder="WO# or LP#0001" className={inputCls} />
+              <label className="text-[10px] font-bold text-red-400 uppercase tracking-widest block mb-1">Work Order / Log Page Ref *</label>
+              <input required value={form.work_order_ref} onChange={e => set('work_order_ref', e.target.value)} placeholder="WO# or LP#0001" className={inputCls} />
             </div>
           </div>
           <div>

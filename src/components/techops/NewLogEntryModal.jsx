@@ -447,7 +447,15 @@ export default function NewLogEntryModal({ aircraftTail, nextLogPage, preset, on
 
   const canAdvance = () => {
     if (step === 1) return header.ata_chapter && header.station;
-    if (step === 2) return discrepancy.description.trim().length > 5;
+    if (step === 2) return discrepancy.description.trim().length > 10;
+    // Step 3: require technician name + cert, and either corrective action or a deferral reference
+    if (step === 3) {
+      const hasIdent = techAction.technician_name.trim() && techAction.technician_id.trim();
+      const hasAction = techAction.is_deferred
+        ? (techAction.mel_reference.trim() && techAction.mel_category)
+        : techAction.corrective_action.trim().length > 5;
+      return hasIdent && hasAction;
+    }
     return true;
   };
 
@@ -597,13 +605,14 @@ export default function NewLogEntryModal({ aircraftTail, nextLogPage, preset, on
                 <p className="text-sm font-extrabold text-white uppercase tracking-widest">Technician Corrective Action</p>
               </div>
 
-              {/* Technician identity */}
+              {/* Technician identity — both fields required per 14 CFR 43.9(a)(4) */}
               <div className="grid grid-cols-2 gap-4">
                 <Field label="Technician Name *" required>
-                  <input placeholder="First Last" value={techAction.technician_name} onChange={e => setT('technician_name', e.target.value)} className={inputCls} />
+                  <input required placeholder="First Last" value={techAction.technician_name} onChange={e => setT('technician_name', e.target.value)} className={inputCls} />
                 </Field>
-                <Field label="A&P / IA Cert # / Emp #">
-                  <input placeholder="AMT-XXXXX" value={techAction.technician_id} onChange={e => setT('technician_id', e.target.value)} className={inputCls} />
+                <Field label="A&P / IA Cert # * (14 CFR 43.9)" required>
+                  <input required placeholder="AMT-XXXXX or IA-XXXXX" value={techAction.technician_id} onChange={e => setT('technician_id', e.target.value)} className={inputCls} />
+                  {!techAction.technician_id && <p className="text-[10px] text-red-400 mt-1">Required by 14 CFR 43.9(a)(4)</p>}
                 </Field>
               </div>
 
@@ -621,12 +630,13 @@ export default function NewLogEntryModal({ aircraftTail, nextLogPage, preset, on
                 </button>
               </div>
 
-              {/* Corrective action text */}
+              {/* Corrective action text — required per 14 CFR 43.9(a)(3) */}
               {!techAction.is_deferred && (
-                <Field label="Corrective Action Taken">
-                  <textarea rows={5} value={techAction.corrective_action} onChange={e => setT('corrective_action', e.target.value)}
-                    placeholder="Describe exactly what was done: replaced, inspected, adjusted, rigged, tested... Reference AMM section if applicable."
+                <Field label="Corrective Action Taken * (14 CFR 43.9(a)(3))" required>
+                  <textarea required rows={5} value={techAction.corrective_action} onChange={e => setT('corrective_action', e.target.value)}
+                    placeholder="Describe exactly what was done: replaced, inspected, adjusted, rigged, tested... Reference AMM chapter/section. e.g. 'Replaced fuel pump P/N 67890-001 per AMM 73-10-01.'"
                     className={textareaCls} />
+                  {!techAction.corrective_action.trim() && <p className="text-[10px] text-red-400 mt-1">Corrective action description is mandatory per 14 CFR 43.9(a)(3)</p>}
                 </Field>
               )}
 
@@ -760,12 +770,27 @@ export default function NewLogEntryModal({ aircraftTail, nextLogPage, preset, on
                 </div>
               </Field>
 
-              <div className="flex items-start gap-3 bg-green-500/8 border border-green-500/20 rounded-xl px-4 py-3">
-                <Shield className="w-4 h-4 text-green-400 flex-shrink-0 mt-0.5" />
+              {/* 14 CFR 43.9(a)(4) full certification statement */}
+              <div className="bg-blue-900/15 border border-blue-500/30 rounded-xl px-4 py-3 space-y-2">
+                <p className="text-[10px] font-extrabold text-blue-400 uppercase tracking-widest">14 CFR 43.9(a)(4) — Airworthiness Certification</p>
+                <p className="text-xs text-blue-200 leading-relaxed italic">
+                  "I certify that the work identified in this record was performed in accordance with the requirements of 14 CFR Part 43, and in respect to that work, the aircraft is approved for return to service."
+                </p>
+                <div className="grid grid-cols-2 gap-3 pt-1">
+                  <div>
+                    <p className="text-[9px] font-bold text-gray-500 uppercase tracking-widest mb-0.5">Certifying Tech</p>
+                    <p className="text-xs font-bold text-white">{techAction.technician_name || '—'}</p>
+                  </div>
+                  <div>
+                    <p className="text-[9px] font-bold text-gray-500 uppercase tracking-widest mb-0.5">Certificate #</p>
+                    <p className="text-xs font-bold text-primary font-mono">{techAction.technician_id || '⚠ REQUIRED'}</p>
+                  </div>
+                </div>
+              </div>
+              <div className="flex items-start gap-3 bg-amber-500/8 border border-amber-500/20 rounded-xl px-4 py-3">
+                <Shield className="w-4 h-4 text-amber-400 flex-shrink-0 mt-0.5" />
                 <p className="text-xs text-gray-400">
-                  By submitting, you certify this entry is accurate and complete per{' '}
-                  <span className="text-green-400 font-semibold">14 CFR 43.9</span>.
-                  The log page number <span className="text-green-400 font-mono font-bold">{header.log_page}</span> will be locked after submission.
+                  Submitting locks log page <span className="text-primary font-mono font-bold">{header.log_page}</span>. False entries in maintenance records are a federal offense under 18 U.S.C. § 1001.
                 </p>
               </div>
             </div>
@@ -788,7 +813,7 @@ export default function NewLogEntryModal({ aircraftTail, nextLogPage, preset, on
               Next <ChevronRight className="w-4 h-4" />
             </button>
           ) : (
-            <button type="button" onClick={handleSubmit} disabled={uploading || !techAction.technician_name}
+            <button type="button" onClick={handleSubmit} disabled={uploading || !techAction.technician_name || !techAction.technician_id}
               className="flex items-center gap-2 px-6 py-2.5 rounded-xl bg-green-700 text-white text-sm font-extrabold hover:bg-green-600 disabled:opacity-40 transition-colors">
               <CheckCircle className="w-4 h-4" /> Submit Log Entry
             </button>

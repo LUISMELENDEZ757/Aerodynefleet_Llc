@@ -45,6 +45,10 @@ export default function MELNewModal({ aircraft = [], onSave, onClose, isPending 
     flight_restrictions: '',
     placard_required: false,
     logpage_number: '',
+    deferred_by_name: '',
+    deferred_by_cert: '',
+    operator_mel_approval: '',
+    cat_a_confirmed: false,
     notes: '',
   });
   const set = (k, v) => setForm(p => ({ ...p, [k]: v }));
@@ -54,6 +58,8 @@ export default function MELNewModal({ aircraft = [], onSave, onClose, isPending 
 
   const handleSave = () => {
     if (!form.aircraft_tail || !form.description || !form.category || !form.deferred_date) return;
+    if (!form.deferred_by_name || !form.deferred_by_cert) return;
+    if (form.category === 'A' && !form.cat_a_confirmed) return;
     onSave({ ...form, expiry_date: expiryDate, status: 'open' });
   };
 
@@ -144,6 +150,37 @@ export default function MELNewModal({ aircraft = [], onSave, onClose, isPending 
               placeholder="AMM task reference…" className={inputCls} />
           </Field>
 
+          {/* Deferred by — required per 14 CFR 121.628 / 91.213 */}
+          <div className="bg-blue-900/10 border border-blue-500/20 rounded-xl p-4 space-y-3">
+            <p className="text-[10px] font-extrabold text-blue-400 uppercase tracking-widest">Deferred By — Required per 14 CFR 121.628 / 91.213</p>
+            <div className="grid grid-cols-2 gap-3">
+              <Field label="Technician / Auth. Person Name *" required>
+                <input value={form.deferred_by_name} onChange={e => set('deferred_by_name', e.target.value)}
+                  placeholder="First Last" className={inputCls} />
+              </Field>
+              <Field label="A&P / Cert # * (14 CFR 43.9)" required>
+                <input value={form.deferred_by_cert} onChange={e => set('deferred_by_cert', e.target.value)}
+                  placeholder="AMT-12345" className={inputCls} />
+              </Field>
+            </div>
+            <Field label="Operator MEL Approval # (e.g. OpsSpec D095)">
+              <input value={form.operator_mel_approval} onChange={e => set('operator_mel_approval', e.target.value)}
+                placeholder="e.g. OpsSpec D095 / MMEL Rev 65" className={inputCls} />
+            </Field>
+          </div>
+
+          {/* CAT A special confirmation */}
+          {form.category === 'A' && (
+            <div className="bg-red-900/20 border border-red-500/40 rounded-xl px-4 py-3 space-y-2">
+              <p className="text-[10px] font-extrabold text-red-400 uppercase tracking-widest">⚠ CAT A — Immediate Action Required</p>
+              <p className="text-xs text-red-300">Category A items must be repaired within the time interval specified in the remarks. The aircraft may not depart for a revenue flight unless the repair interval allows it.</p>
+              <label className="flex items-start gap-2 cursor-pointer mt-1">
+                <input type="checkbox" checked={form.cat_a_confirmed} onChange={e => set('cat_a_confirmed', e.target.checked)} className="mt-0.5 accent-red-500" />
+                <span className="text-xs text-red-300 font-semibold">I confirm this is a valid CAT A deferral per the approved MEL and the specific repair interval has been noted *</span>
+              </label>
+            </div>
+          )}
+
           {/* Placard toggle */}
           <label className="flex items-center gap-3 cursor-pointer bg-[#141922] border border-white/10 rounded-xl px-4 py-3">
             <div onClick={() => set('placard_required', !form.placard_required)}
@@ -168,7 +205,7 @@ export default function MELNewModal({ aircraft = [], onSave, onClose, isPending 
         <div className="px-5 py-4 border-t border-white/10 bg-[#0d1117] flex gap-3">
           <button onClick={onClose} className="flex-1 py-2.5 rounded-xl border border-white/10 text-sm font-bold text-gray-400 hover:bg-white/5">Cancel</button>
           <button onClick={handleSave}
-            disabled={isPending || !form.aircraft_tail || !form.description}
+            disabled={isPending || !form.aircraft_tail || !form.description || !form.deferred_by_name || !form.deferred_by_cert || (form.category === 'A' && !form.cat_a_confirmed)}
             className="flex-1 py-2.5 rounded-xl bg-primary text-primary-foreground text-sm font-bold hover:bg-primary/90 disabled:opacity-40 transition-colors">
             {isPending ? 'Creating…' : 'Create Deferral'}
           </button>
