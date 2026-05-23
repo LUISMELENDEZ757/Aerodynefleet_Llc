@@ -28,10 +28,10 @@ const FEATURE_CARDS = [
 export default function AocsDashboard() {
   const today = new Date().toISOString().split("T")[0];
 
-  const { data: flights = [] } = useQuery({ queryKey: ["aocs-flights"], queryFn: async () => { try { return await base44.entities.Flight.list("-flight_date", 300); } catch { return []; } }, refetchInterval: 60000 });
-  const { data: aircraft = [] } = useQuery({ queryKey: ["aocs-aircraft"], queryFn: async () => { try { return await base44.entities.Aircraft.list("tail_number", 500); } catch { return []; } }, refetchInterval: 60000 });
-  const { data: mel = [] } = useQuery({ queryKey: ["aocs-mel"], queryFn: async () => { try { return await base44.entities.MELItem.list("-deferred_date", 300); } catch { return []; } }, refetchInterval: 60000 });
-  const { data: faults = [] } = useQuery({ queryKey: ["aocs-faults"], queryFn: async () => { try { return await base44.entities.FaultMessage.filter({ status: "active" }); } catch { return []; } }, refetchInterval: 60000 });
+  const { data: flights = [] } = useQuery({ queryKey: ["aocs-flights"], queryFn: async () => { try { return await base44.entities.Flight.list("-flight_date", 300); } catch { return []; } }, refetchInterval: 120000 });
+  const { data: aircraft = [] } = useQuery({ queryKey: ["aocs-aircraft"], queryFn: async () => { try { return await base44.entities.Aircraft.list("tail_number", 500); } catch { return []; } }, refetchInterval: 120000 });
+  const { data: mel = [] } = useQuery({ queryKey: ["aocs-mel"], queryFn: async () => { try { return await base44.entities.MELItem.list("-deferred_date", 300); } catch { return []; } }, refetchInterval: 120000 });
+  const { data: faults = [] } = useQuery({ queryKey: ["aocs-faults"], queryFn: async () => { try { return await base44.entities.FaultMessage.filter({ status: "active" }); } catch { return []; } }, refetchInterval: 120000 });
 
   const todayFlights = flights.filter(f => f.flight_date === today);
   const total = todayFlights.length;
