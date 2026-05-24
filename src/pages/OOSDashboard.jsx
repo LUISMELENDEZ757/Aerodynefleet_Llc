@@ -905,6 +905,17 @@ function MyTasksModal({ onClose }) {
     refetchInterval: 30000,
   });
 
+  const { data: borrobTasks = [], isLoading: borrobLoading } = useQuery({
+    queryKey: ['my-borrob-tasks', profile.name],
+    queryFn: () => base44.entities.SupplyRequisition.list('-created_date', 200),
+    enabled: !!profile.name,
+    select: (data) => data.filter(r =>
+      r.status === 'technician_assigned' &&
+      r.requested_by?.toLowerCase().includes(profile.name?.toLowerCase())
+    ),
+    refetchInterval: 30000,
+  });
+
   const saveProfile = () => {
     if (!tempName) return;
     const p = { name: tempName.trim(), station: tempStation.trim().toUpperCase() };
@@ -959,16 +970,43 @@ function MyTasksModal({ onClose }) {
 
         {/* Task list */}
         {profile.name && !editProfile && (
-          isLoading ? (
+          (isLoading || borrobLoading) ? (
             <p className="text-gray-500 text-sm text-center py-6">Loading…</p>
-          ) : entries.length === 0 ? (
+          ) : (entries.length === 0 && borrobTasks.length === 0) ? (
             <div className="text-center py-10">
               <CheckCircle className="w-10 h-10 text-green-500/20 mx-auto mb-2" />
               <p className="text-gray-500 text-sm">No open tasks assigned to you{profile.station ? ` at ${profile.station}` : ''}</p>
             </div>
           ) : (
             <div className="space-y-2 max-h-80 overflow-y-auto pr-1">
-              <p className="text-[10px] font-bold text-gray-500 uppercase tracking-widest">{entries.length} open task{entries.length !== 1 ? 's' : ''}</p>
+              <p className="text-[10px] font-bold text-gray-500 uppercase tracking-widest">{entries.length + borrobTasks.length} open task{entries.length + borrobTasks.length !== 1 ? 's' : ''}</p>
+
+              {/* BOR/ROB assigned tasks */}
+              {borrobTasks.map(r => (
+                <div key={r.id} className="bg-[#1a2030] border border-cyan-500/30 rounded-xl p-3 space-y-1">
+                  <div className="flex items-center justify-between gap-2">
+                    <div className="flex items-center gap-2">
+                      <span className="text-[10px] font-extrabold px-2 py-0.5 rounded-full bg-cyan-500/15 text-cyan-400">BOR/ROB INSTALL</span>
+                      <span className="text-xs font-mono font-bold text-cyan-300">{r.aircraft_tail || '—'}</span>
+                      {r.station && <span className="text-[10px] text-gray-500">{r.station}</span>}
+                    </div>
+                    {r.priority === 'aog' && <span className="text-[10px] font-bold text-red-400">AOG</span>}
+                  </div>
+                  <p className="text-xs text-gray-300 leading-snug">
+                    Install: <span className="font-bold text-white">{r.part_name}</span>
+                    {r.part_number ? <span className="text-gray-500"> · P/N {r.part_number}</span> : ''}
+                  </p>
+                  {(r.control_number || r.log_page_number) && (
+                    <div className="flex gap-2 flex-wrap">
+                      {r.control_number && <span className="text-[10px] font-mono text-yellow-400">{r.control_number}</span>}
+                      {r.log_page_number && <span className="text-[10px] font-mono text-cyan-400">{r.log_page_number}</span>}
+                    </div>
+                  )}
+                  <p className="text-[10px] text-gray-600">{new Date(r.created_date).toLocaleString()}</p>
+                </div>
+              ))}
+
+              {/* Logbook tasks */}
               {entries.map(e => {
                 const status = e.discrepancy_status || 'OPEN';
                 const cfg = STATUS_CFG[status] || STATUS_CFG.OPEN;
