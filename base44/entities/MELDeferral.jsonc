@@ -1,0 +1,52 @@
+{
+  "name": "MELDeferral",
+  "type": "object",
+  "description": "MEL deferral record \u2014 tracks an active or closed deferral against a specific aircraft tail, linked to a MEL library item.",
+  "properties": {
+    "tail_number": {
+      "type": "string",
+      "description": "Aircraft tail number e.g. N123AB"
+    },
+    "mel_item_id": {
+      "type": "string",
+      "description": "FK reference to MELLibrary entity ID"
+    },
+    "deferral_number": {
+      "type": "string",
+      "description": "Control/deferral number e.g. DEF-2026-0042"
+    },
+    "date_opened": {
+      "type": "string",
+      "format": "date-time",
+      "description": "Timestamp when the deferral was opened"
+    },
+    "date_due": {
+      "type": "string",
+      "format": "date-time",
+      "description": "Auto-calculated due date based on MEL category rectification interval"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "OPEN",
+        "CLOSED"
+      ],
+      "default": "OPEN",
+      "description": "Current deferral status"
+    },
+    "remarks": {
+      "type": "string",
+      "description": "Technician or MCC notes"
+    },
+    "created_by": {
+      "type": "string",
+      "description": "Technician ID or name who opened the deferral"
+    }
+  },
+  "required": [
+    "tail_number",
+    "deferral_number",
+    "date_opened",
+    "status"
+  ]
+}
