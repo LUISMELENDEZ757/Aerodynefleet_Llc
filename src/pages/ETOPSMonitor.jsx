@@ -372,11 +372,21 @@ export default function ETOPSMonitor() {
   const [matrixTail, setMatrixTail] = useState(null);
   const qc = useQueryClient();
 
-  const { data: aircraft = [], isLoading } = useQuery({
+  const { data: rawAircraft = [], isLoading } = useQuery({
     queryKey: ['etops-aircraft'],
     queryFn: () => base44.entities.Aircraft.list('tail_number', 500),
     refetchInterval: 60000,
   });
+
+  // Deduplicate by tail_number — keep the most recently updated record per tail
+  const aircraft = Object.values(
+    rawAircraft.reduce((acc, a) => {
+      if (!acc[a.tail_number] || new Date(a.updated_date) > new Date(acc[a.tail_number].updated_date)) {
+        acc[a.tail_number] = a;
+      }
+      return acc;
+    }, {})
+  );
 
   const { data: melItems = [] } = useQuery({
     queryKey: ['etops-mel'],
