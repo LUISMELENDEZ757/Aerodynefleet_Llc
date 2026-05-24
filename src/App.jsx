@@ -132,7 +132,7 @@ const Test                     = lazy(() => import('@/pages/Test'));
 const AICopilot                = lazy(() => import('@/pages/AICopilot'));
 const WorldRouteMap            = lazy(() => import('@/pages/WorldRouteMap.jsx'));
 const HowItWorks               = lazy(() => import('@/pages/HowItWorks.jsx'));
-const AircraftComplianceDetail = lazy(() => import('@/pages/AircraftComplianceDetail'));
+const AircraftComplianceDetail = lazy(() => import('@/pages/AircraftComplianceDetail.jsx'));
 
 function PageFallback() {
   return (

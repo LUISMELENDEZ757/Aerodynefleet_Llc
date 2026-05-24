@@ -1,17 +1,16 @@
-import { useState } from 'react';
+import { useRef } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { base44 } from '@/api/base44Client';
 import { Link } from 'react-router-dom';
 import {
-  ChevronLeft, Globe, Shield, Radio, Zap, AlertTriangle, CheckCircle,
-  Plane, MapPin, Clock, Wrench, Fuel, Wind, ChevronDown, ChevronUp,
-  X, FileText, Package, Cpu, BookOpen, Settings, User, Calendar
+  ChevronLeft, AlertTriangle, Plane, Zap, Wrench, Clock, Package, Cpu, FileText, List
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import AircraftHeader from '@/components/aircraft-detail/AircraftHeader';
 import RestrictedMELPanel from '@/components/aircraft-detail/RestrictedMELPanel';
 import AircraftStatusBlock from '@/components/aircraft-detail/AircraftStatusBlock';
 import OpenMELTable from '@/components/aircraft-detail/OpenMELTable';
+import CDLItemsTable from '@/components/aircraft-detail/CDLItemsTable';
 import UpcomingMaintenance from '@/components/aircraft-detail/UpcomingMaintenance';
 import FlightHistoryTimeline from '@/components/aircraft-detail/FlightHistoryTimeline';
 import PartsComponents from '@/components/aircraft-detail/PartsComponents';
@@ -20,21 +19,26 @@ import DocumentsSection from '@/components/aircraft-detail/DocumentsSection';
 
 const SECTIONS = [
   { id: 'restrictions', label: 'Restrictions', icon: AlertTriangle },
-  { id: 'status', label: 'Status', icon: Plane },
-  { id: 'mels', label: 'Open MELs', icon: Zap },
-  { id: 'maintenance', label: 'Maintenance', icon: Wrench },
-  { id: 'history', label: 'History', icon: Clock },
-  { id: 'parts', label: 'Parts', icon: Package },
-  { id: 'engineering', label: 'Engineering', icon: Cpu },
-  { id: 'documents', label: 'Documents', icon: FileText },
+  { id: 'status',       label: 'Status',       icon: Plane },
+  { id: 'mels',         label: 'Open MELs',    icon: Zap },
+  { id: 'cdl',          label: 'CDL',          icon: List },
+  { id: 'maintenance',  label: 'Maintenance',  icon: Wrench },
+  { id: 'history',      label: 'History',      icon: Clock },
+  { id: 'parts',        label: 'Parts',        icon: Package },
+  { id: 'engineering',  label: 'Engineering',  icon: Cpu },
+  { id: 'documents',    label: 'Documents',    icon: FileText },
 ];
 
 export default function AircraftComplianceDetail() {
-  const [activeSection, setActiveSection] = useState('restrictions');
-
-  // Get tail from URL params
   const urlParams = new URLSearchParams(window.location.search);
   const tailNumber = urlParams.get('tail') || '';
+
+  const sectionRefs = useRef({});
+
+  const scrollTo = (id) => {
+    const el = sectionRefs.current[id];
+    if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  };
 
   const { data: aircraft, isLoading: loadingAircraft } = useQuery({
     queryKey: ['aircraft-detail', tailNumber],
@@ -107,7 +111,8 @@ export default function AircraftComplianceDetail() {
 
   return (
     <div className="min-h-screen bg-background pb-24">
-      {/* Aircraft Header */}
+
+      {/* ── Aircraft Header ── */}
       <AircraftHeader
         aircraft={aircraft}
         tailNumber={tailNumber}
@@ -115,19 +120,14 @@ export default function AircraftComplianceDetail() {
         openMelCount={openMels.length}
       />
 
-      {/* Section Nav */}
+      {/* ── Sticky Section Jump Nav ── */}
       <div className="sticky top-0 z-20 bg-card/95 backdrop-blur border-b border-border px-4 py-2">
         <div className="flex gap-1 overflow-x-auto scrollbar-hide">
           {SECTIONS.map(({ id, label, icon: Icon }) => (
             <button
               key={id}
-              onClick={() => setActiveSection(id)}
-              className={cn(
-                'flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-bold whitespace-nowrap transition-all flex-shrink-0',
-                activeSection === id
-                  ? 'bg-primary text-primary-foreground'
-                  : 'text-muted-foreground hover:text-foreground hover:bg-secondary'
-              )}
+              onClick={() => scrollTo(id)}
+              className="flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-bold whitespace-nowrap transition-all flex-shrink-0 text-muted-foreground hover:text-foreground hover:bg-secondary"
             >
               <Icon className="w-3.5 h-3.5" />
               {label}
@@ -136,36 +136,65 @@ export default function AircraftComplianceDetail() {
         </div>
       </div>
 
-      {/* Section Content */}
-      <div className="px-4 pt-5 space-y-5">
-        {activeSection === 'restrictions' && (
+      {/* ── All Sections — scrollable single page ── */}
+      <div className="px-4 pt-6 space-y-10">
+
+        <section ref={el => sectionRefs.current['restrictions'] = el}>
           <RestrictedMELPanel
             melItems={openMels}
             complianceStatus={complianceStatus}
             deferrals={deferrals}
           />
-        )}
-        {activeSection === 'status' && (
+        </section>
+
+        <div className="border-t border-border/40" />
+
+        <section ref={el => sectionRefs.current['status'] = el}>
           <AircraftStatusBlock aircraft={aircraft} melItems={openMels} />
-        )}
-        {activeSection === 'mels' && (
+        </section>
+
+        <div className="border-t border-border/40" />
+
+        <section ref={el => sectionRefs.current['mels'] = el}>
           <OpenMELTable melItems={openMels} deferrals={deferrals} />
-        )}
-        {activeSection === 'maintenance' && (
+        </section>
+
+        <div className="border-t border-border/40" />
+
+        <section ref={el => sectionRefs.current['cdl'] = el}>
+          <CDLItemsTable melItems={openMels} />
+        </section>
+
+        <div className="border-t border-border/40" />
+
+        <section ref={el => sectionRefs.current['maintenance'] = el}>
           <UpcomingMaintenance workPackages={workPackages} melItems={openMels} />
-        )}
-        {activeSection === 'history' && (
+        </section>
+
+        <div className="border-t border-border/40" />
+
+        <section ref={el => sectionRefs.current['history'] = el}>
           <FlightHistoryTimeline logEntries={logEntries} tailNumber={tailNumber} />
-        )}
-        {activeSection === 'parts' && (
+        </section>
+
+        <div className="border-t border-border/40" />
+
+        <section ref={el => sectionRefs.current['parts'] = el}>
           <PartsComponents engineParts={engineParts} tailNumber={tailNumber} />
-        )}
-        {activeSection === 'engineering' && (
+        </section>
+
+        <div className="border-t border-border/40" />
+
+        <section ref={el => sectionRefs.current['engineering'] = el}>
           <EngineeringNotes logEntries={logEntries} tailNumber={tailNumber} />
-        )}
-        {activeSection === 'documents' && (
+        </section>
+
+        <div className="border-t border-border/40" />
+
+        <section ref={el => sectionRefs.current['documents'] = el}>
           <DocumentsSection tailNumber={tailNumber} logEntries={logEntries} />
-        )}
+        </section>
+
       </div>
     </div>
   );
