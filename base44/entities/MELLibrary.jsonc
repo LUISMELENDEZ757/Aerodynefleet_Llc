@@ -1,0 +1,103 @@
+{
+  "name": "MELLibrary",
+  "type": "object",
+  "description": "Master MEL library \u2014 aircraft-type-specific MEL records with operational impact flags, limits, and dispatch criticality indicators.",
+  "properties": {
+    "aircraft_type": {
+      "type": "string",
+      "description": "Aircraft type e.g. A320, E190-E2, 737-900ER"
+    },
+    "ata_chapter": {
+      "type": "string",
+      "description": "ATA chapter code e.g. 21, 29-10"
+    },
+    "mel_number": {
+      "type": "string",
+      "description": "MEL reference number e.g. 21-51-01"
+    },
+    "description": {
+      "type": "string",
+      "description": "MEL item description"
+    },
+    "category": {
+      "type": "string",
+      "enum": [
+        "A",
+        "B",
+        "C",
+        "D"
+      ],
+      "description": "MEL category: A=ASAP, B=3 days, C=10 days, D=120 days"
+    },
+    "rectification_interval": {
+      "type": "number",
+      "description": "Days allowed before rectification required"
+    },
+    "is_etops_critical": {
+      "type": "boolean",
+      "default": false,
+      "description": "True = this MEL item affects ETOPS operations"
+    },
+    "is_rvsm_critical": {
+      "type": "boolean",
+      "default": false,
+      "description": "True = this MEL item affects RVSM approval"
+    },
+    "is_catii_critical": {
+      "type": "boolean",
+      "default": false,
+      "description": "True = this MEL item affects CAT II/III approach capability"
+    },
+    "is_performance_critical": {
+      "type": "boolean",
+      "default": false,
+      "description": "True = this MEL item affects aircraft performance"
+    },
+    "is_route_critical": {
+      "type": "boolean",
+      "default": false,
+      "description": "True = this MEL item imposes route limitations"
+    },
+    "is_dispatch_critical": {
+      "type": "boolean",
+      "default": false,
+      "description": "True = this MEL item requires special dispatch procedures"
+    },
+    "is_crew_critical": {
+      "type": "boolean",
+      "default": false,
+      "description": "True = this MEL item requires crew procedures/awareness"
+    },
+    "speed_limit": {
+      "type": "string",
+      "description": "Speed restriction if applicable e.g. 250 KIAS MAX"
+    },
+    "altitude_limit": {
+      "type": "string",
+      "description": "Altitude restriction if applicable e.g. MAX FL290"
+    },
+    "weight_limit": {
+      "type": "string",
+      "description": "Weight restriction if applicable e.g. MTOW -3000 lbs"
+    },
+    "route_limit": {
+      "type": "string",
+      "description": "Route restriction if applicable e.g. No overwater, No icing"
+    },
+    "apu_required": {
+      "type": "boolean",
+      "default": false,
+      "description": "True = APU must be operative for dispatch"
+    },
+    "fire_protection_limit": {
+      "type": "string",
+      "description": "Fire suppression time limit if applicable e.g. 60 min cargo fire limit"
+    }
+  },
+  "required": [
+    "aircraft_type",
+    "mel_number",
+    "description",
+    "category"
+  ]
+}
