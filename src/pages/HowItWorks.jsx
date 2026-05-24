@@ -192,7 +192,7 @@ export default function HowItWorks() {
               <ul className="text-xs text-gray-400 mt-2.5 space-y-1.5 ml-4">
                 <li className="flex gap-2"><span className="text-purple-400 font-bold">•</span> <span><strong>Predicts AOG probability</strong> before any actual failure, flagging high-risk trends in engine data, oil consumption, and fault patterns</span></li>
                 <li className="flex gap-2"><span className="text-purple-400 font-bold">•</span> <span><strong>Recommends optimal maintenance windows</strong> by analyzing weather, crew scheduling, IROPS risk, and fuel cost minimization</span></li>
-                <li className="flex gap-2"><span className="text-purple-400 font-bold">•</span> <span><strong>Auto-escalates critical issues</strong> to MCC when human decision-making speed isn't fast enough</span></li>
+                <li className="flex gap-2"><span className="text-purple-400 font-bold">•</span> <span><strong>Auto-escalates critical issues</strong> to MCC when technician decision-making speed isn't fast enough</span></li>
                 <li className="flex gap-2"><span className="text-purple-400 font-bold">•</span> <span><strong>Learns from every resolution</strong> — your fleet data continuously improves the predictive accuracy</span></li>
               </ul>
               <p className="text-xs text-purple-300 mt-3 font-semibold">Result: Fewer surprises, faster resolutions, measurably higher reliability and OTP.</p>
