@@ -1,9 +1,9 @@
 /**
- * MELSignOffModal — Quick sign-off to clear a restrictive MEL / lift restriction.
+ * MELSignOffModal — Sign-off to clear a MEL / lift restriction.
  * Creates a 'cleared' logbook entry + marks the MEL item as cleared.
  */
 import { useState } from 'react';
-import { X, CheckCircle, Shield, AlertTriangle, Zap } from 'lucide-react';
+import { X, CheckCircle, Shield, Zap, Package } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { base44 } from '@/api/base44Client';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
@@ -11,14 +11,45 @@ import { useMutation, useQueryClient } from '@tanstack/react-query';
 const inputCls = "w-full bg-[#1a2035] border border-white/10 rounded-lg px-3 py-2.5 text-sm text-white placeholder-gray-600 outline-none focus:border-primary transition-colors";
 const textareaCls = `${inputCls} resize-none`;
 
+const ATA_SYSTEMS = [
+  '21 — Air Conditioning', '22 — Auto Flight', '23 — Communications',
+  '24 — Electrical Power', '25 — Equipment / Furnishings', '26 — Fire Protection',
+  '27 — Flight Controls', '28 — Fuel', '29 — Hydraulic Power',
+  '30 — Ice & Rain Protection', '31 — Indicating / Recording',
+  '32 — Landing Gear', '33 — Lights', '34 — Navigation',
+  '35 — Oxygen', '36 — Pneumatic', '38 — Water / Waste',
+  '49 — APU', '52 — Doors', '53 — Fuselage', '57 — Wings',
+  '71 — Power Plant', '72 — Engine', '73 — Engine Fuel & Control',
+  '74 — Ignition', '75 — Air', '76 — Engine Controls',
+  '77 — Engine Indicating', '78 — Exhaust', '79 — Oil', '80 — Starting',
+];
+
+const RTS_CATEGORIES = [
+  { id: 'rts_normal',      label: 'RTS — Normal Return to Service' },
+  { id: 'rts_ops_check',   label: 'RTS — Ops Check Required' },
+  { id: 'rts_test_flight', label: 'RTS — Test Flight Required' },
+  { id: 'rts_ferry',       label: 'RTS — Ferry Flight Only' },
+  { id: 'deferred_closed', label: 'Deferral Closed — MEL Lifted' },
+  { id: 'cleared_ops',     label: 'Cleared — Operational Check Satisfactory' },
+];
+
 export default function MELSignOffModal({ melItem, aircraftTail, nextLogPage, onClose }) {
   const queryClient = useQueryClient();
 
   const [form, setForm] = useState({
+    log_page: nextLogPage || '',
+    mel_control_number: melItem.logpage_number || '',
+    station: '',
+    system: melItem.ata_chapter ? ATA_SYSTEMS.find(s => s.startsWith(melItem.ata_chapter.split('-')[0])) || '' : '',
+    rts_category: 'rts_normal',
     corrective_action: '',
+    part_number: '',
+    serial_number: '',
     technician_name: '',
     technician_id: '',
-    station: '',
+    // QC sign-off (optional)
+    qc_name: '',
+    qc_id: '',
     notes: '',
   });
   const set = (k, v) => setForm(p => ({ ...p, [k]: v }));
@@ -30,10 +61,26 @@ export default function MELSignOffModal({ melItem, aircraftTail, nextLogPage, on
 
   const mutation = useMutation({
     mutationFn: async () => {
+      const partsNote = (form.part_number || form.serial_number)
+        ? `P/N: ${form.part_number || '—'} | S/N: ${form.serial_number || '—'}`
+        : '';
+      const qcNote = (form.qc_name || form.qc_id)
+        ? `QC Inspector: ${form.qc_name}${form.qc_id ? ` (${form.qc_id})` : ''}`
+        : '';
+      const rtsLabel = RTS_CATEGORIES.find(r => r.id === form.rts_category)?.label || form.rts_category;
+
+      const notesLines = [
+        `MEL Control #: ${form.mel_control_number || '—'}`,
+        `RTS Category: ${rtsLabel}`,
+        partsNote,
+        qcNote,
+        form.notes,
+      ].filter(Boolean).join('\n');
+
       // 1. Create cleared logbook entry
       await base44.entities.LogbookEntry.create({
         aircraft_tail: aircraftTail,
-        log_page: nextLogPage,
+        log_page: form.log_page,
         entry_type: 'cleared',
         ata_chapter: melItem.ata_chapter || '',
         station: form.station,
@@ -48,13 +95,15 @@ export default function MELSignOffModal({ melItem, aircraftTail, nextLogPage, on
         cleared_by: form.technician_name,
         cleared_date: new Date().toISOString().split('T')[0],
         discrepancy_status: 'CLOSED',
-        notes: form.notes || undefined,
+        parts_used: partsNote || undefined,
+        notes: notesLines || undefined,
       });
       // 2. Mark MEL item as cleared
       await base44.entities.MELItem.update(melItem.id, {
         status: 'cleared',
         cleared_by: form.technician_name,
         cleared_date: new Date().toISOString().split('T')[0],
+        logpage_number: form.mel_control_number || undefined,
       });
     },
     onSuccess: () => {
@@ -67,7 +116,7 @@ export default function MELSignOffModal({ melItem, aircraftTail, nextLogPage, on
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/85 p-4">
-      <div className="w-full max-w-lg bg-[#0f1623] border border-white/10 rounded-2xl shadow-2xl overflow-hidden flex flex-col max-h-[92vh]">
+      <div className="w-full max-w-xl bg-[#0f1623] border border-white/10 rounded-2xl shadow-2xl overflow-hidden flex flex-col max-h-[94vh]">
 
         {/* Header */}
         <div className="flex items-center justify-between px-5 py-4 border-b border-white/10 bg-[#0a0f1a]">
@@ -108,44 +157,111 @@ export default function MELSignOffModal({ melItem, aircraftTail, nextLogPage, on
             )}
           </div>
 
-          {/* Station */}
-          <div>
-            <label className="text-[10px] font-bold text-gray-500 uppercase tracking-widest block mb-1.5">Station (ICAO) *</label>
-            <input placeholder="e.g. KEWR" value={form.station} onChange={e => set('station', e.target.value.toUpperCase())} className={inputCls} />
+          {/* ── Row: Log Page + MEL Control # ── */}
+          <div className="grid grid-cols-2 gap-3">
+            <div>
+              <label className="text-[10px] font-bold text-gray-500 uppercase tracking-widest block mb-1.5">Log Page #</label>
+              <input value={form.log_page} onChange={e => set('log_page', e.target.value)}
+                placeholder="e.g. LP#0042" className={inputCls} />
+            </div>
+            <div>
+              <label className="text-[10px] font-bold text-gray-500 uppercase tracking-widest block mb-1.5">MEL Control #</label>
+              <input value={form.mel_control_number} onChange={e => set('mel_control_number', e.target.value)}
+                placeholder="e.g. DEF-2026-0042" className={inputCls} />
+            </div>
           </div>
 
-          {/* Corrective Action */}
+          {/* ── Row: Station + System ── */}
+          <div className="grid grid-cols-2 gap-3">
+            <div>
+              <label className="text-[10px] font-bold text-gray-500 uppercase tracking-widest block mb-1.5">Station (ICAO) *</label>
+              <input placeholder="e.g. KEWR" value={form.station}
+                onChange={e => set('station', e.target.value.toUpperCase())} className={inputCls} />
+            </div>
+            <div>
+              <label className="text-[10px] font-bold text-gray-500 uppercase tracking-widest block mb-1.5">ATA System</label>
+              <select value={form.system} onChange={e => set('system', e.target.value)} className={inputCls}>
+                <option value="">— Select system —</option>
+                {ATA_SYSTEMS.map(s => <option key={s} value={s}>{s}</option>)}
+              </select>
+            </div>
+          </div>
+
+          {/* ── RTS Category ── */}
           <div>
-            <label className="text-[10px] font-bold text-gray-500 uppercase tracking-widest block mb-1.5">Corrective Action / Reason for Clearance *</label>
+            <label className="text-[10px] font-bold text-gray-500 uppercase tracking-widest block mb-1.5">Return-to-Service Category</label>
+            <div className="grid grid-cols-2 gap-2">
+              {RTS_CATEGORIES.map(r => (
+                <button key={r.id} type="button" onClick={() => set('rts_category', r.id)}
+                  className={cn(
+                    'text-left px-3 py-2 rounded-lg border text-[11px] font-bold transition-all',
+                    form.rts_category === r.id
+                      ? 'bg-green-800/40 border-green-500/60 text-green-300'
+                      : 'bg-[#1a2035] border-white/8 text-gray-400 hover:text-white hover:border-white/20'
+                  )}>
+                  {r.label}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          {/* ── Corrective Action ── */}
+          <div>
+            <label className="text-[10px] font-bold text-gray-500 uppercase tracking-widest block mb-1.5">Corrective Action *</label>
             <textarea rows={4} value={form.corrective_action} onChange={e => set('corrective_action', e.target.value)}
               placeholder="Describe the repair, component replaced, test performed, or reason restriction is lifted. Reference AMM section."
               className={textareaCls} />
           </div>
 
-          {/* Technician */}
-          <div className="grid grid-cols-2 gap-3">
-            <div>
-              <label className="text-[10px] font-bold text-gray-500 uppercase tracking-widest block mb-1.5">Technician Name *</label>
-              <input placeholder="First Last" value={form.technician_name} onChange={e => set('technician_name', e.target.value)} className={inputCls} />
-            </div>
-            <div>
-              <label className="text-[10px] font-bold text-gray-500 uppercase tracking-widest block mb-1.5">A&P Cert # *</label>
-              <input placeholder="AMT-XXXXX" value={form.technician_id} onChange={e => set('technician_id', e.target.value)} className={inputCls} />
+          {/* ── P/N & S/N ── */}
+          <div>
+            <label className="text-[10px] font-bold text-gray-500 uppercase tracking-widest block mb-1.5 flex items-center gap-1.5">
+              <Package className="w-3 h-3" /> Part Number / Serial Number (if applicable)
+            </label>
+            <div className="grid grid-cols-2 gap-3">
+              <input value={form.part_number} onChange={e => set('part_number', e.target.value)}
+                placeholder="P/N e.g. 67890-001" className={inputCls} />
+              <input value={form.serial_number} onChange={e => set('serial_number', e.target.value)}
+                placeholder="S/N e.g. SN-12345678" className={inputCls} />
             </div>
           </div>
 
-          {/* Notes */}
+          {/* ── Technician Sign-Off ── */}
+          <div>
+            <label className="text-[10px] font-bold text-gray-500 uppercase tracking-widest block mb-1.5">Certifying Technician *</label>
+            <div className="grid grid-cols-2 gap-3">
+              <input placeholder="First Last" value={form.technician_name}
+                onChange={e => set('technician_name', e.target.value)} className={inputCls} />
+              <input placeholder="A&P Cert # (AMT-XXXXX)" value={form.technician_id}
+                onChange={e => set('technician_id', e.target.value)} className={inputCls} />
+            </div>
+          </div>
+
+          {/* ── QC Sign-Off (optional) ── */}
+          <div className="border border-dashed border-violet-500/30 rounded-xl p-4 space-y-2">
+            <label className="text-[10px] font-bold text-violet-400 uppercase tracking-widest flex items-center gap-1.5">
+              <Shield className="w-3 h-3" /> QC Inspector Sign-Off <span className="text-gray-600 font-normal normal-case">(optional)</span>
+            </label>
+            <div className="grid grid-cols-2 gap-3">
+              <input placeholder="Inspector name" value={form.qc_name}
+                onChange={e => set('qc_name', e.target.value)} className={inputCls} />
+              <input placeholder="IA / QC Cert #" value={form.qc_id}
+                onChange={e => set('qc_id', e.target.value)} className={inputCls} />
+            </div>
+          </div>
+
+          {/* ── Additional Notes ── */}
           <div>
             <label className="text-[10px] font-bold text-gray-500 uppercase tracking-widest block mb-1.5">Additional Notes</label>
             <textarea rows={2} value={form.notes} onChange={e => set('notes', e.target.value)}
-              placeholder="Optional: test flight result, ops check, placard removed..." className={textareaCls} />
+              placeholder="Optional: ops check result, placard removed, test flight required..." className={textareaCls} />
           </div>
 
           {/* Legal notice */}
           <div className="bg-blue-900/15 border border-blue-500/25 rounded-xl px-4 py-3 flex items-start gap-2">
             <Shield className="w-4 h-4 text-blue-400 flex-shrink-0 mt-0.5" />
             <p className="text-[10px] text-gray-400 leading-relaxed">
-              Submitting this sign-off creates a <span className="text-green-400 font-bold">CLEARED</span> logbook entry and lifts the MEL restriction. This record is permanent per 14 CFR 43.9(a)(4).
+              Submitting creates a permanent <span className="text-green-400 font-bold">CLEARED</span> logbook entry and lifts the MEL restriction per 14 CFR 43.9(a)(4).
             </p>
           </div>
         </div>
