@@ -151,6 +151,7 @@ const NAV_GROUPS = [
     items: [
       { label: 'User Management', icon: '👤', path: '/UserManagement' },
       { label: 'Settings', icon: '⚙️', path: '/Settings' },
+      { label: 'Learning Center', icon: '📚', path: '/Learning' },
       { label: 'Screensaver Admin', icon: '🖥️', path: '/ScreensaverAdmin' },
       { label: 'Integration Hub', icon: '🔌', path: '/IntegrationHub' },
       { label: 'Comm Center', icon: '📞', path: '/CommCenter' },
