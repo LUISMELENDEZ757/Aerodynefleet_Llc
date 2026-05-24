@@ -31,7 +31,7 @@ const SECTIONS = [
 
 export default function AircraftComplianceDetail() {
   const [searchParams] = useSearchParams();
-  const tailNumber = searchParams.get('tail') || '';
+  const tailParam = searchParams.get('tail') || '';
 
   const sectionRefs = useRef({});
 
@@ -39,6 +39,16 @@ export default function AircraftComplianceDetail() {
     const el = sectionRefs.current[id];
     if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' });
   };
+
+  // If no tail param, fetch first aircraft to display something useful
+  const { data: firstAircraft } = useQuery({
+    queryKey: ['aircraft-first'],
+    queryFn: () => base44.entities.Aircraft.list('-created_date', 1),
+    enabled: !tailParam,
+    select: (data) => data[0],
+  });
+
+  const tailNumber = tailParam || firstAircraft?.tail_number || '';
 
   const { data: aircraft, isLoading: loadingAircraft } = useQuery({
     queryKey: ['aircraft-detail', tailNumber],
@@ -84,22 +94,7 @@ export default function AircraftComplianceDetail() {
     enabled: !!tailNumber,
   });
 
-  if (!tailNumber) {
-    return (
-      <div className="min-h-screen bg-background flex items-center justify-center">
-        <div className="text-center space-y-4">
-          <Plane className="w-16 h-16 text-muted-foreground mx-auto" />
-          <p className="text-lg font-bold text-foreground">No aircraft selected</p>
-          <p className="text-sm text-muted-foreground">Add ?tail=N123AB to the URL</p>
-          <Link to="/FleetDashboard" className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-primary text-primary-foreground text-sm font-bold">
-            <ChevronLeft className="w-4 h-4" /> Back to Fleet
-          </Link>
-        </div>
-      </div>
-    );
-  }
-
-  if (loadingAircraft) {
+  if (loadingAircraft || !tailNumber) {
     return (
       <div className="min-h-screen bg-background flex items-center justify-center">
         <div className="w-8 h-8 border-4 border-border border-t-primary rounded-full animate-spin" />
