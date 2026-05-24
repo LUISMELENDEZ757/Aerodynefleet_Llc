@@ -177,6 +177,29 @@ export default function HowItWorks() {
           </div>
         </div>
 
+        {/* AI Copilot Advantage */}
+        <div className="rounded-2xl bg-gradient-to-br from-purple-900/20 via-indigo-900/15 to-transparent border border-purple-500/30 px-6 py-5 space-y-3">
+          <div className="flex items-start gap-3">
+            <div className="w-10 h-10 rounded-xl bg-purple-500/20 flex items-center justify-center flex-shrink-0">
+              <span className="text-lg">🤖</span>
+            </div>
+            <div className="flex-1">
+              <p className="text-sm font-black text-white mb-1">AI Maintenance Copilot</p>
+              <p className="text-xs text-purple-300 font-semibold mb-2">The Hidden Force Behind Every Decision</p>
+              <p className="text-sm text-gray-300 leading-relaxed">
+                Every event that enters the system is analyzed by our AI engine, which runs predictive models in parallel with your human technicians and MCC controllers. The Copilot:
+              </p>
+              <ul className="text-xs text-gray-400 mt-2.5 space-y-1.5 ml-4">
+                <li className="flex gap-2"><span className="text-purple-400 font-bold">•</span> <span><strong>Predicts AOG probability</strong> before any actual failure, flagging high-risk trends in engine data, oil consumption, and fault patterns</span></li>
+                <li className="flex gap-2"><span className="text-purple-400 font-bold">•</span> <span><strong>Recommends optimal maintenance windows</strong> by analyzing weather, crew scheduling, IROPS risk, and fuel cost minimization</span></li>
+                <li className="flex gap-2"><span className="text-purple-400 font-bold">•</span> <span><strong>Auto-escalates critical issues</strong> to MCC when human decision-making speed isn't fast enough</span></li>
+                <li className="flex gap-2"><span className="text-purple-400 font-bold">•</span> <span><strong>Learns from every resolution</strong> — your fleet data continuously improves the predictive accuracy</span></li>
+              </ul>
+              <p className="text-xs text-purple-300 mt-3 font-semibold">Result: Fewer surprises, faster resolutions, measurably higher reliability and OTP.</p>
+            </div>
+          </div>
+        </div>
+
         {/* Module Groups */}
         <div>
           <p className="text-xs font-bold text-gray-500 uppercase tracking-widest mb-3">Platform Modules by Domain</p>
