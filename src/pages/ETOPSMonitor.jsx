@@ -372,9 +372,10 @@ export default function ETOPSMonitor() {
   const [matrixTail, setMatrixTail] = useState(null);
   const qc = useQueryClient();
 
+  // Shared cache key with FleetDashboard so both views stay in sync
   const { data: rawAircraft = [], isLoading } = useQuery({
-    queryKey: ['etops-aircraft'],
-    queryFn: () => base44.entities.Aircraft.list('tail_number', 500),
+    queryKey: ['fleet-aircraft'],
+    queryFn: () => base44.entities.Aircraft.list('-created_date', 1000),
     refetchInterval: 60000,
   });
 
@@ -388,10 +389,11 @@ export default function ETOPSMonitor() {
     }, {})
   );
 
+  // Shared cache key with FleetDashboard MEL data
   const { data: melItems = [] } = useQuery({
-    queryKey: ['etops-mel'],
-    queryFn: () => base44.entities.MELItem.list('-created_date', 500),
-    refetchInterval: 60000,
+    queryKey: ['fleet-all-mel'],
+    queryFn: () => base44.entities.MELItem.list('-created_date', 2000),
+    refetchInterval: 120000,
   });
 
   const toggleExpand = (tail) => setExpandedCards(p => ({ ...p, [tail]: !p[tail] }));
@@ -478,7 +480,7 @@ export default function ETOPSMonitor() {
             </div>
           </div>
           <button
-            onClick={() => qc.invalidateQueries({ queryKey: ['etops-aircraft', 'etops-mel'] })}
+            onClick={() => { qc.invalidateQueries({ queryKey: ['fleet-aircraft'] }); qc.invalidateQueries({ queryKey: ['fleet-all-mel'] }); }}
             className="w-10 h-10 rounded-xl bg-secondary flex items-center justify-center hover:bg-secondary/80 transition-colors"
           >
             <RefreshCw className={cn('w-4 h-4 text-muted-foreground', isLoading && 'animate-spin')} />

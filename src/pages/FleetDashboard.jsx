@@ -256,9 +256,16 @@ function AircraftDetailOverlay({ aircraft: initialAircraft, onClose }) {
         <div className="w-full lg:w-72 flex-shrink-0 bg-[#111620] border-r border-white/10 p-6 flex flex-col gap-5">
           <div className="flex items-center justify-between">
             <p className="text-base font-extrabold text-white">Aircraft Information</p>
-            <Link to={`/TechOpsLogbook?tail=${aircraft.tail_number}`} className="flex items-center gap-1.5 px-3 py-2 rounded-lg bg-primary text-primary-foreground text-xs font-extrabold hover:bg-primary/90 transition-colors">
-              <BookOpen className="w-3.5 h-3.5" /> E-Logbook
-            </Link>
+            <div className="flex items-center gap-2">
+              {(aircraft.etops_approval || ['B777','B787','A350','B737 MAX','A320','A321','B767','B737-800','B737-900','B757'].some(t => aircraft.aircraft_type?.includes(t))) && (
+                <Link to="/ETOPSMonitor" className="flex items-center gap-1.5 px-3 py-2 rounded-lg bg-cyan-700/40 border border-cyan-600/50 text-cyan-300 text-xs font-extrabold hover:bg-cyan-700/60 transition-colors">
+                  <Globe className="w-3.5 h-3.5" /> ETOPS
+                </Link>
+              )}
+              <Link to={`/TechOpsLogbook?tail=${aircraft.tail_number}`} className="flex items-center gap-1.5 px-3 py-2 rounded-lg bg-primary text-primary-foreground text-xs font-extrabold hover:bg-primary/90 transition-colors">
+                <BookOpen className="w-3.5 h-3.5" /> E-Logbook
+              </Link>
+            </div>
           </div>
           <LocationTypeToggle
             aircraftId={aircraft.id}
