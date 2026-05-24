@@ -166,6 +166,20 @@ export default function WorldRouteMap() {
     setTrackLoading(true);
     try {
       const id = flight.fa_flight_id || flight.ident;
+
+      // If flight has no position yet, fetch it first and update state
+      if (flight.lat == null || flight.lon == null) {
+        try {
+          const posRes = await base44.functions.invoke('flightAwareSearch', { type: 'flight_position', ident: id });
+          const pos = posRes.data?.position;
+          if (pos?.latitude && pos?.longitude) {
+            const enriched = { ...flight, lat: pos.latitude, lon: pos.longitude, heading: pos.heading, altitude: pos.altitude, groundspeed: pos.groundspeed };
+            setSelectedFlight(enriched);
+            setFlights(prev => prev.map(f => (f.fa_flight_id || f.ident) === id ? enriched : f));
+          }
+        } catch { /* position fetch failed, continue to track */ }
+      }
+
       const res = await base44.functions.invoke('flightAwareSearch', { type: 'flight_track', ident: id });
       const positions = res.data?.track?.positions || [];
       setTrackData(positions.map(p => [p.latitude, p.longitude]).filter(p => p[0] && p[1]));

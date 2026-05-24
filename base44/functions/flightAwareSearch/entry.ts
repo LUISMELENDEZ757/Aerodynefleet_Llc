@@ -101,6 +101,12 @@ Deno.serve(async (req) => {
       return Response.json({ flights: data.flights || [] });
     }
 
+    // Single flight live position
+    if (type === 'flight_position' && ident) {
+      const data = await faFetch(`/flights/${encodeURIComponent(ident)}/position`);
+      return Response.json({ position: data });
+    }
+
     // Live position for a specific flight (most recent)
     if (type === 'flight_track' && ident) {
       const data = await faFetch(`/flights/${encodeURIComponent(ident.toUpperCase())}/track`);
