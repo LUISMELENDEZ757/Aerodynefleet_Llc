@@ -107,6 +107,12 @@ export default function TechOpsLogbook() {
     enabled: !!selectedTail,
   });
 
+  const { data: melItems = [] } = useQuery({
+    queryKey: ['logbook-mel', selectedTail],
+    queryFn: () => base44.entities.MELItem.filter({ aircraft_tail: selectedTail }),
+    enabled: !!selectedTail,
+  });
+
   const createEntryMutation = useMutation({
     mutationFn: (data) => base44.entities.LogbookEntry.create(data),
     onSuccess: () => { queryClient.invalidateQueries({ queryKey: ['logbook-entries'] }); setShowNewEntry(false); },
@@ -143,6 +149,12 @@ export default function TechOpsLogbook() {
 
   // ── Derived stats ─────────────────────────────────────────────────────────
   const openItems = entries.filter(e => e.is_deferred && !e.is_cleared).length;
+  const activeMels = melItems.filter(m => m.status !== 'cleared' && m.status !== 'voided');
+  const restrictiveMels = activeMels.filter(m =>
+    m.flight_restrictions || m.etops_critical || m.etops_impact === 'NO_ETOPS' ||
+    m.etops_impact === 'ETOPS_WITH_LIMITS' || m.placard_required
+  );
+  const openWriteUps = entries.filter(e => e.entry_type === 'discrepancy' && e.discrepancy_status !== 'CLOSED' && !e.is_cleared);
   const activeFaults = faults.filter(f => f.status === 'active');
   const clearedFaults = faults.filter(f => f.status === 'cleared');
   const nextLogPage = `LP#${String(entries.length + 1).padStart(4, '0')}`;
@@ -327,6 +339,75 @@ export default function TechOpsLogbook() {
             </div>
           </div>
         </div>
+
+        {/* ── RESTRICTIVE MEL ALERTS ─────────────────────────────────────────── */}
+        {restrictiveMels.length > 0 && (
+          <div className="bg-red-950/40 border border-red-500/60 rounded-2xl p-4 space-y-2">
+            <div className="flex items-center gap-2 mb-1">
+              <AlertTriangle className="w-4 h-4 text-red-400 flex-shrink-0" />
+              <p className="text-sm font-extrabold text-red-400 uppercase tracking-widest">
+                {restrictiveMels.length} Restrictive MEL{restrictiveMels.length > 1 ? 's' : ''} — Operational Restrictions Apply
+              </p>
+            </div>
+            {restrictiveMels.map(m => (
+              <div key={m.id} className="flex items-start gap-3 bg-red-900/30 rounded-xl px-4 py-3 border border-red-700/40">
+                <Zap className="w-3.5 h-3.5 text-red-400 flex-shrink-0 mt-0.5" />
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-center gap-2 flex-wrap mb-0.5">
+                    <span className="text-[10px] font-black px-2 py-0.5 rounded bg-red-800 text-red-300 uppercase">
+                      CAT {m.category} · {m.ata_chapter || 'MEL'}
+                    </span>
+                    {m.etops_impact === 'NO_ETOPS' && (
+                      <span className="text-[10px] font-black px-2 py-0.5 rounded bg-orange-900 text-orange-300 border border-orange-700/50">NO ETOPS</span>
+                    )}
+                    {m.etops_impact === 'ETOPS_WITH_LIMITS' && (
+                      <span className="text-[10px] font-black px-2 py-0.5 rounded bg-amber-900 text-amber-300 border border-amber-700/50">ETOPS LIMITED</span>
+                    )}
+                    {m.placard_required && (
+                      <span className="text-[10px] font-black px-2 py-0.5 rounded bg-yellow-900 text-yellow-300 border border-yellow-700/50">PLACARD REQ'D</span>
+                    )}
+                  </div>
+                  <p className="text-xs text-red-200 font-semibold">{m.description}</p>
+                  {m.flight_restrictions && (
+                    <p className="text-[10px] text-red-400 mt-0.5">⚠ {m.flight_restrictions}</p>
+                  )}
+                  {m.expiry_date && (
+                    <p className="text-[10px] text-gray-500 mt-0.5">Expires: {new Date(m.expiry_date).toLocaleDateString()}</p>
+                  )}
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+
+        {/* ── OPEN WRITE-UPS ──────────────────────────────────────────────────── */}
+        {openWriteUps.length > 0 && (
+          <div className="bg-amber-950/30 border border-amber-500/50 rounded-2xl p-4 space-y-2">
+            <div className="flex items-center gap-2 mb-1">
+              <AlertTriangle className="w-4 h-4 text-amber-400 flex-shrink-0" />
+              <p className="text-sm font-extrabold text-amber-400 uppercase tracking-widest">
+                {openWriteUps.length} Open Write-Up{openWriteUps.length > 1 ? 's' : ''}
+              </p>
+            </div>
+            {openWriteUps.map(e => (
+              <div key={e.id} className="flex items-start gap-3 bg-amber-900/20 rounded-xl px-4 py-3 border border-amber-700/30">
+                <div className="w-1.5 h-1.5 rounded-full bg-amber-400 mt-1.5 flex-shrink-0" />
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-center gap-2 mb-0.5 flex-wrap">
+                    {e.log_page && <span className="text-[10px] font-mono font-bold text-amber-300">{e.log_page}</span>}
+                    {e.ata_chapter && <span className="text-[10px] text-gray-500">ATA {e.ata_chapter}</span>}
+                    <span className={cn('text-[10px] font-bold px-1.5 py-0.5 rounded',
+                      e.discrepancy_status === 'IN_PROGRESS' ? 'bg-blue-900/50 text-blue-400' :
+                      e.discrepancy_status === 'PENDING_RII' ? 'bg-purple-900/50 text-purple-400' :
+                      'bg-amber-900/50 text-amber-400'
+                    )}>{e.discrepancy_status || 'OPEN'}</span>
+                  </div>
+                  <p className="text-xs text-amber-100">{e.description}</p>
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
 
         {/* ── FAULT MESSAGES ─────────────────────────────────────────────────── */}
         <div className="bg-[#141922] border border-white/10 rounded-2xl overflow-hidden">
