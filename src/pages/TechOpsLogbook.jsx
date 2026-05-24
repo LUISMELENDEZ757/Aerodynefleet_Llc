@@ -15,6 +15,7 @@ import LiveClock from '@/components/ui/LiveClock';
 import NewLogEntryModal from '@/components/techops/NewLogEntryModal';
 import NewFaultModal from '@/components/techops/NewFaultModal';
 import LogEntryCard from '@/components/techops/LogEntryCard';
+import MELSignOffModal from '@/components/techops/MELSignOffModal';
 
 // ── Config ───────────────────────────────────────────────────────────────────
 const STATUS_STYLES = {
@@ -81,6 +82,7 @@ export default function TechOpsLogbook() {
   const [entryPreset, setEntryPreset] = useState(null);
   const [viewRole, setViewRole] = useState('mx');       // mx | pilot | dispatch
   const [quickFilter, setQuickFilter] = useState('all');
+  const [signOffMel, setSignOffMel] = useState(null); // MELItem being signed off
   const elapsed = useElapsedTime();
   const queryClient = useQueryClient();
 
@@ -375,6 +377,12 @@ export default function TechOpsLogbook() {
                     <p className="text-[10px] text-gray-500 mt-0.5">Expires: {new Date(m.expiry_date).toLocaleDateString()}</p>
                   )}
                 </div>
+                <button
+                  onClick={() => setSignOffMel(m)}
+                  className="flex-shrink-0 flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-green-800/50 border border-green-600/50 text-green-300 text-[10px] font-extrabold hover:bg-green-700/60 transition-colors whitespace-nowrap"
+                >
+                  <CheckCircle className="w-3 h-3" /> Sign Off
+                </button>
               </div>
             ))}
           </div>
@@ -628,6 +636,14 @@ export default function TechOpsLogbook() {
       )}
       {showNewFault && (
         <NewFaultModal aircraftTail={selectedTail} onClose={() => setShowNewFault(false)} onSave={(data) => createFaultMutation.mutate(data)} />
+      )}
+      {signOffMel && (
+        <MELSignOffModal
+          melItem={signOffMel}
+          aircraftTail={selectedTail}
+          nextLogPage={nextLogPage}
+          onClose={() => setSignOffMel(null)}
+        />
       )}
     </div>
   );
