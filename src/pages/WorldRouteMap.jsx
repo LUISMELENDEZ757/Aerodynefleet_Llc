@@ -58,6 +58,17 @@ function MapAutoFit({ flights }) {
   return null;
 }
 
+// ── Fly to selected flight ────────────────────────────────────────────────────
+function MapFlyTo({ flight }) {
+  const map = useMap();
+  useEffect(() => {
+    if (flight?.lat != null && flight?.lon != null) {
+      map.flyTo([flight.lat, flight.lon], Math.max(map.getZoom(), 6), { duration: 1.2 });
+    }
+  }, [flight?.lat, flight?.lon]);
+  return null;
+}
+
 // ── Helpers ───────────────────────────────────────────────────────────────────
 const POPULAR_AIRLINES = [
   { icao: 'UAL', name: 'United', flag: '🇺🇸' },
@@ -332,6 +343,7 @@ export default function WorldRouteMap() {
             />
 
             <MapAutoFit flights={flights} />
+            <MapFlyTo flight={selectedFlight} />
 
             {/* Major airport markers */}
             {showAirports && MAJOR_AIRPORTS.map(ap => (
@@ -378,7 +390,7 @@ export default function WorldRouteMap() {
               const icon = makeAircraftIcon(f.heading || 0, color, isSelected ? 34 : 26);
               return (
                 <Marker
-                  key={f.fa_flight_id || f.ident}
+                  key={`${f.fa_flight_id || f.ident}-${f.lat}-${f.lon}`}
                   position={[f.lat, f.lon]}
                   icon={icon}
                   eventHandlers={{ click: () => fetchTrack(f) }}
