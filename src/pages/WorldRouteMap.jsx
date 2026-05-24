@@ -50,7 +50,7 @@ function makeAirportIcon() {
 function MapAutoFit({ flights }) {
   const map = useMap();
   useEffect(() => {
-    const pts = flights.filter(f => f.lat && f.lon).map(f => [f.lat, f.lon]);
+    const pts = flights.filter(f => f.lat != null && f.lon != null).map(f => [f.lat, f.lon]);
     if (pts.length >= 2) {
       map.fitBounds(pts, { padding: [40, 40], maxZoom: 6 });
     }
@@ -113,31 +113,33 @@ export default function WorldRouteMap() {
   const [autoRefresh, setAutoRefresh] = useState(false);
   const intervalRef = useRef(null);
 
-  const fetchFlights = useCallback(async () => {
+  const fetchFlights = useCallback(async (overrideAirport) => {
     setLoading(true);
     setError(null);
     setSelectedFlight(null);
     setTrackData(null);
     try {
+      const effectiveAirport = overrideAirport || airport;
       let res;
       if (mode === 'airline') {
         res = await base44.functions.invoke('flightAwareSearch', { type: 'airline_enroute', airline_icao: airline });
       } else {
-        res = await base44.functions.invoke('flightAwareSearch', { type: 'airport_board', airport });
+        res = await base44.functions.invoke('flightAwareSearch', { type: 'airport_board', airport: effectiveAirport });
       }
       const raw = mode === 'airline'
         ? (res.data?.flights || [])
         : [...(res.data?.departures || []), ...(res.data?.arrivals || [])];
-      // Extract lat/lon from last_position if available
+      // Extract lat/lon — flights from departures board won't have last_position until airborne
       const mapped = raw.map(f => ({
         ...f,
-        lat: f.last_position?.latitude ?? f.lat,
-        lon: f.last_position?.longitude ?? f.lon,
-        heading: f.last_position?.heading ?? f.heading,
-        altitude: f.last_position?.altitude ?? f.altitude,
-        groundspeed: f.last_position?.groundspeed ?? f.groundspeed,
+        lat: f.last_position?.latitude ?? f.lat ?? null,
+        lon: f.last_position?.longitude ?? f.lon ?? null,
+        heading: f.last_position?.heading ?? f.heading ?? 0,
+        altitude: f.last_position?.altitude ?? f.altitude ?? null,
+        groundspeed: f.last_position?.groundspeed ?? f.groundspeed ?? null,
       }));
-      setFlights(mapped.filter(f => f.lat && f.lon));
+      // Show all flights in the side panel, but only plot ones with position on map
+      setFlights(mapped);
     } catch (e) {
       setError(e.message?.includes('429') ? 'API rate limit reached. Please wait before retrying.' : (e.message || 'Failed to load'));
     } finally {
@@ -256,7 +258,14 @@ export default function WorldRouteMap() {
             <Zap className="w-3 h-3" /> {autoRefresh ? 'Auto' : 'Manual'}
           </button>
 
-          <button onClick={() => { if (mode === 'airport') setAirport(airportInput); fetchFlights(); }}
+          <button onClick={() => {
+            if (mode === 'airport') {
+              setAirport(airportInput);
+              fetchFlights(airportInput);
+            } else {
+              fetchFlights();
+            }
+          }}
             disabled={loading}
             className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-sky-600 text-white text-[10px] font-extrabold hover:bg-sky-500 disabled:opacity-50 transition-colors">
             {loading ? <RefreshCw className="w-3 h-3 animate-spin" /> : <Radio className="w-3 h-3" />}
@@ -310,7 +319,7 @@ export default function WorldRouteMap() {
             ))}
 
             {/* Route lines from origin airport to current position */}
-            {flights.filter(f => f.lat && f.lon).map((f) => {
+            {flights.filter(f => f.lat != null && f.lon != null).map((f) => {
               const originAp = MAJOR_AIRPORTS.find(ap => ap.icao === (f.origin?.code_icao || f.origin));
               if (!originAp) return null;
               return (
@@ -336,7 +345,7 @@ export default function WorldRouteMap() {
             )}
 
             {/* Aircraft markers */}
-            {flights.filter(f => f.lat && f.lon).map((f) => {
+            {flights.filter(f => f.lat != null && f.lon != null).map((f) => {
               const isSelected = selectedFlight?.fa_flight_id === f.fa_flight_id;
               const color = isSelected ? '#f59e0b' : statusColor(f.status);
               const icon = makeAircraftIcon(f.heading || 0, color, isSelected ? 34 : 26);
