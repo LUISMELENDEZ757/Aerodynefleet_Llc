@@ -351,8 +351,7 @@ export default function Screensaver({ onDismiss }) {
           style={{ background: `radial-gradient(ellipse 70% 60% at 50% 85%, ${accent}18 0%, transparent 65%)` }} />
       </AnimatePresence>
 
-      {/* Floating aircraft graphics */}
-      <FloatingAircraft accent={accent} />
+
 
       {/* HUD corner brackets */}
       <HudCorner position="tl" color={accent} />
