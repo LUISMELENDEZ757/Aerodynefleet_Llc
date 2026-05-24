@@ -90,6 +90,22 @@ function BORROBCard({ item, onApprove, onAssign, onComplete, onClose }) {
         </div>
       </div>
 
+      {/* Control Number & Log Page */}
+      <div className="flex gap-2 flex-wrap">
+        {item.control_number && (
+          <div className="flex items-center gap-1.5 bg-yellow-500/10 border border-yellow-500/25 rounded-lg px-2.5 py-1">
+            <FileText className="w-3 h-3 text-yellow-400" />
+            <span className="text-[10px] font-mono font-bold text-yellow-300">{item.control_number}</span>
+          </div>
+        )}
+        {item.log_page_number && (
+          <div className="flex items-center gap-1.5 bg-cyan-500/10 border border-cyan-500/25 rounded-lg px-2.5 py-1">
+            <FileText className="w-3 h-3 text-cyan-400" />
+            <span className="text-[10px] font-mono font-bold text-cyan-300">{item.log_page_number}</span>
+          </div>
+        )}
+      </div>
+
       <div className="bg-secondary/50 rounded-lg px-3 py-2 space-y-1">
         <p className="text-[10px] text-muted-foreground">Request Details</p>
         <p className="text-xs text-foreground">{item.reason || 'No description'}</p>
@@ -517,6 +533,20 @@ export default function BORROBDashboard() {
     onSuccess: () => { qc.invalidateQueries({ queryKey: ['borrob-requests'] }); setShowNewRequest(false); },
   });
 
+  const generateControlNumber = () => {
+    const now = new Date();
+    const y = now.getFullYear();
+    const m = String(now.getMonth() + 1).padStart(2, '0');
+    const d = String(now.getDate()).padStart(2, '0');
+    const rand = String(Math.floor(Math.random() * 9000) + 1000);
+    return `BOR-${y}${m}${d}-${rand}`;
+  };
+
+  const generateLogPageNumber = () => {
+    const rand = String(Math.floor(Math.random() * 90000) + 10000);
+    return `LP#${rand}`;
+  };
+
   const handleNewRequest = (formData) => {
     const interlineNote = formData.is_interline
       ? ` | INTERLINE: ${formData.interline_airline || '—'} · Loan# ${formData.interline_loan_number || '—'} · Contact: ${formData.interline_contact || '—'}`
@@ -532,6 +562,8 @@ export default function BORROBDashboard() {
       ata_chapter: formData.ata_chapter || '',
       reason: (formData.reason || '') + interlineNote,
       notes: `Donor: ${formData.donor_aircraft || 'N/A'} → Receiving: ${formData.receiving_aircraft || 'N/A'}${formData.is_interline ? ' [INTERLINE]' : ''}`,
+      control_number: generateControlNumber(),
+      log_page_number: generateLogPageNumber(),
     });
   };
 
