@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
-import { ChevronLeft, BookOpen, CheckCircle, Lock, Star, Trophy, ArrowRight } from 'lucide-react';
+import { ChevronLeft, BookOpen, CheckCircle, Lock, Trophy, ArrowRight, Layers } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import QuizModule from './QuizModule';
 import { MODULES } from './learningData';
@@ -63,6 +63,19 @@ export default function LearningCenter() {
               style={{ width: `${(doneCount / totalModules) * 100}%` }} />
           </div>
         </div>
+
+        {/* How It Works featured card */}
+        <Link to="/HowItWorks"
+          className="flex items-center gap-4 rounded-2xl border border-primary/30 bg-primary/8 p-4 hover:bg-primary/15 transition-colors">
+          <div className="w-12 h-12 rounded-xl bg-primary/20 flex items-center justify-center flex-shrink-0">
+            <Layers className="w-6 h-6 text-primary" />
+          </div>
+          <div className="flex-1 min-w-0">
+            <p className="text-sm font-extrabold text-white">How It Works</p>
+            <p className="text-xs text-gray-400 mt-0.5">The complete operational flow — 7 sections covering the system from event to resolution.</p>
+          </div>
+          <ArrowRight className="w-5 h-5 text-primary flex-shrink-0" />
+        </Link>
 
         {/* Module cards */}
         <div className="space-y-3">
