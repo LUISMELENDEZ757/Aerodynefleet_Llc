@@ -88,12 +88,13 @@ const STATUS_PRIORITY = { oos: 0, maintenance: 1, ron: 2, active: 3, retired: 4 
 
 // Quick filter definitions
 const QUICK_FILTERS = [
-  { id: null,          label: 'All',           color: 'text-gray-400' },
-  { id: 'aog',         label: '🔴 AOG',         color: 'text-red-400' },
-  { id: 'mel',         label: '🟡 MEL',         color: 'text-amber-400' },
-  { id: 'etops',       label: '🌍 ETOPS',       color: 'text-cyan-400' },
-  { id: 'maintenance', label: '🔵 In Work',     color: 'text-blue-400' },
-  { id: 'active',      label: '🟢 In Service',  color: 'text-green-400' },
+  { id: null,          label: 'All',              color: 'text-gray-400' },
+  { id: 'aog',         label: '🔴 AOG',            color: 'text-red-400' },
+  { id: 'mel',         label: '🟡 MEL',            color: 'text-amber-400' },
+  { id: 'restrictive', label: '🚫 Restrictive MEL', color: 'text-red-400' },
+  { id: 'etops',       label: '🌍 ETOPS',          color: 'text-cyan-400' },
+  { id: 'maintenance', label: '🔵 In Work',        color: 'text-blue-400' },
+  { id: 'active',      label: '🟢 In Service',     color: 'text-green-400' },
 ];
 
 // ── KPI Card ─────────────────────────────────────────────────────────────────
@@ -935,14 +936,7 @@ export default function FleetDashboard() {
         a.base_station?.toLowerCase().includes(search.toLowerCase()) ||
         a.aircraft_type?.toLowerCase().includes(search.toLowerCase());
 
-      // Always surface aircraft with restrictive MELs regardless of other filters
       const activeMelsForAc = (melByTail[a.tail_number] || []).filter(m => m.status !== 'cleared' && m.status !== 'voided');
-      const hasRestrictiveMel = activeMelsForAc.some(m =>
-        m.flight_restrictions || m.etops_critical || m.etops_impact === 'NO_ETOPS' ||
-        m.etops_impact === 'ETOPS_WITH_LIMITS' || m.placard_required
-      );
-
-      if (hasRestrictiveMel && matchesSearch) return true;
 
       const matchesStatus = statusFilter === 'All Status' || a.status === statusFilter;
       const matchesKpi = !kpiFilter || a.status === kpiFilter;
@@ -950,6 +944,10 @@ export default function FleetDashboard() {
       let matchesQuick = true;
       if (quickFilter === 'aog') matchesQuick = a.status === 'oos';
       else if (quickFilter === 'mel') matchesQuick = activeMelsForAc.length > 0;
+      else if (quickFilter === 'restrictive') matchesQuick = activeMelsForAc.some(m =>
+        m.flight_restrictions || m.etops_critical || m.etops_impact === 'NO_ETOPS' ||
+        m.etops_impact === 'ETOPS_WITH_LIMITS' || m.placard_required
+      );
       else if (quickFilter === 'etops') matchesQuick = !!a.etops_approval;
       else if (quickFilter === 'maintenance') matchesQuick = a.status === 'maintenance';
       else if (quickFilter === 'active') matchesQuick = a.status === 'active';
