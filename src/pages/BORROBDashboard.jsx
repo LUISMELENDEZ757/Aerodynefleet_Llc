@@ -128,7 +128,7 @@ function BORROBCard({ item, onApprove, onAssign, onComplete, onClose }) {
         </div>
       )}
 
-      {item.status === 'mcc_approved' && (
+      {(item.status === 'mcc_approved' || item.status === 'qc_approved') && (
         <div className="flex gap-2 pt-2 border-t border-white/5">
           <button onClick={() => onAssign(item)}
             className="flex-1 flex items-center justify-center gap-2 bg-cyan-600 hover:bg-cyan-500 text-white text-xs font-bold py-2 rounded-xl transition-colors">
