@@ -745,14 +745,24 @@ export default function FleetDashboard() {
 
   const { activeFleet, activeFleetId } = useFleet();
 
-  const { data: rawAircraft = [], isLoading } = useQuery({
+  const { data: rawAircraftAll = [], isLoading } = useQuery({
     queryKey: ['fleet-aircraft'],
     queryFn: () => base44.entities.Aircraft.list('-created_date', 1000),
     refetchInterval: 60000,
   });
 
+  // Deduplicate by tail_number — keep the most recently updated record per tail
+  const dedupedAircraft = Object.values(
+    rawAircraftAll.reduce((acc, a) => {
+      if (!acc[a.tail_number] || new Date(a.updated_date) > new Date(acc[a.tail_number].updated_date)) {
+        acc[a.tail_number] = a;
+      }
+      return acc;
+    }, {})
+  );
+
   // B+D: throttle real-time pushes to 500 ms, track last-5 viewed tails
-  const { aircraft, recentTails, recordTailView } = useThrottledFleet(rawAircraft);
+  const { aircraft, recentTails, recordTailView } = useThrottledFleet(dedupedAircraft);
 
   const { data: openDiscrepancies = [] } = useQuery({
     queryKey: ['fleet-open-discrepancies'],
