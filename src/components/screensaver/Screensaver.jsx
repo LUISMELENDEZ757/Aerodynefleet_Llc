@@ -2,379 +2,488 @@ import { useState, useEffect, useCallback, useRef } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { base44 } from '@/api/base44Client';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Plane, Shield, X, ChevronLeft, ChevronRight } from 'lucide-react';
+import {
+  Plane, X, ChevronLeft, ChevronRight, Shield, Wrench,
+  Activity, BookOpen, Zap, AlertTriangle, Clock, Globe,
+  Radio, Wind, Map, Users, FileCheck, Layers
+} from 'lucide-react';
+import { cn } from '@/lib/utils';
 
-const CATEGORY_ICONS = {
-  safety: '🛡️', engine: '⚙️', hydraulics: '🔧', avionics: '📡',
-  flight_controls: '🕹️', apu: '⚡', fuel: '⛽', emergency: '🚨',
-  regulatory: '📋', general: '✈️',
-};
-
-const DEFAULT_SLIDES = [
+// ── Module showcase data ──────────────────────────────────────────────────────
+const MODULE_SLIDES = [
   {
-    id: 'default-1', order: 0, is_active: true, duration_seconds: 9, category: 'engine',
-    ata_chapter: '79', accent_color: '#f59e0b',
-    image_url: 'https://images.unsplash.com/photo-1540962351504-03099e0a754b?w=1600&q=80',
-    title: 'Engine Oil System — ATA 79',
-    subtitle: 'CFM56-7B Series',
-    narration: 'Engine oil serves as the lifeblood of turbofan propulsion — lubricating bearings, cooling rotating components, and providing hydraulic pressure for variable stator actuators. Oil consumption above 0.8 qt/hr on the CFM56-7B warrants immediate investigation. Always verify oil level on cold engine soak; hot readings can deviate by up to 2 quarts due to thermal expansion.',
+    id: 'mod-mcc', accent: '#ef4444', icon: 'mcc',
+    label: 'Maintenance Control Center',
+    sub: 'AOG Recovery · Positive Fix Locks · Field Trip Ops',
+    body: 'The nerve center of fleet airworthiness. MCC controllers manage AOG recovery, place Positive Fix Locks requiring technician concurrence, and coordinate real-time field trip operations with full logistics tracking.',
+    stat1: { label: 'AOG Response', value: '< 15 min' },
+    stat2: { label: 'Lock Protocol', value: 'Active' },
+    img: 'https://images.unsplash.com/photo-1578615437406-511cafe4a5c7?w=1600&q=80',
   },
   {
-    id: 'default-2', order: 1, is_active: true, duration_seconds: 9, category: 'safety',
-    ata_chapter: '05', accent_color: '#ef4444',
-    image_url: 'https://images.unsplash.com/photo-1436491865332-7a61a109cc05?w=1600&q=80',
-    title: 'Safety-First Culture',
-    subtitle: 'FAA SMS & 14 CFR Part 5',
-    narration: 'Safety Management Systems require every technician to report hazards without fear of reprisal. A single unresolved MEL item can cascade into an AOG event. Before signing any logbook entry, ask: "Would I put my family on this aircraft?" Your signature is your professional and legal commitment to airworthiness.',
+    id: 'mod-fleet', accent: '#f59e0b', icon: 'fleet',
+    label: 'Fleet Health Dashboard',
+    sub: 'B737 · B777 · B787 · A320/321 · A350 · E190 · CRJ',
+    body: 'Real-time airworthiness tracking across every tail number. Status, MEL deferrals, ETOPS authorization, CAT approval, engine health, and RNP capability — all in one operational view.',
+    stat1: { label: 'Fleet Types', value: '16 A/C' },
+    stat2: { label: 'Avg Availability', value: '98.4%' },
+    img: 'https://images.unsplash.com/photo-1436491865332-7a61a109cc05?w=1600&q=80',
   },
   {
-    id: 'default-3', order: 2, is_active: true, duration_seconds: 9, category: 'avionics',
-    ata_chapter: '34', accent_color: '#06b6d4',
-    image_url: 'https://images.unsplash.com/photo-1464037866556-6812c9d1c72e?w=1600&q=80',
-    title: 'CAT III Autoland — Low Visibility Operations',
-    subtitle: 'ILS CAT IIIb · RVR 75m',
-    narration: 'Category III ILS approaches allow landings in near-zero visibility conditions down to RVR 75 meters. Both autopilot channels must be operative with redundant radio altimeters and autobrake armed. Ground crews must maintain ILS critical area protection from outer marker inbound. A single avionics anomaly detected by the FCC during the approach will trigger an automatic go-around.',
+    id: 'mod-dispatch', accent: '#06b6d4', icon: 'dispatch',
+    label: 'Dispatch Workstation',
+    sub: 'Electronic Flight Release · ETOPS · CAT · FAR 117',
+    body: 'Integrated dispatch platform issuing electronic flight releases with ETOPS validation, CAT authorization checks, crew legality enforcement under FAR 117, and real-time weather briefings.',
+    stat1: { label: 'Release Time', value: '4.2 min' },
+    stat2: { label: 'Compliance', value: '100%' },
+    img: 'https://images.unsplash.com/photo-1464037866556-6812c9d1c72e?w=1600&q=80',
   },
   {
-    id: 'default-4', order: 3, is_active: true, duration_seconds: 9, category: 'hydraulics',
-    ata_chapter: '29', accent_color: '#3b82f6',
-    image_url: 'https://images.unsplash.com/photo-1578615437406-511cafe4a5c7?w=1600&q=80',
-    title: 'Hydraulic System A & B — ATA 29',
-    subtitle: 'Boeing 737 Series · 3,000 PSI',
-    narration: 'The 737NG operates three independent hydraulic systems at 3,000 PSI. System A powers ground spoilers, thrust reversers, nose wheel steering, and autopilot A. Loss of System A requires alternate nose wheel steering via differential braking. Always check reservoir quantity visually before dispatch — low-level sensors are MEL-able only with a maintenance action performed.',
+    id: 'mod-techops', accent: '#8b5cf6', icon: 'techops',
+    label: 'TechOps Electronic Logbook',
+    sub: 'Digital Discrepancies · RII Sign-off · 14 CFR 43.9',
+    body: 'Fully digital aircraft logbook with cryptographic signing, RII inspection workflow, MEL cross-reference, and automatic escalation to MCC. Every entry is legally traceable per 14 CFR Part 43.',
+    stat1: { label: 'Entries/Day', value: '340+' },
+    stat2: { label: 'Sign Method', value: 'SHA-256' },
+    img: 'https://images.unsplash.com/photo-1517479149777-5f3b1511d5ad?w=1600&q=80',
   },
   {
-    id: 'default-5', order: 4, is_active: true, duration_seconds: 9, category: 'emergency',
-    ata_chapter: '26', accent_color: '#f97316',
-    image_url: 'https://images.unsplash.com/photo-1530521954074-e64f6810b32d?w=1600&q=80',
-    title: 'Fire Detection & Suppression — ATA 26',
-    subtitle: 'Engine & APU Fire Systems',
-    narration: 'Engine fire bottles are single-shot, non-rechargeable. During an engine fire drill, confirm the warning light is illuminated before discharge. The fire handle closes the fuel SOV, bleed air, arms the bottles, and trips the generator simultaneously. Time is critical — an uncontrolled engine fire can cause structural failure within 90 seconds.',
+    id: 'mod-etops', accent: '#a78bfa', icon: 'etops',
+    label: 'ETOPS Monitor',
+    sub: '120 · 180 · 370 Min Authorization · Real-Time Alerts',
+    body: 'Per-tail ETOPS authorization tracking cross-referenced against engine health, oil consumption trends, and MEL deferrals. Dispatchers and MCC see live downgrade alerts before any oceanic departure.',
+    stat1: { label: 'Max ETOPS', value: '370 min' },
+    stat2: { label: 'Alert Lead', value: 'Pre-flight' },
+    img: 'https://images.unsplash.com/photo-1530521954074-e64f6810b32d?w=1600&q=80',
   },
   {
-    id: 'default-6', order: 5, is_active: true, duration_seconds: 9, category: 'regulatory',
-    ata_chapter: '05', accent_color: '#10b981',
-    image_url: 'https://images.unsplash.com/photo-1474302770737-173ee21bab63?w=1600&q=80',
-    title: 'MRO Line Operations — Return to Service',
-    subtitle: '14 CFR 43.9 · Certificate of Release',
-    narration: 'Every maintenance action on a U.S.-registered aircraft requires a signed return to service entry per 14 CFR 43.9. MRO facilities must maintain complete traceability from part removal through overhaul, re-installation, and final sign-off. An incomplete entry can render the maintenance legally invalid — exposing both the technician and operator to certificate action.',
+    id: 'mod-engine', accent: '#f97316', icon: 'engine',
+    label: 'Engine Health Analytics',
+    sub: 'EGT Margin · Oil Consumption · LLP Life · OEM Telemetry',
+    body: 'Real-time EGT margin trending, oil consumption monitoring, and Life-Limited Parts cycle tracking. Telemetry ingested from Boeing AHM, Airbus Skywise, and Embraer AHEAD with automated escalation to Engineering.',
+    stat1: { label: 'Engines Tracked', value: 'All Fleet' },
+    stat2: { label: 'OEM Feeds', value: '3 Live' },
+    img: 'https://images.unsplash.com/photo-1540962351504-03099e0a754b?w=1600&q=80',
   },
   {
-    id: 'default-7', order: 6, is_active: true, duration_seconds: 9, category: 'flight_controls',
-    ata_chapter: '27', accent_color: '#8b5cf6',
-    image_url: 'https://images.unsplash.com/photo-1517479149777-5f3b1511d5ad?w=1600&q=80',
-    title: 'Departure — Flap & Slat Configuration',
-    subtitle: 'ATA 27 · Takeoff Configuration Warning',
-    narration: 'Takeoff configuration warnings exist because improper flap or slat settings are a leading cause of departure accidents. The TOCW system monitors flap position, stabilizer trim, speed brake, and parking brake before thrust application. Never silence a configuration warning without verifying the actual aircraft state. A rushed departure with flaps up has no survivable outcome below V1.',
+    id: 'mod-tracker', accent: '#22c55e', icon: 'tracker',
+    label: 'World Route Map',
+    sub: 'FlightAware AeroAPI · Live Position · Track Overlay',
+    body: 'Live global flight tracking powered by FlightAware AeroAPI. Aircraft positions, route tracks, altitude, groundspeed, and heading — rendered in real time on a world map with airline and airport filtering.',
+    stat1: { label: 'Data Source', value: 'AeroAPI' },
+    stat2: { label: 'Refresh', value: '2 min' },
+    img: 'https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=1600&q=80',
   },
   {
-    id: 'default-8', order: 7, is_active: true, duration_seconds: 9, category: 'apu',
-    ata_chapter: '49', accent_color: '#eab308',
-    image_url: 'https://images.unsplash.com/photo-1542296332-2e4473faf563?w=1600&q=80',
-    title: 'APU Operations — ATA 49',
-    subtitle: 'Honeywell 131-9B · Ground Start Envelope',
-    narration: 'The Auxiliary Power Unit provides bleed air for main engine start and ground electrical power. APU start is inhibited above 41,000 feet. Oil level must be checked within the approved servicing window — typically within 30 minutes of shutdown. An APU fire on the ground during boarding is a silent emergency; crew must initiate evacuation while APU fire suppression engages automatically.',
-  },
-  {
-    id: 'default-9', order: 8, is_active: true, duration_seconds: 10, category: 'engine',
-    ata_chapter: '72', accent_color: '#f97316',
-    image_url: 'https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=1600&q=80',
-    title: 'GE90-115B — World\'s Most Powerful Turbofan',
-    subtitle: 'Boeing 777-300ER · ATA 72 · 115,300 lbf Thrust',
-    narration: 'The GE90-115B holds the world record for highest thrust produced by a commercial jet engine at 127,900 lbf during certification testing. Its 128-inch composite fan — the largest in commercial aviation — delivers exceptional bypass efficiency at a 9:1 ratio. On-wing life monitoring via GE\'s Flight Pulse system tracks EGT margins, vibration signatures, and LLP cycle counts in real time. Oil consumption trending above baseline on either module requires immediate borescope evaluation before the next revenue flight.',
-  },
-  {
-    id: 'default-10', order: 9, is_active: true, duration_seconds: 10, category: 'avionics',
-    ata_chapter: '31', accent_color: '#06b6d4',
-    image_url: 'https://images.unsplash.com/photo-1556388158-158ea5ccacbd?w=1600&q=80',
-    title: 'Boeing 787 Dreamliner Cockpit — ATA 31',
-    subtitle: 'Common Core System · Five 15.1" LCD Displays',
-    narration: 'The 787 flight deck introduces the Common Core System — a centralised computing architecture replacing traditional line-replaceable avionics boxes with a network of standardised blade servers. Five large-format LCD displays present primary flight, navigation, engine, and systems data with fully configurable crew formats. The dual Head-Up Displays provide primary flight reference down to CAT IIIa minimums. Electronic checklists, e-enabled maintenance access, and real-time Boeing Airplane Health Management data are all integrated through the aircraft\'s IP-based avionics network.',
-  },
-  // ── Fleet & Modules Showcase slides ──
-  {
-    id: 'fleet-1', order: 10, is_active: true, duration_seconds: 12, category: 'general',
-    accent_color: '#f59e0b',
-    image_url: 'https://images.unsplash.com/photo-1436491865332-7a61a109cc05?w=1600&q=80',
-    title: 'Aerodyne Fleet — Supported Aircraft',
-    subtitle: 'B737 Family · B777 · B787 · A320/A321 · A350 · E-Series · CRJ',
-    narration: 'Aerodyne Fleet OS supports the full spectrum of modern commercial airframes: Boeing 737-700/800/900, 737 MAX 8/9, 757, 767, 777, and 787; Airbus A320, A321, and A350; Embraer E175 and E190; and Bombardier CRJ700/900. Each tail is tracked with type-specific MEL, ETOPS, CAT approval, engine configuration, and performance profile — ensuring accurate dispatch decisions and compliant maintenance actions across every fleet type.',
-  },
-  {
-    id: 'fleet-2', order: 11, is_active: true, duration_seconds: 12, category: 'avionics',
-    ata_chapter: '34', accent_color: '#06b6d4',
-    image_url: 'https://images.unsplash.com/photo-1464037866556-6812c9d1c72e?w=1600&q=80',
-    title: 'ILS CAT Approval System',
-    subtitle: 'CAT I · CAT II · CAT IIIa · CAT IIIb · CAT IIIc · Per-Tail Authorization',
-    narration: 'The CAT Approval module tracks per-tail ILS landing category authorizations — from CAT I (DH 200 ft / RVR 1800 ft) down to CAT IIIc (zero DH / zero RVR). Each tail\'s qualification is cross-referenced against its avionics configuration, autopilot channel status, and current MEL deferrals. Dispatcher and MCC can see in real time whether a tail is downgraded below its certified CAT level before a low-visibility dispatch is issued.',
-  },
-  {
-    id: 'fleet-3', order: 12, is_active: true, duration_seconds: 12, category: 'regulatory',
-    ata_chapter: '34', accent_color: '#10b981',
-    image_url: 'https://images.unsplash.com/photo-1474302770737-173ee21bab63?w=1600&q=80',
-    title: 'RVSM — Reduced Vertical Separation Minima',
-    subtitle: 'FL290–FL410 · 1,000 ft Vertical Separation · Altimetry Monitoring',
-    narration: 'Reduced Vertical Separation Minima compresses vertical spacing in upper airspace from 2,000 ft to 1,000 ft between FL290 and FL410, significantly increasing capacity. Every RVSM-approved aircraft must maintain altimetry system accuracy within ±65 ft during a four-hour cruise. The RVSM module monitors approval status per tail, flags any avionics writeups that would invalidate airspace authorization, and alerts MCC if a tail enters RVSM airspace without current approval.',
-  },
-  {
-    id: 'fleet-4', order: 13, is_active: true, duration_seconds: 12, category: 'regulatory',
-    ata_chapter: '34', accent_color: '#a78bfa',
-    image_url: 'https://images.unsplash.com/photo-1530521954074-e64f6810b32d?w=1600&q=80',
-    title: 'ETOPS — Extended Operations Monitor',
-    subtitle: '120 · 180 · 370 Minute Authorization · Per-Tail Tracking · Real-Time Alerts',
-    narration: 'ETOPS authorization determines how far from an adequate airport a twin-engine aircraft may operate. The ETOPS Monitor tracks per-tail approval levels — 120, 180, or 370 minutes — and cross-checks against current engine health, oil consumption trends, MEL deferrals, and maintenance actions that could invalidate authorization. Real-time alerts notify dispatch and MCC when an engine parameter approaches the threshold that triggers ETOPS downgrade before a long oceanic or polar flight.',
-  },
-  {
-    id: 'fleet-5', order: 14, is_active: true, duration_seconds: 12, category: 'avionics',
-    ata_chapter: '34', accent_color: '#38bdf8',
-    image_url: 'https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=1600&q=80',
-    title: 'Avionics Health Dashboard',
-    subtitle: 'Boeing AHM · Airbus Skywise · Embraer AHEAD · ATA 22/31/34/73',
-    narration: 'The Avionics Dashboard aggregates health data from manufacturer telemetry streams — Boeing AHM, Airbus Skywise, and Embraer AHEAD — presenting a unified fault view across the fleet. FMS versions, Nav DB AIRAC cycles, and system-level fault codes (ATA 22 Autopilot, ATA 31 Instruments, ATA 34 Navigation, ATA 73 EEC) are monitored in real time. Write-ups are automatically wired to the electronic logbook and cross-checked against the MEL for dispatch legality.',
-  },
-  {
-    id: 'fleet-6', order: 15, is_active: true, duration_seconds: 12, category: 'flight_controls',
-    ata_chapter: '22', accent_color: '#f97316',
-    image_url: 'https://images.unsplash.com/photo-1517479149777-5f3b1511d5ad?w=1600&q=80',
-    title: 'Flight Operations Suite',
-    subtitle: 'Dispatch · EFB · Crew Legality · FAR 117 · Flight Monitoring',
-    narration: 'The Flight Operations Suite spans the full departure-to-arrival workflow: the Dispatch Workstation issues electronic flight releases with integrated ETOPS validation and CAT authorization; the EFB provides crews with weight & balance, runway analysis, weather briefings, and NOTAM review; the Crew Legality engine enforces FAR 117 rest rules and flags pairing violations in real time; and the Flight Monitoring Console tracks live position, ETA, and fuel burn via FlightAware integration.',
-  },
-  {
-    id: 'fleet-7', order: 16, is_active: true, duration_seconds: 12, category: 'engine',
-    ata_chapter: '79', accent_color: '#fb923c',
-    image_url: 'https://images.unsplash.com/photo-1540962351504-03099e0a754b?w=1600&q=80',
-    title: 'Engine Health & ETOPS Analytics',
-    subtitle: 'EGT Margin · Oil Consumption · LLP Life Tracking · OEM Telemetry',
-    narration: 'Engine Health Analytics provides real-time EGT margin trending, oil consumption rate monitoring, and Life-Limited Parts cycle tracking for every engine in the fleet. The system ingests OEM telemetry and cross-references against CFM, GE, and Pratt & Whitney serviceability limits. When EGT margin erodes beyond threshold or LLP cycles approach their hard limit, automated alerts escalate to MCC and Engineering — enabling proactive shop visit scheduling before in-service reliability is impacted.',
-  },
-  {
-    id: 'fleet-8', order: 17, is_active: true, duration_seconds: 12, category: 'safety',
-    accent_color: '#ef4444',
-    image_url: 'https://images.unsplash.com/photo-1578615437406-511cafe4a5c7?w=1600&q=80',
-    title: 'Maintenance Control Center (MCC)',
-    subtitle: 'MCC Lock · AOG Management · Field Trip Ops · Positive Fix Protocol',
-    narration: 'The Maintenance Control Center is the nerve center of fleet airworthiness. MCC controllers place Positive Fix Locks on aircraft requiring technician concurrence before return to service, manage AOG recovery field trips with full team and logistics tracking, coordinate BOR/ROB supply chain requests, and maintain live oversight of all open OOS entries. Real-time notifications and escalation alerts ensure no aircraft slips through the gap between maintenance completion and airworthiness certification.',
+    id: 'mod-mel', accent: '#3b82f6', icon: 'mel',
+    label: 'MEL Dashboard',
+    sub: 'Category A/B/C/D · Expiry Tracking · AI Insights',
+    body: 'Minimum Equipment List management with automated expiry countdown, AI-driven maintenance prioritization, and fleet-wide deferral visibility. Chronic item watchlist flags repeat discrepancies before they impact reliability.',
+    stat1: { label: 'Categories', value: 'A/B/C/D' },
+    stat2: { label: 'AI Analysis', value: 'Live' },
+    img: 'https://images.unsplash.com/photo-1474302770737-173ee21bab63?w=1600&q=80',
   },
 ];
 
-function ProgressBar({ duration, onComplete, paused }) {
-  const [pct, setPct] = useState(0);
-  const startRef = useRef(Date.now());
-  const pausedRef = useRef(0);
-  const pauseStartRef = useRef(null);
+const ICON_MAP = {
+  mcc:      <AlertTriangle className="w-6 h-6" />,
+  fleet:    <Plane className="w-6 h-6" />,
+  dispatch: <FileCheck className="w-6 h-6" />,
+  techops:  <BookOpen className="w-6 h-6" />,
+  etops:    <Globe className="w-6 h-6" />,
+  engine:   <Zap className="w-6 h-6" />,
+  tracker:  <Map className="w-6 h-6" />,
+  mel:      <Layers className="w-6 h-6" />,
+};
 
-  useEffect(() => {
-    setPct(0);
-    startRef.current = Date.now();
-    pausedRef.current = 0;
-    pauseStartRef.current = null;
-  }, [duration, onComplete]);
-
-  useEffect(() => {
-    if (paused) {
-      pauseStartRef.current = Date.now();
-    } else if (pauseStartRef.current) {
-      pausedRef.current += Date.now() - pauseStartRef.current;
-      pauseStartRef.current = null;
-    }
-  }, [paused]);
-
-  useEffect(() => {
-    const tick = () => {
-      if (paused) return;
-      const elapsed = Date.now() - startRef.current - pausedRef.current;
-      const p = Math.min((elapsed / (duration * 1000)) * 100, 100);
-      setPct(p);
-      if (p >= 100) onComplete();
-    };
-    const id = setInterval(tick, 50);
-    return () => clearInterval(id);
-  }, [duration, onComplete, paused]);
-
+// ── Animated aircraft SVG ─────────────────────────────────────────────────────
+function AircraftSVG({ color = '#f59e0b', size = 120, opacity = 0.12, className = '' }) {
   return (
-    <div className="h-0.5 bg-white/10 rounded-full overflow-hidden">
-      <div className="h-full bg-primary transition-none rounded-full" style={{ width: `${pct}%` }} />
+    <svg width={size} height={size * 0.55} viewBox="0 0 200 110" className={className} style={{ opacity }}>
+      {/* Fuselage */}
+      <ellipse cx="100" cy="55" rx="85" ry="14" fill={color} />
+      {/* Nose cone */}
+      <path d="M185 55 Q202 55 200 55 Q202 48 185 48 Z" fill={color} />
+      {/* Wings */}
+      <path d="M110 55 L130 10 L145 12 L125 58 Z" fill={color} />
+      <path d="M110 55 L130 100 L145 98 L125 52 Z" fill={color} />
+      {/* Horizontal stabilizer */}
+      <path d="M30 55 L18 35 L28 36 L38 55 Z" fill={color} />
+      <path d="M30 55 L18 75 L28 74 L38 55 Z" fill={color} />
+      {/* Vertical stabilizer */}
+      <path d="M32 55 L22 30 L32 32 L38 55 Z" fill={color} />
+      {/* Engine #1 */}
+      <ellipse cx="122" cy="22" rx="9" ry="5" fill={color} opacity="0.7" />
+      {/* Engine #2 */}
+      <ellipse cx="122" cy="88" rx="9" ry="5" fill={color} opacity="0.7" />
+      {/* Windows */}
+      {[0,1,2,3,4,5,6,7,8].map(i => (
+        <rect key={i} x={80 - i * 8} y={51} width="4" height="4" rx="1" fill="white" opacity="0.25" />
+      ))}
+    </svg>
+  );
+}
+
+// ── Floating aircraft trail ───────────────────────────────────────────────────
+function FloatingAircraft({ accent }) {
+  return (
+    <div className="absolute inset-0 pointer-events-none overflow-hidden">
+      {/* Large bg aircraft */}
+      <motion.div
+        className="absolute"
+        style={{ top: '8%', left: '-15%' }}
+        animate={{ x: ['0%', '130%'] }}
+        transition={{ duration: 28, repeat: Infinity, ease: 'linear' }}
+      >
+        <AircraftSVG color={accent} size={340} opacity={0.06} />
+      </motion.div>
+
+      {/* Mid aircraft going right */}
+      <motion.div
+        className="absolute"
+        style={{ top: '55%', left: '-10%' }}
+        animate={{ x: ['0%', '120%'] }}
+        transition={{ duration: 38, repeat: Infinity, ease: 'linear', delay: 6 }}
+      >
+        <AircraftSVG color="#ffffff" size={200} opacity={0.04} />
+      </motion.div>
+
+      {/* Small high aircraft */}
+      <motion.div
+        className="absolute"
+        style={{ top: '22%', right: '-8%' }}
+        animate={{ x: ['-120%', '0%'] }}
+        transition={{ duration: 22, repeat: Infinity, ease: 'linear', delay: 2 }}
+      >
+        <AircraftSVG color={accent} size={150} opacity={0.07} />
+      </motion.div>
+
+      {/* Dotted contrail lines */}
+      <svg className="absolute inset-0 w-full h-full" style={{ opacity: 0.06 }}>
+        <line x1="0" y1="20%" x2="100%" y2="18%" stroke="white" strokeWidth="1" strokeDasharray="8 14" />
+        <line x1="0" y1="62%" x2="100%" y2="65%" stroke="white" strokeWidth="1" strokeDasharray="6 18" />
+        <line x1="0" y1="40%" x2="100%" y2="38%" stroke={accent} strokeWidth="0.8" strokeDasharray="4 20" />
+      </svg>
     </div>
   );
 }
 
+// ── HUD corner elements ───────────────────────────────────────────────────────
+function HudCorner({ position = 'tl', color }) {
+  const posClass = {
+    tl: 'top-4 left-4',
+    tr: 'top-4 right-4',
+    bl: 'bottom-4 left-4',
+    br: 'bottom-4 right-4',
+  }[position];
+  const borders = {
+    tl: 'border-t-2 border-l-2 rounded-tl-lg',
+    tr: 'border-t-2 border-r-2 rounded-tr-lg',
+    bl: 'border-b-2 border-l-2 rounded-bl-lg',
+    br: 'border-b-2 border-r-2 rounded-br-lg',
+  }[position];
+  return (
+    <div className={cn('absolute w-6 h-6 pointer-events-none', posClass, borders)}
+      style={{ borderColor: `${color}60` }} />
+  );
+}
+
+// ── Live stats bar ────────────────────────────────────────────────────────────
+function LiveStatsBar({ aircraft, oosEntries, melItems }) {
+  const total = aircraft.length;
+  const down = aircraft.filter(a => a.status === 'oos' || a.status === 'maintenance').length;
+  const active = aircraft.filter(a => a.status === 'active').length;
+  const openMel = melItems.filter(m => m.status !== 'closed').length;
+  const openOos = oosEntries.filter(e => e.status !== 'released').length;
+
+  const items = [
+    { label: 'Fleet', value: total || '—' },
+    { label: 'Active', value: active || '—', green: true },
+    { label: 'OOS/MX', value: down || '0', red: down > 0 },
+    { label: 'Open OOS', value: openOos || '0' },
+    { label: 'Open MEL', value: openMel || '0', amber: openMel > 0 },
+  ];
+
+  return (
+    <div className="flex items-center gap-6">
+      {items.map(({ label, value, green, red, amber }) => (
+        <div key={label} className="text-center">
+          <p className={cn('text-base font-black leading-none',
+            green ? 'text-green-400' : red ? 'text-red-400' : amber ? 'text-amber-400' : 'text-white/60'
+          )}>{value}</p>
+          <p className="text-[9px] text-white/30 uppercase tracking-widest mt-0.5">{label}</p>
+        </div>
+      ))}
+    </div>
+  );
+}
+
+// ── Progress bar ──────────────────────────────────────────────────────────────
+function ProgressBar({ duration, onComplete, accent }) {
+  const [pct, setPct] = useState(0);
+  const startRef = useRef(Date.now());
+
+  useEffect(() => {
+    setPct(0);
+    startRef.current = Date.now();
+  }, [duration, onComplete]);
+
+  useEffect(() => {
+    const id = setInterval(() => {
+      const elapsed = Date.now() - startRef.current;
+      const p = Math.min((elapsed / (duration * 1000)) * 100, 100);
+      setPct(p);
+      if (p >= 100) onComplete();
+    }, 50);
+    return () => clearInterval(id);
+  }, [duration, onComplete]);
+
+  return (
+    <div className="h-0.5 bg-white/10 rounded-full overflow-hidden w-full">
+      <div className="h-full rounded-full transition-none"
+        style={{ width: `${pct}%`, background: accent }} />
+    </div>
+  );
+}
+
+// ── Module dot grid ───────────────────────────────────────────────────────────
+function ModuleDots({ slides, currentIdx, onSelect, accent }) {
+  return (
+    <div className="flex items-center justify-center gap-2 flex-wrap max-w-md mx-auto">
+      {slides.map((s, i) => (
+        <button
+          key={s.id}
+          onClick={e => { e.stopPropagation(); onSelect(i); }}
+          className="rounded-full transition-all duration-300"
+          style={{
+            width: i === currentIdx ? 24 : 8,
+            height: 8,
+            background: i === currentIdx ? accent : 'rgba(255,255,255,0.15)',
+          }}
+        />
+      ))}
+    </div>
+  );
+}
+
+// ── Main Screensaver ──────────────────────────────────────────────────────────
 export default function Screensaver({ onDismiss }) {
   const [idx, setIdx] = useState(0);
-  const [paused, setPaused] = useState(false);
 
-  const { data: dbSlides = [] } = useQuery({
-    queryKey: ['screensaver-slides'],
-    queryFn: () => base44.entities.ScreensaverSlide.list('order', 200),
+  const { data: aircraft = [] } = useQuery({
+    queryKey: ['ss-aircraft'],
+    queryFn: () => base44.entities.Aircraft.list('tail_number', 500),
+    staleTime: 300000,
+  });
+  const { data: oosEntries = [] } = useQuery({
+    queryKey: ['ss-oos'],
+    queryFn: () => base44.entities.OOSEntry.list('-created_date', 100),
+    staleTime: 300000,
+  });
+  const { data: melItems = [] } = useQuery({
+    queryKey: ['ss-mel'],
+    queryFn: () => base44.entities.MELItem.list('-created_date', 200),
+    staleTime: 300000,
   });
 
-  const slides = (dbSlides.filter(s => s.is_active).length > 0
-    ? [...dbSlides.filter(s => s.is_active)].sort((a, b) => (a.order ?? 0) - (b.order ?? 0))
-    : DEFAULT_SLIDES);
-
-  const slide = slides[idx] || slides[0];
+  const slides = MODULE_SLIDES;
+  const slide = slides[idx];
+  const accent = slide?.accent || '#f59e0b';
 
   const next = useCallback(() => setIdx(i => (i + 1) % slides.length), [slides.length]);
   const prev = useCallback(() => setIdx(i => (i - 1 + slides.length) % slides.length), [slides.length]);
 
-  const accent = slide?.accent_color || '#f59e0b';
-  const catIcon = CATEGORY_ICONS[slide?.category] || '✈️';
+  // Current time
+  const [time, setTime] = useState('');
+  useEffect(() => {
+    const tick = () => setTime(new Date().toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: false }));
+    tick();
+    const id = setInterval(tick, 1000);
+    return () => clearInterval(id);
+  }, []);
 
   return (
     <motion.div
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       exit={{ opacity: 0 }}
-      transition={{ duration: 0.6 }}
-      className="fixed inset-0 z-[9999] bg-[#030508] flex flex-col overflow-hidden cursor-pointer select-none"
+      transition={{ duration: 0.7 }}
+      className="fixed inset-0 z-[9999] bg-[#020508] flex flex-col overflow-hidden cursor-pointer select-none"
       onClick={onDismiss}
     >
-      {/* Background subtle grid */}
-      <div className="absolute inset-0 opacity-5"
-        style={{ backgroundImage: 'linear-gradient(rgba(255,255,255,.3) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,.3) 1px, transparent 1px)', backgroundSize: '40px 40px' }} />
+      {/* Subtle grid */}
+      <div className="absolute inset-0 pointer-events-none"
+        style={{
+          backgroundImage: 'linear-gradient(rgba(255,255,255,.04) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,.04) 1px, transparent 1px)',
+          backgroundSize: '60px 60px',
+        }} />
 
-      {/* Background image */}
-      {slide?.image_url && (
-        <>
+      {/* Background image with cinematic overlay */}
+      <AnimatePresence mode="wait">
+        <motion.div key={`bg-${idx}`} className="absolute inset-0"
+          initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+          transition={{ duration: 1.2 }}>
           <img
-            src={slide.image_url}
-            alt="Slide background"
-            className="absolute inset-0 w-full h-full object-cover opacity-20 transition-opacity duration-1000"
+            src={slide.img}
+            alt=""
+            className="absolute inset-0 w-full h-full object-cover"
+            style={{ opacity: 0.12 }}
             onError={e => e.currentTarget.style.display = 'none'}
           />
-          <div className="absolute inset-0" style={{ background: 'linear-gradient(to top, #030508 30%, rgba(3,5,8,0.55) 70%, rgba(3,5,8,0.4) 100%)' }} />
-        </>
-      )}
+          <div className="absolute inset-0"
+            style={{ background: 'linear-gradient(135deg, #020508 0%, rgba(2,5,8,0.7) 50%, #020508 100%)' }} />
+        </motion.div>
+      </AnimatePresence>
 
-      {/* Accent glow */}
-      <div className="absolute inset-0 pointer-events-none"
-        style={{ background: `radial-gradient(ellipse 60% 50% at 50% 100%, ${accent}22 0%, transparent 70%)` }} />
+      {/* Accent radial glow */}
+      <AnimatePresence mode="wait">
+        <motion.div key={`glow-${idx}`}
+          className="absolute inset-0 pointer-events-none"
+          initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+          transition={{ duration: 1 }}
+          style={{ background: `radial-gradient(ellipse 70% 60% at 50% 85%, ${accent}18 0%, transparent 65%)` }} />
+      </AnimatePresence>
 
-      {/* Top bar */}
-      <div className="flex items-center justify-between px-8 pt-6 pb-2 flex-shrink-0 relative z-10 border-b border-white/10">
+      {/* Floating aircraft graphics */}
+      <FloatingAircraft accent={accent} />
+
+      {/* HUD corner brackets */}
+      <HudCorner position="tl" color={accent} />
+      <HudCorner position="tr" color={accent} />
+      <HudCorner position="bl" color={accent} />
+      <HudCorner position="br" color={accent} />
+
+      {/* ── TOP BAR ── */}
+      <div className="relative z-10 flex items-center justify-between px-10 pt-6 pb-3 border-b flex-shrink-0"
+        style={{ borderColor: `${accent}20` }}>
+        {/* Brand */}
         <div className="flex items-center gap-3">
-          <div className="w-8 h-8 rounded-lg flex items-center justify-center" style={{ background: `${accent}33` }}>
+          <div className="w-9 h-9 rounded-xl flex items-center justify-center border"
+            style={{ background: `${accent}18`, borderColor: `${accent}40` }}>
             <Plane className="w-4 h-4" style={{ color: accent }} />
           </div>
           <div>
-            <p className="text-xs font-extrabold text-white/80 uppercase tracking-[0.2em]">Aerodyne Fleet OS v2.1</p>
-            <p className="text-[10px] text-white/30 tracking-widest">Safety & Systems Knowledge Database</p>
+            <p className="text-xs font-black tracking-[0.25em] uppercase text-white/80">Aerodyne Fleet OS</p>
+            <p className="text-[9px] tracking-[0.2em] uppercase" style={{ color: `${accent}80` }}>
+              Aviation Operations Platform · v2.1
+            </p>
           </div>
         </div>
-        <div className="flex items-center gap-4">
-          <div className="flex items-center gap-2 text-[10px]">
-            <span className="w-2 h-2 rounded-full bg-green-400 animate-pulse" />
-            <span className="text-white/50">SYSTEM OK</span>
+
+        {/* Live stats from DB */}
+        <LiveStatsBar aircraft={aircraft} oosEntries={oosEntries} melItems={melItems} />
+
+        {/* Time + dismiss */}
+        <div className="flex items-center gap-5">
+          <div className="text-right">
+            <p className="text-xl font-black font-mono text-white/70 leading-none">{time}</p>
+            <p className="text-[9px] text-white/30 tracking-widest uppercase mt-0.5">UTC / ZULU</p>
           </div>
-          <div className="flex items-center gap-2 text-[10px]">
-            <span className="w-2 h-2 rounded-full bg-cyan-400" />
-            <span className="text-white/50">DATA SYNC</span>
+          <div className="flex items-center gap-2 text-[9px]">
+            <span className="w-1.5 h-1.5 rounded-full bg-green-400 animate-pulse" />
+            <span className="text-white/30 uppercase tracking-widest">Live</span>
           </div>
           <button
             onClick={e => { e.stopPropagation(); onDismiss(); }}
-            className="w-8 h-8 rounded-lg bg-white/8 flex items-center justify-center hover:bg-white/15 transition-colors flex-shrink-0"
+            className="w-8 h-8 rounded-lg bg-white/8 flex items-center justify-center hover:bg-white/15 transition-colors border border-white/10"
           >
-            <X className="w-4 h-4 text-white/60" />
+            <X className="w-3.5 h-3.5 text-white/50" />
           </button>
         </div>
       </div>
 
-      {/* Slide progress dots */}
-      <div className="flex items-center justify-center gap-1.5 pt-2 flex-shrink-0 relative z-10">
-        {slides.map((_, i) => (
-          <button
-            key={i}
-            onClick={e => { e.stopPropagation(); setIdx(i); }}
-            className="rounded-full transition-all"
-            style={{
-              width: i === idx ? 20 : 6, height: 6,
-              background: i === idx ? accent : 'rgba(255,255,255,0.15)',
-            }}
-          />
-        ))}
-      </div>
-
-      {/* Main content */}
-      <div className="flex-1 flex items-center justify-center px-8 relative z-10">
+      {/* ── MAIN CONTENT ── */}
+      <div className="flex-1 flex items-center justify-center px-10 relative z-10 overflow-hidden">
         <AnimatePresence mode="wait">
           <motion.div
             key={idx}
-            initial={{ opacity: 0, y: 24 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -16 }}
-            transition={{ duration: 0.5, ease: 'easeOut' }}
-            className="max-w-3xl w-full text-center space-y-6"
+            initial={{ opacity: 0, y: 30, scale: 0.97 }}
+            animate={{ opacity: 1, y: 0, scale: 1 }}
+            exit={{ opacity: 0, y: -20, scale: 0.97 }}
+            transition={{ duration: 0.55, ease: 'easeOut' }}
+            className="w-full max-w-4xl"
             onClick={e => e.stopPropagation()}
           >
-            {/* Category badge */}
-            <div className="flex items-center justify-center gap-2">
-              <span className="text-xl">{catIcon}</span>
-              <span className="text-xs font-extrabold uppercase tracking-[0.25em]"
-                style={{ color: accent }}>
-                {slide?.category?.replace(/_/g, ' ')}
-                {slide?.ata_chapter ? ` · ATA ${slide.ata_chapter}` : ''}
-              </span>
+            {/* Module icon + label row */}
+            <div className="flex items-center justify-center gap-3 mb-6">
+              <div className="w-12 h-12 rounded-2xl flex items-center justify-center border-2"
+                style={{ background: `${accent}18`, borderColor: `${accent}50`, color: accent }}>
+                {ICON_MAP[slide.icon]}
+              </div>
+              <div>
+                <p className="text-[10px] font-extrabold uppercase tracking-[0.3em]"
+                  style={{ color: `${accent}90` }}>
+                  Module {idx + 1} of {slides.length}
+                </p>
+                <p className="text-sm font-black text-white/50 tracking-widest uppercase">{slide.label}</p>
+              </div>
             </div>
 
-            {/* Title */}
-            <div>
-              <h1 className="text-4xl md:text-5xl font-black text-white leading-tight tracking-tight">
-                {slide?.title}
+            {/* Main title */}
+            <div className="text-center mb-4">
+              <h1 className="text-5xl md:text-6xl font-black text-white leading-[1.05] tracking-tight">
+                {slide.label}
               </h1>
-              {slide?.subtitle && (
-                <p className="text-lg font-semibold mt-2" style={{ color: accent }}>{slide.subtitle}</p>
-              )}
+              <p className="text-base font-semibold mt-2 tracking-wide" style={{ color: accent }}>
+                {slide.sub}
+              </p>
             </div>
 
             {/* Divider */}
-            <div className="flex items-center justify-center gap-4">
-              <div className="flex-1 max-w-16 h-px" style={{ background: `${accent}40` }} />
-              <Shield className="w-4 h-4 opacity-40" style={{ color: accent }} />
-              <div className="flex-1 max-w-16 h-px" style={{ background: `${accent}40` }} />
+            <div className="flex items-center gap-3 my-6 max-w-sm mx-auto">
+              <div className="flex-1 h-px" style={{ background: `${accent}30` }} />
+              <div className="w-1.5 h-1.5 rounded-full" style={{ background: accent }} />
+              <div className="flex-1 h-px" style={{ background: `${accent}30` }} />
             </div>
 
-            {/* Narration */}
-            <p className="text-base md:text-lg text-white/75 leading-relaxed font-light max-w-2xl mx-auto">
-              {slide?.narration}
+            {/* Body */}
+            <p className="text-center text-lg text-white/65 leading-relaxed font-light max-w-2xl mx-auto mb-8">
+              {slide.body}
             </p>
+
+            {/* Stat cards */}
+            <div className="flex items-center justify-center gap-4">
+              {[slide.stat1, slide.stat2].map((s, i) => (
+                <div key={i}
+                  className="px-6 py-3 rounded-2xl border flex flex-col items-center gap-1 min-w-[120px]"
+                  style={{ background: `${accent}0d`, borderColor: `${accent}35` }}>
+                  <p className="text-2xl font-black" style={{ color: accent }}>{s.value}</p>
+                  <p className="text-[10px] text-white/40 uppercase tracking-widest">{s.label}</p>
+                </div>
+              ))}
+            </div>
           </motion.div>
         </AnimatePresence>
       </div>
 
-      {/* System status bar */}
-      <div className="flex-shrink-0 px-8 py-3 relative z-10 border-t border-white/10 bg-white/5">
-        <div className="max-w-3xl mx-auto flex items-center justify-between text-[9px] text-white/40 tracking-widest uppercase">
-          <span>Fleet Status: OPERATIONAL</span>
-          <span>·</span>
-          <span>Maintenance Data: SYNCED</span>
-          <span>·</span>
-          <span>Compliance: 98.7%</span>
-          <span>·</span>
-          <span>Last Update: Live</span>
-        </div>
-      </div>
+      {/* ── BOTTOM ── */}
+      <div className="relative z-10 flex-shrink-0 px-10 pb-8 space-y-4 border-t"
+        style={{ borderColor: `${accent}20` }}>
 
-      {/* Bottom controls */}
-      <div className="flex-shrink-0 px-8 pb-8 relative z-10 space-y-4">
-        <div className="max-w-xl mx-auto">
+        {/* Progress bar */}
+        <div className="pt-4 max-w-lg mx-auto">
           <ProgressBar
-            key={`${idx}-${slide?.duration_seconds}`}
-            duration={slide?.duration_seconds || 8}
+            key={`prog-${idx}`}
+            duration={12}
             onComplete={next}
-            paused={paused}
+            accent={accent}
           />
         </div>
 
-        <div className="flex items-center justify-between max-w-xl mx-auto">
+        {/* Dots */}
+        <ModuleDots slides={slides} currentIdx={idx} onSelect={setIdx} accent={accent} />
+
+        {/* Nav */}
+        <div className="flex items-center justify-between max-w-lg mx-auto">
           <button onClick={e => { e.stopPropagation(); prev(); }}
-            className="flex items-center gap-2 text-xs font-bold text-white/40 hover:text-white/80 transition-colors">
+            className="flex items-center gap-2 text-xs font-bold text-white/30 hover:text-white/70 transition-colors">
             <ChevronLeft className="w-4 h-4" /> Prev
           </button>
-          <p className="text-[10px] text-white/25 tracking-widest uppercase">
-            Click anywhere to dismiss · {idx + 1} / {slides.length}
+          <p className="text-[9px] text-white/20 tracking-widest uppercase">
+            Click anywhere to dismiss
           </p>
           <button onClick={e => { e.stopPropagation(); next(); }}
-            className="flex items-center gap-2 text-xs font-bold text-white/40 hover:text-white/80 transition-colors">
+            className="flex items-center gap-2 text-xs font-bold text-white/30 hover:text-white/70 transition-colors">
             Next <ChevronRight className="w-4 h-4" />
           </button>
         </div>
