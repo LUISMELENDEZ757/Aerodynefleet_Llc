@@ -1,0 +1,82 @@
+{
+  "name": "MELComplianceStatus",
+  "type": "object",
+  "description": "MEL compliance status snapshot for a specific aircraft tail \u2014 aggregates operational impacts from all active MEL deferrals.",
+  "properties": {
+    "tail_number": {
+      "type": "string",
+      "description": "Aircraft tail number e.g. N123AB"
+    },
+    "etops_allowed": {
+      "type": "boolean",
+      "default": true,
+      "description": "False = ETOPS operations blocked by active MEL"
+    },
+    "rvsm_allowed": {
+      "type": "boolean",
+      "default": true,
+      "description": "False = RVSM approval blocked by active MEL"
+    },
+    "catii_allowed": {
+      "type": "boolean",
+      "default": true,
+      "description": "False = CAT II/III approaches blocked by active MEL"
+    },
+    "performance_limited": {
+      "type": "boolean",
+      "default": false,
+      "description": "True = one or more MELs impose performance penalty"
+    },
+    "route_limited": {
+      "type": "boolean",
+      "default": false,
+      "description": "True = one or more MELs impose route restrictions"
+    },
+    "dispatch_procedures_required": {
+      "type": "boolean",
+      "default": false,
+      "description": "True = special dispatch procedures required due to active MELs"
+    },
+    "crew_procedures_required": {
+      "type": "boolean",
+      "default": false,
+      "description": "True = special crew procedures required due to active MELs"
+    },
+    "speed_limit": {
+      "type": "string",
+      "description": "Most restrictive speed limit aggregated from active MELs e.g. 250 KIAS MAX"
+    },
+    "altitude_limit": {
+      "type": "string",
+      "description": "Most restrictive altitude limit aggregated from active MELs e.g. MAX FL290"
+    },
+    "weight_limit": {
+      "type": "string",
+      "description": "Most restrictive weight limit aggregated from active MELs e.g. MTOW -3000 lbs"
+    },
+    "apu_required": {
+      "type": "boolean",
+      "default": false,
+      "description": "True = APU must be operative for dispatch due to active MELs"
+    },
+    "fire_protection_limit": {
+      "type": "string",
+      "description": "Most restrictive fire suppression time limit from active MELs"
+    },
+    "severity": {
+      "type": "string",
+      "enum": [
+        "NORMAL",
+        "LIMITED",
+        "RESTRICTED",
+        "BLOCKED"
+      ],
+      "default": "NORMAL",
+      "description": "Overall compliance severity: NORMAL = no restrictions, LIMITED = minor restrictions, RESTRICTED = significant restrictions, BLOCKED = dispatch blocked"
+    }
+  },
+  "required": [
+    "tail_number",
+    "severity"
+  ]
+}
