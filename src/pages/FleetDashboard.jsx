@@ -696,11 +696,25 @@ function AircraftCard({ aircraft, onSelect, discrepancies, melItems = [], active
             {aircraft.cat_approval}
           </span>
         )}
-        {activeMels.length > 0 && (
-          <span className="text-[9px] font-black px-1.5 py-0.5 rounded bg-[#FFA000]/20 text-[#FFA000] border border-[#FFA000]/40">
-            MEL {activeMels.length}
-          </span>
-        )}
+        {activeMels.length > 0 && (() => {
+          const restrictive = activeMels.filter(m =>
+            m.flight_restrictions || m.etops_critical || m.etops_impact === 'NO_ETOPS' ||
+            m.etops_impact === 'ETOPS_WITH_LIMITS' || m.placard_required
+          );
+          return restrictive.length > 0 ? (
+            <Link
+              to={`/AircraftDetail?tail=${aircraft.tail_number}`}
+              onClick={e => e.stopPropagation()}
+              className="text-[9px] font-black px-1.5 py-0.5 rounded bg-red-900/30 text-red-400 border border-red-500/50 hover:bg-red-900/50 transition-colors"
+            >
+              {activeMels.length} MEL · Restrictive
+            </Link>
+          ) : (
+            <span className="text-[9px] font-black px-1.5 py-0.5 rounded bg-[#FFA000]/20 text-[#FFA000] border border-[#FFA000]/40">
+              MEL {activeMels.length}
+            </span>
+          );
+        })()}
         {acLock && (
           <span className="text-[9px] font-black px-1.5 py-0.5 rounded bg-[#D32F2F]/20 text-[#EF5350] border border-[#D32F2F]/40 flex items-center gap-0.5">
             <Lock className="w-2 h-2" /> LOCKED
