@@ -883,14 +883,124 @@ function OxygenServiceModal({ onClose }) {
   );
 }
 
+// ── Correct Discrepancy Modal ───────────────────────────────────────────────
+function CorrectDiscrepancyModal({ entry, onClose }) {
+  const queryClient = useQueryClient();
+  const [form, setForm] = useState({
+    corrective_action: '',
+    technician_name: entry.technician_name || '',
+    technician_id: entry.technician_id || '',
+    mark_cleared: true,
+  });
+  const set = (k, v) => setForm(p => ({ ...p, [k]: v }));
+
+  const mutation = useMutation({
+    mutationFn: () => base44.entities.LogbookEntry.update(entry.id, {
+      corrective_action: form.corrective_action,
+      corrected_by: form.technician_name,
+      corrected_by_id: form.technician_id,
+      work_completed_at: new Date().toISOString(),
+      discrepancy_status: form.mark_cleared ? 'CLOSED' : 'IN_PROGRESS',
+      is_cleared: form.mark_cleared,
+      cleared_by: form.mark_cleared ? form.technician_name : undefined,
+      cleared_date: form.mark_cleared ? new Date().toISOString().split('T')[0] : undefined,
+      entry_type: form.mark_cleared ? 'cleared' : entry.entry_type,
+    }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['my-tasks'] });
+      queryClient.invalidateQueries({ queryKey: ['logbook-entries'] });
+      onClose();
+    },
+  });
+
+  return (
+    <div className="fixed inset-0 z-[60] flex items-end sm:items-center justify-center bg-black/80 p-4">
+      <div className="w-full max-w-lg bg-[#141922] border border-white/10 rounded-2xl overflow-hidden shadow-2xl">
+        <div className="flex items-center justify-between px-5 py-4 border-b border-white/10">
+          <p className="font-extrabold text-white tracking-wide text-sm uppercase">Correct Discrepancy</p>
+          <button onClick={onClose} className="w-8 h-8 rounded-lg bg-white/10 flex items-center justify-center hover:bg-white/20">
+            <X className="w-4 h-4 text-white" />
+          </button>
+        </div>
+        <div className="p-5 space-y-4 overflow-y-auto max-h-[75vh]">
+          {/* Original discrepancy */}
+          <div className="bg-[#1a1f2e] border border-red-500/20 rounded-xl p-3 space-y-1">
+            <p className="text-[10px] font-bold text-red-400 uppercase tracking-widest">Original Discrepancy</p>
+            <p className="text-xs font-mono text-primary font-bold">{entry.aircraft_tail} {entry.station ? `· ${entry.station}` : ''} {entry.ata_chapter ? `· ATA ${entry.ata_chapter}` : ''}</p>
+            <p className="text-xs text-gray-300 leading-snug">{entry.description?.split('\n')[0].trim()}</p>
+          </div>
+
+          {/* Corrective action */}
+          <Field label="Corrective Action *">
+            <textarea
+              autoFocus
+              rows={4}
+              value={form.corrective_action}
+              onChange={e => set('corrective_action', e.target.value)}
+              placeholder="Describe the corrective action taken…"
+              className={inputCls + " resize-none"}
+            />
+          </Field>
+
+          <div className="grid grid-cols-2 gap-3">
+            <Field label="Technician Name *">
+              <input value={form.technician_name} onChange={e => set('technician_name', e.target.value)}
+                placeholder="First Last" className={inputCls} />
+            </Field>
+            <Field label="Cert # / Emp #">
+              <input value={form.technician_id} onChange={e => set('technician_id', e.target.value)}
+                placeholder="AMT-XXXXX" className={inputCls} />
+            </Field>
+          </div>
+
+          {/* Mark cleared toggle */}
+          <button
+            type="button"
+            onClick={() => set('mark_cleared', !form.mark_cleared)}
+            className={cn(
+              'w-full flex items-center gap-3 rounded-xl px-4 py-3 text-left border transition-all',
+              form.mark_cleared ? 'bg-green-500/10 border-green-500/40' : 'bg-[#1a1f2e] border-white/10 hover:border-white/20'
+            )}
+          >
+            <div className={cn('w-5 h-5 rounded border-2 flex items-center justify-center flex-shrink-0 transition-all',
+              form.mark_cleared ? 'bg-green-500 border-green-500' : 'border-gray-600')}>
+              {form.mark_cleared && <CheckCircle className="w-3.5 h-3.5 text-white" />}
+            </div>
+            <div>
+              <p className={cn('text-sm font-bold', form.mark_cleared ? 'text-green-400' : 'text-gray-300')}>Mark as Cleared / Closed</p>
+              <p className="text-xs text-gray-500">Uncheck to save as In Progress instead</p>
+            </div>
+          </button>
+
+          <div className="flex gap-3 pt-1">
+            <button onClick={onClose} className="flex-1 py-2.5 rounded-xl border border-white/10 text-sm font-bold text-gray-400 hover:bg-white/5">Cancel</button>
+            <button
+              disabled={!form.corrective_action || !form.technician_name || mutation.isPending}
+              onClick={() => mutation.mutate()}
+              className={cn('flex-1 py-2.5 rounded-xl text-white text-sm font-bold disabled:opacity-50 flex items-center justify-center gap-2 transition-colors',
+                form.mark_cleared ? 'bg-green-600 hover:bg-green-500' : 'bg-amber-600 hover:bg-amber-500'
+              )}
+            >
+              <Send className="w-4 h-4" />
+              {mutation.isPending ? 'Saving…' : form.mark_cleared ? 'Close & Clear' : 'Save In Progress'}
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 // ── My Tasks Modal ─────────────────────────────────────────────────────────
 function MyTasksModal({ onClose }) {
+  const navigate = useNavigate();
   const STORAGE_KEY = 'tech_profile';
   const saved = (() => { try { return JSON.parse(localStorage.getItem(STORAGE_KEY) || '{}'); } catch { return {}; } })();
   const [profile, setProfile] = useState(saved);
   const [editProfile, setEditProfile] = useState(!saved.name);
   const [tempName, setTempName] = useState(saved.name || '');
   const [tempStation, setTempStation] = useState(saved.station || '');
+  const [selectedEntry, setSelectedEntry] = useState(null);
 
   const { data: entries = [], isLoading } = useQuery({
     queryKey: ['my-tasks', profile.name, profile.station],
@@ -931,6 +1041,7 @@ function MyTasksModal({ onClose }) {
   };
 
   return (
+    <>
     <Modal title="My Tasks" onClose={onClose}>
       <div className="p-5 space-y-4">
         {/* Profile bar */}
@@ -983,7 +1094,8 @@ function MyTasksModal({ onClose }) {
 
               {/* BOR/ROB assigned tasks */}
               {borrobTasks.map(r => (
-                <div key={r.id} className="bg-[#1a2030] border border-cyan-500/30 rounded-xl p-3 space-y-1">
+                <button key={r.id} onClick={() => { onClose(); navigate('/BORROB'); }}
+                  className="w-full text-left bg-[#1a2030] border border-cyan-500/30 rounded-xl p-3 space-y-1 hover:border-cyan-400/60 hover:bg-[#1e2840] transition-all active:scale-[0.98]">
                   <div className="flex items-center justify-between gap-2">
                     <div className="flex items-center gap-2">
                       <span className="text-[10px] font-extrabold px-2 py-0.5 rounded-full bg-cyan-500/15 text-cyan-400">BOR/ROB INSTALL</span>
@@ -1003,7 +1115,8 @@ function MyTasksModal({ onClose }) {
                     </div>
                   )}
                   <p className="text-[10px] text-gray-600">{new Date(r.created_date).toLocaleString()}</p>
-                </div>
+                  <p className="text-[10px] text-cyan-500 font-bold mt-1">Tap to open BOR/ROB workflow →</p>
+                </button>
               ))}
 
               {/* Logbook tasks */}
@@ -1011,7 +1124,8 @@ function MyTasksModal({ onClose }) {
                 const status = e.discrepancy_status || 'OPEN';
                 const cfg = STATUS_CFG[status] || STATUS_CFG.OPEN;
                 return (
-                  <div key={e.id} className="bg-[#1a1f2e] border border-white/10 rounded-xl p-3 space-y-1">
+                  <button key={e.id} onClick={() => setSelectedEntry(e)}
+                    className="w-full text-left bg-[#1a1f2e] border border-white/10 rounded-xl p-3 space-y-1 hover:border-amber-500/40 hover:bg-[#1e2030] transition-all active:scale-[0.98]">
                     <div className="flex items-center justify-between gap-2">
                       <div className="flex items-center gap-2">
                         <span className={cn('text-[10px] font-extrabold px-2 py-0.5 rounded-full', cfg.bg, cfg.color)}>{cfg.label}</span>
@@ -1024,7 +1138,8 @@ function MyTasksModal({ onClose }) {
                       {e.description?.replace('[LINE MX]', '').replace('[TECH ASSIGNED]', '').split('\n')[0].trim()}
                     </p>
                     <p className="text-[10px] text-gray-600">{new Date(e.created_date).toLocaleString()}</p>
-                  </div>
+                    <p className="text-[10px] text-amber-500 font-bold">Tap to correct →</p>
+                  </button>
                 );
               })}
             </div>
@@ -1032,6 +1147,13 @@ function MyTasksModal({ onClose }) {
         )}
       </div>
     </Modal>
+    {selectedEntry && (
+      <CorrectDiscrepancyModal
+        entry={selectedEntry}
+        onClose={() => setSelectedEntry(null)}
+      />
+    )}
+    </>
   );
 }
 
