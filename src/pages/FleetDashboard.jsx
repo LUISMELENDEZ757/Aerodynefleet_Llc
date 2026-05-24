@@ -7,7 +7,7 @@ import { FleetBadge } from '@/components/fleet/FleetSwitcher';
 import {
   Plane, Search, LayoutGrid, List, Wrench, CheckCircle, Globe, Shield, ClipboardList,
   BookOpen, MapPin, Cpu, X, AlertTriangle, UserCheck, Plus, Clock,
-  ChevronDown, Activity, Zap, Brain, Lock, LockOpen, Eye
+  ChevronDown, Activity, Zap, Brain, Lock, LockOpen, Eye, ExternalLink
 } from 'lucide-react';
 
 const TerminalIcon = ({ className }) => (
@@ -745,13 +745,24 @@ function AircraftCard({ aircraft, onSelect, discrepancies, melItems = [], active
 
       {/* ── ROW 4: Risk indicators ── */}
       {(openDiscs.length > 0 || expiredMels.length > 0 || isOosOver24h || tailOpenTasks.length > 0) && (
-        <div className="px-3 pb-2.5 pt-1 border-t border-white/6 flex flex-col gap-0.5">
+        <div className="px-3 pb-2 pt-1 border-t border-white/6 flex flex-col gap-0.5">
           {isOosOver24h && <span className="text-[9px] text-amber-400 font-bold">⏳ OOS 24h+</span>}
           {openDiscs.length > 0 && <span className="text-[9px] text-amber-400 font-bold">⚠️ {openDiscs.length} Open write-up{openDiscs.length > 1 ? 's' : ''}</span>}
           {expiredMels.length > 0 && <span className="text-[9px] text-red-400 font-bold">🔴 {expiredMels.length} Expired MEL</span>}
           {tailOpenTasks.length > 0 && <span className="text-[9px] text-blue-400 font-bold">🔧 {tailOpenTasks.length} task{tailOpenTasks.length > 1 ? 's' : ''} assigned</span>}
         </div>
       )}
+
+      {/* ── ROW 5: Detail link ── */}
+      <div className="px-3 pb-2.5 pt-1.5 border-t border-white/6">
+        <Link
+          to={`/AircraftDetail?tail=${aircraft.tail_number}`}
+          onClick={e => e.stopPropagation()}
+          className="flex items-center gap-1 text-[9px] font-bold text-primary/70 hover:text-primary transition-colors"
+        >
+          <ExternalLink className="w-2.5 h-2.5" /> View Compliance Detail
+        </Link>
+      </div>
     </div>
   );
 }

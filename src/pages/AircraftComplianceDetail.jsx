@@ -1,7 +1,7 @@
 import { useRef } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { base44 } from '@/api/base44Client';
-import { Link } from 'react-router-dom';
+import { Link, useSearchParams } from 'react-router-dom';
 import {
   ChevronLeft, AlertTriangle, Plane, Zap, Wrench, Clock, Package, Cpu, FileText, List
 } from 'lucide-react';
@@ -30,8 +30,8 @@ const SECTIONS = [
 ];
 
 export default function AircraftComplianceDetail() {
-  const urlParams = new URLSearchParams(window.location.search);
-  const tailNumber = urlParams.get('tail') || '';
+  const [searchParams] = useSearchParams();
+  const tailNumber = searchParams.get('tail') || '';
 
   const sectionRefs = useRef({});
 
