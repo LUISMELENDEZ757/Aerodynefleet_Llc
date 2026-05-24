@@ -186,26 +186,21 @@ export default function WorldRouteMap() {
         // Extract track from waypoints flat array [lat0,lon0,lat1,lon1,...]
         const wp = pos.waypoints || [];
         const trackPts = [];
-        for (let i = 0; i < wp.length - 1; i += 2) {
+        for (let i = 0; i + 1 < wp.length; i += 2) {
           if (wp[i] != null && wp[i + 1] != null) trackPts.push([wp[i], wp[i + 1]]);
         }
         if (trackPts.length > 0) setTrackData(trackPts);
 
-        // Update flight marker with current position (last waypoint)
-        if (pos.latitude != null && pos.longitude != null) {
-          const enriched = { ...flight, lat: pos.latitude, lon: pos.longitude, heading: pos.heading ?? flight.heading, altitude: pos.altitude ?? flight.altitude, groundspeed: pos.groundspeed ?? flight.groundspeed };
+        // Current position: use returned lat/lon OR fall back to last waypoint pair
+        const curLat = pos.latitude ?? (trackPts.length > 0 ? trackPts[trackPts.length - 1][0] : null);
+        const curLon = pos.longitude ?? (trackPts.length > 0 ? trackPts[trackPts.length - 1][1] : null);
+
+        if (curLat != null && curLon != null) {
+          const enriched = { ...flight, lat: curLat, lon: curLon, heading: pos.heading ?? flight.heading, altitude: pos.altitude ?? flight.altitude, groundspeed: pos.groundspeed ?? flight.groundspeed };
           setSelectedFlight(enriched);
           setFlights(prev => prev.map(f => (f.fa_flight_id || f.ident) === id ? enriched : f));
         }
       }
-
-      // Also try dedicated track endpoint for more detail
-      try {
-        const trackRes = await base44.functions.invoke('flightAwareSearch', { type: 'flight_track', ident: id });
-        const positions = trackRes.data?.track?.positions || [];
-        const pts = positions.map(p => [p.latitude, p.longitude]).filter(p => p[0] && p[1]);
-        if (pts.length > 0) setTrackData(pts);
-      } catch { /* use waypoints track already set */ }
 
     } catch {
       setTrackData([]);
@@ -380,6 +375,16 @@ export default function WorldRouteMap() {
                 color="#f59e0b"
                 weight={2.5}
                 opacity={0.8}
+              />
+            )}
+
+            {/* Selected flight marker — shown even if not in main flights list yet */}
+            {selectedFlight?.lat != null && selectedFlight?.lon != null &&
+              !flights.some(f => (f.fa_flight_id || f.ident) === (selectedFlight.fa_flight_id || selectedFlight.ident) && f.lat != null) && (
+              <Marker
+                key={`selected-${selectedFlight.fa_flight_id || selectedFlight.ident}`}
+                position={[selectedFlight.lat, selectedFlight.lon]}
+                icon={makeAircraftIcon(selectedFlight.heading || 0, '#f59e0b', 34)}
               />
             )}
 
