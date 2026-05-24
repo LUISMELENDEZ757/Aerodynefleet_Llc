@@ -101,16 +101,35 @@ Deno.serve(async (req) => {
       return Response.json({ flights: data.flights || [] });
     }
 
-    // Single flight live position
+    // Single flight live position — extract last waypoint as current lat/lon
     if (type === 'flight_position' && ident) {
       const data = await faFetch(`/flights/${encodeURIComponent(ident)}/position`);
-      return Response.json({ position: data });
+      // waypoints is a flat array: [lat0, lon0, lat1, lon1, ...]
+      const wp = data.waypoints || [];
+      let latitude = null, longitude = null;
+      if (wp.length >= 2) {
+        // Last pair is the most recent position
+        latitude = wp[wp.length - 2];
+        longitude = wp[wp.length - 1];
+      }
+      return Response.json({ position: { ...data, latitude, longitude } });
     }
 
-    // Live position for a specific flight (most recent)
+    // Flight track — use /track endpoint, fall back to waypoints from /position
     if (type === 'flight_track' && ident) {
-      const data = await faFetch(`/flights/${encodeURIComponent(ident.toUpperCase())}/track`);
-      return Response.json({ track: data });
+      try {
+        const data = await faFetch(`/flights/${encodeURIComponent(ident.toUpperCase())}/track`);
+        return Response.json({ track: data });
+      } catch {
+        // Fall back: return waypoints from position endpoint as track-like positions
+        const posData = await faFetch(`/flights/${encodeURIComponent(ident)}/position`);
+        const wp = posData.waypoints || [];
+        const positions = [];
+        for (let i = 0; i < wp.length - 1; i += 2) {
+          positions.push({ latitude: wp[i], longitude: wp[i + 1] });
+        }
+        return Response.json({ track: { positions } });
+      }
     }
 
     return Response.json({ error: 'Invalid request' }, { status: 400 });

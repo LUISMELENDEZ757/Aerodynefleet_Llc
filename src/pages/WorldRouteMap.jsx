@@ -167,22 +167,35 @@ export default function WorldRouteMap() {
     try {
       const id = flight.fa_flight_id || flight.ident;
 
-      // If flight has no position yet, fetch it first and update state
-      if (flight.lat == null || flight.lon == null) {
-        try {
-          const posRes = await base44.functions.invoke('flightAwareSearch', { type: 'flight_position', ident: id });
-          const pos = posRes.data?.position;
-          if (pos?.latitude && pos?.longitude) {
-            const enriched = { ...flight, lat: pos.latitude, lon: pos.longitude, heading: pos.heading, altitude: pos.altitude, groundspeed: pos.groundspeed };
-            setSelectedFlight(enriched);
-            setFlights(prev => prev.map(f => (f.fa_flight_id || f.ident) === id ? enriched : f));
-          }
-        } catch { /* position fetch failed, continue to track */ }
+      // Fetch position — includes waypoints (flat lat/lon pairs) and current lat/lon
+      const posRes = await base44.functions.invoke('flightAwareSearch', { type: 'flight_position', ident: id });
+      const pos = posRes.data?.position;
+
+      if (pos) {
+        // Extract track from waypoints flat array [lat0,lon0,lat1,lon1,...]
+        const wp = pos.waypoints || [];
+        const trackPts = [];
+        for (let i = 0; i < wp.length - 1; i += 2) {
+          if (wp[i] != null && wp[i + 1] != null) trackPts.push([wp[i], wp[i + 1]]);
+        }
+        if (trackPts.length > 0) setTrackData(trackPts);
+
+        // Update flight marker with current position (last waypoint)
+        if (pos.latitude != null && pos.longitude != null) {
+          const enriched = { ...flight, lat: pos.latitude, lon: pos.longitude, heading: pos.heading ?? flight.heading, altitude: pos.altitude ?? flight.altitude, groundspeed: pos.groundspeed ?? flight.groundspeed };
+          setSelectedFlight(enriched);
+          setFlights(prev => prev.map(f => (f.fa_flight_id || f.ident) === id ? enriched : f));
+        }
       }
 
-      const res = await base44.functions.invoke('flightAwareSearch', { type: 'flight_track', ident: id });
-      const positions = res.data?.track?.positions || [];
-      setTrackData(positions.map(p => [p.latitude, p.longitude]).filter(p => p[0] && p[1]));
+      // Also try dedicated track endpoint for more detail
+      try {
+        const trackRes = await base44.functions.invoke('flightAwareSearch', { type: 'flight_track', ident: id });
+        const positions = trackRes.data?.track?.positions || [];
+        const pts = positions.map(p => [p.latitude, p.longitude]).filter(p => p[0] && p[1]);
+        if (pts.length > 0) setTrackData(pts);
+      } catch { /* use waypoints track already set */ }
+
     } catch {
       setTrackData([]);
     } finally {
