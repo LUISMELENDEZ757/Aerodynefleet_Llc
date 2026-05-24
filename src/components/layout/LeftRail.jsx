@@ -50,7 +50,7 @@ const NAV_GROUPS = [
       { label: 'Manpower & Staffing', icon: '👷', path: '/ManpowerStaffing' },
       { label: 'Work Assignments', icon: '📝', path: '/WorkAssignments' },
       { label: 'Shift Turnover', icon: '🤝', path: '/ShiftHandover' },
-      { label: 'Line Mx Tablet', icon: '📱', path: '/LineMxTablet' },
+
     ],
   },
   {

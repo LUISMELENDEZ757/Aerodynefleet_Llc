@@ -107,7 +107,6 @@ const AOGProbabilityForecast   = lazy(() => import('@/pages/AOGProbabilityForeca
 const ProductionControlCenter  = lazy(() => import('@/pages/ProductionControlCenter'));
 const CostPerFlightAnalytics   = lazy(() => import('@/pages/CostPerFlightAnalytics'));
 const PredictivePartsOrdering  = lazy(() => import('@/pages/PredictivePartsOrdering'));
-const LineMxTablet             = lazy(() => import('@/pages/LineMxTablet'));
 const BORROBDashboard          = lazy(() => import('@/pages/BORROBDashboard'));
 const ADTracking               = lazy(() => import('@/pages/ADTracking'));
 const ComponentTraceability    = lazy(() => import('@/pages/ComponentTraceability'));
@@ -307,7 +306,6 @@ const AuthenticatedApp = () => {
         <Route path="/AOGForecast" element={<AOGProbabilityForecast />} />
         <Route path="/CostAnalytics" element={<CostPerFlightAnalytics />} />
         <Route path="/PredictiveParts" element={<PredictivePartsOrdering />} />
-        <Route path="/LineMxTablet" element={<LineMxTablet />} />
         <Route path="/ReleaseArchive" element={<ReleaseArchiveDashboard />} />
         <Route path="/BORROB" element={<BORROBDashboard />} />
         <Route path="/ProductionControl" element={<ProductionControlCenter />} />
