@@ -78,6 +78,7 @@ const FleetRegistry           = lazy(() => import('@/pages/FleetRegistry'));
 const TechOpsDashboard        = lazy(() => import('@/components/techops/TechOpsDashboard'));
 const TravelWeather           = lazy(() => import('@/pages/TravelWeather'));
 const ETOPSMonitor            = lazy(() => import('@/pages/ETOPSMonitor'));
+const ETOPSProgramAdmin       = lazy(() => import('@/pages/ETOPSProgramAdmin'));
 const TelemetryHub            = lazy(() => import('@/pages/TelemetryHub'));
 const EngineHealthAnalytics   = lazy(() => import('@/pages/EngineHealthAnalytics'));
 const LineMaintenanceDashboard = lazy(() => import('@/pages/LineMaintenanceDashboard'));
@@ -286,6 +287,7 @@ const AuthenticatedApp = () => {
         <Route path="/Settings" element={<SettingsPage />} />
         <Route path="/TravelWeather" element={<TravelWeather />} />
         <Route path="/ETOPSMonitor" element={<ETOPSMonitor />} />
+        <Route path="/ETOPSProgramAdmin" element={<ETOPSProgramAdmin />} />
         <Route path="/TelemetryHub" element={<TelemetryHub />} />
         <Route path="/EngineHealthAnalytics" element={<EngineHealthAnalytics />} />
         <Route path="/LineMaintenanceDashboard" element={<LineMaintenanceDashboard />} />

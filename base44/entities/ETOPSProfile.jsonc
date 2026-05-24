@@ -1,0 +1,99 @@
+{
+  "name": "ETOPSProfile",
+  "type": "object",
+  "description": "ETOPS certification profile \u2014 type-agnostic, assigned to fleets and tails. Defines rating, authority, fuel policy, and operational rules.",
+  "properties": {
+    "profile_name": {
+      "type": "string",
+      "description": "Profile identifier e.g. A320_ETOPS_180, B787_ETOPS_330"
+    },
+    "etops_rating": {
+      "type": "number",
+      "enum": [
+        75,
+        90,
+        120,
+        138,
+        180,
+        207,
+        240,
+        330,
+        370
+      ],
+      "description": "ETOPS diversion time in minutes"
+    },
+    "authority": {
+      "type": "string",
+      "enum": [
+        "FAA",
+        "EASA",
+        "ANAC",
+        "TCCA",
+        "CASA",
+        "DGCA",
+        "CAAC",
+        "OTHER"
+      ],
+      "default": "FAA",
+      "description": "Regulatory authority that issued this approval"
+    },
+    "applicable_aircraft_types": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "Aircraft types this profile applies to e.g. A320, B737 MAX 8, B787-9"
+    },
+    "fire_suppression_time_limit_min": {
+      "type": "number",
+      "description": "Cargo fire suppression time limit in minutes (per AC 120-42B)"
+    },
+    "min_alternates_required": {
+      "type": "number",
+      "default": 1,
+      "description": "Minimum number of ETOPS alternates required en-route"
+    },
+    "fuel_policy": {
+      "type": "string",
+      "description": "Fuel policy rules e.g. OEI + depressurization scenario, tankering requirements"
+    },
+    "special_notes": {
+      "type": "string",
+      "description": "Special requirements e.g. APU must be operative, No ETOPS with cargo fire loop inop"
+    },
+    "approved_routes": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "Approved ETOPS routes or oceanic tracks e.g. NAT HLA, PACOTS"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "active",
+        "suspended",
+        "under_review"
+      ],
+      "default": "active"
+    },
+    "effective_date": {
+      "type": "string",
+      "format": "date",
+      "description": "Date this profile became effective"
+    },
+    "expiry_date": {
+      "type": "string",
+      "format": "date",
+      "description": "Profile renewal / expiry date"
+    },
+    "notes": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "profile_name",
+    "etops_rating",
+    "authority"
+  ]
+}

@@ -1,0 +1,85 @@
+{
+  "name": "ETOPSRoute",
+  "type": "object",
+  "description": "ETOPS route definition \u2014 specifies the minimum ETOPS rating required, approved alternates, and authority region. Type-agnostic: dispatch matches tail profile rating against route requirement.",
+  "properties": {
+    "route_name": {
+      "type": "string",
+      "description": "Route identifier e.g. JFK-LHR, SFO-NRT, EWR-GRU"
+    },
+    "origin_icao": {
+      "type": "string"
+    },
+    "destination_icao": {
+      "type": "string"
+    },
+    "required_etops_rating": {
+      "type": "number",
+      "enum": [
+        75,
+        90,
+        120,
+        138,
+        180,
+        207,
+        240,
+        330,
+        370
+      ],
+      "description": "Minimum ETOPS rating required to fly this route"
+    },
+    "authority": {
+      "type": "string",
+      "enum": [
+        "FAA",
+        "EASA",
+        "ANAC",
+        "TCCA",
+        "CASA",
+        "DGCA",
+        "CAAC",
+        "OTHER"
+      ],
+      "default": "FAA"
+    },
+    "region": {
+      "type": "string",
+      "enum": [
+        "NAT",
+        "PAC",
+        "ION",
+        "SAT",
+        "ARC",
+        "OTHER"
+      ],
+      "description": "Oceanic / polar region"
+    },
+    "approved_alternates": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "ICAO codes of approved ETOPS alternates for this route"
+    },
+    "max_diversion_distance_nm": {
+      "type": "number",
+      "description": "Maximum diversion distance in nautical miles"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "active",
+        "suspended",
+        "planned"
+      ],
+      "default": "active"
+    },
+    "notes": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "route_name",
+    "required_etops_rating"
+  ]
+}

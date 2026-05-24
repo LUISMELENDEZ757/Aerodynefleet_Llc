@@ -1,11 +1,11 @@
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { base44 } from '@/api/base44Client';
 import { Link } from 'react-router-dom';
 import {
   Globe, AlertTriangle, CheckCircle, RefreshCw, ChevronLeft,
   Shield, Plane, TrendingDown, Eye, Zap, Radio, Activity,
-  ChevronDown, ChevronUp, X, Clock, ArrowDown, ArrowUp, Info
+  ChevronDown, ChevronUp, X, Clock, ArrowDown, ArrowUp, Info, Settings
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import RVSMSystemMatrix, { computeApprovalImpact, getDispatchImpact, RVSM_SYSTEMS } from '@/components/etops/RVSMSystemMatrix';
@@ -77,12 +77,16 @@ function KpiCard({ label, icon: Icon, value, subLabel, color }) {
 }
 
 // ── ETOPS Card ───────────────────────────────────────────────────────────────
-function ETOPSCard({ aircraft, melItems }) {
+function ETOPSCard({ aircraft, melItems, tailProgram }) {
   const maxEtops = getMaxETOPS(aircraft.aircraft_type);
-  const currentEtops = aircraft.etops_approval ?? maxEtops;
+  // Prefer profile-based rating; fall back to aircraft field or type default
+  const currentEtops = tailProgram?.program_status !== 'not_enrolled' && tailProgram?.etops_rating
+    ? tailProgram.etops_rating
+    : (aircraft.etops_approval ?? maxEtops);
   const cfg = ETOPS_CFG[currentEtops] ?? ETOPS_CFG[0];
-  const isDowngraded = maxEtops > 0 && currentEtops < maxEtops;
-  const isNonEtops = currentEtops === 0 || maxEtops === 0;
+  const isSuspended = tailProgram?.program_status === 'suspended';
+  const isDowngraded = (maxEtops > 0 && currentEtops < maxEtops) || isSuspended;
+  const isNonEtops = currentEtops === 0 || maxEtops === 0 || tailProgram?.program_status === 'not_enrolled';
   const riskMels = melItems.filter(m => m.aircraft_tail === aircraft.tail_number &&
     (m.status === 'open' || m.status === 'deferred') &&
     (m.flight_restrictions?.includes('ETOPS') || m.mel_reference?.includes('ETOPS')));
@@ -115,7 +119,16 @@ function ETOPSCard({ aircraft, melItems }) {
           </p>
         </div>
       </div>
-      {isDowngraded && (
+      {tailProgram?.etops_profile_name && (
+        <p className="text-[10px] text-muted-foreground">📋 {tailProgram.etops_profile_name}</p>
+      )}
+      {isSuspended && (
+        <div className="flex items-center gap-2 text-[10px] text-red-400 bg-red-900/20 border border-red-500/30 rounded-lg px-2.5 py-1.5">
+          <X className="w-3 h-3 flex-shrink-0" />
+          <span>ETOPS PROGRAM SUSPENDED{tailProgram?.suspension_reason ? ` — ${tailProgram.suspension_reason}` : ''}</span>
+        </div>
+      )}
+      {!isSuspended && isDowngraded && (
         <div className="flex items-center gap-2 text-[10px] text-red-400 bg-red-900/20 border border-red-500/30 rounded-lg px-2.5 py-1.5">
           <TrendingDown className="w-3 h-3 flex-shrink-0" />
           <span>Downgraded from ETOPS-{maxEtops} · Restricted routing</span>
@@ -389,6 +402,24 @@ export default function ETOPSMonitor() {
     }, {})
   );
 
+  // ETOPS profiles and tail programs (profile-based, not hard-coded to types)
+  const { data: etopsProfiles = [] } = useQuery({
+    queryKey: ['etops-profiles'],
+    queryFn: () => base44.entities.ETOPSProfile.list('-created_date', 200),
+    refetchInterval: 120000,
+  });
+
+  const { data: tailPrograms = [] } = useQuery({
+    queryKey: ['etops-tail-programs'],
+    queryFn: () => base44.entities.ETOPSTailProgram.list('-created_date', 500),
+    refetchInterval: 60000,
+  });
+
+  // Build a fast lookup: tail_number → ETOPSTailProgram
+  const tailProgramByTail = useMemo(() =>
+    tailPrograms.reduce((acc, t) => { acc[t.aircraft_tail] = t; return acc; }, {}),
+  [tailPrograms]);
+
   // Shared cache key with FleetDashboard MEL data
   const { data: melItems = [] } = useQuery({
     queryKey: ['fleet-all-mel'],
@@ -398,10 +429,21 @@ export default function ETOPSMonitor() {
 
   const toggleExpand = (tail) => setExpandedCards(p => ({ ...p, [tail]: !p[tail] }));
 
+  // ── Helper: resolve ETOPS rating from profile (preferred) or legacy field ──
+  const getEffectiveEtops = (a) => {
+    const prog = tailProgramByTail[a.tail_number];
+    if (prog && prog.program_status !== 'not_enrolled') return prog.etops_rating;
+    return a.etops_approval ?? getMaxETOPS(a.aircraft_type);
+  };
+
+  const getProfileStatus = (a) => tailProgramByTail[a.tail_number]?.program_status || null;
+
   // ── Fleet-wide risk computation ──────────────────────────────────────────
   const etopsDowngraded = aircraft.filter(a => {
     const max = getMaxETOPS(a.aircraft_type);
-    return max > 0 && (a.etops_approval ?? max) < max;
+    const effective = getEffectiveEtops(a);
+    const status = getProfileStatus(a);
+    return (max > 0 && effective < max) || status === 'suspended';
   });
 
   const catDowngradedList = aircraft.filter(a => {
@@ -428,9 +470,12 @@ export default function ETOPSMonitor() {
   // ── Filters ──────────────────────────────────────────────────────────────
   const filteredEtops = aircraft.filter(a => {
     if (filter === 'all') return true;
-    if (filter === 'downgraded') { const max = getMaxETOPS(a.aircraft_type); return max > 0 && (a.etops_approval ?? max) < max; }
-    if (filter === 'non') return getMaxETOPS(a.aircraft_type) === 0;
-    if (filter === 'ok') { const max = getMaxETOPS(a.aircraft_type); return max > 0 && (a.etops_approval ?? max) === max; }
+    const max = getMaxETOPS(a.aircraft_type);
+    const effective = getEffectiveEtops(a);
+    const status = getProfileStatus(a);
+    if (filter === 'downgraded') return (max > 0 && effective < max) || status === 'suspended';
+    if (filter === 'non') return max === 0 || status === 'not_enrolled';
+    if (filter === 'ok') return max > 0 && effective >= max && status !== 'suspended';
     return true;
   });
 
@@ -479,12 +524,17 @@ export default function ETOPSMonitor() {
               <p className="text-xs font-mono text-primary tracking-widest uppercase">ETOPS · CAT II/IIIa/b/c · RVSM · System Health · Risk Monitor</p>
             </div>
           </div>
-          <button
-            onClick={() => { qc.invalidateQueries({ queryKey: ['fleet-aircraft'] }); qc.invalidateQueries({ queryKey: ['fleet-all-mel'] }); }}
-            className="w-10 h-10 rounded-xl bg-secondary flex items-center justify-center hover:bg-secondary/80 transition-colors"
-          >
-            <RefreshCw className={cn('w-4 h-4 text-muted-foreground', isLoading && 'animate-spin')} />
-          </button>
+          <div className="flex gap-2">
+            <Link to="/ETOPSProgramAdmin" className="w-10 h-10 rounded-xl bg-secondary flex items-center justify-center hover:bg-secondary/80 transition-colors" title="ETOPS Program Admin">
+              <Settings className="w-4 h-4 text-muted-foreground" />
+            </Link>
+            <button
+              onClick={() => { qc.invalidateQueries({ queryKey: ['fleet-aircraft'] }); qc.invalidateQueries({ queryKey: ['fleet-all-mel'] }); }}
+              className="w-10 h-10 rounded-xl bg-secondary flex items-center justify-center hover:bg-secondary/80 transition-colors"
+            >
+              <RefreshCw className={cn('w-4 h-4 text-muted-foreground', isLoading && 'animate-spin')} />
+            </button>
+          </div>
         </div>
 
         {/* KPI strip */}
@@ -531,7 +581,7 @@ export default function ETOPSMonitor() {
               </div>
             )}
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3">
-              {filteredEtops.map(a => <ETOPSCard key={a.id} aircraft={a} melItems={melItems} />)}
+              {filteredEtops.map(a => <ETOPSCard key={a.id} aircraft={a} melItems={melItems} tailProgram={tailProgramByTail[a.tail_number]} />)}
             </div>
           </>
         )}

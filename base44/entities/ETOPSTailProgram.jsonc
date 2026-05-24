@@ -1,0 +1,101 @@
+{
+  "name": "ETOPSTailProgram",
+  "type": "object",
+  "description": "Per-tail ETOPS program record \u2014 links an aircraft tail to its ETOPS profile, tracks program status, cumulative hours, and significant events (IFSDs, diversions, turnbacks).",
+  "properties": {
+    "aircraft_tail": {
+      "type": "string",
+      "description": "Aircraft tail number"
+    },
+    "aircraft_type": {
+      "type": "string",
+      "description": "Aircraft type for reference e.g. A320neo"
+    },
+    "etops_profile_id": {
+      "type": "string",
+      "description": "FK to ETOPSProfile entity ID"
+    },
+    "etops_profile_name": {
+      "type": "string",
+      "description": "Denormalized profile name for fast display"
+    },
+    "etops_rating": {
+      "type": "number",
+      "description": "Effective ETOPS rating from assigned profile"
+    },
+    "program_status": {
+      "type": "string",
+      "enum": [
+        "active",
+        "suspended",
+        "intro_phase",
+        "not_enrolled"
+      ],
+      "default": "active",
+      "description": "Current ETOPS program status for this tail"
+    },
+    "cumulative_etops_hours": {
+      "type": "number",
+      "default": 0,
+      "description": "Total ETOPS flight hours accumulated on this tail"
+    },
+    "ifsd_count": {
+      "type": "number",
+      "default": 0,
+      "description": "In-Flight Shut Down count (12-month rolling)"
+    },
+    "diversion_count": {
+      "type": "number",
+      "default": 0,
+      "description": "ETOPS diversion count (12-month rolling)"
+    },
+    "turnback_count": {
+      "type": "number",
+      "default": 0,
+      "description": "Turnback count (12-month rolling)"
+    },
+    "last_etops_check_date": {
+      "type": "string",
+      "format": "date",
+      "description": "Date of last ETOPS maintenance check"
+    },
+    "next_etops_check_due": {
+      "type": "string",
+      "format": "date",
+      "description": "Next required ETOPS maintenance check due date"
+    },
+    "crew_qualified": {
+      "type": "boolean",
+      "default": true,
+      "description": "Crew assigned to this tail are ETOPS-qualified"
+    },
+    "dispatcher_qualified": {
+      "type": "boolean",
+      "default": true,
+      "description": "Dispatchers assigned are ETOPS-qualified"
+    },
+    "maintenance_trained": {
+      "type": "boolean",
+      "default": true,
+      "description": "Maintenance team is ETOPS-trained for this tail"
+    },
+    "suspension_reason": {
+      "type": "string",
+      "description": "Reason for suspension if program_status is suspended"
+    },
+    "enrolled_date": {
+      "type": "string",
+      "format": "date",
+      "description": "Date this tail was enrolled in the ETOPS program"
+    },
+    "notes": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "aircraft_tail",
+    "etops_profile_name",
+    "etops_rating",
+    "program_status"
+  ]
+}
