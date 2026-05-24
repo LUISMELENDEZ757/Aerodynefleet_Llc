@@ -23,6 +23,7 @@ const NAV_GROUPS = [
     items: [
       { label: 'Fleet Dashboard', icon: '✈️', path: '/FleetDashboard' },
       { label: 'Fleet Registry', icon: '📋', path: '/FleetRegistry' },
+      { label: 'Aircraft Compliance', icon: '📋', path: '/AircraftDetail' },
       { label: 'OOS Aircraft', icon: '🚫', path: '/OOSDashboard' },
       { label: 'ETOPS Monitor', icon: '🌍', path: '/ETOPSMonitor' },
       { label: 'Engine Health', icon: '🔥', path: '/EngineHealthAnalytics' },
