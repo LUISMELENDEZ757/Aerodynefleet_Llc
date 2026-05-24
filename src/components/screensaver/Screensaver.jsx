@@ -104,18 +104,25 @@ function AircraftSVG({ color = '#f59e0b', size = 120, opacity = 0.12, className 
       <ellipse cx="100" cy="55" rx="85" ry="14" fill={color} />
       {/* Nose cone */}
       <path d="M185 55 Q202 55 200 55 Q202 48 185 48 Z" fill={color} />
-      {/* Wings */}
-      <path d="M110 55 L130 10 L145 12 L125 58 Z" fill={color} />
-      <path d="M110 55 L130 100 L145 98 L125 52 Z" fill={color} />
-      {/* Horizontal stabilizer */}
-      <path d="M30 55 L18 35 L28 36 L38 55 Z" fill={color} />
-      <path d="M30 55 L18 75 L28 74 L38 55 Z" fill={color} />
+      {/* Wings — extending left/right from fuselage */}
+      {/* Right wing upper */}
+      <path d="M115 45 L160 25 L165 30 L118 50 Z" fill={color} />
+      {/* Right wing lower */}
+      <path d="M115 65 L160 85 L165 80 L118 60 Z" fill={color} />
+      {/* Left wing upper */}
+      <path d="M85 45 L40 25 L35 30 L82 50 Z" fill={color} />
+      {/* Left wing lower */}
+      <path d="M85 65 L40 85 L35 80 L82 60 Z" fill={color} />
+      {/* Engine #1 — right wing */}
+      <ellipse cx="140" cy="30" rx="8" ry="6" fill={color} opacity="0.8" />
+      {/* Engine #2 — left wing */}
+      <ellipse cx="60" cy="30" rx="8" ry="6" fill={color} opacity="0.8" />
+      {/* Horizontal stabilizer — right */}
+      <path d="M20 55 L8 40 L12 38 L22 52 Z" fill={color} />
+      {/* Horizontal stabilizer — left */}
+      <path d="M20 55 L8 70 L12 72 L22 58 Z" fill={color} />
       {/* Vertical stabilizer */}
-      <path d="M32 55 L22 30 L32 32 L38 55 Z" fill={color} />
-      {/* Engine #1 */}
-      <ellipse cx="122" cy="22" rx="9" ry="5" fill={color} opacity="0.7" />
-      {/* Engine #2 */}
-      <ellipse cx="122" cy="88" rx="9" ry="5" fill={color} opacity="0.7" />
+      <path d="M18 55 L5 25 L12 26 L20 55 Z" fill={color} />
       {/* Windows */}
       {[0,1,2,3,4,5,6,7,8].map(i => (
         <rect key={i} x={80 - i * 8} y={51} width="4" height="4" rx="1" fill="white" opacity="0.25" />
