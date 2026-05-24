@@ -131,6 +131,7 @@ const AirbusSkywiseDashboard   = lazy(() => import('@/pages/AirbusSkywiseDashboa
 const Test                     = lazy(() => import('@/pages/Test'));
 const AICopilot                = lazy(() => import('@/pages/AICopilot'));
 const WorldRouteMap            = lazy(() => import('@/pages/WorldRouteMap.jsx'));
+const HowItWorks               = lazy(() => import('@/pages/HowItWorks'));
 
 function PageFallback() {
   return (
