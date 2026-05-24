@@ -530,6 +530,40 @@ function AircraftDetailOverlay({ aircraft: initialAircraft, onClose }) {
   );
 }
 
+// ── Parse ETR/ETA/OOS info from the most recent logbook entry notes ──────────
+function parseTimelineInfo(logEntries = []) {
+  // Walk entries newest-first to find the latest ETR and Flight ETA
+  let etr = null;
+  let flightEta = null;
+  for (const entry of [...logEntries].reverse()) {
+    const notes = entry.notes || '';
+    if (!etr) {
+      const m = notes.match(/ETR:\s*([0-9]{1,2}:[0-9]{2})/);
+      if (m) etr = m[1];
+    }
+    if (!flightEta) {
+      const m = notes.match(/Flight ETA:\s*([0-9]{1,2}:[0-9]{2})/);
+      if (m) flightEta = m[1];
+    }
+    if (etr && flightEta) break;
+  }
+  return { etr, flightEta };
+}
+
+function formatOosDuration(oosEntries, tailNumber) {
+  const entry = oosEntries.find(e => e.tail_number === tailNumber || e.aircraft_tail === tailNumber);
+  if (!entry) return null;
+  const refDate = entry.oos_date
+    ? new Date(entry.oos_date + 'T00:00:00')
+    : new Date(entry.created_date);
+  const diffMs = Date.now() - refDate.getTime();
+  const totalMins = Math.floor(diffMs / 60000);
+  const hours = Math.floor(totalMins / 60);
+  const mins = totalMins % 60;
+  if (hours === 0) return `${mins}m`;
+  return `${hours}h ${mins}m`;
+}
+
 // ── Discrepancy Badge Block ──────────────────────────────────────────────────
 function DiscrepancyBadges({ discrepancies, melItems, aircraftStatus }) {
   const openDiscrepancies = discrepancies?.filter(d => d.discrepancy_status !== 'CLOSED') || [];
@@ -600,7 +634,7 @@ function ReadinessScore({ aircraft, openDiscs = [], melItems = [] }) {
 }
 
 // ── Aircraft Card ────────────────────────────────────────────────────────────
-function AircraftCard({ aircraft, onSelect, discrepancies, melItems = [], activeLocks = [], oosEntries = [], timelineEvents = [], openTasks = [] }) {
+function AircraftCard({ aircraft, onSelect, discrepancies, melItems = [], activeLocks = [], oosEntries = [], timelineEvents = [], openTasks = [], logEntries = [] }) {
   const status = STATUS_STYLES[aircraft.status] || STATUS_STYLES.active;
   const StatusIcon = status.icon;
   const openDiscs = discrepancies?.filter(d => d.discrepancy_status !== 'CLOSED') || [];
@@ -608,6 +642,11 @@ function AircraftCard({ aircraft, onSelect, discrepancies, melItems = [], active
   const tailOpenTasks = openTasks.filter(t => t.aircraft_tail === aircraft.tail_number);
   const activeMels = melItems.filter(m => m.status !== 'cleared' && m.status !== 'voided');
   const expiredMels = melItems.filter(m => m.status === 'expired');
+
+  const { etr, flightEta } = parseTimelineInfo(logEntries);
+  const oosDuration = (aircraft.status === 'oos' || aircraft.status === 'maintenance')
+    ? formatOosDuration(oosEntries, aircraft.tail_number)
+    : null;
 
   // OOS duration check
   const isOosOver24h = (() => {
@@ -685,7 +724,27 @@ function AircraftCard({ aircraft, onSelect, discrepancies, melItems = [], active
         />
       </div>
 
-      {/* ── ROW 3: Risk indicators ── */}
+      {/* ── ROW 3: OOS timing info ── */}
+      {(oosDuration || etr || flightEta) && (
+        <div className="px-3 pb-2 pt-1.5 border-t border-white/6 grid grid-cols-3 gap-1">
+          <div className="flex flex-col">
+            <span className="text-[8px] font-bold text-gray-500 uppercase tracking-wider">OOS Time</span>
+            <span className={cn('text-[10px] font-black', isOosOver24h ? 'text-orange-400' : 'text-gray-300')}>
+              {oosDuration || '—'}
+            </span>
+          </div>
+          <div className="flex flex-col">
+            <span className="text-[8px] font-bold text-gray-500 uppercase tracking-wider">ETR</span>
+            <span className="text-[10px] font-black text-amber-400">{etr || '—'}</span>
+          </div>
+          <div className="flex flex-col">
+            <span className="text-[8px] font-bold text-gray-500 uppercase tracking-wider">Flt ETA</span>
+            <span className="text-[10px] font-black text-cyan-400">{flightEta || '—'}</span>
+          </div>
+        </div>
+      )}
+
+      {/* ── ROW 4: Risk indicators ── */}
       {(openDiscs.length > 0 || expiredMels.length > 0 || isOosOver24h || tailOpenTasks.length > 0) && (
         <div className="px-3 pb-2.5 pt-1 border-t border-white/6 flex flex-col gap-0.5">
           {isOosOver24h && <span className="text-[9px] text-amber-400 font-bold">⏳ OOS 24h+</span>}
@@ -807,6 +866,19 @@ export default function FleetDashboard() {
     refetchInterval: 120000,
   });
 
+  const { data: allLogEntries = [] } = useQuery({
+    queryKey: ['fleet-all-logbook'],
+    queryFn: () => base44.entities.LogbookEntry.list('-created_date', 3000),
+    refetchInterval: 90000,
+  });
+
+  // Map tail -> all logbook entries sorted newest-first
+  const logEntriesByTailAll = allLogEntries.reduce((acc, e) => {
+    if (!acc[e.aircraft_tail]) acc[e.aircraft_tail] = [];
+    acc[e.aircraft_tail].push(e);
+    return acc;
+  }, {});
+
   // Map tail -> open (non-closed) discrepancy entries
   const discrepanciesByTail = openDiscrepancies.reduce((acc, e) => {
     if (e.discrepancy_status !== 'CLOSED') {
@@ -815,6 +887,8 @@ export default function FleetDashboard() {
     }
     return acc;
   }, {});
+
+
 
   // Map tail -> MEL items
   const melByTail = allMelItems.reduce((acc, m) => {
@@ -875,8 +949,9 @@ export default function FleetDashboard() {
       oosEntries={oosEntries}
       timelineEvents={timelineEvents}
       openTasks={openTasks}
+      logEntries={logEntriesByTailAll[a.tail_number] || []}
     />
-  ), [discrepanciesByTail, melByTail, mccLocks, oosEntries, timelineEvents, openTasks, recordTailView]);
+  ), [discrepanciesByTail, melByTail, mccLocks, oosEntries, timelineEvents, openTasks, recordTailView, logEntriesByTailAll]);
 
   return (
     <div className="min-h-screen bg-background pb-24">

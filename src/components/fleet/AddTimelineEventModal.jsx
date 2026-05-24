@@ -22,6 +22,8 @@ export default function AddTimelineEventModal({ aircraftTail, onClose, onSubmit,
     end_time: '',
     code_reference: '',
     paperwork: '',
+    etr: '',
+    flight_eta: '',
   });
 
   const set = (k, v) => setForm(p => ({ ...p, [k]: v }));
@@ -32,11 +34,15 @@ export default function AddTimelineEventModal({ aircraftTail, onClose, onSubmit,
     e.preventDefault();
     if (!form.event_title.trim()) return;
     if (isRtsBlocked) return;
+    const noteParts = [];
+    if (form.description) noteParts.push(`Description: ${form.description}`);
+    if (form.etr) noteParts.push(`ETR: ${form.etr}`);
+    if (form.flight_eta) noteParts.push(`Flight ETA: ${form.flight_eta}`);
     onSubmit({
       aircraft_tail: aircraftTail,
       entry_type: 'info',
       description: `[${EVENT_TYPES.find(t => t.value === form.event_type)?.label}] ${form.event_title}`,
-      notes: form.description ? `Description: ${form.description}` : '',
+      notes: noteParts.join(' | '),
       ata_chapter: form.code_reference ? form.code_reference : '',
       _rts: form.event_type === 'return_to_service',
     });
@@ -48,6 +54,8 @@ export default function AddTimelineEventModal({ aircraftTail, onClose, onSubmit,
       end_time: '',
       code_reference: '',
       paperwork: '',
+      etr: '',
+      flight_eta: '',
     });
   };
 
@@ -158,6 +166,42 @@ export default function AddTimelineEventModal({ aircraftTail, onClose, onSubmit,
                   placeholder="--:-- --"
                 />
               </div>
+            </div>
+          </div>
+
+          {/* ETR & Flight ETA */}
+          <div className="grid grid-cols-2 gap-4">
+            <div>
+              <label className="text-xs font-bold text-gray-400 uppercase tracking-widest block mb-2">
+                ETR — Est. Time to Return
+              </label>
+              <div className="flex items-center gap-2 bg-[#141922] border border-white/15 rounded-xl px-4 py-3">
+                <Clock className="w-4 h-4 text-amber-500 flex-shrink-0" />
+                <input
+                  type="time"
+                  value={form.etr}
+                  onChange={(e) => set('etr', e.target.value)}
+                  className="flex-1 bg-transparent text-white text-sm outline-none"
+                  placeholder="--:--"
+                />
+              </div>
+              <p className="text-[10px] text-gray-600 mt-1">Zulu time when aircraft expected back in service</p>
+            </div>
+            <div>
+              <label className="text-xs font-bold text-gray-400 uppercase tracking-widest block mb-2">
+                Flight ETA
+              </label>
+              <div className="flex items-center gap-2 bg-[#141922] border border-white/15 rounded-xl px-4 py-3">
+                <Clock className="w-4 h-4 text-cyan-500 flex-shrink-0" />
+                <input
+                  type="time"
+                  value={form.flight_eta}
+                  onChange={(e) => set('flight_eta', e.target.value)}
+                  className="flex-1 bg-transparent text-white text-sm outline-none"
+                  placeholder="--:--"
+                />
+              </div>
+              <p className="text-[10px] text-gray-600 mt-1">Scheduled flight departure / arrival ETA</p>
             </div>
           </div>
 
