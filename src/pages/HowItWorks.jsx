@@ -187,7 +187,7 @@ export default function HowItWorks() {
               <p className="text-sm font-black text-white mb-1">AI Maintenance Copilot</p>
               <p className="text-xs text-purple-300 font-semibold mb-2">The Hidden Force Behind Every Decision</p>
               <p className="text-sm text-gray-300 leading-relaxed">
-                Every event that enters the system is analyzed by our AI engine, which runs predictive models in parallel with your human technicians and MCC controllers. The Copilot:
+                Our AI engine analyzes every event that enters the system, running predictive models alongside technicians and MCC controllers. The Copilot:
               </p>
               <ul className="text-xs text-gray-400 mt-2.5 space-y-1.5 ml-4">
                 <li className="flex gap-2"><span className="text-purple-400 font-bold">•</span> <span><strong>Predicts AOG probability</strong> before any actual failure, flagging high-risk trends in engine data, oil consumption, and fault patterns</span></li>
