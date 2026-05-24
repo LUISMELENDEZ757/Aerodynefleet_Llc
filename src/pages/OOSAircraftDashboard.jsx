@@ -155,8 +155,13 @@ export default function OOSAircraftDashboard() {
   const waitingPartsCount = oosEntries.filter(e => e.status === 'waiting_parts').length;
   const openMel = melItems.length;
 
+  // Deduplicate by tail_number — keep the first occurrence
+  const uniqueAircraft = aircraft.filter((a, idx, arr) =>
+    arr.findIndex(b => b.tail_number === a.tail_number) === idx
+  );
+
   // Filter aircraft to show
-  const filtered = aircraft.filter(a => {
+  const filtered = uniqueAircraft.filter(a => {
     const hasOos = oosEntries.some(e => e.aircraft_tail === a.tail_number && e.status !== 'released');
     const isDown = a.status === 'oos' || a.status === 'maintenance';
 
