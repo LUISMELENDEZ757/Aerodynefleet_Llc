@@ -69,7 +69,6 @@ import { motion, AnimatePresence } from 'framer-motion';
 import AddTimelineEventModal from '@/components/fleet/AddTimelineEventModal';
 import TakingOwnershipModal from '@/components/fleet/TakingOwnershipModal';
 import PlaceOOSModal from '@/components/fleet/PlaceOOSModal';
-import FleetIngestionHub from '@/components/fleet/FleetIngestionHub';
 import VirtualizedFleetGrid from '@/components/fleet/VirtualizedFleetGrid';
 import { useThrottledFleet } from '@/hooks/useThrottledFleet';
 
@@ -806,7 +805,7 @@ export default function FleetDashboard() {
   const [selectedAircraft, setSelectedAircraft] = useState(null);
   const [kpiFilter, setKpiFilter] = useState(null);
   const [quickFilter, setQuickFilter] = useState(null); // 'aog' | 'mel' | 'etops' | 'maintenance' | 'active' | null
-  const [showAddWizard, setShowAddWizard] = useState(false);
+
   const queryClient = useQueryClient();
 
   const { activeFleet, activeFleetId } = useFleet();
@@ -987,15 +986,7 @@ export default function FleetDashboard() {
             </button>
           ))}
 
-          {/* Right-side action buttons */}
-          <div className="ml-auto flex items-center gap-2">
-            <button
-              onClick={() => setShowAddWizard(true)}
-              className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-primary text-primary-foreground text-xs font-extrabold hover:bg-primary/90 transition-all border border-primary"
-            >
-              <Plus className="w-3.5 h-3.5" /> ADD AIRCRAFT
-            </button>
-          </div>
+
         </div>
 
         {/* ── System Status ── */}
@@ -1154,12 +1145,7 @@ export default function FleetDashboard() {
         )}
       </AnimatePresence>
 
-      {showAddWizard && (
-        <FleetIngestionHub
-          onClose={() => setShowAddWizard(false)}
-          onSuccess={() => setShowAddWizard(false)}
-        />
-      )}
+
     </div>
   );
 }

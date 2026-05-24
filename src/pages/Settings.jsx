@@ -4,10 +4,11 @@ import { base44 } from '@/api/base44Client';
 import { Link } from 'react-router-dom';
 import {
   Settings, Users, Shield, FileText, BarChart3, AlertCircle,
-  ChevronRight, Plus, Server, Bell, LogOut, ChevronLeft, Lock
+  ChevronRight, Plus, Server, Bell, LogOut, ChevronLeft, Lock, Plane
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import UserApprovalPanel from '@/components/settings/UserApprovalPanel';
+import FleetIngestionHub from '@/components/fleet/FleetIngestionHub';
 
 // ─── Admin Dashboard Stats ──────────────────────────────────────────────────────
 function AdminStats({ users, fleets, auditLogs }) {
@@ -71,6 +72,7 @@ function AdminCard({ icon: Icon, title, description, children, action, actionLab
 export default function SettingsPage() {
   const queryClient = useQueryClient();
   const [showLogout, setShowLogout] = useState(false);
+  const [showFleetIngestion, setShowFleetIngestion] = useState(false);
 
   const { data: users = [] } = useQuery({
     queryKey: ['admin-users'],
@@ -170,6 +172,20 @@ export default function SettingsPage() {
             {auditLogs.length} recent entries logged
           </div>
         </AdminCard>
+
+        {/* Fleet Ingestion */}
+        <AdminCard
+          icon={Plane}
+          title="Fleet Ingestion"
+          description="Add aircraft manually, via CSV upload, or clipboard paste"
+        >
+          <button
+            onClick={() => setShowFleetIngestion(true)}
+            className="flex items-center gap-2 px-4 py-2 rounded-lg bg-primary text-primary-foreground text-xs font-extrabold hover:bg-primary/90 transition-colors"
+          >
+            <Plus className="w-3.5 h-3.5" /> Add Aircraft
+          </button>
+        </AdminCard>
       </div>
 
       {/* Pending User Approvals */}
@@ -177,6 +193,14 @@ export default function SettingsPage() {
         <p className="text-xs font-bold text-muted-foreground uppercase tracking-widest mb-3">Pending Approvals</p>
         <UserApprovalPanel />
       </div>
+
+      {/* Fleet Ingestion Hub Modal */}
+      {showFleetIngestion && (
+        <FleetIngestionHub
+          onClose={() => setShowFleetIngestion(false)}
+          onSuccess={() => setShowFleetIngestion(false)}
+        />
+      )}
 
       {/* Logout Confirmation Modal */}
       {showLogout && (
