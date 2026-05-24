@@ -7,7 +7,7 @@ import { FleetBadge } from '@/components/fleet/FleetSwitcher';
 import {
   Plane, Search, LayoutGrid, List, Wrench, CheckCircle, Globe, Shield, ClipboardList,
   BookOpen, MapPin, Cpu, X, AlertTriangle, UserCheck, Plus, Clock,
-  ChevronDown, Radio, Activity, Zap, Package, Brain, Settings2, Lock, LockOpen, Eye
+  ChevronDown, Activity, Zap, Brain, Lock, LockOpen, Eye
 } from 'lucide-react';
 
 const TerminalIcon = ({ className }) => (
@@ -729,15 +729,7 @@ function AircraftRow({ aircraft, onSelect, discrepancies, activeLocks = [] }) {
 // ── Main Page ─────────────────────────────────────────────────────────────────
 const TABS = [
   { id: 'fleet',    label: 'Fleet',      icon: Plane },
-  { id: 'rob',      label: 'ROB / BOR',  icon: Package },
-  { id: 'mxcomms',  label: 'MX Comms',   icon: Radio,   live: true },
   { id: 'insights', label: 'AI Insights',icon: Brain },
-];
-
-const ACTION_BTNS = [
-  { label: 'BORROWED PARTS', icon: Package,    path: '/MaintenanceControl' },
-  { label: 'DMG CONTROL',    icon: AlertTriangle, path: '/IROPS' },
-  { label: 'ROB CONTROL',    icon: Settings2,  path: '/OOSDashboard', primary: true },
 ];
 
 export default function FleetDashboard() {
@@ -904,24 +896,13 @@ export default function FleetDashboard() {
           ))}
 
           {/* Right-side action buttons */}
-          <div className="ml-auto flex items-center gap-2 flex-wrap">
+          <div className="ml-auto flex items-center gap-2">
             <button
               onClick={() => setShowAddWizard(true)}
               className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-primary text-primary-foreground text-xs font-extrabold hover:bg-primary/90 transition-all border border-primary"
             >
               <Plus className="w-3.5 h-3.5" /> ADD AIRCRAFT
             </button>
-            {ACTION_BTNS.map(({ label, icon: Icon, path, primary }) => (
-              <Link key={label} to={path}
-                className={cn(
-                  'flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs font-extrabold transition-all border',
-                  primary
-                    ? 'bg-[#2a1f3d] border-purple-500/50 text-purple-300 hover:bg-purple-500/20'
-                    : 'bg-[#1a1f2e] border-white/10 text-gray-300 hover:text-white hover:border-white/20'
-                )}>
-                <Icon className="w-3.5 h-3.5" /> {label}
-              </Link>
-            ))}
           </div>
         </div>
 
@@ -1065,28 +1046,6 @@ export default function FleetDashboard() {
               ))}
             </div>
           )}
-        </div>
-      )}
-
-      {activeTab === 'rob' && (
-        <div className="px-6 flex flex-col items-center justify-center py-20 gap-3">
-          <Package className="w-14 h-14 text-gray-700" />
-          <p className="text-gray-400 font-extrabold text-lg">ROB / BOR Management</p>
-          <p className="text-gray-600 text-sm text-center max-w-sm">Robbed parts tracking and bill of resources coming soon. See Maintenance Control for current parts data.</p>
-          <Link to="/MaintenanceControl" className="mt-2 px-5 py-2.5 rounded-xl bg-primary text-primary-foreground text-sm font-bold hover:bg-primary/90 transition-colors">
-            Go to MCC →
-          </Link>
-        </div>
-      )}
-
-      {activeTab === 'mxcomms' && (
-        <div className="px-6 flex flex-col items-center justify-center py-20 gap-3">
-          <Radio className="w-14 h-14 text-gray-700" />
-          <p className="text-gray-400 font-extrabold text-lg">MX Communications</p>
-          <p className="text-gray-600 text-sm text-center max-w-sm">Live maintenance communications feed. Route to CommCenter for full ACARS and messaging.</p>
-          <Link to="/CommCenter" className="mt-2 px-5 py-2.5 rounded-xl bg-primary text-primary-foreground text-sm font-bold hover:bg-primary/90 transition-colors">
-            Open CommCenter →
-          </Link>
         </div>
       )}
 
