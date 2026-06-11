@@ -1,0 +1,115 @@
+{
+  "name": "FuelRecord",
+  "type": "object",
+  "description": "Fuel uplift, variance, and tankering records for Aerodyne Fleet LLC fleet management.",
+  "properties": {
+    "flight_number": {
+      "type": "string"
+    },
+    "aircraft_tail": {
+      "type": "string"
+    },
+    "flight_date": {
+      "type": "string",
+      "format": "date"
+    },
+    "station": {
+      "type": "string",
+      "description": "Station ICAO where fuel was uplifted"
+    },
+    "planned_fuel": {
+      "type": "number",
+      "description": "Planned fuel in lbs"
+    },
+    "actual_uplift": {
+      "type": "number",
+      "description": "Actual fuel uplifted in lbs"
+    },
+    "fuel_on_departure": {
+      "type": "number",
+      "description": "Fuel on board at departure in lbs"
+    },
+    "fuel_on_arrival": {
+      "type": "number",
+      "description": "Fuel remaining on arrival in lbs"
+    },
+    "trip_fuel_actual": {
+      "type": "number",
+      "description": "Actual trip fuel burned in lbs"
+    },
+    "trip_fuel_planned": {
+      "type": "number",
+      "description": "Planned trip fuel burn in lbs"
+    },
+    "variance_lbs": {
+      "type": "number",
+      "description": "Fuel burn variance (actual - planned)"
+    },
+    "variance_percent": {
+      "type": "number",
+      "description": "Variance as percentage"
+    },
+    "fuel_price_per_gallon": {
+      "type": "number",
+      "description": "Fuel price at uplift station $/gal"
+    },
+    "tankering_decision": {
+      "type": "string",
+      "enum": [
+        "none",
+        "tankered",
+        "partial_taker"
+      ],
+      "default": "none",
+      "description": "Tankering decision at this station"
+    },
+    "tankering_savings": {
+      "type": "number",
+      "description": "Estimated cost savings from tankering in USD"
+    },
+    "supplier": {
+      "type": "string",
+      "description": "Fuel supplier name"
+    },
+    "release_status": {
+      "type": "string",
+      "enum": [
+        "pending",
+        "confirmed",
+        "variance_flagged"
+      ],
+      "default": "pending"
+    },
+    "notes": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "flight_number",
+    "aircraft_tail",
+    "flight_date",
+    "station"
+  ],
+  "rls": {
+    "create": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "read": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "update": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "delete": {
+      "user_condition": {
+        "role": "admin"
+      }
+    }
+  }
+}

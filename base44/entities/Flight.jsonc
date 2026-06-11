@@ -110,5 +110,69 @@
     "destination",
     "flight_date",
     "status"
-  ]
+  ],
+  "rls": {
+    "create": {
+      "user_condition": {
+        "role": "dispatcher"
+      }
+    },
+    "read": {
+      "$or": [
+        {
+          "created_by_id": "{{user.id}}"
+        },
+        {
+          "data.fleet_id": "{{user.fleet_id}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        },
+        {
+          "user_condition": {
+            "role": "dispatcher"
+          }
+        },
+        {
+          "user_condition": {
+            "role": "captain"
+          }
+        },
+        {
+          "user_condition": {
+            "role": "first_officer"
+          }
+        },
+        {
+          "user_condition": {
+            "role": "flight_attendant"
+          }
+        }
+      ]
+    },
+    "update": {
+      "$or": [
+        {
+          "created_by_id": "{{user.id}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        },
+        {
+          "user_condition": {
+            "role": "dispatcher"
+          }
+        }
+      ]
+    },
+    "delete": {
+      "user_condition": {
+        "role": "admin"
+      }
+    }
+  }
 }

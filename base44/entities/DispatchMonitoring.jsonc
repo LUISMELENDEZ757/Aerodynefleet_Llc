@@ -1,0 +1,283 @@
+{
+  "name": "DispatchMonitoring",
+  "type": "object",
+  "description": "Real-time flight monitoring and enroute tracking \u2014 dispatcher's view of every flight from pushback through arrival.",
+  "properties": {
+    "flight_number": {
+      "type": "string"
+    },
+    "flight_date": {
+      "type": "string",
+      "format": "date"
+    },
+    "aircraft_tail": {
+      "type": "string"
+    },
+    "origin": {
+      "type": "string"
+    },
+    "destination": {
+      "type": "string"
+    },
+    "flight_phase": {
+      "type": "string",
+      "enum": [
+        "scheduled",
+        "pushback",
+        "taxi",
+        "takeoff",
+        "initial_climb",
+        "cruise",
+        "descent",
+        "approach",
+        "landing",
+        "landed",
+        "diverted",
+        "cancelled"
+      ],
+      "description": "Current flight phase"
+    },
+    "flight_status": {
+      "type": "string",
+      "enum": [
+        "on_time",
+        "delayed",
+        "early",
+        "holding",
+        "diverting",
+        "emergency"
+      ],
+      "default": "on_time"
+    },
+    "scheduled_departure": {
+      "type": "string",
+      "description": "Scheduled departure time HH:MM Z"
+    },
+    "actual_pushback": {
+      "type": "string",
+      "description": "Actual pushback time HH:MM Z"
+    },
+    "actual_takeoff": {
+      "type": "string",
+      "description": "Actual takeoff time HH:MM Z"
+    },
+    "scheduled_arrival": {
+      "type": "string",
+      "description": "Scheduled arrival time HH:MM Z"
+    },
+    "estimated_arrival": {
+      "type": "string",
+      "description": "Current ETA HH:MM Z"
+    },
+    "actual_arrival": {
+      "type": "string",
+      "description": "Actual landing time HH:MM Z"
+    },
+    "delay_minutes": {
+      "type": "number",
+      "default": 0,
+      "description": "Departure delay in minutes"
+    },
+    "delay_reason": {
+      "type": "string",
+      "description": "Reason for delay"
+    },
+    "position": {
+      "type": "object",
+      "description": "Current aircraft position (ACARS)",
+      "properties": {
+        "latitude": {
+          "type": "number"
+        },
+        "longitude": {
+          "type": "number"
+        },
+        "altitude_ft": {
+          "type": "number"
+        },
+        "ground_speed": {
+          "type": "number",
+          "description": "Ground speed knots"
+        },
+        "heading": {
+          "type": "number",
+          "description": "Magnetic heading degrees"
+        },
+        "last_update": {
+          "type": "string",
+          "description": "Last ACARS position report timestamp"
+        }
+      }
+    },
+    "fuel_monitoring": {
+      "type": "object",
+      "description": "Real-time fuel tracking",
+      "properties": {
+        "fuel_on_board": {
+          "type": "number",
+          "description": "Current estimated fuel lbs"
+        },
+        "fuel_burn_rate": {
+          "type": "number",
+          "description": "Fuel burn lbs/hour"
+        },
+        "fuel_remaining_minutes": {
+          "type": "number",
+          "description": "Estimated fuel remaining in minutes"
+        },
+        "fuel_variance": {
+          "type": "number",
+          "description": "Variance from planned burn %"
+        },
+        "low_fuel_alert": {
+          "type": "boolean",
+          "description": "Low fuel condition detected"
+        }
+      }
+    },
+    "weather_monitoring": {
+      "type": "object",
+      "description": "En-route weather monitoring",
+      "properties": {
+        "current_metar_origin": {
+          "type": "string"
+        },
+        "current_metar_destination": {
+          "type": "string"
+        },
+        "destination_trend": {
+          "type": "string",
+          "enum": [
+            "improving",
+            "stable",
+            "deteriorating"
+          ],
+          "description": "Weather trend at destination"
+        },
+        "active_sigmets": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "weather_deviation_required": {
+          "type": "boolean",
+          "description": "Suggests route deviation"
+        }
+      }
+    },
+    "connectivity_status": {
+      "type": "object",
+      "description": "Aircraft connectivity health",
+      "properties": {
+        "wifi_status": {
+          "type": "string",
+          "enum": [
+            "connected",
+            "disconnected",
+            "intermittent"
+          ]
+        },
+        "starlink_status": {
+          "type": "string",
+          "enum": [
+            "operational",
+            "degraded",
+            "disconnected"
+          ]
+        },
+        "last_acars_report": {
+          "type": "string",
+          "description": "Last ACARS message timestamp"
+        },
+        "acars_latency_minutes": {
+          "type": "number",
+          "description": "Minutes since last ACARS report"
+        }
+      }
+    },
+    "alerts": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "alert_type": {
+            "type": "string",
+            "enum": [
+              "fuel_variance",
+              "weather_change",
+              "eta_shift",
+              "connectivity_loss",
+              "mechanical",
+              "crew_duty",
+              "diversion_required"
+            ]
+          },
+          "severity": {
+            "type": "string",
+            "enum": [
+              "info",
+              "warning",
+              "critical"
+            ]
+          },
+          "message": {
+            "type": "string"
+          },
+          "created_at": {
+            "type": "string"
+          }
+        }
+      }
+    },
+    "diversion_info": {
+      "type": "object",
+      "description": "Diversion details if applicable",
+      "properties": {
+        "diversion_airport": {
+          "type": "string"
+        },
+        "reason": {
+          "type": "string"
+        },
+        "estimated_arrival": {
+          "type": "string"
+        },
+        "authorized_by": {
+          "type": "string"
+        }
+      }
+    },
+    "dispatcher_notes": {
+      "type": "string",
+      "description": "Dispatcher log of actions and decisions"
+    }
+  },
+  "required": [
+    "flight_number",
+    "flight_date",
+    "aircraft_tail"
+  ],
+  "rls": {
+    "create": {
+      "user_condition": {
+        "role": "dispatcher"
+      }
+    },
+    "read": {
+      "user_condition": {
+        "role": "dispatcher"
+      }
+    },
+    "update": {
+      "user_condition": {
+        "role": "dispatcher"
+      }
+    },
+    "delete": {
+      "user_condition": {
+        "role": "admin"
+      }
+    }
+  }
+}

@@ -135,5 +135,46 @@
     "aircraft_tail",
     "check_type",
     "scheduled_date"
-  ]
+  ],
+  "rls": {
+    "create": {
+      "user_condition": {
+        "role": "engineer"
+      }
+    },
+    "read": {
+      "$or": [
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        },
+        {
+          "user_condition": {
+            "role": "engineer"
+          }
+        },
+        {
+          "user_condition": {
+            "role": "mcc_supervisor"
+          }
+        },
+        {
+          "user_condition": {
+            "role": "technician"
+          }
+        }
+      ]
+    },
+    "update": {
+      "user_condition": {
+        "role": "engineer"
+      }
+    },
+    "delete": {
+      "user_condition": {
+        "role": "admin"
+      }
+    }
+  }
 }

@@ -89,5 +89,44 @@
     "component",
     "total_flight_hours",
     "overhaul_interval_hours"
-  ]
+  ],
+  "rls": {
+    "create": {
+      "user_condition": {
+        "role": "engineer"
+      }
+    },
+    "read": {
+      "$or": [
+        {
+          "data.fleet_id": "{{user.fleet_id}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        },
+        {
+          "user_condition": {
+            "role": "engineer"
+          }
+        },
+        {
+          "user_condition": {
+            "role": "mcc_supervisor"
+          }
+        }
+      ]
+    },
+    "update": {
+      "user_condition": {
+        "role": "engineer"
+      }
+    },
+    "delete": {
+      "user_condition": {
+        "role": "admin"
+      }
+    }
+  }
 }

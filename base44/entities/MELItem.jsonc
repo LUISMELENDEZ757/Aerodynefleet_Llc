@@ -102,5 +102,86 @@
     "description",
     "category",
     "deferred_date"
-  ]
+  ],
+  "rls": {
+    "create": {
+      "user_condition": {
+        "role": "technician"
+      }
+    },
+    "read": {
+      "$or": [
+        {
+          "created_by_id": "{{user.id}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        },
+        {
+          "user_condition": {
+            "role": "mcc_supervisor"
+          }
+        },
+        {
+          "user_condition": {
+            "role": "engineer"
+          }
+        },
+        {
+          "user_condition": {
+            "role": "technician"
+          }
+        },
+        {
+          "user_condition": {
+            "role": "dispatcher"
+          }
+        },
+        {
+          "user_condition": {
+            "role": "captain"
+          }
+        },
+        {
+          "user_condition": {
+            "role": "first_officer"
+          }
+        }
+      ]
+    },
+    "update": {
+      "$or": [
+        {
+          "created_by_id": "{{user.id}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        },
+        {
+          "user_condition": {
+            "role": "mcc_supervisor"
+          }
+        },
+        {
+          "user_condition": {
+            "role": "engineer"
+          }
+        },
+        {
+          "user_condition": {
+            "role": "technician"
+          }
+        }
+      ]
+    },
+    "delete": {
+      "user_condition": {
+        "role": "admin"
+      }
+    }
+  }
 }

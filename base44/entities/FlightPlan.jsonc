@@ -1,0 +1,159 @@
+{
+  "name": "FlightPlan",
+  "type": "object",
+  "description": "IFR flight plan filing and ATC clearance tracking.",
+  "properties": {
+    "flight_number": {
+      "type": "string"
+    },
+    "flight_date": {
+      "type": "string",
+      "format": "date"
+    },
+    "aircraft_tail": {
+      "type": "string"
+    },
+    "aircraft_type": {
+      "type": "string"
+    },
+    "origin": {
+      "type": "string"
+    },
+    "destination": {
+      "type": "string"
+    },
+    "alternate": {
+      "type": "string"
+    },
+    "filed_route": {
+      "type": "string"
+    },
+    "amended_route": {
+      "type": "string"
+    },
+    "cruise_altitude": {
+      "type": "string"
+    },
+    "cruise_speed": {
+      "type": "string"
+    },
+    "est_enroute_hours": {
+      "type": "number"
+    },
+    "fuel_endurance_hours": {
+      "type": "number"
+    },
+    "etd": {
+      "type": "string",
+      "description": "Estimated time of departure HH:MM Z"
+    },
+    "ete": {
+      "type": "string",
+      "description": "Estimated time enroute HH:MM"
+    },
+    "filing_status": {
+      "type": "string",
+      "enum": [
+        "not_filed",
+        "filed",
+        "accepted",
+        "amended",
+        "cancelled"
+      ],
+      "default": "not_filed"
+    },
+    "clearance_status": {
+      "type": "string",
+      "enum": [
+        "not_received",
+        "received",
+        "void",
+        "amended"
+      ],
+      "default": "not_received"
+    },
+    "clearance_route": {
+      "type": "string"
+    },
+    "clearance_altitude": {
+      "type": "string"
+    },
+    "clearance_departure_freq": {
+      "type": "string"
+    },
+    "clearance_squawk": {
+      "type": "string"
+    },
+    "departure_freq": {
+      "type": "string"
+    },
+    "remarks": {
+      "type": "string"
+    },
+    "filed_by": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "flight_number",
+    "flight_date",
+    "origin",
+    "destination"
+  ],
+  "rls": {
+    "create": {
+      "user_condition": {
+        "role": "dispatcher"
+      }
+    },
+    "read": {
+      "$or": [
+        {
+          "created_by_id": "{{user.id}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        },
+        {
+          "user_condition": {
+            "role": "dispatcher"
+          }
+        },
+        {
+          "user_condition": {
+            "role": "captain"
+          }
+        },
+        {
+          "user_condition": {
+            "role": "first_officer"
+          }
+        }
+      ]
+    },
+    "update": {
+      "$or": [
+        {
+          "created_by_id": "{{user.id}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        },
+        {
+          "user_condition": {
+            "role": "dispatcher"
+          }
+        }
+      ]
+    },
+    "delete": {
+      "user_condition": {
+        "role": "admin"
+      }
+    }
+  }
+}

@@ -1,0 +1,242 @@
+{
+  "name": "SafetyReport",
+  "type": "object",
+  "description": "Safety & QA reporting for Aerodyne Fleet LLC \u2014 ASAP, safety incidents, fatigue, audits, hazards, risk tracking",
+  "properties": {
+    "report_type": {
+      "type": "string",
+      "enum": [
+        "asap",
+        "safety_incident",
+        "fatigue_report",
+        "qa_audit",
+        "hazard_tracking"
+      ],
+      "description": "Type of safety report"
+    },
+    "flight_number": {
+      "type": "string",
+      "description": "Associated flight number (if applicable)"
+    },
+    "aircraft_tail": {
+      "type": "string",
+      "description": "Aircraft tail number"
+    },
+    "date_reported": {
+      "type": "string",
+      "format": "date",
+      "description": "Date report was filed"
+    },
+    "reporter_name": {
+      "type": "string",
+      "description": "Name of crew member or staff filing report"
+    },
+    "reporter_role": {
+      "type": "string",
+      "enum": [
+        "captain",
+        "first_officer",
+        "flight_attendant",
+        "dispatcher",
+        "mechanic",
+        "other"
+      ],
+      "description": "Role of reporter"
+    },
+    "title": {
+      "type": "string",
+      "description": "Report title / incident summary"
+    },
+    "description": {
+      "type": "string",
+      "description": "Detailed description of incident, hazard, or concern"
+    },
+    "category": {
+      "type": "string",
+      "enum": [
+        "maintenance",
+        "crew",
+        "procedure",
+        "weather",
+        "communication",
+        "other"
+      ],
+      "description": "Incident category"
+    },
+    "severity": {
+      "type": "string",
+      "enum": [
+        "low",
+        "medium",
+        "high",
+        "critical"
+      ],
+      "default": "medium",
+      "description": "Incident severity"
+    },
+    "risk_score": {
+      "type": "number",
+      "default": 0,
+      "description": "Automated risk score (0-100, calculated from severity + likelihood)"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "open",
+        "investigating",
+        "resolved",
+        "closed"
+      ],
+      "default": "open",
+      "description": "Report status"
+    },
+    "fatigue_level": {
+      "type": "string",
+      "enum": [
+        "none",
+        "low",
+        "moderate",
+        "high",
+        "critical"
+      ],
+      "description": "Fatigue level (for fatigue reports)"
+    },
+    "rest_hours_prior": {
+      "type": "number",
+      "description": "Hours of rest prior to incident (for fatigue reports)"
+    },
+    "qa_category": {
+      "type": "string",
+      "enum": [
+        "compliance",
+        "training",
+        "procedure",
+        "documentation",
+        "safety"
+      ],
+      "description": "QA audit category"
+    },
+    "qa_score": {
+      "type": "number",
+      "description": "QA audit score (0-100)"
+    },
+    "findings": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "finding_id": {
+            "type": "string"
+          },
+          "description": {
+            "type": "string"
+          },
+          "severity": {
+            "type": "string",
+            "enum": [
+              "minor",
+              "major",
+              "critical"
+            ]
+          },
+          "corrective_action": {
+            "type": "string"
+          }
+        }
+      },
+      "description": "QA audit findings"
+    },
+    "hazard_type": {
+      "type": "string",
+      "enum": [
+        "mechanical",
+        "procedural",
+        "environmental",
+        "human_factor"
+      ],
+      "description": "Type of hazard (for hazard tracking)"
+    },
+    "mitigation_steps": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "Steps taken or planned to mitigate hazard"
+    },
+    "assigned_to": {
+      "type": "string",
+      "description": "Email of person assigned to investigate/resolve"
+    },
+    "due_date": {
+      "type": "string",
+      "format": "date",
+      "description": "Resolution due date"
+    },
+    "notes": {
+      "type": "string",
+      "description": "Additional notes or follow-up comments"
+    }
+  },
+  "required": [
+    "report_type",
+    "title",
+    "reporter_name",
+    "date_reported"
+  ],
+  "rls": {
+    "create": {
+      "user_condition": {
+        "role": "user"
+      }
+    },
+    "read": {
+      "$or": [
+        {
+          "created_by_id": "{{user.id}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        },
+        {
+          "user_condition": {
+            "role": "mcc_supervisor"
+          }
+        },
+        {
+          "user_condition": {
+            "role": "engineer"
+          }
+        }
+      ]
+    },
+    "update": {
+      "$or": [
+        {
+          "created_by_id": "{{user.id}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        },
+        {
+          "user_condition": {
+            "role": "mcc_supervisor"
+          }
+        },
+        {
+          "user_condition": {
+            "role": "engineer"
+          }
+        }
+      ]
+    },
+    "delete": {
+      "user_condition": {
+        "role": "admin"
+      }
+    }
+  }
+}

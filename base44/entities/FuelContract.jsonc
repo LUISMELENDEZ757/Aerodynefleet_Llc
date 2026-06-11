@@ -1,0 +1,116 @@
+{
+  "name": "FuelContract",
+  "type": "object",
+  "description": "Fuel supply contracts by station and supplier with pricing and invoice reconciliation.",
+  "properties": {
+    "supplier": {
+      "type": "string"
+    },
+    "station": {
+      "type": "string",
+      "description": "ICAO code"
+    },
+    "contract_number": {
+      "type": "string"
+    },
+    "effective_date": {
+      "type": "string",
+      "format": "date"
+    },
+    "expiry_date": {
+      "type": "string",
+      "format": "date"
+    },
+    "contracted_price_per_gallon": {
+      "type": "number"
+    },
+    "current_market_price": {
+      "type": "number"
+    },
+    "discount_percent": {
+      "type": "number"
+    },
+    "min_uplift_gallons": {
+      "type": "number"
+    },
+    "annual_volume_gallons": {
+      "type": "number"
+    },
+    "ytd_volume_gallons": {
+      "type": "number",
+      "default": 0
+    },
+    "ytd_spend_usd": {
+      "type": "number",
+      "default": 0
+    },
+    "invoices": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "invoice_number": {
+            "type": "string"
+          },
+          "date": {
+            "type": "string"
+          },
+          "gallons": {
+            "type": "number"
+          },
+          "amount_usd": {
+            "type": "number"
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "pending",
+              "paid",
+              "disputed"
+            ]
+          }
+        }
+      }
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "active",
+        "expiring_soon",
+        "expired",
+        "suspended"
+      ],
+      "default": "active"
+    },
+    "notes": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "supplier",
+    "station",
+    "effective_date"
+  ],
+  "rls": {
+    "create": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "read": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "update": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "delete": {
+      "user_condition": {
+        "role": "admin"
+      }
+    }
+  }
+}

@@ -1,0 +1,219 @@
+{
+  "name": "CabinConfiguration",
+  "type": "object",
+  "description": "Aircraft-specific cabin layout, zones, doors, and emergency equipment configurations.",
+  "properties": {
+    "aircraft_type": {
+      "type": "string",
+      "enum": [
+        "B737-700",
+        "B737-800",
+        "B737-900",
+        "B737 MAX 8",
+        "B737 MAX 9",
+        "B757",
+        "B767",
+        "B777",
+        "B787",
+        "A320",
+        "A350",
+        "E190",
+        "CRJ700"
+      ],
+      "description": "Aircraft type"
+    },
+    "cabin_zones": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "zone_id": {
+            "type": "string",
+            "description": "Zone identifier (e.g., 'Zone_A')"
+          },
+          "name": {
+            "type": "string",
+            "description": "Zone name (e.g., 'Forward Cabin')"
+          },
+          "rows": {
+            "type": "string",
+            "description": "Row range (e.g., '1-10')"
+          },
+          "capacity": {
+            "type": "number",
+            "description": "Passenger capacity in zone"
+          },
+          "crew_rest_seats": {
+            "type": "number",
+            "description": "Crew rest/jump seats available"
+          },
+          "galley_position": {
+            "type": "boolean",
+            "description": "Has galley in this zone"
+          },
+          "lavatory_count": {
+            "type": "number",
+            "description": "Lavatories in zone"
+          }
+        }
+      },
+      "description": "Cabin zone definitions"
+    },
+    "doors": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "door_id": {
+            "type": "string",
+            "description": "Door identifier (e.g., '1L', '2R')"
+          },
+          "position": {
+            "type": "string",
+            "enum": [
+              "forward_left",
+              "forward_right",
+              "mid_left",
+              "mid_right",
+              "aft_left",
+              "aft_right"
+            ],
+            "description": "Door position"
+          },
+          "type": {
+            "type": "string",
+            "enum": [
+              "main_deck_pax",
+              "upper_deck_pax",
+              "cargo",
+              "emergency_exit"
+            ],
+            "description": "Door type"
+          },
+          "slide_equipped": {
+            "type": "boolean",
+            "description": "Has evacuation slide"
+          },
+          "door_monitor_light": {
+            "type": "boolean",
+            "description": "Door monitor warning light"
+          }
+        }
+      },
+      "description": "Door and emergency exit configuration"
+    },
+    "emergency_equipment": {
+      "type": "object",
+      "properties": {
+        "life_jackets": {
+          "type": "number",
+          "description": "Number of life jackets available"
+        },
+        "life_raft_locations": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "Life raft storage locations"
+        },
+        "first_aid_kits": {
+          "type": "number",
+          "description": "Number of first aid kits"
+        },
+        "aed_locations": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "AED locations"
+        },
+        "fire_extinguishers": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "Fire extinguisher locations and types"
+        },
+        "oxygen_masks": {
+          "type": "number",
+          "description": "Cabin oxygen mask count"
+        }
+      },
+      "description": "Emergency equipment inventory and locations"
+    },
+    "crew_stations": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "position": {
+            "type": "string",
+            "description": "Station position (e.g., 'Jumpseat_1L')"
+          },
+          "zone": {
+            "type": "string",
+            "description": "Associated cabin zone"
+          },
+          "designated_exits": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "description": "Nearest emergency exits"
+          }
+        }
+      },
+      "description": "Crew jump seat locations and assigned exits"
+    },
+    "galley_config": {
+      "type": "object",
+      "properties": {
+        "galley_count": {
+          "type": "number",
+          "description": "Number of galleys"
+        },
+        "galley_locations": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "Galley zone locations"
+        },
+        "oven_capacity": {
+          "type": "number",
+          "description": "Number of ovens"
+        },
+        "water_capacity": {
+          "type": "number",
+          "description": "Fresh water capacity in gallons"
+        }
+      },
+      "description": "Galley equipment and capacity"
+    },
+    "notes": {
+      "type": "string",
+      "description": "Additional cabin configuration notes"
+    }
+  },
+  "required": [
+    "aircraft_type"
+  ],
+  "rls": {
+    "create": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "read": {},
+    "update": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "delete": {
+      "user_condition": {
+        "role": "admin"
+      }
+    }
+  }
+}

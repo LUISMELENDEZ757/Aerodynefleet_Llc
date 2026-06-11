@@ -1,0 +1,418 @@
+{
+  "name": "DispatchRelease",
+  "type": "object",
+  "description": "Legal dispatch release document \u2014 the foundation of flight authorization. Contains route, fuel, weather, performance, crew legality, and MEL/CDL approvals. Required for every flight departure.",
+  "properties": {
+    "flight_number": {
+      "type": "string",
+      "description": "Flight number e.g. AA100"
+    },
+    "flight_date": {
+      "type": "string",
+      "format": "date"
+    },
+    "aircraft_tail": {
+      "type": "string",
+      "description": "Aircraft tail number"
+    },
+    "origin": {
+      "type": "string",
+      "description": "Departure airport ICAO"
+    },
+    "destination": {
+      "type": "string",
+      "description": "Arrival airport ICAO"
+    },
+    "alternate": {
+      "type": "string",
+      "description": "Alternate airport ICAO"
+    },
+    "route": {
+      "type": "string",
+      "description": "Filed flight route"
+    },
+    "cruise_altitude": {
+      "type": "string",
+      "description": "Requested cruise altitude FL###"
+    },
+    "cruise_speed": {
+      "type": "string",
+      "description": "Cruise speed Mach/IAS"
+    },
+    "release_status": {
+      "type": "string",
+      "enum": [
+        "draft",
+        "pending_signature",
+        "released",
+        "amended",
+        "cancelled"
+      ],
+      "default": "draft",
+      "description": "Release authorization status"
+    },
+    "fuel_section": {
+      "type": "object",
+      "description": "Fuel planning and burn analysis",
+      "properties": {
+        "trip_fuel_planned": {
+          "type": "number",
+          "description": "Planned trip fuel lbs"
+        },
+        "contingency_fuel": {
+          "type": "number",
+          "description": "Contingency fuel 5% lbs"
+        },
+        "alternate_fuel": {
+          "type": "number",
+          "description": "Alternate airport fuel lbs"
+        },
+        "final_reserve": {
+          "type": "number",
+          "description": "Final reserve 45 min lbs"
+        },
+        "extra_fuel": {
+          "type": "number",
+          "description": "Extra fuel margin lbs"
+        },
+        "fuel_on_board": {
+          "type": "number",
+          "description": "Total fuel to uplift lbs"
+        },
+        "min_fuel_required": {
+          "type": "number",
+          "description": "Minimum legal fuel lbs"
+        },
+        "tankering_decision": {
+          "type": "string",
+          "enum": [
+            "none",
+            "tankered",
+            "partial"
+          ],
+          "description": "Tankering decision at origin"
+        },
+        "fuel_price": {
+          "type": "number",
+          "description": "Fuel price $/gallon"
+        }
+      }
+    },
+    "performance_section": {
+      "type": "object",
+      "description": "Aircraft performance data",
+      "properties": {
+        "oat": {
+          "type": "number",
+          "description": "Outside air temperature \u00b0C"
+        },
+        "pressure_altitude": {
+          "type": "number",
+          "description": "Pressure altitude ft"
+        },
+        "tow": {
+          "type": "number",
+          "description": "Takeoff weight lbs"
+        },
+        "v1": {
+          "type": "number",
+          "description": "Takeoff decision speed knots"
+        },
+        "vr": {
+          "type": "number",
+          "description": "Rotation speed knots"
+        },
+        "v2": {
+          "type": "number",
+          "description": "Takeoff safety speed knots"
+        },
+        "runway_required": {
+          "type": "number",
+          "description": "Runway length required feet"
+        },
+        "runway_available": {
+          "type": "number",
+          "description": "Runway length available feet"
+        },
+        "landing_distance": {
+          "type": "number",
+          "description": "Destination landing distance feet"
+        },
+        "landing_distance_available": {
+          "type": "number",
+          "description": "Destination runway available feet"
+        }
+      }
+    },
+    "weather_section": {
+      "type": "object",
+      "description": "Weather briefing and impact",
+      "properties": {
+        "origin_metar": {
+          "type": "string",
+          "description": "Origin METAR"
+        },
+        "destination_metar": {
+          "type": "string",
+          "description": "Destination METAR"
+        },
+        "destination_taf": {
+          "type": "string",
+          "description": "Destination TAF"
+        },
+        "alternate_metar": {
+          "type": "string",
+          "description": "Alternate airport METAR"
+        },
+        "origin_flight_category": {
+          "type": "string",
+          "enum": [
+            "VFR",
+            "MVFR",
+            "IFR",
+            "LIFR"
+          ],
+          "description": "Origin flight category"
+        },
+        "destination_flight_category": {
+          "type": "string",
+          "enum": [
+            "VFR",
+            "MVFR",
+            "IFR",
+            "LIFR"
+          ],
+          "description": "Destination flight category"
+        },
+        "sigmets": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "Active SIGMETs along route"
+        },
+        "weather_remarks": {
+          "type": "string",
+          "description": "Weather briefing notes"
+        }
+      }
+    },
+    "notams": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "notam_id": {
+            "type": "string"
+          },
+          "airport": {
+            "type": "string"
+          },
+          "effective": {
+            "type": "string"
+          },
+          "text": {
+            "type": "string"
+          },
+          "impact_level": {
+            "type": "string",
+            "enum": [
+              "critical",
+              "warning",
+              "info"
+            ]
+          }
+        }
+      },
+      "description": "Relevant NOTAMs for route"
+    },
+    "mel_cdl_section": {
+      "type": "object",
+      "description": "MEL/CDL impact analysis",
+      "properties": {
+        "open_mel_items": {
+          "type": "number",
+          "description": "Number of open MEL deferrals"
+        },
+        "approved_for_dispatch": {
+          "type": "boolean",
+          "description": "MEL/CDL approval status"
+        },
+        "restrictions": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "Operational restrictions due to MEL items"
+        },
+        "mel_remarks": {
+          "type": "string",
+          "description": "MEL review notes"
+        }
+      }
+    },
+    "crew_section": {
+      "type": "object",
+      "description": "Crew legality and assignment",
+      "properties": {
+        "captain_name": {
+          "type": "string"
+        },
+        "captain_legal_status": {
+          "type": "string",
+          "enum": [
+            "legal",
+            "near_limit",
+            "illegal"
+          ]
+        },
+        "first_officer_name": {
+          "type": "string"
+        },
+        "first_officer_legal_status": {
+          "type": "string",
+          "enum": [
+            "legal",
+            "near_limit",
+            "illegal"
+          ]
+        },
+        "crew_legality_approved": {
+          "type": "boolean",
+          "description": "FAR 117 compliance verified"
+        }
+      }
+    },
+    "etops_section": {
+      "type": "object",
+      "description": "ETOPS certification and alternate planning",
+      "properties": {
+        "is_etops": {
+          "type": "boolean",
+          "description": "Flight requires ETOPS"
+        },
+        "etops_min": {
+          "type": "number",
+          "description": "ETOPS certification in minutes"
+        },
+        "suitable_alternates": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "ETOPS-suitable alternate airports"
+        },
+        "etops_approved": {
+          "type": "boolean",
+          "description": "ETOPS release approved"
+        }
+      }
+    },
+    "dispatcher_name": {
+      "type": "string",
+      "description": "Dispatching Authority name"
+    },
+    "dispatcher_signature": {
+      "type": "string",
+      "description": "Dispatcher signature/ID"
+    },
+    "dispatcher_timestamp": {
+      "type": "string",
+      "description": "Release signing timestamp"
+    },
+    "pic_name": {
+      "type": "string",
+      "description": "Pilot-in-Command name"
+    },
+    "pic_signature": {
+      "type": "string",
+      "description": "PIC signature/ID (obtained by crew)"
+    },
+    "pic_timestamp": {
+      "type": "string",
+      "description": "PIC acceptance timestamp"
+    },
+    "remarks": {
+      "type": "string",
+      "description": "General release remarks"
+    },
+    "is_amendment": {
+      "type": "boolean",
+      "default": false,
+      "description": "Is this an amended release"
+    },
+    "amendment_reason": {
+      "type": "string",
+      "description": "Reason for amendment"
+    },
+    "previous_release_id": {
+      "type": "string",
+      "description": "Reference to previous release if amended"
+    }
+  },
+  "required": [
+    "flight_number",
+    "flight_date",
+    "origin",
+    "destination"
+  ],
+  "rls": {
+    "create": {
+      "user_condition": {
+        "role": "dispatcher"
+      }
+    },
+    "read": {
+      "$or": [
+        {
+          "created_by_id": "{{user.id}}"
+        },
+        {
+          "data.pic_name": "{{user.full_name}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        },
+        {
+          "user_condition": {
+            "role": "dispatcher"
+          }
+        },
+        {
+          "user_condition": {
+            "role": "captain"
+          }
+        },
+        {
+          "user_condition": {
+            "role": "first_officer"
+          }
+        }
+      ]
+    },
+    "update": {
+      "$or": [
+        {
+          "created_by_id": "{{user.id}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        },
+        {
+          "user_condition": {
+            "role": "dispatcher"
+          }
+        }
+      ]
+    },
+    "delete": {
+      "user_condition": {
+        "role": "admin"
+      }
+    }
+  }
+}

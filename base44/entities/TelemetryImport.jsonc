@@ -80,5 +80,27 @@
     "oem_id",
     "data_type",
     "file_name"
-  ]
+  ],
+  "rls": {
+    "create": {
+      "user_condition": {
+        "role": "service_role"
+      }
+    },
+    "read": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "update": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "delete": {
+      "user_condition": {
+        "role": "admin"
+      }
+    }
+  }
 }

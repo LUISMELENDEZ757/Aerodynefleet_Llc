@@ -1,0 +1,96 @@
+{
+  "name": "ToolTransaction",
+  "type": "object",
+  "description": "Tool check-out / check-in transaction log",
+  "properties": {
+    "tool_number": {
+      "type": "string"
+    },
+    "tool_name": {
+      "type": "string"
+    },
+    "transaction_type": {
+      "type": "string",
+      "enum": [
+        "checkout",
+        "checkin",
+        "calibration",
+        "damage_report",
+        "transfer"
+      ],
+      "default": "checkout"
+    },
+    "technician_name": {
+      "type": "string"
+    },
+    "technician_id": {
+      "type": "string"
+    },
+    "from_location": {
+      "type": "string"
+    },
+    "to_location": {
+      "type": "string"
+    },
+    "timestamp": {
+      "type": "string"
+    },
+    "notes": {
+      "type": "string"
+    },
+    "scan_method": {
+      "type": "string",
+      "enum": [
+        "qr",
+        "rfid",
+        "nfc",
+        "manual"
+      ],
+      "default": "manual"
+    }
+  },
+  "required": [
+    "tool_number",
+    "transaction_type",
+    "technician_name"
+  ],
+  "rls": {
+    "create": {
+      "user_condition": {
+        "role": "technician"
+      }
+    },
+    "read": {
+      "$or": [
+        {
+          "created_by_id": "{{user.id}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        },
+        {
+          "user_condition": {
+            "role": "mcc_supervisor"
+          }
+        },
+        {
+          "user_condition": {
+            "role": "technician"
+          }
+        }
+      ]
+    },
+    "update": {
+      "user_condition": {
+        "role": "deny"
+      }
+    },
+    "delete": {
+      "user_condition": {
+        "role": "deny"
+      }
+    }
+  }
+}

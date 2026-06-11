@@ -1,0 +1,106 @@
+{
+  "name": "DocumentLibrary",
+  "type": "object",
+  "description": "Regulatory and operational document library \u2014 FARs, SOPs, CBAs, manuals.",
+  "properties": {
+    "title": {
+      "type": "string"
+    },
+    "category": {
+      "type": "string",
+      "enum": [
+        "far",
+        "sop",
+        "cba",
+        "manual",
+        "bulletin",
+        "policy",
+        "other"
+      ]
+    },
+    "document_number": {
+      "type": "string"
+    },
+    "revision": {
+      "type": "string"
+    },
+    "effective_date": {
+      "type": "string",
+      "format": "date"
+    },
+    "expiry_date": {
+      "type": "string",
+      "format": "date"
+    },
+    "summary": {
+      "type": "string"
+    },
+    "content": {
+      "type": "string",
+      "description": "Full document text or key excerpts"
+    },
+    "file_url": {
+      "type": "string"
+    },
+    "applicable_roles": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "applicable_aircraft": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "tags": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "is_active": {
+      "type": "boolean",
+      "default": true
+    }
+  },
+  "required": [
+    "title",
+    "category"
+  ],
+  "rls": {
+    "create": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "read": {
+      "$or": [
+        {
+          "data.applicable_roles": {
+            "$in": [
+              "{{user.role}}",
+              "all"
+            ]
+          }
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    },
+    "update": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "delete": {
+      "user_condition": {
+        "role": "admin"
+      }
+    }
+  }
+}

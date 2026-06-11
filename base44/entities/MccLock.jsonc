@@ -62,5 +62,27 @@
     "aircraft_tail",
     "reason",
     "placed_by"
-  ]
+  ],
+  "rls": {
+    "create": {
+      "user_condition": {
+        "role": "mcc_supervisor"
+      }
+    },
+    "read": {
+      "user_condition": {
+        "role": "mcc_supervisor"
+      }
+    },
+    "update": {
+      "user_condition": {
+        "role": "mcc_supervisor"
+      }
+    },
+    "delete": {
+      "user_condition": {
+        "role": "admin"
+      }
+    }
+  }
 }

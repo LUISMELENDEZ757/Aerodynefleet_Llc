@@ -1,0 +1,183 @@
+{
+  "name": "DispatchPolicy",
+  "type": "object",
+  "description": "Aircraft-type-specific dispatch rules for Aerodyne Fleet LLC. Governs fuel policies, MEL/CDL logic, ETOPS rules, alternates, and redispatch workflows.",
+  "properties": {
+    "aircraft_type": {
+      "type": "string",
+      "enum": [
+        "B737-700",
+        "B737-800",
+        "B737-900",
+        "B737 MAX 8",
+        "B737 MAX 9",
+        "B757",
+        "B767",
+        "B777",
+        "B787",
+        "A320",
+        "A350",
+        "E190",
+        "CRJ700"
+      ],
+      "description": "Aircraft type to which this policy applies"
+    },
+    "category": {
+      "type": "string",
+      "enum": [
+        "narrowbody",
+        "widebody"
+      ],
+      "description": "Aircraft category for planning rules"
+    },
+    "max_etops_minutes": {
+      "type": "number",
+      "description": "ETOPS certification limit in minutes (120, 180, 207, 330, etc.)"
+    },
+    "min_fuel_policy": {
+      "type": "object",
+      "properties": {
+        "trip_fuel": {
+          "type": "number",
+          "description": "Trip fuel burn estimate margin (%)"
+        },
+        "contingency": {
+          "type": "number",
+          "description": "Contingency fuel as % of trip fuel"
+        },
+        "alternate": {
+          "type": "number",
+          "description": "Alternate airport fuel as % of trip fuel"
+        },
+        "final_reserve": {
+          "type": "number",
+          "description": "Final reserve fuel in lbs"
+        },
+        "extra_margin": {
+          "type": "number",
+          "description": "Additional safety margin in lbs"
+        }
+      },
+      "description": "Fuel planning policy for this aircraft type"
+    },
+    "mel_rules": {
+      "type": "object",
+      "properties": {
+        "inoperable_systems": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "Systems that trigger IMMEDIATE CDL (e.g., 'Flight Controls', 'Avionics')"
+        },
+        "deferrable_systems": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "Systems eligible for MEL deferral (e.g., 'APU', 'IFE')"
+        },
+        "max_deferred_items": {
+          "type": "number",
+          "description": "Maximum concurrent MEL deferrals allowed"
+        }
+      },
+      "description": "MEL/CDL dispatch rules"
+    },
+    "alternate_selection": {
+      "type": "object",
+      "properties": {
+        "min_runway_length": {
+          "type": "number",
+          "description": "Minimum runway length in feet"
+        },
+        "min_weather_minima_rvr": {
+          "type": "number",
+          "description": "Minimum RVR requirement for alternate"
+        },
+        "preferred_distance_nm": {
+          "type": "number",
+          "description": "Preferred alternate distance from destination (NM)"
+        },
+        "max_distance_nm": {
+          "type": "number",
+          "description": "Maximum alternate distance (NM)"
+        }
+      },
+      "description": "Alternate airport selection criteria"
+    },
+    "redispatch_triggers": {
+      "type": "object",
+      "properties": {
+        "fuel_burn_variance": {
+          "type": "number",
+          "description": "Fuel burn variance threshold (%) triggering redispatch"
+        },
+        "wx_degradation_check": {
+          "type": "boolean",
+          "description": "Require WX check if forecast degrades"
+        },
+        "delay_threshold_minutes": {
+          "type": "number",
+          "description": "Departure delay triggering fuel recheck (minutes)"
+        }
+      },
+      "description": "Triggers for redispatch evaluation"
+    },
+    "long_range_planning": {
+      "type": "object",
+      "properties": {
+        "enable_long_range": {
+          "type": "boolean",
+          "description": "Enable long-range planning (widebodies only)"
+        },
+        "max_flight_hours": {
+          "type": "number",
+          "description": "Maximum continuous flight hours (crew duty limits)"
+        },
+        "cabin_relief_intervals": {
+          "type": "number",
+          "description": "Cabin crew relief rotation interval (hours)"
+        },
+        "fuel_cost_optimization": {
+          "type": "boolean",
+          "description": "Enable fuel cost vs. time optimization"
+        }
+      },
+      "description": "Long-range flight planning rules"
+    },
+    "dispatch_workflow": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "Required dispatch steps in order (e.g., 'Check MEL', 'Compute Fuel', 'Select Alternate', 'Verify ETOPS', 'Issue Release')"
+    },
+    "notes": {
+      "type": "string",
+      "description": "Additional policy notes for dispatchers"
+    }
+  },
+  "required": [
+    "aircraft_type",
+    "category"
+  ],
+  "rls": {
+    "create": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "read": {},
+    "update": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "delete": {
+      "user_condition": {
+        "role": "admin"
+      }
+    }
+  }
+}

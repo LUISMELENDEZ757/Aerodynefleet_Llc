@@ -1,0 +1,110 @@
+{
+  "name": "CrewChecklist",
+  "type": "object",
+  "description": "Aircraft-specific crew checklists for preflight, in-flight, and postflight procedures.",
+  "properties": {
+    "aircraft_type": {
+      "type": "string",
+      "enum": [
+        "B737-700",
+        "B737-800",
+        "B737-900",
+        "B737 MAX 8",
+        "B737 MAX 9",
+        "B757",
+        "B767",
+        "B777",
+        "B787",
+        "A320",
+        "A350",
+        "E190",
+        "CRJ700"
+      ],
+      "description": "Aircraft type to which this checklist applies"
+    },
+    "checklist_type": {
+      "type": "string",
+      "enum": [
+        "preflight_pilot",
+        "preflight_cabin",
+        "departure_pilot",
+        "departure_cabin",
+        "in_flight",
+        "descent",
+        "arrival",
+        "postflight"
+      ],
+      "description": "Checklist phase and audience"
+    },
+    "items": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "item_id": {
+            "type": "string",
+            "description": "Unique item identifier"
+          },
+          "sequence": {
+            "type": "number",
+            "description": "Item sequence in checklist"
+          },
+          "check": {
+            "type": "string",
+            "description": "Checklist item wording"
+          },
+          "expected_state": {
+            "type": "string",
+            "description": "Expected state or response"
+          },
+          "critical": {
+            "type": "boolean",
+            "description": "Critical item (must verify)"
+          },
+          "zone": {
+            "type": "string",
+            "description": "Cabin zone (if applicable)"
+          },
+          "assigned_role": {
+            "type": "string",
+            "enum": [
+              "captain",
+              "first_officer",
+              "lead_fa",
+              "fa_all",
+              "purser"
+            ],
+            "description": "Role responsible for check"
+          }
+        }
+      },
+      "description": "Individual checklist items in sequence"
+    },
+    "notes": {
+      "type": "string",
+      "description": "Aircraft-specific notes or special procedures"
+    }
+  },
+  "required": [
+    "aircraft_type",
+    "checklist_type"
+  ],
+  "rls": {
+    "create": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "read": {},
+    "update": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "delete": {
+      "user_condition": {
+        "role": "admin"
+      }
+    }
+  }
+}

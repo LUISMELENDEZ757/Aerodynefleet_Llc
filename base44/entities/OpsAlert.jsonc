@@ -1,0 +1,125 @@
+{
+  "name": "OpsAlert",
+  "type": "object",
+  "description": "Operational alerts and notifications \u2014 crew callouts, flight status changes, weather alerts, system notifications.",
+  "properties": {
+    "alert_type": {
+      "type": "string",
+      "enum": [
+        "flight_status",
+        "crew_legality",
+        "weather",
+        "mx",
+        "fuel",
+        "irops",
+        "dispatch",
+        "system"
+      ],
+      "description": "Type of alert"
+    },
+    "severity": {
+      "type": "string",
+      "enum": [
+        "info",
+        "warning",
+        "critical"
+      ],
+      "default": "info"
+    },
+    "title": {
+      "type": "string"
+    },
+    "message": {
+      "type": "string"
+    },
+    "flight_number": {
+      "type": "string"
+    },
+    "aircraft_tail": {
+      "type": "string"
+    },
+    "target_roles": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "Roles to notify: dispatcher, captain, first_officer, flight_attendant, all"
+    },
+    "target_users": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "Specific user emails to notify"
+    },
+    "is_read": {
+      "type": "boolean",
+      "default": false
+    },
+    "is_dismissed": {
+      "type": "boolean",
+      "default": false
+    },
+    "action_required": {
+      "type": "boolean",
+      "default": false
+    },
+    "action_url": {
+      "type": "string",
+      "description": "Deep link to relevant module"
+    },
+    "expires_at": {
+      "type": "string",
+      "description": "Alert expiry time ISO string"
+    }
+  },
+  "required": [
+    "alert_type",
+    "title",
+    "message",
+    "severity"
+  ],
+  "rls": {
+    "create": {},
+    "read": {
+      "$or": [
+        {
+          "created_by_id": "{{user.id}}"
+        },
+        {
+          "data.target_roles": {
+            "$in": [
+              "{{user.role}}",
+              "all"
+            ]
+          }
+        },
+        {
+          "data.target_users": "{{user.email}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    },
+    "update": {
+      "$or": [
+        {
+          "created_by_id": "{{user.id}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    },
+    "delete": {
+      "user_condition": {
+        "role": "admin"
+      }
+    }
+  }
+}

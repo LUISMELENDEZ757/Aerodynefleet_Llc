@@ -1,0 +1,124 @@
+{
+  "name": "PaxReaccommodation",
+  "type": "object",
+  "description": "Passenger reaccommodation records during IROPS events.",
+  "properties": {
+    "irops_event_id": {
+      "type": "string"
+    },
+    "original_flight": {
+      "type": "string"
+    },
+    "flight_date": {
+      "type": "string",
+      "format": "date"
+    },
+    "pax_name": {
+      "type": "string"
+    },
+    "pax_count": {
+      "type": "number",
+      "default": 1
+    },
+    "origin": {
+      "type": "string"
+    },
+    "destination": {
+      "type": "string"
+    },
+    "rebooked_flight": {
+      "type": "string"
+    },
+    "rebooked_date": {
+      "type": "string",
+      "format": "date"
+    },
+    "rebooked_carrier": {
+      "type": "string"
+    },
+    "compensation_type": {
+      "type": "string",
+      "enum": [
+        "none",
+        "meal_voucher",
+        "hotel",
+        "travel_credit",
+        "cash",
+        "full_refund"
+      ],
+      "default": "none"
+    },
+    "compensation_amount": {
+      "type": "number",
+      "default": 0
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "pending",
+        "rebooked",
+        "hotel_assigned",
+        "completed",
+        "refunded"
+      ],
+      "default": "pending"
+    },
+    "agent_name": {
+      "type": "string"
+    },
+    "notes": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "original_flight",
+    "flight_date",
+    "pax_count"
+  ],
+  "rls": {
+    "create": {
+      "user_condition": {
+        "role": "dispatcher"
+      }
+    },
+    "read": {
+      "$or": [
+        {
+          "created_by_id": "{{user.id}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        },
+        {
+          "user_condition": {
+            "role": "dispatcher"
+          }
+        }
+      ]
+    },
+    "update": {
+      "$or": [
+        {
+          "created_by_id": "{{user.id}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        },
+        {
+          "user_condition": {
+            "role": "dispatcher"
+          }
+        }
+      ]
+    },
+    "delete": {
+      "user_condition": {
+        "role": "admin"
+      }
+    }
+  }
+}

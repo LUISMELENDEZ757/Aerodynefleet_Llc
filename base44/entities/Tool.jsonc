@@ -1,0 +1,115 @@
+{
+  "name": "Tool",
+  "type": "object",
+  "description": "Aviation tooling inventory \u2014 FAA compliant tool tracking with QR/RFID tagging",
+  "properties": {
+    "tool_number": {
+      "type": "string",
+      "description": "Tool ID e.g. TRQ-2450"
+    },
+    "name": {
+      "type": "string",
+      "description": "Tool name"
+    },
+    "manufacturer": {
+      "type": "string",
+      "description": "Manufacturer name"
+    },
+    "model": {
+      "type": "string",
+      "description": "Model number"
+    },
+    "category": {
+      "type": "string",
+      "enum": [
+        "torque",
+        "pneumatic",
+        "electrical",
+        "measuring",
+        "hand_tool",
+        "inspection",
+        "cutting",
+        "other"
+      ],
+      "default": "hand_tool"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "available",
+        "checked_out",
+        "calibration_due",
+        "damaged",
+        "retired"
+      ],
+      "default": "available"
+    },
+    "location": {
+      "type": "string",
+      "description": "Storage location e.g. Tool Crib A - Bay 3"
+    },
+    "assigned_to": {
+      "type": "string",
+      "description": "Person currently holding the tool"
+    },
+    "calibration_due": {
+      "type": "string",
+      "format": "date"
+    },
+    "last_calibrated": {
+      "type": "string",
+      "format": "date"
+    },
+    "value": {
+      "type": "number",
+      "description": "Tool value in USD"
+    },
+    "usage_count": {
+      "type": "number",
+      "default": 0,
+      "description": "Number of times used"
+    },
+    "rfid_tag": {
+      "type": "string",
+      "description": "RFID tag ID"
+    },
+    "qr_code": {
+      "type": "string",
+      "description": "QR code data"
+    },
+    "requires_calibration": {
+      "type": "boolean",
+      "default": false
+    },
+    "notes": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "tool_number",
+    "name",
+    "status"
+  ],
+  "rls": {
+    "create": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "read": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "update": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "delete": {
+      "user_condition": {
+        "role": "admin"
+      }
+    }
+  }
+}

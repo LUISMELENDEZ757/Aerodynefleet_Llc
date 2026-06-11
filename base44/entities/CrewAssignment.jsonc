@@ -1,0 +1,133 @@
+{
+  "name": "CrewAssignment",
+  "type": "object",
+  "description": "Aerodyne Fleet LLC \u2014 Crew duty assignment. Cross-app shared resource. Links to Flight entity. Consumed by Dispatch, EFB, FlightCrew, and Cabin modules.",
+  "properties": {
+    "flight_id": {
+      "type": "string",
+      "description": "Reference to Flight entity ID"
+    },
+    "flight_number": {
+      "type": "string",
+      "description": "Flight number \u2014 denormalized for cross-app queries"
+    },
+    "crew_name": {
+      "type": "string",
+      "description": "Crew member full name"
+    },
+    "employee_id": {
+      "type": "string",
+      "description": "Employee ID \u2014 unique across all Aerodyne Fleet products"
+    },
+    "role": {
+      "type": "string",
+      "enum": [
+        "captain",
+        "first_officer",
+        "dispatcher",
+        "flight_attendant"
+      ],
+      "description": "Crew role"
+    },
+    "duty_start": {
+      "type": "string",
+      "description": "Duty start time HH:MM (Zulu)"
+    },
+    "duty_end": {
+      "type": "string",
+      "description": "Duty end time HH:MM (Zulu)"
+    },
+    "flight_date": {
+      "type": "string",
+      "format": "date",
+      "description": "Date of duty (YYYY-MM-DD)"
+    },
+    "rest_hours_prior": {
+      "type": "number",
+      "description": "Hours of rest prior to duty (FAR 117)"
+    },
+    "legal_status": {
+      "type": "string",
+      "enum": [
+        "legal",
+        "near_limit",
+        "illegal"
+      ],
+      "default": "legal",
+      "description": "FAR Part 117 legality status"
+    },
+    "total_flight_time_today": {
+      "type": "number",
+      "description": "Total flight time today in hours"
+    },
+    "notes": {
+      "type": "string",
+      "description": "Additional notes"
+    }
+  },
+  "required": [
+    "flight_number",
+    "crew_name",
+    "role",
+    "flight_date"
+  ],
+  "rls": {
+    "create": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "read": {
+      "$or": [
+        {
+          "data.employee_id": "{{user.employee_id}}"
+        },
+        {
+          "data.crew_name": "{{user.full_name}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        },
+        {
+          "user_condition": {
+            "role": "dispatcher"
+          }
+        },
+        {
+          "user_condition": {
+            "role": "mcc_supervisor"
+          }
+        }
+      ]
+    },
+    "update": {
+      "$or": [
+        {
+          "created_by_id": "{{user.id}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        },
+        {
+          "user_condition": {
+            "role": "dispatcher"
+          }
+        },
+        {
+          "user_condition": {
+            "role": "mcc_supervisor"
+          }
+        }
+      ]
+    },
+    "delete": {
+      "user_condition": {
+        "role": "admin"
+      }
+    }
+  }
+}

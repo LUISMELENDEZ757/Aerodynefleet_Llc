@@ -1,0 +1,159 @@
+{
+  "name": "IROPSEvent",
+  "type": "object",
+  "description": "Irregular Operations event \u2014 tracks weather, MX, or operational disruptions and their cascading flight impacts.",
+  "properties": {
+    "event_type": {
+      "type": "string",
+      "enum": [
+        "weather",
+        "mx",
+        "crew",
+        "atc",
+        "security",
+        "gate",
+        "other"
+      ],
+      "description": "Type of IROPS trigger"
+    },
+    "severity": {
+      "type": "string",
+      "enum": [
+        "minor",
+        "moderate",
+        "major",
+        "critical"
+      ],
+      "default": "moderate"
+    },
+    "title": {
+      "type": "string",
+      "description": "Short event title"
+    },
+    "description": {
+      "type": "string",
+      "description": "Full event description"
+    },
+    "affected_station": {
+      "type": "string",
+      "description": "ICAO code of affected station"
+    },
+    "affected_flights": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "List of affected flight numbers"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "active",
+        "monitoring",
+        "resolved"
+      ],
+      "default": "active"
+    },
+    "recovery_actions": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "action": {
+            "type": "string"
+          },
+          "flight": {
+            "type": "string"
+          },
+          "assigned_to": {
+            "type": "string"
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "pending",
+              "in_progress",
+              "done"
+            ]
+          }
+        }
+      }
+    },
+    "estimated_resolution": {
+      "type": "string",
+      "description": "Estimated resolution time HH:MM Z"
+    },
+    "cost_impact": {
+      "type": "number",
+      "description": "Estimated cost impact in USD"
+    },
+    "pax_impacted": {
+      "type": "number",
+      "description": "Number of passengers impacted"
+    },
+    "notes": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "event_type",
+    "title",
+    "status"
+  ],
+  "rls": {
+    "create": {
+      "user_condition": {
+        "role": "dispatcher"
+      }
+    },
+    "read": {
+      "$or": [
+        {
+          "created_by_id": "{{user.id}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        },
+        {
+          "user_condition": {
+            "role": "dispatcher"
+          }
+        },
+        {
+          "user_condition": {
+            "role": "mcc_supervisor"
+          }
+        }
+      ]
+    },
+    "update": {
+      "$or": [
+        {
+          "created_by_id": "{{user.id}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        },
+        {
+          "user_condition": {
+            "role": "dispatcher"
+          }
+        },
+        {
+          "user_condition": {
+            "role": "mcc_supervisor"
+          }
+        }
+      ]
+    },
+    "delete": {
+      "user_condition": {
+        "role": "admin"
+      }
+    }
+  }
+}

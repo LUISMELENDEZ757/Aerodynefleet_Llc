@@ -1,0 +1,116 @@
+{
+  "name": "PerformanceProfile",
+  "type": "object",
+  "description": "Aircraft performance profile data \u2014 V-speeds, thrust, fuel burn, W&B envelopes, runway performance",
+  "properties": {
+    "aircraft_type": {
+      "type": "string",
+      "description": "Aircraft type e.g. A320, B737-800, E190, CRJ700, B777, B787"
+    },
+    "mtow": {
+      "type": "number",
+      "description": "Maximum takeoff weight in lbs"
+    },
+    "mlw": {
+      "type": "number",
+      "description": "Maximum landing weight in lbs"
+    },
+    "zfw_limit": {
+      "type": "number",
+      "description": "Maximum zero-fuel weight in lbs"
+    },
+    "oew": {
+      "type": "number",
+      "description": "Operating empty weight in lbs"
+    },
+    "cg_min_percent": {
+      "type": "number",
+      "description": "Minimum CG envelope as % of MAC"
+    },
+    "cg_max_percent": {
+      "type": "number",
+      "description": "Maximum CG envelope as % of MAC"
+    },
+    "cruise_fl_max": {
+      "type": "number",
+      "description": "Maximum cruise altitude in feet"
+    },
+    "vmca": {
+      "type": "number",
+      "description": "Minimum control speed air (KIAS)"
+    },
+    "v1_typical": {
+      "type": "number",
+      "description": "Typical V1 speed (KIAS) at MTOW, SL, ISA"
+    },
+    "vr_typical": {
+      "type": "number",
+      "description": "Typical VR speed (KIAS) at MTOW, SL, ISA"
+    },
+    "v2_typical": {
+      "type": "number",
+      "description": "Typical V2 speed (KIAS) at MTOW, SL, ISA"
+    },
+    "vapp_typical": {
+      "type": "number",
+      "description": "Typical approach speed (KIAS)"
+    },
+    "cruise_ff": {
+      "type": "number",
+      "description": "Cruise fuel flow at typical cruise power (lbs/hr)"
+    },
+    "climb_ff": {
+      "type": "number",
+      "description": "Climb fuel flow (lbs/hr)"
+    },
+    "descent_ff": {
+      "type": "number",
+      "description": "Descent fuel flow at idle (lbs/hr)"
+    },
+    "climb_rate": {
+      "type": "number",
+      "description": "Typical climb gradient at MTOW (fpm)"
+    },
+    "tofl_sl_isa": {
+      "type": "number",
+      "description": "Takeoff field length at SL, ISA, MTOW (feet)"
+    },
+    "lfl_sl_isa": {
+      "type": "number",
+      "description": "Landing field length at SL, ISA, MLW (feet)"
+    },
+    "range_max_fuel": {
+      "type": "number",
+      "description": "Maximum range at typical cruise (NM)"
+    },
+    "driftdown_alt": {
+      "type": "number",
+      "description": "OEI drift-down level-off altitude (feet)"
+    },
+    "notes": {
+      "type": "string",
+      "description": "Additional notes or caveats"
+    }
+  },
+  "required": [
+    "aircraft_type"
+  ],
+  "rls": {
+    "create": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "read": {},
+    "update": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "delete": {
+      "user_condition": {
+        "role": "admin"
+      }
+    }
+  }
+}

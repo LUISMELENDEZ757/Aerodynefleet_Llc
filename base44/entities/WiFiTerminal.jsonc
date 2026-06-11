@@ -1,0 +1,123 @@
+{
+  "name": "WiFiTerminal",
+  "type": "object",
+  "description": "WiFi connectivity terminal per aircraft \u2014 signal strength, uptime, network status.",
+  "properties": {
+    "aircraft_tail": {
+      "type": "string",
+      "description": "Aircraft tail number e.g. N455GJ"
+    },
+    "aircraft_type": {
+      "type": "string",
+      "description": "Aircraft type e.g. B737-800"
+    },
+    "terminal_id": {
+      "type": "string",
+      "description": "WiFi terminal hardware ID / serial"
+    },
+    "provider": {
+      "type": "string",
+      "enum": [
+        "viasat",
+        "panasonic",
+        "honeywell",
+        "other"
+      ],
+      "description": "WiFi service provider"
+    },
+    "activation_status": {
+      "type": "string",
+      "enum": [
+        "active",
+        "inactive",
+        "suspended",
+        "pending"
+      ],
+      "default": "pending",
+      "description": "Terminal service activation state"
+    },
+    "signal_strength": {
+      "type": "number",
+      "description": "Signal strength 0\u2013100%"
+    },
+    "download_mbps": {
+      "type": "number",
+      "description": "Current download speed Mbps"
+    },
+    "upload_mbps": {
+      "type": "number",
+      "description": "Current upload speed Mbps"
+    },
+    "latency_ms": {
+      "type": "number",
+      "description": "Round-trip latency in ms"
+    },
+    "uptime_percent": {
+      "type": "number",
+      "description": "Monthly uptime percentage"
+    },
+    "connected_users": {
+      "type": "number",
+      "description": "Number of currently connected devices"
+    },
+    "last_seen": {
+      "type": "string",
+      "description": "ISO timestamp of last telemetry ping"
+    },
+    "ip_address": {
+      "type": "string",
+      "description": "Terminal WAN IP address"
+    },
+    "firmware_version": {
+      "type": "string",
+      "description": "Terminal firmware version"
+    },
+    "install_date": {
+      "type": "string",
+      "format": "date",
+      "description": "Date terminal was installed on aircraft"
+    },
+    "notes": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "aircraft_tail",
+    "terminal_id",
+    "activation_status"
+  ],
+  "rls": {
+    "create": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "read": {
+      "$or": [
+        {
+          "data.fleet_id": "{{user.fleet_id}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        },
+        {
+          "user_condition": {
+            "role": "engineer"
+          }
+        }
+      ]
+    },
+    "update": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "delete": {
+      "user_condition": {
+        "role": "admin"
+      }
+    }
+  }
+}

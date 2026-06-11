@@ -1,0 +1,100 @@
+{
+  "name": "AuditLog",
+  "type": "object",
+  "description": "Immutable audit trail for all operational actions across Aerodyne Fleet LLC modules.",
+  "properties": {
+    "module": {
+      "type": "string",
+      "enum": [
+        "dispatch",
+        "crew",
+        "mx",
+        "flight",
+        "irops",
+        "fuel",
+        "safety",
+        "efb",
+        "system"
+      ],
+      "description": "Module that generated the event"
+    },
+    "action": {
+      "type": "string",
+      "description": "Action performed e.g. 'dispatch_release_issued'"
+    },
+    "entity_type": {
+      "type": "string",
+      "description": "Entity type affected e.g. 'Flight', 'CrewAssignment'"
+    },
+    "entity_id": {
+      "type": "string",
+      "description": "ID of affected entity"
+    },
+    "actor_name": {
+      "type": "string",
+      "description": "Name of user who performed action"
+    },
+    "actor_role": {
+      "type": "string",
+      "description": "Role of actor"
+    },
+    "flight_number": {
+      "type": "string"
+    },
+    "aircraft_tail": {
+      "type": "string"
+    },
+    "details": {
+      "type": "string",
+      "description": "Human-readable description of what changed"
+    },
+    "before_value": {
+      "type": "string",
+      "description": "Previous value (JSON stringified)"
+    },
+    "after_value": {
+      "type": "string",
+      "description": "New value (JSON stringified)"
+    },
+    "ip_address": {
+      "type": "string"
+    },
+    "severity": {
+      "type": "string",
+      "enum": [
+        "info",
+        "warning",
+        "critical"
+      ],
+      "default": "info"
+    }
+  },
+  "required": [
+    "module",
+    "action",
+    "actor_name",
+    "details"
+  ],
+  "rls": {
+    "create": {
+      "user_condition": {
+        "role": "service_role"
+      }
+    },
+    "read": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "update": {
+      "user_condition": {
+        "role": "deny"
+      }
+    },
+    "delete": {
+      "user_condition": {
+        "role": "deny"
+      }
+    }
+  }
+}

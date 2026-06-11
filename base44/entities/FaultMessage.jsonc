@@ -1,0 +1,129 @@
+{
+  "name": "FaultMessage",
+  "type": "object",
+  "description": "EICAS/BITE fault messages per aircraft \u2014 system-generated fault codes and maintenance alerts.",
+  "properties": {
+    "aircraft_tail": {
+      "type": "string"
+    },
+    "fault_code": {
+      "type": "string",
+      "description": "System fault code e.g. ENG1 OIL PRESS"
+    },
+    "ata_chapter": {
+      "type": "string"
+    },
+    "system": {
+      "type": "string",
+      "enum": [
+        "engine",
+        "hydraulics",
+        "avionics",
+        "electrical",
+        "fuel",
+        "pneumatics",
+        "flight_controls",
+        "apu",
+        "landing_gear",
+        "other"
+      ]
+    },
+    "severity": {
+      "type": "string",
+      "enum": [
+        "warning",
+        "caution",
+        "advisory",
+        "memo"
+      ],
+      "default": "caution"
+    },
+    "description": {
+      "type": "string"
+    },
+    "detected_at": {
+      "type": "string",
+      "description": "ISO timestamp when fault was detected"
+    },
+    "flight_phase": {
+      "type": "string",
+      "description": "Flight phase when fault occurred"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "active",
+        "cleared",
+        "deferred"
+      ],
+      "default": "active"
+    },
+    "cleared_by": {
+      "type": "string"
+    },
+    "cleared_at": {
+      "type": "string"
+    },
+    "notes": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "aircraft_tail",
+    "fault_code",
+    "severity",
+    "status"
+  ],
+  "rls": {
+    "create": {},
+    "read": {
+      "$or": [
+        {
+          "created_by_id": "{{user.id}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        },
+        {
+          "user_condition": {
+            "role": "mcc_supervisor"
+          }
+        },
+        {
+          "user_condition": {
+            "role": "engineer"
+          }
+        },
+        {
+          "user_condition": {
+            "role": "technician"
+          }
+        }
+      ]
+    },
+    "update": {
+      "$or": [
+        {
+          "created_by_id": "{{user.id}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        },
+        {
+          "user_condition": {
+            "role": "technician"
+          }
+        }
+      ]
+    },
+    "delete": {
+      "user_condition": {
+        "role": "admin"
+      }
+    }
+  }
+}

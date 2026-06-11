@@ -1,0 +1,159 @@
+{
+  "name": "EnginePartInventory",
+  "type": "object",
+  "description": "Engine part inventory \u2014 tracks individual life-limited and tracked parts linked to aircraft tails, including serial numbers, cycle counts, and life limits.",
+  "properties": {
+    "aircraft_tail": {
+      "type": "string",
+      "description": "Aircraft tail number this part is installed on"
+    },
+    "part_number": {
+      "type": "string",
+      "description": "Manufacturer part number (P/N)"
+    },
+    "serial_number": {
+      "type": "string",
+      "description": "Part serial number (S/N)"
+    },
+    "part_name": {
+      "type": "string",
+      "description": "Human-readable part name e.g. Fuel Pump, Starter, IDG"
+    },
+    "part_category": {
+      "type": "string",
+      "enum": [
+        "Fuel System",
+        "Ignition & Start",
+        "Oil System",
+        "Accessory Gearbox",
+        "Turbine Section",
+        "Compressor Section",
+        "Fan & Inlet",
+        "Exhaust & Thrust Reverser",
+        "Electrical",
+        "Bleed Air",
+        "Other"
+      ],
+      "description": "Part category / ATA system",
+      "default": "Other"
+    },
+    "ata_chapter": {
+      "type": "string",
+      "description": "ATA chapter reference e.g. 73, 80, 79"
+    },
+    "engine_position": {
+      "type": "string",
+      "enum": [
+        "#1 (Left)",
+        "#2 (Right)",
+        "#3 (Center)",
+        "#4 (Right Outer)",
+        "APU"
+      ],
+      "description": "Engine position on aircraft",
+      "default": "#1 (Left)"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "installed",
+        "serviceable",
+        "unserviceable",
+        "on_order",
+        "scrapped"
+      ],
+      "default": "installed",
+      "description": "Current part status"
+    },
+    "installation_date": {
+      "type": "string",
+      "format": "date",
+      "description": "Date part was installed on current aircraft"
+    },
+    "removal_date": {
+      "type": "string",
+      "format": "date",
+      "description": "Date part was removed (if applicable)"
+    },
+    "total_cycles_since_new": {
+      "type": "number",
+      "default": 0,
+      "description": "Total cycles accumulated since manufacture"
+    },
+    "cycles_since_overhaul": {
+      "type": "number",
+      "default": 0,
+      "description": "Cycles since last shop visit / overhaul"
+    },
+    "total_hours_since_new": {
+      "type": "number",
+      "default": 0,
+      "description": "Total flight hours since manufacture"
+    },
+    "hours_since_overhaul": {
+      "type": "number",
+      "default": 0,
+      "description": "Flight hours since last overhaul"
+    },
+    "cycle_life_limit": {
+      "type": "number",
+      "description": "Hard life limit in cycles (LLP limit)"
+    },
+    "hour_life_limit": {
+      "type": "number",
+      "description": "Hard life limit in flight hours"
+    },
+    "overhaul_interval_cycles": {
+      "type": "number",
+      "description": "Cycles between required overhauls"
+    },
+    "overhaul_interval_hours": {
+      "type": "number",
+      "description": "Hours between required overhauls"
+    },
+    "manufacturer": {
+      "type": "string",
+      "description": "Part manufacturer / OEM e.g. CFM, Honeywell, Parker"
+    },
+    "station": {
+      "type": "string",
+      "description": "Station / location where part is currently held or installed"
+    },
+    "ad_compliance": {
+      "type": "string",
+      "description": "Applicable AD number and compliance status"
+    },
+    "notes": {
+      "type": "string",
+      "description": "Additional notes or maintenance history"
+    }
+  },
+  "required": [
+    "part_name",
+    "part_number",
+    "serial_number",
+    "part_category"
+  ],
+  "rls": {
+    "create": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "read": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "update": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "delete": {
+      "user_condition": {
+        "role": "admin"
+      }
+    }
+  }
+}

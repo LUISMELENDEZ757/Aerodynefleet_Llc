@@ -1,0 +1,97 @@
+{
+  "name": "RetentionPolicy",
+  "type": "object",
+  "description": "Data retention rules per record type \u2014 FAA compliance and system configuration",
+  "properties": {
+    "record_type": {
+      "type": "string",
+      "enum": [
+        "flight_records",
+        "crew_duty_logs",
+        "dispatch_releases",
+        "maintenance_logs",
+        "safety_reports",
+        "training_records",
+        "audit_logs",
+        "fuel_records",
+        "passenger_manifests",
+        "weather_data",
+        "acars_messages",
+        "oos_entries"
+      ],
+      "description": "Category of records subject to retention rules"
+    },
+    "retention_years": {
+      "type": "number",
+      "description": "Number of years to retain records (e.g., 5, 10, 25)"
+    },
+    "retention_months": {
+      "type": "number",
+      "default": 0,
+      "description": "Additional months beyond years"
+    },
+    "regulatory_basis": {
+      "type": "string",
+      "enum": [
+        "14_CFR_121_441",
+        "14_CFR_135_63",
+        "14_CFR_121_359",
+        "NTSB_Part_830",
+        "FAA_Order_7200_1",
+        "Company_Policy",
+        "Best_Practice"
+      ],
+      "description": "FAR or regulatory reference"
+    },
+    "description": {
+      "type": "string",
+      "description": "Human-readable description and rationale"
+    },
+    "deletion_method": {
+      "type": "string",
+      "enum": [
+        "archive_then_delete",
+        "secure_shred",
+        "anonymize",
+        "retain_indefinitely"
+      ],
+      "default": "secure_shred",
+      "description": "How records are disposed after retention period"
+    },
+    "is_active": {
+      "type": "boolean",
+      "default": true,
+      "description": "Whether this retention rule is currently enforced"
+    },
+    "notes": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "record_type",
+    "retention_years",
+    "regulatory_basis"
+  ],
+  "rls": {
+    "create": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "read": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "update": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "delete": {
+      "user_condition": {
+        "role": "admin"
+      }
+    }
+  }
+}

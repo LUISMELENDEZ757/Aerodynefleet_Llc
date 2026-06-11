@@ -1,0 +1,150 @@
+{
+  "name": "CrewBid",
+  "type": "object",
+  "description": "Monthly crew pairing bid submission and award tracking.",
+  "properties": {
+    "crew_name": {
+      "type": "string"
+    },
+    "employee_id": {
+      "type": "string"
+    },
+    "role": {
+      "type": "string",
+      "enum": [
+        "captain",
+        "first_officer",
+        "flight_attendant"
+      ]
+    },
+    "bid_month": {
+      "type": "string",
+      "description": "YYYY-MM"
+    },
+    "bid_preferences": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "rank": {
+            "type": "number"
+          },
+          "pairing_id": {
+            "type": "string"
+          },
+          "pairing_description": {
+            "type": "string"
+          },
+          "preferred_days_off": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
+        }
+      }
+    },
+    "days_off_requested": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "vacation_start": {
+      "type": "string",
+      "format": "date"
+    },
+    "vacation_end": {
+      "type": "string",
+      "format": "date"
+    },
+    "seniority_number": {
+      "type": "number"
+    },
+    "bid_status": {
+      "type": "string",
+      "enum": [
+        "draft",
+        "submitted",
+        "awarded",
+        "modified"
+      ],
+      "default": "draft"
+    },
+    "awarded_pairing": {
+      "type": "string"
+    },
+    "awarded_days_off": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "notes": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "crew_name",
+    "role",
+    "bid_month"
+  ],
+  "rls": {
+    "create": {},
+    "read": {
+      "$or": [
+        {
+          "created_by_id": "{{user.id}}"
+        },
+        {
+          "data.employee_id": "{{user.employee_id}}"
+        },
+        {
+          "data.crew_name": "{{user.full_name}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        },
+        {
+          "user_condition": {
+            "role": "dispatcher"
+          }
+        },
+        {
+          "user_condition": {
+            "role": "mcc_supervisor"
+          }
+        }
+      ]
+    },
+    "update": {
+      "$or": [
+        {
+          "created_by_id": "{{user.id}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        },
+        {
+          "user_condition": {
+            "role": "dispatcher"
+          }
+        },
+        {
+          "user_condition": {
+            "role": "mcc_supervisor"
+          }
+        }
+      ]
+    },
+    "delete": {
+      "user_condition": {
+        "role": "admin"
+      }
+    }
+  }
+}
