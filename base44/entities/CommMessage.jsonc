@@ -69,7 +69,13 @@
     "message_type"
   ],
   "rls": {
-    "create": {},
+    "create": {
+      "user_condition": {
+        "role": {
+          "$ne": "anonymous"
+        }
+      }
+    },
     "read": {
       "$or": [
         {

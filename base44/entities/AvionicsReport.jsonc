@@ -104,7 +104,11 @@
     "report_timestamp"
   ],
   "rls": {
-    "create": {},
+    "create": {
+      "user_condition": {
+        "role": "service_role"
+      }
+    },
     "read": {
       "user_condition": {
         "role": "admin"

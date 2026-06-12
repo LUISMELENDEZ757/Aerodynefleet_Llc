@@ -80,7 +80,22 @@
     "severity"
   ],
   "rls": {
-    "create": {},
+    "create": {
+      "$or": [
+        {
+          "user_condition": {
+            "role": {
+              "$ne": "anonymous"
+            }
+          }
+        },
+        {
+          "user_condition": {
+            "role": "service_role"
+          }
+        }
+      ]
+    },
     "read": {
       "$or": [
         {
