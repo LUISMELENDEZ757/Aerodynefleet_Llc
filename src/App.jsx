@@ -1,7 +1,5 @@
 import React from 'react';
 import { Toaster } from "@/components/ui/toaster"
-import { SupabaseAuthProvider, useSupabaseAuth } from '@/context/SupabaseAuthContext';
-import SupabaseLogin from '@/pages/SupabaseLogin';
 import { QueryClientProvider } from '@tanstack/react-query'
 import { queryClientInstance } from '@/lib/query-client'
 import { BrowserRouter as Router, Route, Routes } from 'react-router-dom';
@@ -351,33 +349,13 @@ const AuthenticatedApp = () => {
 };
 
 
-function SupabaseAuthGate({ children }) {
-  const { session, loading } = useSupabaseAuth();
-
-  if (loading) {
-    return (
-      <div className="fixed inset-0 flex items-center justify-center bg-background">
-        <div className="w-8 h-8 border-4 border-slate-200 border-t-primary rounded-full animate-spin" />
-      </div>
-    );
-  }
-
-  if (!session) {
-    return <SupabaseLogin />;
-  }
-
-  return children;
-}
-
 function App() {
   const [showSplash, setShowSplash] = useState(true);
 
   return (
-    <SupabaseAuthProvider>
     <AuthProvider>
       <QueryClientProvider client={queryClientInstance}>
         <FleetProvider>
-        <SupabaseAuthGate>
         {showSplash && <SplashScreen onComplete={() => setShowSplash(false)} />}
         <Router>
           <AuthenticatedApp />
@@ -385,11 +363,9 @@ function App() {
         <OfflineBadge />
         <ScreensaverController />
         <Toaster />
-        </SupabaseAuthGate>
         </FleetProvider>
       </QueryClientProvider>
     </AuthProvider>
-    </SupabaseAuthProvider>
   )
 }
 
