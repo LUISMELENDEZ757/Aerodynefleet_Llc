@@ -193,12 +193,7 @@ const AuthenticatedApp = () => {
   const { isLoadingAuth, isLoadingPublicSettings, authError, navigateToLogin } = useAuth();
   useOfflineSync(); // Enable offline sync
 
-  // Auto-request access on first login
-  useEffect(() => {
-    if (!isLoadingAuth && !authError) {
-      base44.functions.invoke('requestAccessOnFirstLogin', {}).catch(() => {});
-    }
-  }, [isLoadingAuth]);
+
 
   // Show loading spinner while checking app public settings or auth
   if (isLoadingPublicSettings || isLoadingAuth) {
@@ -213,8 +208,8 @@ const AuthenticatedApp = () => {
   if (authError) {
     if (authError.type === 'user_not_registered') {
       return <UserNotRegisteredError />;
-    } else if (authError.type === 'auth_required') {
-      // Redirect to login automatically
+    } else {
+      // auth_required or any other error — redirect to login
       navigateToLogin();
       return null;
     }
