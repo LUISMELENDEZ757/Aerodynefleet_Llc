@@ -1,33 +1,40 @@
 import { createContext, useContext, useEffect, useState } from 'react';
-import { createClient } from '@supabase/supabase-js';
 import { setSession } from '@/lib/supabaseAuth';
 
-const supabase = createClient(
-  import.meta.env.VITE_SUPABASE_URL,
-  import.meta.env.VITE_SUPABASE_ANON_KEY
-);
-
 const SupabaseAuthContext = createContext(null);
+
+
 
 export function SupabaseAuthProvider({ children }) {
   const [session, setLocalSession] = useState(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    // Get the current session on mount (handles page refresh)
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      setLocalSession(session);
-      setSession(session);
+    const url = import.meta.env.VITE_SUPABASE_URL;
+    const key = import.meta.env.VITE_SUPABASE_ANON_KEY;
+
+    if (!url || !key) {
+      // No Supabase config — skip auth gate, let app render
       setLoading(false);
-    });
+      return;
+    }
 
-    // Listen for auth state changes
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
-      setLocalSession(session);
-      setSession(session);
-    });
+    import('@supabase/supabase-js').then(({ createClient }) => {
+      const client = createClient(url, key);
 
-    return () => subscription?.unsubscribe();
+      client.auth.getSession().then(({ data: { session } }) => {
+        setLocalSession(session);
+        setSession(session);
+        setLoading(false);
+      });
+
+      const { data: { subscription } } = client.auth.onAuthStateChange((_event, session) => {
+        setLocalSession(session);
+        setSession(session);
+      });
+
+      return () => subscription?.unsubscribe();
+    });
   }, []);
 
   return (
