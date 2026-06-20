@@ -1,6 +1,15 @@
-import { base44 } from '@/api/base44Client';
+import { createClient } from '@supabase/supabase-js';
 
-// Session stored in memory
+const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
+const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
+
+if (!supabaseUrl || !supabaseAnonKey) {
+  console.error('Missing VITE_SUPABASE_URL or VITE_SUPABASE_ANON_KEY env vars');
+}
+
+const supabase = createClient(supabaseUrl, supabaseAnonKey);
+
+// Session stored in memory + listeners
 let _session = null;
 let _listeners = [];
 
@@ -15,26 +24,31 @@ export function setSession(session) {
 
 export function onSessionChange(fn) {
   _listeners.push(fn);
-  return () => { _listeners = _listeners.filter(l => l !== fn); };
+  // Also sync with Supabase's own auth state changes
+  const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+    setSession(session);
+  });
+  return () => {
+    _listeners = _listeners.filter(l => l !== fn);
+    subscription?.unsubscribe();
+  };
 }
 
 export async function signIn(email, password) {
-  const res = await base44.functions.invoke('supabaseAuth', { action: 'signIn', email, password });
-  if (res.data?.error) throw new Error(res.data.error);
-  setSession(res.data.session);
-  return res.data;
+  const { data, error } = await supabase.auth.signInWithPassword({ email, password });
+  if (error) throw new Error(error.message);
+  setSession(data.session);
+  return data;
 }
 
 export async function signUp(email, password) {
-  const res = await base44.functions.invoke('supabaseAuth', { action: 'signUp', email, password });
-  if (res.data?.error) throw new Error(res.data.error);
-  return res.data;
+  const { data, error } = await supabase.auth.signUp({ email, password });
+  if (error) throw new Error(error.message);
+  if (data.session) setSession(data.session);
+  return data;
 }
 
 export async function signOut() {
-  const token = _session?.access_token;
-  if (token) {
-    await base44.functions.invoke('supabaseAuth', { action: 'signOut', token });
-  }
+  await supabase.auth.signOut();
   setSession(null);
 }
