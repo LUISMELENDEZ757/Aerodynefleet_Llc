@@ -11,7 +11,7 @@ import { TabHistoryProvider, useTabHistory } from '@/lib/TabHistoryContext';
 import PageTransition from '@/components/ui/PageTransition';
 import SupportButton from './SupportButton';
 import LocalModeToggle from './LocalModeToggle';
-import { signOut, getSession } from '@/lib/supabaseAuth';
+import { base44 } from '@/api/base44Client';
 import { LogOut, Clock, Menu, X } from 'lucide-react';
 
 // Syncs location changes into TabHistoryContext so lastPaths stays accurate
@@ -74,15 +74,15 @@ function AppContent() {
 
   useEffect(() => {
     setIsDemoMode(localStorage.getItem('demoMode') === 'true');
-    const session = getSession();
-    if (session?.user) {
-      const meta = session.user.user_metadata || {};
-      setUserInfo({
-        name: meta.full_name || session.user.email?.split('@')[0] || 'User',
-        role: meta.role || session.user.app_metadata?.role || 'user',
-        initials: (meta.full_name || session.user.email || 'U').split(' ').map(n => n[0]).join('').slice(0, 2).toUpperCase(),
-      });
-    }
+    base44.auth.me().then(user => {
+      if (user) {
+        setUserInfo({
+          name: user.full_name || user.email?.split('@')[0] || 'User',
+          role: user.role || 'user',
+          initials: (user.full_name || user.email || 'U').split(' ').map(n => n[0]).join('').slice(0, 2).toUpperCase(),
+        });
+      }
+    }).catch(() => {});
     const tick = () => {
       const now = new Date();
       setZuluTime(`${String(now.getUTCHours()).padStart(2,'0')}:${String(now.getUTCMinutes()).padStart(2,'0')}Z`);
@@ -195,7 +195,7 @@ function AppContent() {
             )}
 
             <button
-              onClick={() => signOut().then(() => window.location.href = '/')}
+              onClick={() => base44.auth.logout('/')}
               className="flex items-center gap-1 px-2 py-1 rounded-lg bg-destructive/12 text-destructive hover:bg-destructive/20 transition-colors text-[11px] font-semibold"
               title="Sign out"
             >
