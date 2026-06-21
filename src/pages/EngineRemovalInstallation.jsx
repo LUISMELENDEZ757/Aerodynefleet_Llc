@@ -102,8 +102,13 @@ function NewEngineEventModal({ aircraft, onClose, onCreate }) {
     }));
   };
 
-  // Group aircraft by airline for optgroup display
-  const groupedAircraft = aircraft.reduce((acc, ac) => {
+  // Group aircraft by airline for optgroup display (deduplicate by tail_number)
+  const uniqueAircraft = Object.values(aircraft.reduce((acc, ac) => {
+    if (!acc[ac.tail_number]) acc[ac.tail_number] = ac;
+    return acc;
+  }, {}));
+  
+  const groupedAircraft = uniqueAircraft.reduce((acc, ac) => {
     const key = ac.airline || 'Unassigned';
     if (!acc[key]) acc[key] = [];
     acc[key].push(ac);
