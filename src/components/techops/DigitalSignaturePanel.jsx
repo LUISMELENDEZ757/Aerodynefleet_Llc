@@ -81,22 +81,52 @@ export default function DigitalSignaturePanel({ entry, onSigned }) {
   // Check if current user already signed
   const alreadySigned = signatures.some(s => s.signer_email === user?.email);
 
+  const computeHash = async (data) => {
+    const text = JSON.stringify(data);
+    const encoded = new TextEncoder().encode(text);
+    const hashBuffer = await crypto.subtle.digest('SHA-256', encoded);
+    const hashArray = Array.from(new Uint8Array(hashBuffer));
+    return hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
+  };
+
   const handleSign = async () => {
     setLoading(true);
     setError(null);
-    const res = await base44.functions.invoke('signLogbookEntry', {
-      entry_id: entry.id,
-      signer_cert: certNumber,
-      signature_note: note,
-    });
-    setLoading(false);
-    if (res.data?.success) {
+    try {
+      // Fields included in hash
+      const hashFields = ['aircraft_tail', 'log_page', 'entry_type', 'ata_chapter', 'description', 'corrective_action', 'technician_name', 'technician_id'];
+      const hashData = Object.fromEntries(hashFields.map(k => [k, entry[k] ?? '']));
+      const contentHash = await computeHash(hashData);
+
+      const sigRecord = {
+        signed_at: new Date().toISOString(),
+        signer_email: user?.email || '',
+        signer_name: user?.full_name || user?.email || '',
+        signer_role: userRole,
+        signer_cert: certNumber,
+        signature_type: userRole === 'inspector_rii' ? 'rii_signoff' :
+                        userRole === 'mcc_supervisor' ? 'mcc_review' :
+                        userRole === 'engineer' ? 'supervisor_approval' : 'technician_signoff',
+        content_hash: contentHash,
+        hash_fields: hashFields.join(','),
+      };
+
+      const existingSigs = Array.isArray(entry.digital_signatures) ? entry.digital_signatures : [];
+      const updatedSigs = [...existingSigs, sigRecord];
+
+      await base44.entities.LogbookEntry.update(entry.id, {
+        is_signed: true,
+        signature_hash: contentHash,
+        digital_signatures: updatedSigs,
+      });
+
       setShowSignForm(false);
       qc.invalidateQueries({ queryKey: ['logbook-entries'] });
       onSigned?.();
-    } else {
-      setError(res.data?.error || 'Signing failed');
+    } catch (err) {
+      setError(err.message || 'Signing failed');
     }
+    setLoading(false);
   };
 
   return (
