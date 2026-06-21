@@ -540,7 +540,7 @@ export default function InspectorMode() {
       label: 'E-Logbook',
       sub: 'Full logbook view',
       subColor: 'text-blue-400',
-      bg: 'bg-[#1a1f2e]',
+      bg: 'bg-[#141922]',
       link: '/TechOpsLogbook',
       border: true,
     },
@@ -549,7 +549,7 @@ export default function InspectorMode() {
       label: 'MEL Deferrals',
       sub: 'Active MEL items',
       subColor: 'text-amber-400',
-      bg: 'bg-[#1a1f2e]',
+      bg: 'bg-[#141922]',
       link: '/MEL',
       border: true,
     },
@@ -558,7 +558,7 @@ export default function InspectorMode() {
       label: 'Documents / AMM',
       sub: 'Tech library',
       subColor: 'text-cyan-400',
-      bg: 'bg-[#1a1f2e]',
+      bg: 'bg-[#141922]',
       link: '/Documents',
       border: true,
     },
@@ -567,7 +567,7 @@ export default function InspectorMode() {
       label: 'QA / QC',
       sub: 'Quality assurance',
       subColor: 'text-violet-400',
-      bg: 'bg-[#1a1f2e]',
+      bg: 'bg-[#141922]',
       link: '/QAQC',
       border: true,
     },
@@ -604,7 +604,7 @@ export default function InspectorMode() {
           {ACTIONS.map(({ icon: Icon, label, sub, subColor, bg, border, modal: m, link, badge }) => {
             const cls = cn(
               'relative flex flex-col items-center justify-center gap-2 py-8 px-4 rounded-2xl text-white active:scale-95 transition-all hover:brightness-110',
-              bg, border && 'border border-white/15'
+              bg, border && 'border border-white/10'
             );
             const content = (
               <>
