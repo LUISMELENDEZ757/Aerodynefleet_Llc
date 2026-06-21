@@ -406,13 +406,19 @@ export default function EngineRemovalInstallation() {
   const qc = useQueryClient();
 
   // ── Workflow Logic State ──────────────────────────────────────────────────
-  const [completedTasks, setCompletedTasks] = useState({}); // { taskId: { name, cert, dateTime } }
+  const [completedTasks, setCompletedTasks] = useState({});
   const [selectedPhaseId, setSelectedPhaseId] = useState('engine_removal');
   const currentPhaseId = computeCurrentPhase(completedTasks);
 
   const handleTaskComplete = (taskId, data) => {
     setCompletedTasks(prev => ({ ...prev, [taskId]: data }));
   };
+
+  // Reset workflow state when selecting a different event
+  useEffect(() => {
+    setCompletedTasks({});
+    setSelectedPhaseId('engine_removal');
+  }, [selectedEvent?.id]);
 
   const phaseCompletions = PHASES.reduce((acc, phase) => {
     const allDone = phase.tasks.every(t => completedTasks[t.id]);
@@ -621,12 +627,34 @@ export default function EngineRemovalInstallation() {
         </div>
 
         {/* ── WORKFLOW TIMELINE ── */}
-        <WorkflowTimeline
-          currentPhaseId={currentPhaseId}
-          completedTasks={completedTasks}
-          phaseCompletions={phaseCompletions}
-          onSelectPhase={setSelectedPhaseId}
-        />
+        {selectedEvent ? (
+          <div className="space-y-4">
+            <div className="bg-primary/10 border border-primary/30 rounded-xl px-4 py-3 flex items-center gap-3">
+              <Settings className="w-4 h-4 text-primary" />
+              <div className="flex-1">
+                <p className="text-[10px] font-bold text-gray-500 uppercase tracking-widest">Workflow for</p>
+                <p className="text-sm font-extrabold text-white">{selectedEvent.aircraft_tail} · Engine {selectedEvent.notes?.match(/Position: ([^|]+)/)?.[1]?.trim() || '—'}</p>
+              </div>
+              <div className="text-right">
+                <p className="text-[10px] text-gray-500">Opened</p>
+                <p className="text-xs font-bold text-white">{new Date(selectedEvent.created_date).toLocaleDateString()}</p>
+              </div>
+            </div>
+            <WorkflowTimeline
+              currentPhaseId={currentPhaseId}
+              completedTasks={completedTasks}
+              phaseCompletions={phaseCompletions}
+              onSelectPhase={setSelectedPhaseId}
+            />
+          </div>
+        ) : (
+          <WorkflowTimeline
+            currentPhaseId={currentPhaseId}
+            completedTasks={completedTasks}
+            phaseCompletions={phaseCompletions}
+            onSelectPhase={setSelectedPhaseId}
+          />
+        )}
 
         {/* ── TASK WORKFLOW CARDS ── */}
         <TaskWorkflowCards
