@@ -31,6 +31,7 @@ const NAV_GROUPS = [
       { label: 'AI Forecasting', icon: '🤖', path: '/AIForecasting' },
       { label: 'AI MX Copilot', icon: '🧠', path: '/AICopilot' },
       { label: 'AOG Forecast', icon: '⚠️', path: '/AOGForecast' },
+      { label: 'Analytics', icon: '📊', path: '/Analytics' },
     ],
   },
   {
@@ -151,7 +152,6 @@ const NAV_GROUPS = [
       { label: 'Screensaver Admin', icon: '🖥️', path: '/ScreensaverAdmin' },
       { label: 'Integration Hub', icon: '🔌', path: '/IntegrationHub' },
       { label: 'Comm Center', icon: '📞', path: '/CommCenter' },
-      { label: 'Analytics', icon: '📊', path: '/Analytics' },
     ],
   },
 ];
