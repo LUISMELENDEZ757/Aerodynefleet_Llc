@@ -40,7 +40,7 @@ const ATA_CHAPTERS = [
 const inputCls = 'w-full bg-[#0d1117] border border-white/10 rounded-xl px-3 py-2.5 text-sm text-white placeholder-gray-600 outline-none focus:border-primary';
 
 // ── New Task Modal ──────────────────────────────────────────────────────────
-function NewTaskModal({ aircraft, onClose, onCreate }) {
+function NewTaskModal({ uniqueAircraft, onClose, onCreate }) {
   const [form, setForm] = useState({
     aircraft_tail: '', station: '', ata_chapter: '', priority: 'medium',
     description: '', technician_name: '', estimated_hours: '',
@@ -79,7 +79,7 @@ function NewTaskModal({ aircraft, onClose, onCreate }) {
               <label className="text-[10px] font-bold text-gray-500 uppercase tracking-widest block mb-1">Aircraft *</label>
               <select value={form.aircraft_tail} onChange={e => set('aircraft_tail', e.target.value)} required className={inputCls}>
                 <option value="">Select tail…</option>
-                {aircraft.map(a => <option key={a.id} value={a.tail_number}>{a.tail_number} — {a.aircraft_type}</option>)}
+                {uniqueAircraft.map(a => <option key={a.id} value={a.tail_number}>{a.tail_number} — {a.aircraft_type}</option>)}
               </select>
             </div>
             <div>
@@ -220,6 +220,12 @@ export default function LineMaintenanceDashboard() {
     queryKey: ['lmx-aircraft'],
     queryFn: () => base44.entities.Aircraft.list('tail_number', 500),
   });
+
+  // Deduplicate aircraft by tail_number
+  const uniqueAircraft = Object.values(aircraft.reduce((acc, a) => {
+    if (!acc[a.tail_number]) acc[a.tail_number] = a;
+    return acc;
+  }, {}));
 
   const { data: entries = [], isLoading, refetch } = useQuery({
     queryKey: ['lmx-entries'],
