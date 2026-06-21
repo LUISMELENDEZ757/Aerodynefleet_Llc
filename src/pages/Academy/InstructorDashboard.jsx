@@ -5,11 +5,12 @@ import {
   ChevronLeft, Users, BookOpen, Trophy, CheckCircle, Clock, GraduationCap,
   BarChart2, Award, AlertTriangle, Search, Star, ThumbsUp, ThumbsDown,
   MessageSquare, FileText, ChevronRight, X, CheckSquare, XCircle, RefreshCw,
-  Shield, Wrench, Filter, TableProperties, Flame, Zap
+  Shield, Wrench, Filter, TableProperties, Flame, Zap, Download, Edit2
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { ACADEMY_COURSES, MOCK_DISCREPANCIES } from './academyData';
 import StudentProgressTable from './StudentProgressTable';
+import CertificateOfCompletion from './CertificateOfCompletion';
 
 const COURSE_MAP = Object.fromEntries(ACADEMY_COURSES.map(c => [c.id, c]));
 
@@ -372,6 +373,7 @@ const TABS = [
   { id: 'students',     label: 'Students',         icon: Users },
   { id: 'grading',      label: 'Grade Queue',      icon: FileText },
   { id: 'mastery',      label: 'MEL/CDL Mastery',  icon: Shield },
+  { id: 'certificate',  label: 'Certificate',      icon: Award },
 ];
 
 export default function InstructorDashboard({ onBack }) {
@@ -380,6 +382,8 @@ export default function InstructorDashboard({ onBack }) {
   const [gradeTarget, setGradeTarget] = useState(null);
   const [studentDetail, setStudentDetail] = useState(null);
   const [categoryFilter, setCategoryFilter] = useState(null);
+  const [certName, setCertName] = useState('John A. Smith');
+  const [showCertPreview, setShowCertPreview] = useState(false);
 
   const { data: users = [], isLoading: loadingUsers } = useQuery({
     queryKey: ['academy-users'],
@@ -945,9 +949,68 @@ export default function InstructorDashboard({ onBack }) {
           </>
         )}
 
+        {/* ── CERTIFICATE TAB ── */}
+        {tab === 'certificate' && (
+          <div className="space-y-5">
+            <div className="bg-[#141922] border border-white/10 rounded-2xl p-5 space-y-4">
+              <div className="flex items-center gap-2">
+                <Award className="w-5 h-5 text-primary" />
+                <p className="text-sm font-extrabold text-white">Certificate Preview</p>
+              </div>
+              <p className="text-xs text-gray-400 leading-relaxed">
+                Preview and print the Aerodyne Academy Certificate of Completion. Edit the student name below before generating.
+              </p>
+
+              {/* Editable name field */}
+              <div>
+                <label className="text-[10px] font-bold text-gray-500 uppercase tracking-widest block mb-1.5">
+                  <Edit2 className="w-3 h-3 inline mr-1" />Student Name on Certificate
+                </label>
+                <input
+                  value={certName}
+                  onChange={e => setCertName(e.target.value)}
+                  placeholder="Full name as it should appear on the certificate"
+                  className="w-full bg-[#0d1117] border border-white/10 rounded-xl px-4 py-3 text-base font-bold text-white placeholder-gray-600 outline-none focus:border-primary transition-colors"
+                />
+                <p className="text-[10px] text-gray-600 mt-1">This name will appear on the printed certificate in large type.</p>
+              </div>
+
+              {/* Course list preview */}
+              <div>
+                <p className="text-[10px] font-bold text-gray-500 uppercase tracking-widest mb-2">Courses Included ({ACADEMY_COURSES.length} modules)</p>
+                <div className="grid grid-cols-2 gap-1.5">
+                  {ACADEMY_COURSES.map(c => (
+                    <div key={c.id} className="flex items-center gap-2 bg-[#0d1117] rounded-lg px-3 py-2 border border-white/6">
+                      <span className="text-sm">{c.icon}</span>
+                      <span className="text-[10px] font-bold text-gray-300 truncate">{c.title}</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              <button
+                onClick={() => setShowCertPreview(true)}
+                disabled={!certName.trim()}
+                className="w-full py-3.5 rounded-xl bg-primary text-primary-foreground text-sm font-extrabold flex items-center justify-center gap-2 hover:bg-primary/90 transition-colors disabled:opacity-50"
+              >
+                <Download className="w-4 h-4" /> Preview & Print Certificate
+              </button>
+            </div>
+          </div>
+        )}
+
       </div>
 
       {gradeTarget && <GradeModal submission={gradeTarget} onClose={() => setGradeTarget(null)} />}
+
+      {showCertPreview && (
+        <CertificateOfCompletion
+          completedCourses={ACADEMY_COURSES.reduce((acc, c) => ({ ...acc, [c.id]: { score: 9, total: 10, pct: 90 } }), {})}
+          avgScore={90}
+          studentName={certName}
+          onClose={() => setShowCertPreview(false)}
+        />
+      )}
     </div>
   );
 }

@@ -144,7 +144,6 @@ export default function Academy() {
     try { return JSON.parse(localStorage.getItem('academy_completed') || '{}'); } catch { return {}; }
   });
   const [showCert, setShowCert] = useState(false);
-  const [showSampleCert, setShowSampleCert] = useState(false);
 
   const handleCourseComplete = (courseId, score, total, pct) => {
     const updated = { ...completedCourses, [courseId]: { score, total, pct } };
@@ -217,15 +216,7 @@ export default function Academy() {
           />
         )}
 
-        {/* Sample Certificate Modal */}
-        {showSampleCert && (
-          <CertificateOfCompletion
-            completedCourses={ACADEMY_COURSES.reduce((acc, c) => ({ ...acc, [c.id]: { score: 9, total: 10, pct: 90 } }), {})}
-            avgScore={90}
-            studentName="John A. Smith"
-            onClose={() => setShowSampleCert(false)}
-          />
-        )}
+
 
         {/* Certification Banner */}
         {allCertified ? (
@@ -258,12 +249,6 @@ export default function Academy() {
             </div>
           </div>
         )}
-
-        {/* Sample Certificate Button */}
-        <button onClick={() => setShowSampleCert(true)}
-          className="w-full flex items-center justify-center gap-2 py-2.5 rounded-xl border border-primary/30 bg-primary/10 text-primary text-xs font-bold hover:bg-primary/20 transition-colors">
-          <Award className="w-3.5 h-3.5" /> Preview Sample Certificate
-        </button>
 
         {/* Part 147 Notice */}
         <div className="bg-blue-900/20 border border-blue-500/30 rounded-2xl px-5 py-4 flex items-start gap-3">
