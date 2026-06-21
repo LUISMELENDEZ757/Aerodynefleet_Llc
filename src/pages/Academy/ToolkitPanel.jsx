@@ -69,6 +69,18 @@ const TOOLKIT_RESOURCES = [
     ],
   },
   {
+    category: 'Aerodynamics',
+    icon: '🌬️',
+    color: '#0ea5e9',
+    resources: [
+      {
+        title: 'Aerodynamics for Naval Aviators (NAVWEPS 00-80T-80)',
+        description: 'Classic FAA-recognized aerodynamics reference covering subsonic and supersonic flight theory, stability, and performance.',
+        url: 'https://www.faa.gov/sites/faa.gov/files/regulations_policies/handbooks_manuals/aviation/00-80T-80.pdf',
+      },
+    ],
+  },
+  {
     category: 'General Knowledge',
     icon: '📚',
     color: '#8b5cf6',
