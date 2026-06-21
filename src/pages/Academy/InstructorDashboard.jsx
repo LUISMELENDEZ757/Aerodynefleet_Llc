@@ -5,7 +5,7 @@ import {
   ChevronLeft, Users, BookOpen, Trophy, CheckCircle, Clock, GraduationCap,
   BarChart2, Award, AlertTriangle, Search, Star, ThumbsUp, ThumbsDown,
   MessageSquare, FileText, ChevronRight, X, CheckSquare, XCircle, RefreshCw,
-  Shield, Wrench, Filter, TableProperties
+  Shield, Wrench, Filter, TableProperties, Medal, Flame, Zap
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { ACADEMY_COURSES, MOCK_DISCREPANCIES } from './academyData';
@@ -366,11 +366,12 @@ function StudentDetail({ user, submissions, onClose, onGrade }) {
 
 // ── Main Dashboard ────────────────────────────────────────────────────────────
 const TABS = [
-  { id: 'overview',    label: 'Overview',        icon: BarChart2 },
-  { id: 'progress',   label: 'Student Progress', icon: TableProperties },
-  { id: 'students',   label: 'Students',         icon: Users },
-  { id: 'grading',    label: 'Grade Queue',      icon: FileText },
-  { id: 'mastery',    label: 'MEL/CDL Mastery',  icon: Shield },
+  { id: 'overview',     label: 'Overview',        icon: BarChart2 },
+  { id: 'leaderboard',  label: 'Leaderboard',     icon: Trophy },
+  { id: 'progress',     label: 'Student Progress', icon: TableProperties },
+  { id: 'students',     label: 'Students',         icon: Users },
+  { id: 'grading',      label: 'Grade Queue',      icon: FileText },
+  { id: 'mastery',      label: 'MEL/CDL Mastery',  icon: Shield },
 ];
 
 export default function InstructorDashboard({ onBack }) {
@@ -544,6 +545,171 @@ export default function InstructorDashboard({ onBack }) {
             </div>
           </>
         )}
+
+        {/* ── LEADERBOARD TAB ── */}
+        {tab === 'leaderboard' && (() => {
+          const allStudents = users.filter(u => u.role !== 'admin');
+
+          // Build ranked list per student
+          const ranked = allStudents.map(u => {
+            const progress = (() => { try { return JSON.parse(u.academy_progress || '{}'); } catch { return {}; } })();
+            const coursesCompleted = Object.keys(progress).length;
+            const courseScores = Object.values(progress).map(p => p.pct || 0);
+            const avgCourseScore = courseScores.length > 0 ? Math.round(courseScores.reduce((a, b) => a + b, 0) / courseScores.length) : 0;
+
+            const studentSubs = submissions.filter(s => s.student_id === u.id || s.student_email === u.email);
+            const gradedSubs = studentSubs.filter(s => s.status === 'graded' && s.instructor_score != null);
+            const avgLabScore = gradedSubs.length > 0
+              ? Math.round(gradedSubs.reduce((a, b) => a + b.instructor_score, 0) / gradedSubs.length) : 0;
+
+            // Speed score: lower avg submission age = faster. Score 0-100 based on relative speed.
+            const completionTimes = gradedSubs.map(s => {
+              if (!s.graded_at || !s.created_date) return null;
+              return (new Date(s.graded_at) - new Date(s.created_date)) / 3600000; // hours
+            }).filter(Boolean);
+            const avgHours = completionTimes.length > 0
+              ? completionTimes.reduce((a, b) => a + b, 0) / completionTimes.length : null;
+
+            const passCount = gradedSubs.filter(s => s.instructor_grade === 'pass' || s.instructor_grade === 'pass_with_notes').length;
+
+            // Composite score: 40% avg course quiz, 40% avg lab score, 20% completion breadth
+            const completionPct = Math.round((coursesCompleted / Math.max(ACADEMY_COURSES.length, 1)) * 100);
+            const composite = Math.round(avgCourseScore * 0.4 + avgLabScore * 0.4 + completionPct * 0.2);
+
+            return { u, coursesCompleted, avgCourseScore, avgLabScore, avgHours, passCount, labCount: gradedSubs.length, composite, totalSubs: studentSubs.length };
+          }).sort((a, b) => b.composite - a.composite);
+
+          const RANK_STYLES = [
+            { bg: 'bg-gradient-to-r from-yellow-900/40 to-amber-900/20', border: 'border-yellow-500/50', badge: 'bg-yellow-500 text-black', icon: '🥇' },
+            { bg: 'bg-gradient-to-r from-slate-700/40 to-slate-600/20', border: 'border-slate-400/50', badge: 'bg-slate-400 text-black', icon: '🥈' },
+            { bg: 'bg-gradient-to-r from-amber-900/30 to-orange-900/20', border: 'border-amber-600/40', badge: 'bg-amber-600 text-white', icon: '🥉' },
+          ];
+
+          return (
+            <>
+              {/* Hero — top 3 podium */}
+              <div className="bg-[#141922] border border-white/10 rounded-2xl p-5">
+                <div className="flex items-center gap-2 mb-4">
+                  <Trophy className="w-5 h-5 text-primary" />
+                  <p className="text-sm font-extrabold text-white">Student Leaderboard</p>
+                  <span className="ml-auto text-[10px] text-gray-500">Composite: 40% Quiz · 40% Lab · 20% Completion</span>
+                </div>
+
+                {ranked.length === 0 ? (
+                  <div className="text-center py-12 text-gray-600">
+                    <Trophy className="w-10 h-10 mx-auto mb-2 text-gray-700" />
+                    <p className="text-sm">No student data yet</p>
+                  </div>
+                ) : (
+                  <div className="space-y-2">
+                    {ranked.map((entry, idx) => {
+                      const { u, coursesCompleted, avgCourseScore, avgLabScore, avgHours, passCount, labCount, composite } = entry;
+                      const style = RANK_STYLES[idx] || { bg: 'bg-[#0d1117]', border: 'border-white/8', badge: 'bg-white/10 text-gray-400', icon: `${idx + 1}` };
+                      const isTop3 = idx < 3;
+
+                      return (
+                        <div key={u.id} className={cn('rounded-2xl border px-4 py-4 flex items-center gap-4 transition-all', style.bg, style.border)}>
+                          {/* Rank badge */}
+                          <div className={cn('w-9 h-9 rounded-xl flex items-center justify-center font-black text-sm flex-shrink-0', style.badge)}>
+                            {isTop3 ? style.icon : `#${idx + 1}`}
+                          </div>
+
+                          {/* Avatar + name */}
+                          <div className="w-9 h-9 rounded-xl bg-primary/20 flex items-center justify-center flex-shrink-0">
+                            <span className="text-sm font-black text-primary">{(u.full_name || u.email || '?')[0].toUpperCase()}</span>
+                          </div>
+                          <div className="flex-1 min-w-0">
+                            <p className="text-sm font-extrabold text-white truncate">{u.full_name || 'Unknown'}</p>
+                            <div className="flex items-center gap-2 mt-0.5 flex-wrap">
+                              <span className="text-[10px] text-gray-500">{u.email}</span>
+                              {avgHours != null && avgHours < 24 && (
+                                <span className="flex items-center gap-0.5 text-[10px] text-cyan-400 font-bold">
+                                  <Zap className="w-2.5 h-2.5" /> Fast finisher
+                                </span>
+                              )}
+                              {avgCourseScore >= 90 && (
+                                <span className="flex items-center gap-0.5 text-[10px] text-amber-400 font-bold">
+                                  <Flame className="w-2.5 h-2.5" /> Top scorer
+                                </span>
+                              )}
+                            </div>
+                          </div>
+
+                          {/* Stats */}
+                          <div className="hidden sm:flex items-center gap-4 flex-shrink-0">
+                            <div className="text-center">
+                              <p className={cn('text-sm font-black', avgCourseScore >= 80 ? 'text-green-400' : avgCourseScore >= 60 ? 'text-amber-400' : avgCourseScore > 0 ? 'text-red-400' : 'text-gray-600')}>
+                                {avgCourseScore > 0 ? `${avgCourseScore}%` : '—'}
+                              </p>
+                              <p className="text-[9px] text-gray-600">Quiz Avg</p>
+                            </div>
+                            <div className="text-center">
+                              <p className={cn('text-sm font-black', avgLabScore >= 80 ? 'text-green-400' : avgLabScore >= 60 ? 'text-amber-400' : avgLabScore > 0 ? 'text-red-400' : 'text-gray-600')}>
+                                {avgLabScore > 0 ? `${avgLabScore}%` : '—'}
+                              </p>
+                              <p className="text-[9px] text-gray-600">Lab Avg</p>
+                            </div>
+                            <div className="text-center">
+                              <p className="text-sm font-black text-violet-400">{passCount}/{labCount}</p>
+                              <p className="text-[9px] text-gray-600">Labs Pass</p>
+                            </div>
+                            <div className="text-center">
+                              <p className="text-sm font-black text-white">{coursesCompleted}/{ACADEMY_COURSES.length}</p>
+                              <p className="text-[9px] text-gray-600">Courses</p>
+                            </div>
+                          </div>
+
+                          {/* Composite score */}
+                          <div className="flex-shrink-0 text-right">
+                            <p className={cn('text-2xl font-black', composite >= 80 ? 'text-green-400' : composite >= 60 ? 'text-amber-400' : composite > 0 ? 'text-red-400' : 'text-gray-600')}>
+                              {composite > 0 ? composite : '—'}
+                            </p>
+                            <p className="text-[9px] text-gray-500">score</p>
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                )}
+              </div>
+
+              {/* Speed Leaderboard */}
+              {(() => {
+                const speedRanked = ranked.filter(e => e.avgHours != null).sort((a, b) => a.avgHours - b.avgHours);
+                if (speedRanked.length === 0) return null;
+                return (
+                  <div className="bg-[#141922] border border-white/10 rounded-2xl p-5">
+                    <div className="flex items-center gap-2 mb-4">
+                      <Zap className="w-4 h-4 text-cyan-400" />
+                      <p className="text-sm font-extrabold text-white">Lab Completion Speed</p>
+                      <span className="ml-auto text-[10px] text-gray-500">Avg hours from submission to grade</span>
+                    </div>
+                    <div className="space-y-2">
+                      {speedRanked.slice(0, 5).map((entry, idx) => {
+                        const { u, avgHours, labCount } = entry;
+                        const maxH = speedRanked[speedRanked.length - 1]?.avgHours || 1;
+                        const pct = Math.max(10, 100 - Math.round((avgHours / maxH) * 90));
+                        return (
+                          <div key={u.id} className="flex items-center gap-3">
+                            <span className="text-[10px] font-black text-gray-500 w-5 text-right flex-shrink-0">{idx + 1}</span>
+                            <p className="text-xs text-gray-300 w-36 truncate flex-shrink-0">{u.full_name || u.email}</p>
+                            <div className="flex-1 h-2 bg-white/10 rounded-full overflow-hidden">
+                              <div className="h-full rounded-full bg-cyan-500 transition-all" style={{ width: `${pct}%` }} />
+                            </div>
+                            <span className="text-[10px] font-bold text-cyan-400 w-16 text-right flex-shrink-0">
+                              {avgHours < 1 ? `${Math.round(avgHours * 60)}m` : `${avgHours.toFixed(1)}h`}
+                            </span>
+                            <span className="text-[9px] text-gray-600 flex-shrink-0">{labCount} labs</span>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  </div>
+                );
+              })()}
+            </>
+          );
+        })()}
 
         {/* ── STUDENT PROGRESS TAB ── */}
         {tab === 'progress' && (
