@@ -20,6 +20,12 @@ export default function AircraftMaintenanceTracking() {
     refetchInterval: 60000,
   });
 
+  // Deduplicate aircraft by tail_number
+  const uniqueAircraft = Object.values(aircraft.reduce((acc, a) => {
+    if (!acc[a.tail_number]) acc[a.tail_number] = a;
+    return acc;
+  }, {}));
+
   const { data: events = [] } = useQuery({
     queryKey: ['mt-events', selectedAircraft],
     queryFn: () => base44.entities.MaintenanceEvent.filter({ aircraft_tail: selectedAircraft }),
@@ -72,7 +78,7 @@ export default function AircraftMaintenanceTracking() {
           className="w-full bg-secondary border border-border rounded-lg px-3 py-2 text-sm text-foreground outline-none focus:ring-1 focus:ring-primary mb-3"
         >
           <option value="">Select aircraft…</option>
-          {aircraft.map(a => (
+          {uniqueAircraft.map(a => (
             <option key={a.id} value={a.tail_number}>
               {a.tail_number} — {a.aircraft_type}
             </option>
