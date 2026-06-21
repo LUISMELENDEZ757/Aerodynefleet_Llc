@@ -1,7 +1,13 @@
 import { useState } from 'react';
-import { ChevronLeft, AlertTriangle, CheckCircle, Zap, Wrench, Clock, BookOpen, ChevronDown, ChevronRight } from 'lucide-react';
+import { ChevronLeft, AlertTriangle, CheckCircle, Zap, Wrench, Clock, BookOpen, ChevronDown, ChevronRight, Filter } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { MOCK_DISCREPANCIES } from './academyData';
+
+const CATEGORY_STYLES = {
+  MEL: { label: 'MEL', bg: 'bg-amber-800/70', text: 'text-amber-200', border: 'border-amber-600/50' },
+  NEF: { label: 'NEF', bg: 'bg-blue-800/70',  text: 'text-blue-200',  border: 'border-blue-600/50' },
+  CDL: { label: 'CDL', bg: 'bg-violet-800/70', text: 'text-violet-200', border: 'border-violet-600/50' },
+};
 
 const SEVERITY_STYLES = {
   warning:  { label: 'WARNING',  bg: 'bg-red-700',    text: 'text-red-300',   border: 'border-red-600' },
@@ -21,8 +27,19 @@ function DiscrepancyCard({ disc, onOpen }) {
           <span className={cn('text-[10px] font-black px-2 py-0.5 rounded text-white', sev.bg)}>{sev.label}</span>
           <span className="text-[10px] font-bold px-2 py-0.5 rounded bg-white/10 text-gray-300">ATA {disc.ata}</span>
           <span className="text-[10px] font-bold px-2 py-0.5 rounded" style={{ background: `${DIFF_COLORS[disc.difficulty]}20`, color: DIFF_COLORS[disc.difficulty] }}>{disc.difficulty}</span>
-          {disc.mel_applicable && (
-            <span className="text-[10px] font-black px-2 py-0.5 rounded bg-amber-900/50 text-amber-300 border border-amber-700/50">MEL-ABLE</span>
+          {disc.category && CATEGORY_STYLES[disc.category] && (
+            <span className={cn('text-[10px] font-black px-2 py-0.5 rounded border', CATEGORY_STYLES[disc.category].bg, CATEGORY_STYLES[disc.category].text, CATEGORY_STYLES[disc.category].border)}>
+              {disc.category}
+            </span>
+          )}
+          {disc.mel_applicable && !disc.category && (
+            <span className="text-[10px] font-black px-2 py-0.5 rounded bg-amber-900/50 text-amber-300 border border-amber-700/50">MEL</span>
+          )}
+          {disc.nef_applicable && !disc.category && (
+            <span className="text-[10px] font-black px-2 py-0.5 rounded bg-blue-900/50 text-blue-300 border border-blue-700/50">NEF</span>
+          )}
+          {disc.cdl_applicable && !disc.category && (
+            <span className="text-[10px] font-black px-2 py-0.5 rounded bg-violet-900/50 text-violet-300 border border-violet-700/50">CDL</span>
           )}
         </div>
         <ChevronRight className="w-4 h-4 text-gray-500 flex-shrink-0 mt-0.5" />
@@ -144,7 +161,7 @@ function DiscrepancyWorkbench({ disc, onBack }) {
               className="w-full bg-[#1a2035] border border-white/10 rounded-lg px-3 py-2 text-sm text-white placeholder-gray-600 outline-none focus:border-primary resize-none" />
           </div>
 
-          {disc.mel_applicable && (
+          {(disc.mel_applicable || disc.category === 'MEL') && (
             <div className="grid grid-cols-2 gap-3">
               <div>
                 <label className="text-[10px] font-bold text-amber-500 uppercase tracking-widest block mb-1">MEL Reference</label>
@@ -160,6 +177,20 @@ function DiscrepancyWorkbench({ disc, onBack }) {
                   {['A', 'B', 'C', 'D'].map(c => <option key={c} value={c}>Category {c}</option>)}
                 </select>
               </div>
+            </div>
+          )}
+          {(disc.cdl_applicable || disc.category === 'CDL') && (
+            <div>
+              <label className="text-[10px] font-bold text-violet-400 uppercase tracking-widest block mb-1">CDL Reference (AFM Supplement)</label>
+              <input value={logFields.mel_ref} onChange={e => setLogFields(f => ({ ...f, mel_ref: e.target.value }))}
+                placeholder={disc.cdl_ref || 'e.g. CDL 57-40-1'}
+                className="w-full bg-violet-900/10 border border-violet-700/30 rounded-lg px-3 py-2 text-sm text-white outline-none focus:border-violet-500" />
+            </div>
+          )}
+          {(disc.nef_applicable || disc.category === 'NEF') && (
+            <div className="bg-blue-900/15 border border-blue-700/30 rounded-xl px-4 py-3">
+              <p className="text-[10px] font-bold text-blue-400 uppercase tracking-widest mb-1">NEF Deferral</p>
+              <p className="text-xs text-blue-200/70">Non-Essential Equipment and Furnishings — no MEL required. Document in logbook as Info entry with NEF notation.</p>
             </div>
           )}
 
@@ -209,8 +240,17 @@ function DiscrepancyWorkbench({ disc, onBack }) {
   );
 }
 
+const CATEGORY_FILTERS = [
+  { id: null,    label: 'All' },
+  { id: 'MEL',   label: '🟡 MEL' },
+  { id: 'NEF',   label: '🔵 NEF' },
+  { id: 'CDL',   label: '🟣 CDL' },
+  { id: 'other', label: '⚙️ General' },
+];
+
 export default function MockDiscrepancyLab({ onBack }) {
   const [selected, setSelected] = useState(null);
+  const [categoryFilter, setCategoryFilter] = useState(null);
 
   if (selected) {
     return <DiscrepancyWorkbench disc={selected} onBack={() => setSelected(null)} />;
@@ -242,11 +282,12 @@ export default function MockDiscrepancyLab({ onBack }) {
           </div>
         </div>
 
-        <div className="grid grid-cols-3 gap-3">
+        <div className="grid grid-cols-4 gap-3">
           {[
-            { label: 'Scenarios', value: MOCK_DISCREPANCIES.length, color: 'text-white' },
-            { label: 'MEL-Able', value: MOCK_DISCREPANCIES.filter(d => d.mel_applicable).length, color: 'text-amber-400' },
-            { label: 'Advanced', value: MOCK_DISCREPANCIES.filter(d => d.difficulty === 'Advanced').length, color: 'text-red-400' },
+            { label: 'Total', value: MOCK_DISCREPANCIES.length, color: 'text-white' },
+            { label: 'MEL', value: MOCK_DISCREPANCIES.filter(d => d.category === 'MEL' || (d.mel_applicable && !d.category)).length, color: 'text-amber-400' },
+            { label: 'NEF', value: MOCK_DISCREPANCIES.filter(d => d.category === 'NEF' || d.nef_applicable).length, color: 'text-blue-400' },
+            { label: 'CDL', value: MOCK_DISCREPANCIES.filter(d => d.category === 'CDL' || d.cdl_applicable).length, color: 'text-violet-400' },
           ].map(({ label, value, color }) => (
             <div key={label} className="bg-[#141922] border border-white/10 rounded-xl p-4 text-center">
               <p className={cn('text-3xl font-black', color)}>{value}</p>
@@ -255,9 +296,41 @@ export default function MockDiscrepancyLab({ onBack }) {
           ))}
         </div>
 
+        {/* Category Filter */}
+        <div className="flex items-center gap-2 flex-wrap">
+          <Filter className="w-3.5 h-3.5 text-gray-600 flex-shrink-0" />
+          {CATEGORY_FILTERS.map(f => (
+            <button key={String(f.id)} onClick={() => setCategoryFilter(f.id)}
+              className={cn('px-3 py-1.5 rounded-lg text-[11px] font-bold border transition-all',
+                categoryFilter === f.id
+                  ? 'bg-primary/20 border-primary text-primary'
+                  : 'bg-[#141922] border-white/10 text-gray-400 hover:text-white hover:border-white/20')}>
+              {f.label}
+            </button>
+          ))}
+        </div>
+
         <div className="space-y-3">
-          <p className="text-xs font-bold text-gray-500 uppercase tracking-widest">Select a Scenario</p>
-          {MOCK_DISCREPANCIES.map(disc => (
+          <p className="text-xs font-bold text-gray-500 uppercase tracking-widest">
+            {categoryFilter ? `${categoryFilter} Scenarios` : 'All Scenarios'} ({
+              MOCK_DISCREPANCIES.filter(d => {
+                if (!categoryFilter) return true;
+                if (categoryFilter === 'other') return !d.category && !d.nef_applicable && !d.cdl_applicable;
+                if (categoryFilter === 'MEL') return d.category === 'MEL' || (d.mel_applicable && !d.category);
+                if (categoryFilter === 'NEF') return d.category === 'NEF' || d.nef_applicable;
+                if (categoryFilter === 'CDL') return d.category === 'CDL' || d.cdl_applicable;
+                return true;
+              }).length
+            })
+          </p>
+          {MOCK_DISCREPANCIES.filter(d => {
+            if (!categoryFilter) return true;
+            if (categoryFilter === 'other') return !d.category && !d.nef_applicable && !d.cdl_applicable;
+            if (categoryFilter === 'MEL') return d.category === 'MEL' || (d.mel_applicable && !d.category);
+            if (categoryFilter === 'NEF') return d.category === 'NEF' || d.nef_applicable;
+            if (categoryFilter === 'CDL') return d.category === 'CDL' || d.cdl_applicable;
+            return true;
+          }).map(disc => (
             <DiscrepancyCard key={disc.id} disc={disc} onOpen={() => setSelected(disc)} />
           ))}
         </div>
