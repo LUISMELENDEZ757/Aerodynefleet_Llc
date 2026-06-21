@@ -436,9 +436,22 @@ export default function EngineRemovalInstallation() {
 
   const { data: events = [], isLoading } = useQuery({
     queryKey: ['engine-removal-events'],
-    queryFn: () => base44.entities.LogbookEntry.filter({ ata_chapter: '72' }),
-    refetchInterval: 60000,
+    queryFn: () => base44.entities.LogbookEntry.filter({ ata_chapter: '72' }, '-created_date', 200),
+    refetchInterval: 30000,
   });
+
+  // Real-time subscription for instant sync
+  useEffect(() => {
+    const unsubscribe = base44.entities.LogbookEntry.subscribe((event) => {
+      if (event.data?.ata_chapter === '72' && event.data?.description?.includes('[ENGINE REMOVAL]')) {
+        qc.invalidateQueries({ queryKey: ['engine-removal-events'] });
+        if (event.type === 'create') {
+          setSelectedEvent(event.data);
+        }
+      }
+    });
+    return unsubscribe;
+  }, []);
 
   // All aircraft (for modal dropdown — unrestricted)
   const { data: allAircraft = [] } = useQuery({
@@ -460,6 +473,7 @@ export default function EngineRemovalInstallation() {
     mutationFn: (data) => base44.entities.LogbookEntry.create(data),
     onSuccess: (newEvent) => {
       qc.invalidateQueries({ queryKey: ['engine-removal-events'] });
+      qc.invalidateQueries({ queryKey: ['engine-aircraft'] });
       setShowModal(false);
       setSelectedEvent(newEvent);
     },
