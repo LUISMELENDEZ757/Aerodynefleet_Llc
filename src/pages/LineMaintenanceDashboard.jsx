@@ -426,7 +426,7 @@ export default function LineMaintenanceDashboard() {
 
       {showNew && (
         <NewTaskModal
-          aircraft={aircraft}
+          uniqueAircraft={uniqueAircraft}
           onClose={() => setShowNew(false)}
           onCreate={(data) => createMutation.mutate(data)}
         />
