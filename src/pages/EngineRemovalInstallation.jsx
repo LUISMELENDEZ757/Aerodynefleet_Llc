@@ -4,7 +4,8 @@ import { base44 } from '@/api/base44Client';
 import { Link } from 'react-router-dom';
 import {
   Settings, AlertTriangle, CheckCircle, Zap, Wrench, Shield,
-  ChevronLeft, Plus, Activity, X, Send, Clock, ChevronDown, BookOpen, Package
+  ChevronLeft, Plus, Activity, X, Send, Clock, ChevronDown, BookOpen, Package,
+  Search, MapPin, Filter
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { format } from 'date-fns';
@@ -403,6 +404,8 @@ export default function EngineRemovalInstallation() {
   const [showFleetMenu, setShowFleetMenu] = useState(false);
   const [showAirlineModal, setShowAirlineModal] = useState(false);
   const [editingAirline, setEditingAirline] = useState(null);
+  const [stationSearch, setStationSearch] = useState('');
+  const [showStationFilter, setShowStationFilter] = useState(false);
   const qc = useQueryClient();
 
   // ── Workflow Logic State ──────────────────────────────────────────────────
@@ -505,6 +508,14 @@ export default function EngineRemovalInstallation() {
     return aircraft.some(a => a.tail_number === e.aircraft_tail);
   });
 
+  // Extract unique stations from engine events
+  const allStations = [...new Set(engineEvents.map(e => e.station || '—'))].filter(s => s !== '—').sort();
+  
+  // Filter by station search
+  const filteredEvents = stationSearch
+    ? engineEvents.filter(e => e.station === stationSearch)
+    : engineEvents;
+
   const activeCount    = engineEvents.filter(e => !e.notes?.includes('on_hold') && !e.notes?.includes('completed')).length;
   const onHoldCount    = engineEvents.filter(e => e.notes?.includes('on_hold')).length;
   const completedCount = engineEvents.filter(e => e.is_cleared).length;
@@ -594,6 +605,78 @@ export default function EngineRemovalInstallation() {
           <KpiCard icon={Zap}           label="Engines Ready"    value={isLoading ? '…' : enginesReady}   color="text-cyan-400"   dotColor="bg-cyan-400" />
           <KpiCard icon={Wrench}        label="Tooling Avail"    value="100%"                             color="text-yellow-400" dotColor="bg-yellow-400" />
           <KpiCard icon={Shield}        label="RII Inspectors"   value="3"                                color="text-purple-400" dotColor="bg-purple-400" />
+        </div>
+
+        {/* ── STATION SEARCH & FILTER ── */}
+        <div className="bg-[#141922] border border-white/10 rounded-2xl p-4">
+          <div className="flex items-center gap-3 mb-3">
+            <MapPin className="w-4 h-4 text-primary" />
+            <p className="text-sm font-extrabold text-white">Multi-Engine Workflow by Station</p>
+            <span className="ml-auto text-[10px] text-gray-500">{allStations.length} stations with engine replacements</span>
+          </div>
+          
+          <div className="flex items-center gap-3">
+            <div className="flex-1 flex items-center gap-2 bg-[#0d1117] border border-white/10 rounded-xl px-3 py-2.5">
+              <Search className="w-4 h-4 text-gray-500 flex-shrink-0" />
+              <input
+                type="text"
+                placeholder="Search by station (e.g. KDAL, KORD)..."
+                value={stationSearch}
+                onChange={e => setStationSearch(e.target.value.toUpperCase())}
+                className="flex-1 bg-transparent text-sm text-white placeholder-gray-600 outline-none"
+              />
+              {stationSearch && (
+                <button onClick={() => setStationSearch('')} className="text-gray-500 hover:text-white">
+                  <X className="w-4 h-4" />
+                </button>
+              )}
+            </div>
+            <button
+              onClick={() => setShowStationFilter(!showStationFilter)}
+              className={cn('px-4 py-2.5 rounded-xl border text-sm font-bold flex items-center gap-2 transition-colors',
+                showStationFilter ? 'bg-primary/20 border-primary text-primary' : 'bg-[#0d1117] border-white/10 text-gray-400 hover:text-white')}
+            >
+              <Filter className="w-4 h-4" />
+              Stations
+            </button>
+          </div>
+
+          {/* Station pills */}
+          {showStationFilter && (
+            <div className="mt-3 flex flex-wrap gap-2">
+              {allStations.length === 0 ? (
+                <p className="text-xs text-gray-500">No stations yet</p>
+              ) : (
+                <>
+                  <button
+                    onClick={() => setStationSearch('')}
+                    className={cn('px-3 py-1.5 rounded-full text-xs font-bold border transition-all',
+                      !stationSearch ? 'bg-primary text-primary-foreground border-primary' : 'bg-[#0d1117] border-white/10 text-gray-400 hover:text-white')}
+                  >
+                    All Stations ({engineEvents.length})
+                  </button>
+                  {allStations.map(station => {
+                    const count = engineEvents.filter(e => e.station === station).length;
+                    return (
+                      <button
+                        key={station}
+                        onClick={() => setStationSearch(station)}
+                        className={cn('px-3 py-1.5 rounded-full text-xs font-bold border transition-all flex items-center gap-1.5',
+                          stationSearch === station ? 'bg-cyan-600 text-white border-cyan-500' : 'bg-[#0d1117] border-white/10 text-gray-400 hover:text-white')}
+                      >
+                        <MapPin className="w-3 h-3" />
+                        {station}
+                        <span className={cn('text-[9px] px-1.5 py-0.5 rounded-full',
+                          stationSearch === station ? 'bg-cyan-500/30' : 'bg-white/10')}>
+                          {count}
+                        </span>
+                      </button>
+                    );
+                  })}
+                </>
+              )}
+            </div>
+          )}
         </div>
 
         {/* ── EVENT CARDS ROW ── */}
