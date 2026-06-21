@@ -410,7 +410,7 @@ export default function NewLogEntryModal({ aircraftTail, nextLogPage, preset, on
     ).join('\n');
   };
 
-  const handleSubmit = () => {
+  const buildPayload = (overrides = {}) => {
     const partsSummary = buildPartsSummary();
     const oilSummary = (() => {
       const lines = [];
@@ -421,7 +421,7 @@ export default function NewLogEntryModal({ aircraftTail, nextLogPage, preset, on
       return lines.join('\n');
     })();
 
-    onSave({
+    return {
       aircraft_tail: aircraftTail,
       log_page: header.log_page,
       entry_type: header.entry_type,
@@ -429,14 +429,14 @@ export default function NewLogEntryModal({ aircraftTail, nextLogPage, preset, on
       flight_number: header.flight_number,
       station: header.station,
       description: discrepancy.description,
-      corrective_action: techAction.corrective_action,
-      technician_name: techAction.technician_name,
-      technician_id: techAction.technician_id,
+      corrective_action: techAction.corrective_action || undefined,
+      technician_name: techAction.technician_name || undefined,
+      technician_id: techAction.technician_id || undefined,
       is_deferred: techAction.is_deferred,
-      mel_reference: techAction.mel_reference,
-      mel_category: techAction.mel_category,
+      mel_reference: techAction.mel_reference || undefined,
+      mel_category: techAction.mel_category || undefined,
       rii_required: techAction.rii_required,
-      discrepancy_status: techAction.rii_required ? 'PENDING_RII' : 'OPEN',
+      discrepancy_status: 'OPEN',
       parts_used: partsSummary || undefined,
       notes: [
         oilSummary,
@@ -444,7 +444,18 @@ export default function NewLogEntryModal({ aircraftTail, nextLogPage, preset, on
         attachments.map(a => a.url).join('\n'),
         discrepancy.reporter_role ? `Reporter: ${discrepancy.reporter_role}${discrepancy.reporter_name ? ` — ${discrepancy.reporter_name}` : ''}` : '',
       ].filter(Boolean).join('\n\n') || undefined,
-    });
+      ...overrides,
+    };
+  };
+
+  const handleSaveOpen = () => {
+    onSave(buildPayload({ discrepancy_status: 'OPEN' }));
+  };
+
+  const handleSubmit = () => {
+    onSave(buildPayload({
+      discrepancy_status: techAction.rii_required ? 'PENDING_RII' : 'OPEN',
+    }));
   };
 
   const canAdvance = () => {
@@ -460,6 +471,8 @@ export default function NewLogEntryModal({ aircraftTail, nextLogPage, preset, on
     }
     return true;
   };
+
+  const canSaveOpen = step >= 2 && discrepancy.description.trim().length > 10;
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/85 p-3">
@@ -827,19 +840,27 @@ export default function NewLogEntryModal({ aircraftTail, nextLogPage, preset, on
             {step === 1 ? 'Cancel' : 'Back'}
           </button>
 
-          <span className="text-[11px] text-gray-600 font-mono">Step {step} of {STEPS.length}</span>
+          <div className="flex items-center gap-2">
+            {/* Save as Open — available once discrepancy is written (steps 2+) */}
+            {canSaveOpen && step < STEPS.length && (
+              <button type="button" onClick={handleSaveOpen}
+                className="flex items-center gap-2 px-4 py-2.5 rounded-xl border border-amber-500/50 text-amber-300 bg-amber-900/20 text-sm font-bold hover:bg-amber-900/40 transition-colors">
+                <AlertTriangle className="w-4 h-4" /> Save Open
+              </button>
+            )}
 
-          {step < STEPS.length ? (
-            <button type="button" onClick={() => setStep(s => s + 1)} disabled={!canAdvance()}
-              className="flex items-center gap-2 px-5 py-2.5 rounded-xl bg-primary text-primary-foreground text-sm font-bold hover:bg-primary/90 disabled:opacity-40 transition-colors">
-              Next <ChevronRight className="w-4 h-4" />
-            </button>
-          ) : (
-            <button type="button" onClick={handleSubmit} disabled={uploading || !techAction.technician_name || !techAction.technician_id}
-              className="flex items-center gap-2 px-6 py-2.5 rounded-xl bg-green-700 text-white text-sm font-extrabold hover:bg-green-600 disabled:opacity-40 transition-colors">
-              <CheckCircle className="w-4 h-4" /> Submit Log Entry
-            </button>
-          )}
+            {step < STEPS.length ? (
+              <button type="button" onClick={() => setStep(s => s + 1)} disabled={!canAdvance()}
+                className="flex items-center gap-2 px-5 py-2.5 rounded-xl bg-primary text-primary-foreground text-sm font-bold hover:bg-primary/90 disabled:opacity-40 transition-colors">
+                Next <ChevronRight className="w-4 h-4" />
+              </button>
+            ) : (
+              <button type="button" onClick={handleSubmit} disabled={uploading || !techAction.technician_name || !techAction.technician_id}
+                className="flex items-center gap-2 px-6 py-2.5 rounded-xl bg-green-700 text-white text-sm font-extrabold hover:bg-green-600 disabled:opacity-40 transition-colors">
+                <CheckCircle className="w-4 h-4" /> Submit Log Entry
+              </button>
+            )}
+          </div>
         </div>
       </div>
     </div>
