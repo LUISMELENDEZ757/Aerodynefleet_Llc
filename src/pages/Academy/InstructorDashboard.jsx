@@ -5,10 +5,11 @@ import {
   ChevronLeft, Users, BookOpen, Trophy, CheckCircle, Clock, GraduationCap,
   BarChart2, Award, AlertTriangle, Search, Star, ThumbsUp, ThumbsDown,
   MessageSquare, FileText, ChevronRight, X, CheckSquare, XCircle, RefreshCw,
-  Shield, Wrench, Filter
+  Shield, Wrench, Filter, TableProperties
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { ACADEMY_COURSES, MOCK_DISCREPANCIES } from './academyData';
+import StudentProgressTable from './StudentProgressTable';
 
 const COURSE_MAP = Object.fromEntries(ACADEMY_COURSES.map(c => [c.id, c]));
 
@@ -365,10 +366,11 @@ function StudentDetail({ user, submissions, onClose, onGrade }) {
 
 // ── Main Dashboard ────────────────────────────────────────────────────────────
 const TABS = [
-  { id: 'overview',    label: 'Overview',     icon: BarChart2 },
-  { id: 'students',   label: 'Students',      icon: Users },
-  { id: 'grading',    label: 'Grade Queue',   icon: FileText },
-  { id: 'mastery',    label: 'MEL/CDL Mastery', icon: Shield },
+  { id: 'overview',    label: 'Overview',        icon: BarChart2 },
+  { id: 'progress',   label: 'Student Progress', icon: TableProperties },
+  { id: 'students',   label: 'Students',         icon: Users },
+  { id: 'grading',    label: 'Grade Queue',      icon: FileText },
+  { id: 'mastery',    label: 'MEL/CDL Mastery',  icon: Shield },
 ];
 
 export default function InstructorDashboard({ onBack }) {
@@ -541,6 +543,11 @@ export default function InstructorDashboard({ onBack }) {
               </div>
             </div>
           </>
+        )}
+
+        {/* ── STUDENT PROGRESS TAB ── */}
+        {tab === 'progress' && (
+          <StudentProgressTable students={students} />
         )}
 
         {/* ── STUDENTS TAB ── */}
