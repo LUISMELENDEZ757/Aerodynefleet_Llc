@@ -86,7 +86,7 @@ const TOOLKIT_RESOURCES = [
       {
         title: 'FAA-H-8083-30 — Aviation Maintenance Technician Handbook — General',
         description: 'Mathematics, science, electrical fundamentals, and tools.',
-        url: 'https://www.faa.gov/regulations_policies/handbooks_manuals/aircraft/media/AMT_General_HB.pdf',
+        url: 'https://www.faa.gov/regulations_policies/handbooks_manuals/aviation/amtg_handbook.pdf',
       },
       {
         title: 'AC 43.13-1B — Acceptable Methods, Techniques, and Practices',
