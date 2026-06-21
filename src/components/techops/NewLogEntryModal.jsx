@@ -9,10 +9,12 @@
  */
 
 import { useState, useRef } from 'react';
+import { Link } from 'react-router-dom';
 import {
   X, Plane, AlertTriangle, Camera, Image, Upload, ChevronDown,
   Flame, CheckCircle, Plus, Trash2, Package, Wrench, FileText,
-  Shield, Tag, User, Clock, MapPin, Hash, ChevronRight, ChevronLeft
+  Shield, Tag, User, Clock, MapPin, Hash, ChevronRight, ChevronLeft,
+  Bell
 } from 'lucide-react';
 import ATAChapterSelector from './ATAChapterSelector';
 import { base44 } from '@/api/base44Client';
@@ -434,7 +436,7 @@ export default function NewLogEntryModal({ aircraftTail, nextLogPage, preset, on
       mel_reference: techAction.mel_reference,
       mel_category: techAction.mel_category,
       rii_required: techAction.rii_required,
-      discrepancy_status: 'OPEN',
+      discrepancy_status: techAction.rii_required ? 'PENDING_RII' : 'OPEN',
       parts_used: partsSummary || undefined,
       notes: [
         oilSummary,
@@ -769,6 +771,26 @@ export default function NewLogEntryModal({ aircraftTail, nextLogPage, preset, on
                   {uploading && <p className="text-xs text-primary text-center mt-2 animate-pulse">Uploading…</p>}
                 </div>
               </Field>
+
+              {/* RII notification callout */}
+              {techAction.rii_required && (
+                <div className="bg-violet-900/25 border border-violet-500/50 rounded-xl px-4 py-4 space-y-2">
+                  <div className="flex items-center gap-2">
+                    <Bell className="w-4 h-4 text-violet-400 flex-shrink-0" />
+                    <p className="text-sm font-extrabold text-violet-300">RII Sign-Off Required</p>
+                  </div>
+                  <p className="text-xs text-violet-300/80 leading-relaxed">
+                    This entry will be saved as <span className="font-extrabold text-violet-300">PENDING RII</span>. An inspector must review and sign off before this item is closed. The entry will appear in the Inspector Mode queue immediately after submission.
+                  </p>
+                  <Link
+                    to="/InspectorMode"
+                    onClick={() => {}}
+                    className="inline-flex items-center gap-2 px-3 py-1.5 rounded-lg bg-violet-600/30 border border-violet-500/40 text-violet-300 text-xs font-bold hover:bg-violet-600/50 transition-colors"
+                  >
+                    <Shield className="w-3.5 h-3.5" /> Open Inspector Mode →
+                  </Link>
+                </div>
+              )}
 
               {/* 14 CFR 43.9(a)(4) full certification statement */}
               <div className="bg-blue-900/15 border border-blue-500/30 rounded-xl px-4 py-3 space-y-2">

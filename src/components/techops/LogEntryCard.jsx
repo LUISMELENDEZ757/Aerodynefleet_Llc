@@ -4,13 +4,14 @@
  * Handles all entry types: discrepancy, corrective_action, deferred, cleared, info.
  */
 import { useState } from 'react';
+import { Link } from 'react-router-dom';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { base44 } from '@/api/base44Client';
 import {
   AlertTriangle, Wrench, Shield, CheckCircle, ChevronDown, ChevronUp,
   Clock, User, Tag, RotateCcw, Play, Send, XCircle, Lock, Zap,
   FileText, Package, Camera, MessageSquare, Calendar, MapPin,
-  TrendingUp, AlertCircle, Info
+  TrendingUp, AlertCircle, Info, ExternalLink
 } from 'lucide-react';
 import DigitalSignaturePanel from '@/components/techops/DigitalSignaturePanel';
 import { cn } from '@/lib/utils';
@@ -313,6 +314,19 @@ export default function LogEntryCard({ entry, viewRole = 'mx' }) {
           </button>
         </div>
       )}
+      {isDiscrepancy && status === 'PENDING_RII' && !expanded && (
+        <div className="px-5 pb-3 flex items-center justify-between gap-3">
+          <span className="text-xs text-violet-400 font-bold flex items-center gap-1.5 animate-pulse">
+            <Shield className="w-3.5 h-3.5" /> Awaiting Inspector Sign-Off
+          </span>
+          <Link
+            to="/InspectorMode"
+            className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-violet-600/20 border border-violet-500/40 text-violet-300 text-[10px] font-extrabold hover:bg-violet-600/35 transition-colors"
+          >
+            <ExternalLink className="w-3 h-3" /> Inspector Mode →
+          </Link>
+        </div>
+      )}
 
       {/* ══ EXPANDED DETAIL ══════════════════════════════════════════════════ */}
       {expanded && (
@@ -412,9 +426,25 @@ export default function LogEntryCard({ entry, viewRole = 'mx' }) {
               {/* PENDING_RII */}
               {status === 'PENDING_RII' && (
                 <div className="space-y-3">
-                  <div className="bg-violet-900/20 border border-violet-500/30 rounded-xl px-4 py-3 text-xs text-violet-300">
-                    <p className="font-bold mb-1">Awaiting RII Inspector Sign-Off</p>
-                    <p className="text-violet-400/70">Corrective action submitted. RII inspector must verify before closure.</p>
+                  <div className="bg-violet-900/25 border border-violet-500/50 rounded-xl px-4 py-3 space-y-2">
+                    <div className="flex items-center justify-between gap-2">
+                      <div>
+                        <p className="text-sm font-extrabold text-violet-300 flex items-center gap-1.5"><Shield className="w-3.5 h-3.5" /> Awaiting RII Inspector Sign-Off</p>
+                        <p className="text-[10px] text-violet-400/70 mt-0.5">Corrective action submitted. Inspector must verify before closure.</p>
+                      </div>
+                      <Link
+                        to="/InspectorMode"
+                        className="flex-shrink-0 flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-violet-600 text-white text-[10px] font-extrabold hover:bg-violet-500 transition-colors"
+                      >
+                        <ExternalLink className="w-3 h-3" /> Inspector Mode
+                      </Link>
+                    </div>
+                    {entry.technician_name && (
+                      <p className="text-[10px] text-gray-500">
+                        Submitted by: <span className="text-gray-300 font-bold">{entry.technician_name}</span>
+                        {entry.technician_id ? ` · ${entry.technician_id}` : ''}
+                      </p>
+                    )}
                   </div>
                   {action === 'rii_signoff' ? (
                     <div className="space-y-3 bg-violet-900/20 border border-violet-500/30 rounded-xl p-4">

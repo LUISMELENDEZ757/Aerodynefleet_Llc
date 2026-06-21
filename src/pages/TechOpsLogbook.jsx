@@ -1,7 +1,7 @@
 import { useState, useEffect, useMemo } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { base44 } from '@/api/base44Client';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import AircraftQRScanner from '@/components/techops/AircraftQRScanner';
 import {
   BookOpen, Plane, AlertTriangle, ChevronDown, Plus,
@@ -49,6 +49,7 @@ const ROLE_TABS = [
 const QUICK_FILTERS = [
   { id: 'all',       label: 'All' },
   { id: 'open',      label: '🔴 Open' },
+  { id: 'rii',       label: '🟣 Pending RII' },
   { id: 'mel',       label: '🟡 MEL / Deferred' },
   { id: 'inwork',    label: '🔵 In Work' },
   { id: 'closed',    label: '✅ Closed' },
@@ -157,6 +158,7 @@ export default function TechOpsLogbook() {
     m.etops_impact === 'ETOPS_WITH_LIMITS' || m.placard_required
   );
   const openWriteUps = entries.filter(e => e.entry_type === 'discrepancy' && e.discrepancy_status !== 'CLOSED' && !e.is_cleared);
+  const pendingRiiItems = entries.filter(e => e.rii_required && !e.rii_signed_at && !e.rii_rejected && e.discrepancy_status !== 'CLOSED');
   const activeFaults = faults.filter(f => f.status === 'active');
   const clearedFaults = faults.filter(f => f.status === 'cleared');
   const nextLogPage = `LP#${String(entries.length + 1).padStart(4, '0')}`;
@@ -176,6 +178,7 @@ export default function TechOpsLogbook() {
     // Quick filter
     switch (quickFilter) {
       case 'open':   list = list.filter(e => e.discrepancy_status === 'OPEN'); break;
+      case 'rii':    list = list.filter(e => e.discrepancy_status === 'PENDING_RII' || (e.rii_required && !e.rii_signed_at && !e.rii_rejected)); break;
       case 'mel':    list = list.filter(e => e.is_deferred && !e.is_cleared); break;
       case 'inwork': list = list.filter(e => e.discrepancy_status === 'IN_PROGRESS'); break;
       case 'closed': list = list.filter(e => e.discrepancy_status === 'CLOSED' || e.is_cleared); break;
@@ -411,6 +414,47 @@ export default function TechOpsLogbook() {
                     )}>{e.discrepancy_status || 'OPEN'}</span>
                   </div>
                   <p className="text-xs text-amber-100">{e.description}</p>
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+
+        {/* ── PENDING RII ALERT BANNER ──────────────────────────────────────── */}
+        {pendingRiiItems.length > 0 && (
+          <div className="bg-violet-950/40 border border-violet-500/60 rounded-2xl p-4 space-y-2">
+            <div className="flex items-center justify-between gap-2">
+              <div className="flex items-center gap-2">
+                <Shield className="w-4 h-4 text-violet-400 flex-shrink-0" />
+                <p className="text-sm font-extrabold text-violet-400 uppercase tracking-widest">
+                  {pendingRiiItems.length} Item{pendingRiiItems.length > 1 ? 's' : ''} Awaiting RII Inspector Sign-Off
+                </p>
+              </div>
+              <Link
+                to="/InspectorMode"
+                className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-violet-600 text-white text-xs font-extrabold hover:bg-violet-500 transition-colors whitespace-nowrap"
+              >
+                <Shield className="w-3 h-3" /> Inspector Mode →
+              </Link>
+            </div>
+            {pendingRiiItems.map(e => (
+              <div key={e.id} className="flex items-start gap-3 bg-violet-900/25 rounded-xl px-4 py-3 border border-violet-700/40">
+                <div className="w-1.5 h-1.5 rounded-full bg-violet-400 mt-1.5 flex-shrink-0 animate-pulse" />
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-center gap-2 mb-0.5 flex-wrap">
+                    {e.log_page && <span className="text-[10px] font-mono font-bold text-violet-300">{e.log_page}</span>}
+                    {e.ata_chapter && <span className="text-[10px] text-gray-500">ATA {e.ata_chapter}</span>}
+                    {e.station && <span className="text-[10px] text-gray-500">{e.station}</span>}
+                    <span className="text-[10px] font-bold px-1.5 py-0.5 rounded bg-violet-500/20 text-violet-400">PENDING RII</span>
+                  </div>
+                  <p className="text-xs text-violet-100 line-clamp-1">{e.description}</p>
+                  {e.technician_name && (
+                    <p className="text-[10px] text-gray-500 mt-0.5">
+                      Tech: <span className="text-gray-300">{e.technician_name}</span>
+                      {e.technician_id ? ` · ${e.technician_id}` : ''}
+                      {' · '}Submitted {new Date(e.updated_date || e.created_date).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: false })}Z
+                    </p>
+                  )}
                 </div>
               </div>
             ))}
