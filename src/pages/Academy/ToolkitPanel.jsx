@@ -67,14 +67,9 @@ const TOOLKIT_RESOURCES = [
     color: '#22c55e',
     resources: [
       {
-        title: 'FAA-H-8083-31 — Aviation Maintenance Technician Handbook — Airframe Vol 1',
-        description: 'Structures, welding, wood, and aircraft covering.',
-        url: 'https://www.faa.gov/regulations_policies/handbooks_manuals/aircraft/media/AMT_Airframe_HB_Vol_1.pdf',
-      },
-      {
-        title: 'FAA-H-8083-31 — Aviation Maintenance Technician Handbook — Airframe Vol 2',
-        description: 'Hydraulics, pneumatics, fuel, electrical, and avionics systems.',
-        url: 'https://www.faa.gov/regulations_policies/handbooks_manuals/aircraft/media/AMT_Airframe_HB_Vol_2.pdf',
+        title: 'FAA-H-8083-31B — Aviation Maintenance Technician Handbook — Airframe',
+        description: 'Complete airframe handbook covering structures, hydraulics, pneumatics, fuel, electrical, and avionics systems.',
+        url: 'https://www.faa.gov/regulations_policies/handbooks_manuals/aviation/FAA-H-8083-31B_Aviation_Maintenance_Technician_Handbook.pdf',
       },
     ],
   },
