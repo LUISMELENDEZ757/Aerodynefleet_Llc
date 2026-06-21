@@ -17,27 +17,31 @@ export default function CertificateOfCompletion({ completedCourses, avgScore, on
         <title>Aerodyne Academy Certificate of Completion</title>
         <meta charset="UTF-8">
         <style>
-          @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800;900&family=Playfair+Display:wght@700;900&display=swap');
-          * { margin: 0; padding: 0; box-sizing: border-box; }
-          body { 
-            font-family: 'Inter', sans-serif;
-            background: #fff;
-            display: flex; align-items: center; justify-content: center;
-            min-height: 100vh;
-            padding: 20px;
-          }
-          .cert-wrap { width: 960px; }
-          .cert {
-            width: 960px;
-            min-height: 640px;
-            background: linear-gradient(135deg, #0a0e1a 0%, #0f1829 40%, #0d1830 100%);
-            border: 2px solid #c9a227;
-            border-radius: 0;
-            padding: 52px 64px;
-            color: white;
-            position: relative;
-            overflow: hidden;
-          }
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800;900&family=Playfair+Display:wght@700;900&display=swap');
+        * { margin: 0; padding: 0; box-sizing: border-box; -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; color-adjust: exact !important; }
+        body { 
+          font-family: 'Inter', sans-serif;
+          background: #0a0e1a;
+          display: flex; align-items: center; justify-content: center;
+          min-height: 100vh;
+          padding: 20px;
+          -webkit-print-color-adjust: exact !important;
+          print-color-adjust: exact !important;
+        }
+        .cert-wrap { width: 960px; }
+        .cert {
+          width: 960px;
+          min-height: 640px;
+          background: linear-gradient(135deg, #0a0e1a 0%, #0f1829 40%, #0d1830 100%) !important;
+          -webkit-print-color-adjust: exact !important;
+          print-color-adjust: exact !important;
+          border: 3px solid #c9a227;
+          border-radius: 0;
+          padding: 52px 64px;
+          color: white;
+          position: relative;
+          overflow: hidden;
+        }
           .cert-corner {
             position: absolute;
             width: 120px; height: 120px;
@@ -66,19 +70,19 @@ export default function CertificateOfCompletion({ completedCourses, avgScore, on
             -webkit-background-clip: text; -webkit-text-fill-color: transparent;
             line-height: 1.1; margin-bottom: 2px;
           }
-          .subtitle { font-size: 13px; color: rgba(255,255,255,0.5); letter-spacing: 3px; text-transform: uppercase; }
+          .subtitle { font-size: 13px; color: rgba(255,255,255,0.8); letter-spacing: 3px; text-transform: uppercase; }
           .divider { 
             height: 1px; 
             background: linear-gradient(90deg, transparent, rgba(201,162,39,0.5), rgba(201,162,39,0.8), rgba(201,162,39,0.5), transparent); 
             margin: 22px 0;
           }
-          .presented { text-align: center; font-size: 13px; color: rgba(255,255,255,0.5); letter-spacing: 2px; text-transform: uppercase; margin-bottom: 8px; }
+          .presented { text-align: center; font-size: 13px; color: rgba(255,255,255,0.85); letter-spacing: 2px; text-transform: uppercase; margin-bottom: 8px; }
           .student-name { 
             text-align: center; 
             font-family: 'Playfair Display', serif; font-size: 42px; font-weight: 700;
             color: #ffffff; margin: 0 0 4px;
           }
-          .completion-text { text-align: center; font-size: 13px; color: rgba(255,255,255,0.55); margin-bottom: 24px; line-height: 1.7; }
+          .completion-text { text-align: center; font-size: 13px; color: rgba(255,255,255,0.9); margin-bottom: 24px; line-height: 1.7; }
           .completion-text strong { color: rgba(255,255,255,0.9); }
           .courses-grid { 
             display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px; margin: 16px 0; 
@@ -89,7 +93,7 @@ export default function CertificateOfCompletion({ completedCourses, avgScore, on
             display: flex; align-items: center; gap: 8px;
           }
           .course-dot { width: 6px; height: 6px; border-radius: 50%; background: #c9a227; flex-shrink: 0; }
-          .course-name { font-size: 10px; font-weight: 700; color: rgba(255,255,255,0.75); }
+          .course-name { font-size: 10px; font-weight: 700; color: rgba(255,255,255,0.95); }
           .course-score { font-size: 10px; color: #c9a227; font-weight: 800; margin-left: auto; }
           .footer-row { 
             display: flex; align-items: flex-end; justify-content: space-between; 
@@ -98,7 +102,7 @@ export default function CertificateOfCompletion({ completedCourses, avgScore, on
           }
           .sig-block { text-align: center; }
           .sig-line { width: 180px; height: 1px; background: rgba(255,255,255,0.25); margin: 0 auto 4px; }
-          .sig-label { font-size: 10px; color: rgba(255,255,255,0.4); letter-spacing: 1px; text-transform: uppercase; }
+          .sig-label { font-size: 10px; color: rgba(255,255,255,0.75); letter-spacing: 1px; text-transform: uppercase; }
           .seal { 
             width: 90px; height: 90px; border-radius: 50%; 
             border: 2px solid rgba(201,162,39,0.5);
@@ -114,10 +118,11 @@ export default function CertificateOfCompletion({ completedCourses, avgScore, on
           }
           .score-num { font-size: 32px; font-weight: 900; color: #c9a227; line-height: 1; }
           .score-label { font-size: 9px; letter-spacing: 2px; color: rgba(255,255,255,0.4); text-transform: uppercase; margin-top: 2px; }
-          .cert-id { font-size: 9px; color: rgba(255,255,255,0.2); text-align: center; margin-top: 16px; letter-spacing: 1px; }
+          .cert-id { font-size: 9px; color: rgba(255,255,255,0.55); text-align: center; margin-top: 16px; letter-spacing: 1px; }
           @media print {
-            body { padding: 0; margin: 0; }
-            .cert { border-radius: 0; }
+            * { -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; color-adjust: exact !important; }
+            body { padding: 0; margin: 0; background: #0a0e1a !important; }
+            .cert { border-radius: 0; background: linear-gradient(135deg, #0a0e1a 0%, #0f1829 40%, #0d1830 100%) !important; }
           }
         </style>
       </head>
@@ -201,7 +206,7 @@ export default function CertificateOfCompletion({ completedCourses, avgScore, on
               }}>
                 Certificate of Completion
               </div>
-              <div style={{ fontSize: 13, color: 'rgba(255,255,255,0.5)', letterSpacing: 3, textTransform: 'uppercase' }}>
+              <div style={{ fontSize: 13, color: 'rgba(255,255,255,0.85)', letterSpacing: 3, textTransform: 'uppercase' }}>
                 Aerodyne Academy · Part 147 Aligned Program
               </div>
             </div>
@@ -210,13 +215,13 @@ export default function CertificateOfCompletion({ completedCourses, avgScore, on
             <div style={{ height: 1, background: 'linear-gradient(90deg, transparent, rgba(201,162,39,0.5), rgba(201,162,39,0.8), rgba(201,162,39,0.5), transparent)', margin: '22px 0' }} />
 
             {/* Student Name */}
-            <div style={{ textAlign: 'center', marginBottom: 4, fontSize: 13, color: 'rgba(255,255,255,0.5)', letterSpacing: 2, textTransform: 'uppercase' }}>
+            <div style={{ textAlign: 'center', marginBottom: 4, fontSize: 13, color: 'rgba(255,255,255,0.85)', letterSpacing: 2, textTransform: 'uppercase' }}>
               This certifies that
             </div>
             <div style={{ textAlign: 'center', fontSize: 42, fontWeight: 700, color: '#ffffff', marginBottom: 8, fontFamily: 'Georgia, serif' }}>
               {studentName || 'Academy Graduate'}
             </div>
-            <div style={{ textAlign: 'center', fontSize: 13, color: 'rgba(255,255,255,0.55)', lineHeight: 1.8, marginBottom: 24 }}>
+            <div style={{ textAlign: 'center', fontSize: 13, color: 'rgba(255,255,255,0.9)', lineHeight: 1.8, marginBottom: 24 }}>
               has successfully completed all <strong style={{ color: 'rgba(255,255,255,0.9)' }}>{totalCourses} modules</strong> of the{' '}
               <strong style={{ color: 'rgba(255,255,255,0.9)' }}>Aerodyne Fleet OS Training Program</strong><br />
               demonstrating proficiency in{' '}
@@ -245,8 +250,8 @@ export default function CertificateOfCompletion({ completedCourses, avgScore, on
               {/* Signature 1 */}
               <div style={{ textAlign: 'center' }}>
                 <div style={{ width: 180, height: 1, background: 'rgba(255,255,255,0.25)', margin: '0 auto 4px' }} />
-                <div style={{ fontSize: 10, color: 'rgba(255,255,255,0.4)', letterSpacing: 1, textTransform: 'uppercase' }}>Chief Instructor</div>
-                <div style={{ fontSize: 11, color: 'rgba(255,255,255,0.6)', fontWeight: 700, marginTop: 2 }}>Aerodyne Academy</div>
+                <div style={{ fontSize: 10, color: 'rgba(255,255,255,0.75)', letterSpacing: 1, textTransform: 'uppercase' }}>Chief Instructor</div>
+                <div style={{ fontSize: 11, color: 'rgba(255,255,255,0.9)', fontWeight: 700, marginTop: 2 }}>Aerodyne Academy</div>
               </div>
 
               {/* Center Seal */}
@@ -262,19 +267,19 @@ export default function CertificateOfCompletion({ completedCourses, avgScore, on
                     AERODYNE<br />CERTIFIED
                   </div>
                 </div>
-                <div style={{ fontSize: 10, color: 'rgba(255,255,255,0.35)', marginTop: 8 }}>{dateStr}</div>
+                <div style={{ fontSize: 10, color: 'rgba(255,255,255,0.75)', marginTop: 8 }}>{dateStr}</div>
               </div>
 
               {/* Signature 2 */}
               <div style={{ textAlign: 'center' }}>
                 <div style={{ width: 180, height: 1, background: 'rgba(255,255,255,0.25)', margin: '0 auto 4px' }} />
-                <div style={{ fontSize: 10, color: 'rgba(255,255,255,0.4)', letterSpacing: 1, textTransform: 'uppercase' }}>Director of Training</div>
-                <div style={{ fontSize: 11, color: 'rgba(255,255,255,0.6)', fontWeight: 700, marginTop: 2 }}>Aerodyne Fleet LLC</div>
+                <div style={{ fontSize: 10, color: 'rgba(255,255,255,0.75)', letterSpacing: 1, textTransform: 'uppercase' }}>Director of Training</div>
+                <div style={{ fontSize: 11, color: 'rgba(255,255,255,0.9)', fontWeight: 700, marginTop: 2 }}>Aerodyne Fleet LLC</div>
               </div>
             </div>
 
             {/* Cert ID */}
-            <div style={{ fontSize: 9, color: 'rgba(255,255,255,0.2)', textAlign: 'center', marginTop: 16, letterSpacing: 1 }}>
+            <div style={{ fontSize: 9, color: 'rgba(255,255,255,0.55)', textAlign: 'center', marginTop: 16, letterSpacing: 1 }}>
               Certificate ID: {certId} · Issued by Aerodyne Fleet LLC · {dateStr}
             </div>
           </div>
