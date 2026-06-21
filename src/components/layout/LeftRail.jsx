@@ -42,6 +42,7 @@ const NAV_GROUPS = [
     title: 'Line Maintenance',
     items: [
       { label: 'Technician Mode', icon: '🧰', path: '/TechnicianMode' },
+      { label: 'Inspector Mode', icon: '🔍', path: '/InspectorMode' },
       { label: 'Crew Chief', icon: '👨‍✈️', path: '/CrewChief' },
       { label: 'Mx Supervisor', icon: '📋', path: '/MxSupervisor' },
       { label: 'Line Maintenance', icon: '🔧', path: '/LineMaintenanceDashboard' },
