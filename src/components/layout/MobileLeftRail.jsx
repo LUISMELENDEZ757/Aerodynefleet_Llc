@@ -49,7 +49,7 @@ const NAV_GROUPS = [
       { label: 'Manpower & Staffing', icon: '👷', path: '/ManpowerStaffing' },
       { label: 'Work Assignments', icon: '📝', path: '/WorkAssignments' },
       { label: 'Shift Turnover', icon: '🤝', path: '/ShiftHandover' },
-
+      { label: 'Discrepancy Lab', icon: '🔬', path: '/DiscrepancyLab' },
     ],
   },
   {
@@ -149,6 +149,7 @@ const NAV_GROUPS = [
     items: [
       { label: 'User Management', icon: '👤', path: '/UserManagement' },
       { label: 'Settings', icon: '⚙️', path: '/Settings' },
+      { label: 'Academy', icon: '🎓', path: '/Academy' },
       { label: 'Screensaver Admin', icon: '🖥️', path: '/ScreensaverAdmin' },
       { label: 'Integration Hub', icon: '🔌', path: '/IntegrationHub' },
       { label: 'Comm Center', icon: '📞', path: '/CommCenter' },
