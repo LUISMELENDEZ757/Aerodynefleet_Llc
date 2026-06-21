@@ -12,6 +12,7 @@ import MockDiscrepancyLab from './MockDiscrepancyLab';
 import InstructorDashboard from './InstructorDashboard';
 import CertificateOfCompletion from './CertificateOfCompletion';
 import AcademyTutor from './AcademyTutor';
+import ToolkitPanel from './ToolkitPanel';
 
 function CoursePreviewModal({ course, done, onClose, onStart }) {
   const [openLesson, setOpenLesson] = useState(null);
@@ -144,6 +145,7 @@ export default function Academy() {
     try { return JSON.parse(localStorage.getItem('academy_completed') || '{}'); } catch { return {}; }
   });
   const [showCert, setShowCert] = useState(false);
+  const [showToolkit, setShowToolkit] = useState(false);
 
   const handleCourseComplete = (courseId, score, total, pct) => {
     const updated = { ...completedCourses, [courseId]: { score, total, pct } };
@@ -199,13 +201,21 @@ export default function Academy() {
             <p className="text-[10px] text-primary/70 font-mono tracking-widest uppercase">Part 147 Aligned · Fleet OS Training</p>
           </div>
         </div>
-        <button onClick={() => setView('instructor')}
-          className="flex items-center gap-2 px-4 py-2 rounded-xl bg-violet-600/20 border border-violet-500/30 text-violet-300 text-xs font-bold hover:bg-violet-600/30 transition-colors">
-          <Users className="w-3.5 h-3.5" /> Instructor
-        </button>
+        <div className="flex items-center gap-2">
+          <button onClick={() => setShowToolkit(true)}
+            className="flex items-center gap-2 px-4 py-2 rounded-xl bg-emerald-600/20 border border-emerald-500/30 text-emerald-300 text-xs font-bold hover:bg-emerald-600/30 transition-colors">
+            <Download className="w-3.5 h-3.5" /> Toolkit
+          </button>
+          <button onClick={() => setView('instructor')}
+            className="flex items-center gap-2 px-4 py-2 rounded-xl bg-violet-600/20 border border-violet-500/30 text-violet-300 text-xs font-bold hover:bg-violet-600/30 transition-colors">
+            <Users className="w-3.5 h-3.5" /> Instructor
+          </button>
+        </div>
       </div>
 
       <div className="max-w-2xl mx-auto px-5 mt-6 space-y-6">
+
+        {showToolkit && <ToolkitPanel onClose={() => setShowToolkit(false)} />}
 
         {/* Certificate Modal */}
         {showCert && (
