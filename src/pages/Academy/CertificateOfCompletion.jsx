@@ -219,7 +219,7 @@ export default function CertificateOfCompletion({ completedCourses, avgScore, on
             <div style={{ textAlign: 'center', fontSize: 13, color: 'rgba(255,255,255,0.55)', lineHeight: 1.8, marginBottom: 24 }}>
               has successfully completed all <strong style={{ color: 'rgba(255,255,255,0.9)' }}>{totalCourses} modules</strong> of the{' '}
               <strong style={{ color: 'rgba(255,255,255,0.9)' }}>Aerodyne Fleet OS Training Program</strong><br />
-              with an average score of <strong style={{ color: '#c9a227' }}>{avgScore}%</strong>, demonstrating proficiency in{' '}
+              demonstrating proficiency in{' '}
               aviation maintenance operations,<br />
               MEL/NEF/CDL procedures, ETOPS compliance, and FAA Part 147 aligned knowledge areas.
             </div>
@@ -233,7 +233,6 @@ export default function CertificateOfCompletion({ completedCourses, avgScore, on
                 }}>
                   <div style={{ width: 6, height: 6, borderRadius: '50%', background: '#c9a227', flexShrink: 0 }} />
                   <span style={{ fontSize: 10, fontWeight: 700, color: 'rgba(255,255,255,0.75)', flex: 1 }}>{c.title}</span>
-                  <span style={{ fontSize: 10, color: c.score >= 80 ? '#4ade80' : c.score >= 60 ? '#f59e0b' : '#f87171', fontWeight: 800 }}>{c.score}%</span>
                 </div>
               ))}
             </div>
@@ -266,15 +265,11 @@ export default function CertificateOfCompletion({ completedCourses, avgScore, on
                 <div style={{ fontSize: 10, color: 'rgba(255,255,255,0.35)', marginTop: 8 }}>{dateStr}</div>
               </div>
 
-              {/* Score Badge */}
+              {/* Signature 2 */}
               <div style={{ textAlign: 'center' }}>
-                <div style={{
-                  background: 'rgba(201,162,39,0.1)', border: '1px solid rgba(201,162,39,0.3)',
-                  borderRadius: 8, padding: '10px 24px',
-                }}>
-                  <div style={{ fontSize: 36, fontWeight: 900, color: '#c9a227', lineHeight: 1 }}>{avgScore}%</div>
-                  <div style={{ fontSize: 9, letterSpacing: 2, color: 'rgba(255,255,255,0.4)', textTransform: 'uppercase', marginTop: 4 }}>Average Score</div>
-                </div>
+                <div style={{ width: 180, height: 1, background: 'rgba(255,255,255,0.25)', margin: '0 auto 4px' }} />
+                <div style={{ fontSize: 10, color: 'rgba(255,255,255,0.4)', letterSpacing: 1, textTransform: 'uppercase' }}>Director of Training</div>
+                <div style={{ fontSize: 11, color: 'rgba(255,255,255,0.6)', fontWeight: 700, marginTop: 2 }}>Aerodyne Fleet LLC</div>
               </div>
             </div>
 
