@@ -33,7 +33,7 @@ const SafetyQA              = lazy(() => import('@/pages/SafetyQA'));
 const QAQCDashboard         = lazy(() => import('@/pages/QAQCDashboard'));
 const Scheduling            = lazy(() => import('@/pages/Scheduling'));
 const WeatherDashboard      = lazy(() => import('@/pages/WeatherDashboard'));
-const LearningCenter        = lazy(() => import('@/pages/LearningCenter/index'));
+
 const Logbook               = lazy(() => import('@/pages/Logbook/index'));
 const OpsCenter             = lazy(() => import('@/pages/OpsCenter/index'));
 const IROPS                 = lazy(() => import('@/pages/IROPS'));
@@ -240,7 +240,7 @@ const AuthenticatedApp = () => {
         <Route path="/QAQC" element={<QAQCDashboard />} />
         <Route path="/Scheduling" element={<Scheduling />} />
         <Route path="/Weather" element={<WeatherDashboard />} />
-        <Route path="/Learning" element={<LearningCenter />} />
+
         <Route path="/Logbook" element={<Logbook />} />
         <Route path="/OpsCenter" element={<OpsCenter />} />
         <Route path="/IROPS" element={<IROPS />} />
