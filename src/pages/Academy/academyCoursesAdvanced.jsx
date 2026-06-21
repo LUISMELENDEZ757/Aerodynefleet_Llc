@@ -510,6 +510,246 @@ Required for tank entry, structural repairs, or misfueling events. Follow AMM 28
     ],
   },
   {
+    id: 'engines_fadec',
+    title: 'Engines, FADEC & Power Generation',
+    subtitle: 'ATA 70–80 — Turbofan Theory, EEC/FADEC, Generators & Flight Parameters',
+    icon: '🔩',
+    color: '#f43f5e',
+    level: 'Intermediate',
+    part147: 'Powerplant — Module 2 & 4',
+    estimatedMinutes: 50,
+    lessons: [
+      {
+        id: 'eng-1',
+        title: 'Turbofan Engine Theory — How Thrust Is Generated',
+        content: `Commercial aircraft use **high-bypass turbofan engines** to generate thrust efficiently at subsonic cruise speeds.
+
+**The Four-Stage Thermodynamic Cycle (Brayton Cycle):**
+1. **Intake** — Air enters the inlet at ambient conditions. The fan and compressor progressively increase pressure.
+2. **Compression** — Multi-stage axial compressor stages increase air pressure up to 30–40:1 (pressure ratio). This heats the air significantly.
+3. **Combustion** — Fuel (Jet-A) is injected and ignited in the combustor. Temperature rises to ~2,900°F (1,600°C) — well above what metal can survive, which is why turbine cooling is critical.
+4. **Expansion & Exhaust** — Hot gas expands through the turbine stages (powering the compressor and fan) and exhausts through the nozzle, producing thrust.
+
+**Bypass Ratio:**
+Modern high-bypass turbofans (CFM56, LEAP, GEnx, Trent) have bypass ratios of 5:1 to 12:1 — meaning for every pound of air through the core, 5–12 lbs bypass the core and exit through the fan nozzle. The majority of thrust (80%+) comes from the bypass stream.
+
+**Thrust = Mass Flow × Velocity Change**
+- Higher bypass ratio → more air mass, lower velocity increase → higher efficiency (lower fuel burn)
+- Core (hot section) provides turbine power and additional thrust via exhaust
+
+**Key Engine Components (ATA 72):**
+| Component | Function |
+|---|---|
+| Fan | Low-pressure intake, bypass air generation |
+| Low-Pressure Compressor (LPC / N1) | First compression stage |
+| High-Pressure Compressor (HPC / N2) | Final compression — highest pressure |
+| Combustion Chamber | Fuel burn, heat addition |
+| High-Pressure Turbine (HPT) | Drives the HPC |
+| Low-Pressure Turbine (LPT) | Drives the fan (N1) |
+| Exhaust / Nozzle | Thrust vector exit |
+
+**N1 and N2 Speeds:**
+- **N1** — Fan / LP spool speed. Primary thrust indicator. Target N1% is calculated by FADEC from thrust setting.
+- **N2** — HP spool speed. Usually 92–100% at takeoff. Indicates compressor/turbine health.
+- Both expressed as % of maximum rated RPM.`,
+      },
+      {
+        id: 'eng-2',
+        title: 'FADEC & EEC — Full Authority Digital Engine Control',
+        content: `**What Is FADEC?**
+Full Authority Digital Engine Control (FADEC) is the computer brain of the modern turbofan engine. It has **full authority** — meaning no mechanical backup. The EEC (Electronic Engine Controller) is the primary FADEC computer on most Boeing/Airbus engines.
+
+**FADEC/EEC Functions:**
+- **Fuel metering** — Precisely controls Fuel Metering Valve (FMV) to deliver exact fuel flow for commanded thrust
+- **Engine start sequencing** — Controls starter valve, ignition, fuel introduction, and abort if limits exceeded
+- **Thrust management** — Converts pilot thrust lever angle (TLA) or autothrottle N1 command into actual fuel flow
+- **Limit protection** — Prevents exceedance of N1, N2, EGT, oil temperature, oil pressure limits — automatically derate if approaching limits
+- **Fault detection and EICAS messaging** — Generates maintenance fault codes for bite retrieval
+- **Variable Bleed Valve (VBV) and Variable Stator Vane (VSV) scheduling** — Optimizes compressor airflow at all power settings
+
+**Dual-Channel Architecture:**
+FADEC/EEC has two independent channels (Channel A and Channel B):
+- Both channels monitor all sensors simultaneously
+- Active channel controls engine; standby channel monitors
+- Auto-switchover if active channel fails — pilot/technician sees EICAS "EEC CH" message
+- If both channels fail → engine reverts to fixed fuel flow (partial thrust — controllable but limited)
+
+**How Thrust Commands Flow:**
+1. Pilot moves thrust lever → TLA (Thrust Lever Angle) sensed
+2. FADEC reads ambient conditions (TAT, altitude, Mach from ADIRU)
+3. FADEC calculates required N1 and fuel flow
+4. Fuel Metering Valve opens to commanded fuel flow
+5. N1 rises to target; FADEC trims fuel flow to maintain stable N1
+6. EGT, N2 and all other parameters monitored every few milliseconds
+
+**Common FADEC/EEC EICAS Messages:**
+- **EEC FAULT** — Channel failure or sensor disagreement
+- **ENG LIMIT** — FADEC has rate-limited thrust to protect an exceedance
+- **FADEC POWER** — Loss of FADEC power supply (check EEC circuit breakers)
+- **ENG CONTROL** — Loss of thrust management authority — manual thrust required
+
+**AMT Note:**
+EEC/FADEC faults must be retrieved via ACARS BITE or the maintenance terminal. Always download fault history before replacing the EEC — many "faults" are transient and do not require EEC replacement.`,
+      },
+      {
+        id: 'eng-3',
+        title: 'Engine-Driven Generators — How Engines Power the Aircraft',
+        content: `**The Engine → Generator Chain:**
+Each engine drives an **Integrated Drive Generator (IDG)** through the engine's Accessory Gearbox (AGB).
+
+**Accessory Gearbox (AGB):**
+The AGB is gear-driven from the engine N2 (HP) shaft and drives multiple accessories simultaneously:
+- **IDG** — Main electrical generator (ATA 24)
+- **Hydraulic Pump** — Engine-driven hydraulic pump (ATA 29)
+- **Fuel Control Unit / FADEC fuel pump** — Fuel metering supply
+- **Pneumatic Starter** — Used for engine start (disengages after start)
+- **Oil pumps** — Engine lubrication and scavenge (ATA 79)
+- **Permanent Magnet Alternator (PMA)** — Powers FADEC itself (dedicated, not affected by bus failures)
+
+**IDG Output:**
+- **115V AC / 400Hz** — Standard commercial aircraft AC power
+- **Rated output:** Typically 90–115 kVA per generator
+- **Constant frequency** achieved via the IDG's internal Constant Speed Drive (CSD) — regardless of engine N2 variation
+
+**Power Distribution from Engine Generator:**
+1. IDG output → Main AC Bus (L or R depending on engine)
+2. Main AC Bus → Transformer Rectifier Unit (TRU) → 28V DC Main Bus
+3. DC Bus → Aircraft battery charging, essential systems, avionics
+4. Cross-tie possible: Bus Tie Breaker (BTB) connects both AC buses if one generator fails
+
+**FADEC Self-Power (PMA):**
+The FADEC/EEC is powered by its own Permanent Magnet Alternator (PMA) mounted on the AGB — separate from the main electrical bus. This means FADEC keeps running even if the main generator fails or all aircraft batteries are depleted. This is a critical safety design.
+
+**Engine Start Sequence and Generator Pickup:**
+1. APU or GPU powers aircraft
+2. Engine pneumatic starter cranks N2
+3. Fuel introduced at ~20% N2 — ignition active
+4. Engine accelerates to idle (ground idle ~20–25% N1)
+5. At idle, IDG comes online and transitions aircraft from APU/GPU to engine power
+6. Generator Control Unit (GCU) closes Generator Breaker — AC bus powered from engine
+
+**When an Engine Shuts Down:**
+- IDG disconnects from bus
+- BTB closes to supply power from remaining generator
+- If inflight: single-generator operations — load shedding may occur on some aircraft`,
+      },
+      {
+        id: 'eng-4',
+        title: 'Engine Parameters — What AMTs Monitor',
+        content: `Understanding engine parameters is essential for both maintenance troubleshooting and approving aircraft for return to service.
+
+**Primary Engine Parameters (EICAS / Engine Indicators):**
+
+**N1 — Fan Speed (%)**
+- Primary thrust indicator
+- Takeoff: 90–100% depending on FLEX/derate
+- Cruise: 80–90% typical
+- Idle: 20–25% ground idle
+- **Watch for:** N1 oscillation (compressor surge), split between engines >5%
+
+**N2 — HP Compressor Speed (%)**
+- Indicates HP spool/core health
+- Takeoff: 95–100%
+- **Watch for:** N2 below expected at given N1 (possible HPT blade wear)
+
+**EGT — Exhaust Gas Temperature (°C)**
+- Critical life-limiter for turbine hardware
+- Normal cruise: 700–850°C; Takeoff limit: ~950°C (engine-specific)
+- **EGT Margin:** Difference between current EGT and the limit — key predictive health indicator
+- **Watch for:** EGT creep over time (HPT blade degradation, compressor fouling)
+- Exceedance above limit → mandatory borescope and possible engine removal
+
+**Fuel Flow (FF) — lbs/hr or kg/hr**
+- At a given thrust and altitude, FF should match historical baseline
+- High FF for low thrust → fuel efficiency problem (compressor damage, bleed leak)
+- **Watch for:** FF asymmetry between engines at same N1
+
+**Oil Pressure — PSI**
+- Normal: 55–90 PSI at idle; higher at cruise
+- Below minimum limit → EICAS OIL PRESS LOW → immediate action required
+- **Watch for:** Slow downward trend over fleet interval (bearing wear)
+
+**Oil Temperature — °C**
+- Normal: 60–150°C
+- High oil temperature → overheating bearing, blockage in oil cooler
+- **Watch for:** Temperature rising near limit during long taxi in hot climates
+
+**Oil Quantity — Quarts or Liters**
+- Checked at preflight via sight glass or EICAS quantity indicator
+- Consumption rate tracked over time — sudden high consumption → possible seal failure
+- **AMT Duty:** Log oil added per servicing event; track consumption trend
+
+**Vibration — N1 and N2 Vibration Units**
+- Measured by accelerometers on fan case and turbine case
+- Normal: <3.0 vibration units (engine-specific)
+- High N1 vibration → fan blade damage, foreign object damage (FOD), ice shedding
+- High N2 vibration → HP compressor or turbine damage → likely shop visit
+
+**EPR — Engine Pressure Ratio (some aircraft)**
+- Ratio of turbine exit pressure to inlet total pressure
+- Used instead of N1 as primary thrust reference on some GE/RR engines
+
+**Trend Monitoring in Aerodyne Fleet OS:**
+All engine parameters are tracked per flight in the Engine Health Analytics module. Deviations from fleet baseline generate automatic alerts in the TechOps Logbook and trigger MCC review.`,
+      },
+      {
+        id: 'eng-5',
+        title: 'Engine Limits, Exceedances & MEL Implications',
+        content: `**Redlines and Operating Limits:**
+Every engine parameter has defined limits in the Engine Type Certificate and AMM:
+- **Normal Operating Range** — Green arc on indicator
+- **Caution Range** — Amber arc; investigate
+- **Limit (Redline)** — Exceeding this requires inspection/action before next flight
+
+**EGT Exceedance Procedure:**
+1. Record peak EGT value and duration of exceedance
+2. Report immediately to MCC
+3. Download FADEC fault data (engine maintenance terminal or ACARS)
+4. Perform AMM-required inspection (typically borescope of HPT and combustor)
+5. If visual inspection clear → document and release
+6. If damage found → engine removal or repair per manufacturer's repair manual
+
+**Engine Trend Analysis:**
+FADEC stores Engine Health Monitoring (EHM) data:
+- Parameters normalized to standard day conditions (ISA correction)
+- Trending upward EGT at same N1/N2 → compressor fouling or turbine wear
+- Sudden parameter shift → possible hardware event (FOD, surge, lightning)
+- **Wash interval:** Compressor water wash reduces EGT margin loss from fouling
+
+**MEL Items — Engine-Related:**
+| Fault | MEL Category | Typical Restriction |
+|---|---|---|
+| One EEC channel INOP | B (3 days) | Flight may be allowed with ops approval |
+| Engine anti-ice valve INOP | A (ASAP) | No known or forecast icing |
+| One igniter INOP | B | No dispatch into known icing or thunderstorms |
+| Oil level low but not below min | C | Service and monitor |
+| Single engine vibration monitor INOP | C | Monitor alternate indicators |
+
+**Engine Removal Criteria:**
+Engines are pulled for shop visit when:
+- EGT margin reaches crew-defined threshold (e.g., <25°C remaining)
+- Oil consumption exceeds ops spec limits
+- Borescope reveals unserviceable HPT or LPT blade condition
+- HSI (Hot Section Inspection) interval is due
+
+**In Aerodyne Fleet OS:**
+Engine removals are tracked via the Engine Removal/Installation module. All parameters, trends, borescope findings, and shop visit triggers are logged against the tail number and ESN (Engine Serial Number).`,
+      },
+    ],
+    quiz: [
+      { q: 'In a high-bypass turbofan, the majority of thrust comes from:', options: ['The hot exhaust core', 'The bypass fan stream', 'The combustor', 'The N2 turbine'], answer: 1 },
+      { q: 'FADEC stands for:', options: ['Fuel And Digital Engine Controller', 'Full Authority Digital Engine Control', 'Fully Automated Digital Engine Computer', 'Flight Avionics Digital Engine Control'], answer: 1 },
+      { q: 'The FADEC/EEC is powered by its own PMA to ensure:', options: ['Redundant thrust rating', 'It remains operational even if the main electrical bus fails', 'Faster engine start', 'Fuel flow backup'], answer: 1 },
+      { q: 'The Accessory Gearbox (AGB) is driven by:', options: ['The N1 (fan) shaft', 'The N2 (HP compressor) shaft', 'The APU', 'The IDG itself'], answer: 1 },
+      { q: 'EGT margin is defined as:', options: ['Time between overhauls', 'Difference between current EGT and the engine EGT limit', 'EGT during idle vs takeoff', 'The average EGT over a flight cycle'], answer: 1 },
+      { q: 'An EGT exceedance beyond the published limit requires:', options: ['Log and monitor only', 'Mandatory inspection (borescope) before next flight', 'Immediate engine shutdown only', 'Captain sign-off and continue'], answer: 1 },
+      { q: 'N1 is primarily used to indicate:', options: ['Compressor health', 'Thrust setting', 'Oil system status', 'Generator output'], answer: 1 },
+      { q: 'High N1 vibration is most likely caused by:', options: ['HPT blade wear', 'Fan blade damage or FOD', 'Low fuel flow', 'EEC channel failure'], answer: 1 },
+      { q: 'The IDG produces:', options: ['28V DC power', '115V AC / 400Hz power', '115V AC / 60Hz power', '270V DC power'], answer: 1 },
+      { q: 'If both FADEC channels fail simultaneously:', options: ['Engine shuts down immediately', 'Engine reverts to fixed fuel flow — limited but controllable', 'Crew has full manual throttle control', 'EICAS takes over engine management'], answer: 1 },
+    ],
+  },
+  {
     id: 'logbook_compliance',
     title: 'Logbook Entries & 14 CFR Part 43',
     subtitle: 'Writing Correct, Compliant Maintenance Records',
