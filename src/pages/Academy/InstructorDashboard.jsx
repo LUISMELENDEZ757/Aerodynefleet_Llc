@@ -5,7 +5,7 @@ import {
   ChevronLeft, Users, BookOpen, Trophy, CheckCircle, Clock, GraduationCap,
   BarChart2, Award, AlertTriangle, Search, Star, ThumbsUp, ThumbsDown,
   MessageSquare, FileText, ChevronRight, X, CheckSquare, XCircle, RefreshCw,
-  Shield, Wrench, Filter, TableProperties, Medal, Flame, Zap
+  Shield, Wrench, Filter, TableProperties, Flame, Zap
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { ACADEMY_COURSES, MOCK_DISCREPANCIES } from './academyData';
