@@ -2,13 +2,14 @@ import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import {
   ChevronLeft, BookOpen, Trophy, Lock, ArrowRight, GraduationCap,
-  Wrench, Users, CheckCircle, Clock, Award, Star
+  Wrench, Users, CheckCircle, Clock, Award, Star, Download
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { ACADEMY_COURSES } from './academyData';
 import AcademyLesson from './AcademyLesson';
 import MockDiscrepancyLab from './MockDiscrepancyLab';
 import InstructorDashboard from './InstructorDashboard';
+import CertificateOfCompletion from './CertificateOfCompletion';
 
 export default function Academy() {
   const [view, setView] = useState('home'); // home | lesson | lab | instructor
@@ -17,6 +18,7 @@ export default function Academy() {
   const [completedCourses, setCompletedCourses] = useState(() => {
     try { return JSON.parse(localStorage.getItem('academy_completed') || '{}'); } catch { return {}; }
   });
+  const [showCert, setShowCert] = useState(false);
 
   const handleCourseComplete = (courseId, score, total, pct) => {
     const updated = { ...completedCourses, [courseId]: { score, total, pct } };
@@ -76,12 +78,27 @@ export default function Academy() {
 
       <div className="max-w-2xl mx-auto px-5 mt-6 space-y-6">
 
+        {/* Certificate Modal */}
+        {showCert && (
+          <CertificateOfCompletion
+            completedCourses={completedCourses}
+            avgScore={avgScore}
+            onClose={() => setShowCert(false)}
+          />
+        )}
+
         {/* Certification Banner */}
         {allCertified ? (
           <div className="rounded-2xl bg-gradient-to-r from-primary/20 to-green-500/15 border border-primary/30 px-5 py-5 text-center">
             <Award className="w-12 h-12 text-primary mx-auto mb-2" />
             <p className="text-lg font-black text-white">Aerodyne Academy Certified</p>
             <p className="text-sm text-gray-400">All {totalCourses} modules complete · Average: {avgScore}%</p>
+            <button
+              onClick={() => setShowCert(true)}
+              className="mt-3 inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-primary text-primary-foreground text-sm font-extrabold hover:bg-primary/90 transition-colors"
+            >
+              <Download className="w-4 h-4" /> View & Download Certificate
+            </button>
           </div>
         ) : (
           <div className="rounded-2xl bg-gradient-to-r from-primary/15 to-accent/10 border border-primary/25 px-5 py-4">
