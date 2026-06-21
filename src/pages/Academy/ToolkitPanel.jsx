@@ -50,14 +50,9 @@ const TOOLKIT_RESOURCES = [
     color: '#f43f5e',
     resources: [
       {
-        title: 'FAA-H-8083-32 — Aviation Maintenance Technician Handbook — Powerplant Vol 1',
-        description: 'Official FAA powerplant handbook covering reciprocating and turbine engines.',
-        url: 'https://www.faa.gov/regulations_policies/handbooks_manuals/aircraft/media/AMT_Airframe_HB_Vol_1.pdf',
-      },
-      {
-        title: 'FAA-H-8083-32 — Aviation Maintenance Technician Handbook — Powerplant Vol 2',
-        description: 'Engine instruments, propellers, and powerplant inspection.',
-        url: 'https://www.faa.gov/regulations_policies/handbooks_manuals/aircraft/media/AMT_Powerplant_HB_Vol_2.pdf',
+        title: 'FAA-H-8083-32 — Aviation Maintenance Technician Handbook — Powerplant',
+        description: 'Complete FAA powerplant handbook covering reciprocating engines, turbines, propellers, and inspection.',
+        url: 'https://www.faa.gov/regulations_policies/handbooks_manuals/aviation/amt_powerplant_handbook.pdf',
       },
     ],
   },
