@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import {
   ChevronLeft, BookOpen, Trophy, Lock, ArrowRight, GraduationCap,
-  Wrench, Users, CheckCircle, Clock, Award, Star, Download
+  Wrench, Users, CheckCircle, Clock, Award, Star, Download, Bot
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { ACADEMY_COURSES } from './academyData';
@@ -10,9 +10,10 @@ import AcademyLesson from './AcademyLesson';
 import MockDiscrepancyLab from './MockDiscrepancyLab';
 import InstructorDashboard from './InstructorDashboard';
 import CertificateOfCompletion from './CertificateOfCompletion';
+import AcademyTutor from './AcademyTutor';
 
 export default function Academy() {
-  const [view, setView] = useState('home'); // home | lesson | lab | instructor
+  const [view, setView] = useState('home'); // home | lesson | lab | instructor | tutor
   const [activeCourse, setActiveCourse] = useState(null);
 
   const [completedCourses, setCompletedCourses] = useState(() => {
@@ -51,6 +52,10 @@ export default function Academy() {
 
   if (view === 'instructor') {
     return <InstructorDashboard onBack={() => setView('home')} />;
+  }
+
+  if (view === 'tutor') {
+    return <AcademyTutor onBack={() => setView('home')} />;
   }
 
   return (
@@ -132,7 +137,7 @@ export default function Academy() {
         </div>
 
         {/* Quick Actions */}
-        <div className="grid grid-cols-2 gap-3">
+        <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
           <button onClick={() => setView('lab')}
             className="flex items-center gap-3 rounded-2xl border border-amber-500/30 bg-amber-900/15 p-4 hover:bg-amber-900/25 transition-colors text-left">
             <div className="w-10 h-10 rounded-xl bg-amber-500/20 flex items-center justify-center flex-shrink-0">
@@ -140,7 +145,17 @@ export default function Academy() {
             </div>
             <div>
               <p className="text-sm font-extrabold text-white">Discrepancy Lab</p>
-              <p className="text-[10px] text-gray-400">6 practice scenarios</p>
+              <p className="text-[10px] text-gray-400">Practice scenarios</p>
+            </div>
+          </button>
+          <button onClick={() => setView('tutor')}
+            className="flex items-center gap-3 rounded-2xl border border-violet-500/30 bg-violet-900/15 p-4 hover:bg-violet-900/25 transition-colors text-left">
+            <div className="w-10 h-10 rounded-xl bg-violet-500/20 flex items-center justify-center flex-shrink-0">
+              <Bot className="w-5 h-5 text-violet-400" />
+            </div>
+            <div>
+              <p className="text-sm font-extrabold text-white">AI Tutor</p>
+              <p className="text-[10px] text-gray-400">Ask anything · MEL/CDL/FAA</p>
             </div>
           </button>
           <Link to="/HowItWorks"
