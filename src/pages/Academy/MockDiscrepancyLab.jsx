@@ -1,5 +1,7 @@
 import { useState } from 'react';
-import { ChevronLeft, AlertTriangle, CheckCircle, Zap, Wrench, Clock, BookOpen, ChevronDown, ChevronRight, Filter } from 'lucide-react';
+import { useMutation } from '@tanstack/react-query';
+import { base44 } from '@/api/base44Client';
+import { ChevronLeft, AlertTriangle, CheckCircle, Zap, Wrench, Clock, BookOpen, ChevronDown, ChevronRight, Filter, Send } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { MOCK_DISCREPANCIES } from './academyData';
 
@@ -71,6 +73,40 @@ function DiscrepancyWorkbench({ disc, onBack }) {
     mel_category: disc.mel_category || '',
   });
   const sev = SEVERITY_STYLES[disc.severity];
+  const [submitted, setSubmitted] = useState(false);
+
+  const submitMutation = useMutation({
+    mutationFn: async (data) => {
+      const me = await base44.auth.me();
+      return base44.entities.LabSubmission.create({
+        student_id: me.id,
+        student_name: me.full_name || '',
+        student_email: me.email || '',
+        scenario_id: disc.id,
+        scenario_title: disc.title,
+        scenario_category: disc.category || (disc.mel_applicable ? 'MEL' : disc.cdl_applicable ? 'CDL' : disc.nef_applicable ? 'NEF' : 'General'),
+        scenario_difficulty: disc.difficulty,
+        ...data,
+      });
+    },
+    onSuccess: () => setSubmitted(true),
+  });
+
+  const handleSubmit = () => {
+    if (!logFields.description.trim() && !logFields.corrective_action.trim()) return;
+    submitMutation.mutate({
+      ata_chapter: logFields.ata,
+      station: logFields.station,
+      description: logFields.description,
+      corrective_action: logFields.corrective_action,
+      mel_ref: logFields.mel_ref,
+      mel_category: logFields.mel_category,
+      technician_name: logFields.technician_name,
+      cert_number: logFields.cert_number,
+      hints_used: hintIndex + (showHints ? 1 : 0),
+      answer_revealed: revealed,
+    });
+  };
 
   return (
     <div className="min-h-screen bg-[#0d1117] text-white pb-24">
@@ -209,6 +245,26 @@ function DiscrepancyWorkbench({ disc, onBack }) {
             </div>
           </div>
         </div>
+
+        {/* Submit for grading */}
+        {!submitted ? (
+          <button
+            onClick={handleSubmit}
+            disabled={submitMutation.isPending || (!logFields.description.trim() && !logFields.corrective_action.trim())}
+            className="w-full py-3.5 rounded-xl bg-violet-600 text-white text-sm font-extrabold hover:bg-violet-500 transition-colors flex items-center justify-center gap-2 disabled:opacity-50"
+          >
+            <Send className="w-4 h-4" />
+            {submitMutation.isPending ? 'Submitting…' : 'Submit for Instructor Grading'}
+          </button>
+        ) : (
+          <div className="bg-violet-900/20 border border-violet-500/40 rounded-2xl p-4 flex items-center gap-3">
+            <CheckCircle className="w-5 h-5 text-violet-400 flex-shrink-0" />
+            <div>
+              <p className="text-sm font-extrabold text-violet-300">Submitted for grading</p>
+              <p className="text-xs text-gray-400">Your instructor will review and score your response.</p>
+            </div>
+          </div>
+        )}
 
         {/* Reveal Answer */}
         {!revealed ? (
