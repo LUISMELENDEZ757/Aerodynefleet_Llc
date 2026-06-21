@@ -355,6 +355,7 @@ export default function NewLogEntryModal({ aircraftTail, nextLogPage, preset, on
     severity: 'info',
     reporter_role: 'captain',
     reporter_name: '',
+    reporter_number: '',
   });
 
   // Step 3 — Tech action
@@ -442,7 +443,7 @@ export default function NewLogEntryModal({ aircraftTail, nextLogPage, preset, on
         oilSummary,
         techAction.notes,
         attachments.map(a => a.url).join('\n'),
-        discrepancy.reporter_role ? `Reporter: ${discrepancy.reporter_role}${discrepancy.reporter_name ? ` — ${discrepancy.reporter_name}` : ''}` : '',
+        discrepancy.reporter_role ? `Reporter: ${discrepancy.reporter_role}${discrepancy.reporter_name ? ` — ${discrepancy.reporter_name}` : ''}${discrepancy.reporter_number ? ` | #${discrepancy.reporter_number}` : ''}` : '',
       ].filter(Boolean).join('\n\n') || undefined,
       ...overrides,
     };
@@ -576,10 +577,13 @@ export default function NewLogEntryModal({ aircraftTail, nextLogPage, preset, on
                     {REPORTER_OPTIONS.map(r => <option key={r.id} value={r.id}>{r.label}</option>)}
                   </select>
                 </Field>
-                <Field label="Reporter Name (optional)">
+                <Field label="Reporter Name">
                   <input placeholder="Crew member name" value={discrepancy.reporter_name} onChange={e => setD('reporter_name', e.target.value)} className={inputCls} />
                 </Field>
               </div>
+              <Field label="A&P / Employee Number">
+                <input placeholder="e.g. AMT-12345 or EMP-67890" value={discrepancy.reporter_number} onChange={e => setD('reporter_number', e.target.value)} className={inputCls} />
+              </Field>
 
               {/* Severity */}
               <Field label="Severity / Impact">
