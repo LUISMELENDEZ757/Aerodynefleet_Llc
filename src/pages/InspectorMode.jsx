@@ -505,6 +505,7 @@ export default function InspectorMode() {
       icon: AlertTriangle,
       label: 'RII Queue',
       sub: pendingCount > 0 ? `${pendingCount} awaiting` : 'All clear',
+      subColor: pendingCount > 0 ? 'text-red-300' : 'text-green-300',
       bg: 'bg-violet-700',
       modal: 'queue',
       badge: pendingCount > 0 ? pendingCount : null,
@@ -514,6 +515,7 @@ export default function InspectorMode() {
       icon: ClipboardList,
       label: 'My Assigned Pages',
       sub: 'Your station / name',
+      subColor: 'text-yellow-300',
       bg: 'bg-primary',
       modal: 'assigned',
     },
@@ -521,6 +523,7 @@ export default function InspectorMode() {
       icon: Eye,
       label: 'All RII Items',
       sub: 'Full logbook RII list',
+      subColor: 'text-sky-300',
       bg: 'bg-blue-700',
       modal: 'all',
     },
@@ -528,6 +531,7 @@ export default function InspectorMode() {
       icon: CheckCircle,
       label: 'Inspection History',
       sub: 'Signed & rejected',
+      subColor: 'text-emerald-300',
       bg: 'bg-teal-700',
       modal: 'history',
     },
@@ -535,6 +539,7 @@ export default function InspectorMode() {
       icon: BookOpen,
       label: 'E-Logbook',
       sub: 'Full logbook view',
+      subColor: 'text-blue-400',
       bg: 'bg-[#1a1f2e]',
       link: '/TechOpsLogbook',
       border: true,
@@ -543,6 +548,7 @@ export default function InspectorMode() {
       icon: FileText,
       label: 'MEL Deferrals',
       sub: 'Active MEL items',
+      subColor: 'text-amber-400',
       bg: 'bg-[#1a1f2e]',
       link: '/MEL',
       border: true,
@@ -551,6 +557,7 @@ export default function InspectorMode() {
       icon: Search,
       label: 'Documents / AMM',
       sub: 'Tech library',
+      subColor: 'text-cyan-400',
       bg: 'bg-[#1a1f2e]',
       link: '/Documents',
       border: true,
@@ -559,6 +566,7 @@ export default function InspectorMode() {
       icon: Shield,
       label: 'QA / QC',
       sub: 'Quality assurance',
+      subColor: 'text-violet-400',
       bg: 'bg-[#1a1f2e]',
       link: '/QAQC',
       border: true,
@@ -593,7 +601,7 @@ export default function InspectorMode() {
       {/* Grid */}
       <div className="flex-1 p-6">
         <div className="grid grid-cols-2 gap-3 max-w-2xl mx-auto">
-          {ACTIONS.map(({ icon: Icon, label, sub, bg, border, modal: m, link, badge }) => {
+          {ACTIONS.map(({ icon: Icon, label, sub, subColor, bg, border, modal: m, link, badge }) => {
             const cls = cn(
               'relative flex flex-col items-center justify-center gap-2 py-8 px-4 rounded-2xl text-white active:scale-95 transition-all hover:brightness-110',
               bg, border && 'border border-white/15'
@@ -608,7 +616,7 @@ export default function InspectorMode() {
                 <Icon className="w-7 h-7" strokeWidth={1.8} />
                 <div className="text-center">
                   <p className="text-sm font-bold leading-tight">{label}</p>
-                  <p className="text-[10px] text-white/50 mt-0.5">{sub}</p>
+                  <p className={cn('text-[10px] mt-0.5 font-semibold', subColor || 'text-white/50')}>{sub}</p>
                 </div>
               </>
             );
