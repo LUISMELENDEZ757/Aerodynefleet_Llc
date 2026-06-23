@@ -998,6 +998,9 @@ export default function FleetDashboard() {
             Aerodyne Fleet Registry
           </h1>
           <div className="ml-auto flex items-center gap-4">
+            <Link to="/CapabilityDashboard" className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-indigo-500/20 border border-indigo-500/30 text-indigo-300 text-xs font-bold hover:bg-indigo-500/30 transition-colors">
+              <Shield className="w-3.5 h-3.5" /> ETOPS · RVSM · CAT
+            </Link>
             <LiveClock />
             <FleetBadge />
           </div>

@@ -134,6 +134,7 @@ const HowItWorks               = lazy(() => import('@/pages/HowItWorks.jsx'));
 const Academy                  = lazy(() => import('@/pages/Academy/index'));
 const DiscrepancyLab           = lazy(() => import('@/pages/DiscrepancyLab'));
 const AircraftComplianceDetail = lazy(() => import('@/pages/AircraftComplianceDetail.jsx'));
+const CapabilityDashboard      = lazy(() => import('@/pages/CapabilityDashboard.jsx'));
 
 function PageFallback() {
   return (
@@ -339,6 +340,7 @@ const AuthenticatedApp = () => {
         <Route path="/WorldRouteMap" element={<WorldRouteMap />} />
         <Route path="/HowItWorks" element={<HowItWorks />} />
         <Route path="/AircraftDetail" element={<AircraftComplianceDetail />} />
+        <Route path="/CapabilityDashboard" element={<CapabilityDashboard />} />
         <Route path="/Academy" element={<Academy />} />
         <Route path="/DiscrepancyLab" element={<DiscrepancyLab />} />
       </Route>

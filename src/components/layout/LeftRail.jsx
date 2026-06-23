@@ -26,6 +26,7 @@ const NAV_GROUPS = [
       { label: 'Aircraft Compliance', icon: '📋', path: '/AircraftDetail' },
       { label: 'OOS Aircraft', icon: '🚫', path: '/OOSDashboard' },
       { label: 'ETOPS Monitor', icon: '🌍', path: '/ETOPSMonitor' },
+      { label: 'Capability Programs', icon: '🛡️', path: '/CapabilityDashboard' },
       { label: 'Engine Health', icon: '🔥', path: '/EngineHealthAnalytics' },
       { label: 'Avionics', icon: '📡', path: '/AvionicsDashboard' },
       { label: 'Boeing AHM', icon: '📡', path: '/BoeingAHM' },
