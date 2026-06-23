@@ -55,6 +55,7 @@ const NAV_GROUPS = [
       { label: 'Work Assignments', icon: '📝', path: '/WorkAssignments' },
       { label: 'Shift Turnover', icon: '🤝', path: '/ShiftHandover' },
       { label: 'Discrepancy Lab', icon: '🔬', path: '/DiscrepancyLab' },
+      { label: 'Engine Removal/Install', icon: '🧩', path: '/EngineRemovalInstallation' },
     ],
   },
   {
@@ -65,7 +66,6 @@ const NAV_GROUPS = [
       { label: 'MEL Deferrals', icon: '⚠️', path: '/MEL' },
       { label: 'Chronic & MEL Control', icon: '🚨', path: '/ChronicMEL' },
       { label: 'Heavy MX / MRO', icon: '🏭', path: '/HeavyMxMRO' },
-      { label: 'Engine Removal/Install', icon: '🧩', path: '/EngineRemovalInstallation' },
       { label: 'EBU Dashboard', icon: '🔩', path: '/EBUDashboard' },
       { label: 'AD Tracking', icon: '📋', path: '/ADTracking' },
       { label: 'Planning & Checks', icon: '📅', path: '/Planning' },

@@ -342,6 +342,7 @@ export default function LineMaintenanceDashboard() {
             { label: '🔧 Technician Mode',path: '/TechnicianMode', color: 'text-orange-400 border-orange-500/30 bg-orange-500/10' },
             { label: '✈ Fleet Status',    path: '/FleetDashboard', color: 'text-primary border-primary/30 bg-primary/10' },
             { label: '📦 Parts / MCC',    path: '/MaintenanceControl', color: 'text-purple-400 border-purple-500/30 bg-purple-500/10' },
+            { label: '🧩 Engine R/I',     path: '/EngineRemovalInstallation', color: 'text-cyan-400 border-cyan-500/30 bg-cyan-500/10' },
           ].map(({ label, path, color }) => (
             <Link key={path} to={path} className={cn('text-xs font-bold px-3 py-1.5 rounded-xl border transition-colors hover:brightness-125', color)}>
               {label}
