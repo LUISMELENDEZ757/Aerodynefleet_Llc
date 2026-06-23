@@ -30,12 +30,9 @@ const SEVERITY_OPTIONS = [
 ];
 
 const REPORTER_OPTIONS = [
-  { id: 'captain',         label: 'Captain' },
-  { id: 'first_officer',   label: 'First Officer' },
-  { id: 'flight_attendant',label: 'Flight Attendant' },
-  { id: 'maintenance',     label: 'Maintenance' },
-  { id: 'ground_crew',     label: 'Ground Crew' },
-  { id: 'dispatch',        label: 'Dispatch' },
+  { id: 'captain',       label: 'Captain' },
+  { id: 'first_officer', label: 'First Officer' },
+  { id: 'maintenance',   label: 'Maintenance' },
 ];
 
 const MEL_CATEGORIES = [
