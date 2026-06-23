@@ -7,6 +7,7 @@ import {
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import AircraftHeader from '@/components/aircraft-detail/AircraftHeader';
+import CatCapabilityBadge from '@/components/techops/CatCapabilityBadge';
 import RestrictedMELPanel from '@/components/aircraft-detail/RestrictedMELPanel';
 import AircraftStatusBlock from '@/components/aircraft-detail/AircraftStatusBlock';
 import OpenMELTable from '@/components/aircraft-detail/OpenMELTable';
@@ -114,6 +115,11 @@ export default function AircraftComplianceDetail() {
         complianceStatus={complianceStatus}
         openMelCount={openMels.length}
       />
+
+      {/* ── CAT Capability Badge ── */}
+      <div className="px-4 pt-4">
+        <CatCapabilityBadge aircraft={aircraft} melItems={openMels} />
+      </div>
 
       {/* ── Sticky Section Jump Nav ── */}
       <div className="sticky top-0 z-20 bg-card/95 backdrop-blur border-b border-border px-4 py-2">

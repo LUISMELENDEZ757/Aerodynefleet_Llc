@@ -12,6 +12,7 @@ import {
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import LiveClock from '@/components/ui/LiveClock';
+import CatCapabilityBadge from '@/components/techops/CatCapabilityBadge';
 import NewLogEntryModal from '@/components/techops/NewLogEntryModal';
 import NewFaultModal from '@/components/techops/NewFaultModal';
 import LogEntryCard from '@/components/techops/LogEntryCard';
@@ -344,6 +345,9 @@ export default function TechOpsLogbook() {
             </div>
           </div>
         </div>
+
+        {/* ── CAT CAPABILITY BADGE ──────────────────────────────────────────── */}
+        <CatCapabilityBadge aircraft={selectedAc} melItems={activeMels} />
 
         {/* ── RESTRICTIVE MEL ALERTS ─────────────────────────────────────────── */}
         {restrictiveMels.length > 0 && (
