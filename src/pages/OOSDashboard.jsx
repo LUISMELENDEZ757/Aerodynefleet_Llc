@@ -441,8 +441,11 @@ function OilServiceModal({ onClose }) {
     ap_cert: '',
     eng1_oil: '',
     eng2_oil: '',
+    eng3_oil: '',
+    eng4_oil: '',
     apu_oil: '',
     oil_grade: 'MIL-PRF-7808',
+    show_four_engines: false,
   });
   const set = (k, v) => setForm(p => ({ ...p, [k]: v }));
 
@@ -458,7 +461,7 @@ function OilServiceModal({ onClose }) {
       description: [
         `[OIL SERVICE] ATA 79 — Engine Oil Servicing`,
         `Date: ${form.date}  Time (UTC): ${form.time_utc}  Station: ${form.station}`,
-        `Engine 1: ${form.eng1_oil || '0'} qt  Engine 2: ${form.eng2_oil || '0'} qt  APU: ${form.apu_oil || '0'} qt`,
+        `Engine 1: ${form.eng1_oil || '0'} qt  Engine 2: ${form.eng2_oil || '0'} qt${form.show_four_engines ? `  Engine 3: ${form.eng3_oil || '0'} qt  Engine 4: ${form.eng4_oil || '0'} qt` : ''}  APU: ${form.apu_oil || '0'} qt`,
         `Oil Grade/Spec: ${form.oil_grade}`,
       ].filter(Boolean).join('\n'),
       technician_name: form.technician_name,
@@ -567,11 +570,57 @@ function OilServiceModal({ onClose }) {
                 </Field>
               </div>
 
+              {/* Four Engine Toggle */}
+              <button
+                type="button"
+                onClick={() => set('show_four_engines', !form.show_four_engines)}
+                className="w-full flex items-center justify-between gap-3 bg-[#1a1f2e] border border-white/10 rounded-xl px-4 py-3 text-left hover:border-primary/40 transition-colors mt-2"
+              >
+                <div className="flex items-center gap-3">
+                  <div className={cn(
+                    'w-10 h-6 rounded-full flex items-center px-1 transition-colors',
+                    form.show_four_engines ? 'bg-primary justify-end' : 'bg-gray-600 justify-start'
+                  )}>
+                    <div className="w-4 h-4 rounded-full bg-white" />
+                  </div>
+                  <div>
+                    <p className="text-sm font-bold text-foreground">4-Engine Aircraft</p>
+                    <p className="text-xs text-gray-500">Show Engine 3 & 4 fields (B747, A340, A380)</p>
+                  </div>
+                </div>
+              </button>
+
+              {/* Engine 3 & 4 - shown when toggle is on */}
+              {form.show_four_engines && (
+                <div className="grid grid-cols-2 gap-3 pt-2">
+                  <Field label="Engine 3 (QT)">
+                    <div className="relative">
+                      <input type="number" min="0" max={MAX_OIL_QT} value={form.eng3_oil}
+                        onChange={e => set('eng3_oil', e.target.value)}
+                        placeholder="0" className={inputCls + " pr-8"} />
+                      <span className="absolute right-3 top-1/2 -translate-y-1/2 text-xs text-gray-500 font-bold">qt</span>
+                    </div>
+                  </Field>
+                  <Field label="Engine 4 (QT)">
+                    <div className="relative">
+                      <input type="number" min="0" max={MAX_OIL_QT} value={form.eng4_oil}
+                        onChange={e => set('eng4_oil', e.target.value)}
+                        placeholder="0" className={inputCls + " pr-8"} />
+                      <span className="absolute right-3 top-1/2 -translate-y-1/2 text-xs text-gray-500 font-bold">qt</span>
+                    </div>
+                  </Field>
+                </div>
+              )}
+
               {/* Visual bars */}
               <div className="space-y-2 pt-1">
                 {[
                   { label: 'ENG 1', val: form.eng1_oil, max: MAX_OIL_QT, color: 'bg-green-400', textColor: 'text-green-400' },
                   { label: 'ENG 2', val: form.eng2_oil, max: MAX_OIL_QT, color: 'bg-green-400', textColor: 'text-green-400' },
+                  ...(form.show_four_engines ? [
+                    { label: 'ENG 3', val: form.eng3_oil, max: MAX_OIL_QT, color: 'bg-green-400', textColor: 'text-green-400' },
+                    { label: 'ENG 4', val: form.eng4_oil, max: MAX_OIL_QT, color: 'bg-green-400', textColor: 'text-green-400' },
+                  ] : []),
                   { label: 'APU',   val: form.apu_oil,  max: MAX_APU_QT, color: 'bg-green-400', textColor: 'text-green-400' },
                 ].map(({ label, val, max, color, textColor }) => {
                   const pct = Math.min(100, ((Number(val) || 0) / max) * 100);
