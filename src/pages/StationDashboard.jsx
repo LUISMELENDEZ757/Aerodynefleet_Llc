@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { base44 } from '@/api/base44Client';
 import { Link, useSearchParams } from 'react-router-dom';
@@ -300,7 +300,7 @@ export default function StationDashboard() {
   const station = stations.find(s => s.icao_code === icao);
   
   // Update URL when station changes
-  useState(() => {
+  useEffect(() => {
     if (icao && icao !== icaoParam) {
       setSearchParams({ icao });
     }
