@@ -2,20 +2,129 @@ import { useState } from 'react';
 import { X, Clock, Lock, AlertTriangle } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
-const EVENT_TYPES = [
-  { value: 'troubleshooting', label: 'Troubleshooting & Diagnostics' },
-  { value: 'inspection', label: 'Inspection & Testing' },
-  { value: 'parts_ordering', label: 'Parts Ordering / Requisition' },
-  { value: 'repair', label: 'Repair & Maintenance' },
-  { value: 'return_to_service', label: 'Return to Service' },
-  { value: 'testing', label: 'Testing & Verification' },
-  { value: 'documentation', label: 'Documentation & Paperwork' },
-  { value: 'other', label: 'Other' },
+const EVENT_GROUPS = [
+  {
+    group: '🔧 Routine Line Maintenance',
+    events: [
+      { value: 'service_check', label: 'Service Check Performed' },
+      { value: 'transit_check', label: 'Transit Check Completed' },
+      { value: 'daily_check', label: 'Daily Check Completed' },
+      { value: '48hr_check', label: '48-Hour Check Completed' },
+      { value: 'pdc', label: 'Pre-Departure Check (PDC) Completed' },
+      { value: 'etops_pdc', label: 'ETOPS Pre-Departure Service Check Completed' },
+      { value: 'oil_service', label: 'Oil Serviced' },
+      { value: 'hydraulic_service', label: 'Hydraulic Serviced' },
+      { value: 'oxygen_service', label: 'Oxygen Serviced' },
+      { value: 'lav_service', label: 'Lavatory Serviced' },
+      { value: 'water_service', label: 'Potable Water Serviced' },
+      { value: 'tire_check', label: 'Tire Pressure Check Completed' },
+      { value: 'brake_check', label: 'Brake Wear Check Completed' },
+    ],
+  },
+  {
+    group: '🛠️ Corrective Maintenance',
+    events: [
+      { value: 'discrepancy_entered', label: 'Discrepancy Entered (Pilot Write-Up)' },
+      { value: 'discrepancy_cleared', label: 'Discrepancy Cleared' },
+      { value: 'troubleshooting', label: 'Troubleshooting Performed' },
+      { value: 'component_removed', label: 'Component Removed' },
+      { value: 'component_installed', label: 'Component Installed' },
+      { value: 'functional_check', label: 'Functional Check Performed' },
+      { value: 'operational_check', label: 'Operational Check Performed' },
+      { value: 'rii_completed', label: 'RII Inspection Completed' },
+      { value: 'deferred_item_created', label: 'Deferred Item Created (MEL/CDL)' },
+      { value: 'deferred_item_cleared', label: 'Deferred Item Cleared' },
+    ],
+  },
+  {
+    group: '⚙️ Major Maintenance / Out of Service',
+    events: [
+      { value: 'aircraft_oos', label: 'Aircraft Placed Out of Service' },
+      { value: 'return_to_service', label: 'Aircraft Returned to Service (RTS)' },
+      { value: 'engine_removal', label: 'Engine Removal Initiated' },
+      { value: 'engine_install', label: 'Engine Installation Completed' },
+      { value: 'apu_removal_install', label: 'APU Removal / Installation' },
+      { value: 'landing_gear_change', label: 'Landing Gear Change' },
+      { value: 'structural_repair', label: 'Structural Repair Performed' },
+      { value: 'heavy_check_required', label: 'Heavy Check Required' },
+      { value: 'heavy_check_completed', label: 'Heavy Check Completed' },
+    ],
+  },
+  {
+    group: '📡 Avionics / Systems',
+    events: [
+      { value: 'software_load', label: 'Software Load Performed' },
+      { value: 'nav_db_update', label: 'Navigation Database Updated' },
+      { value: 'fms_update', label: 'FMS Updated' },
+      { value: 'cfds_fault', label: 'CFDS Fault Retrieved' },
+      { value: 'acars_maintenance', label: 'ACARS / VHF / SATCOM Maintenance' },
+      { value: 'transponder_check', label: 'Transponder / ADS-B Check Completed' },
+      { value: 'rvsm_check', label: 'RVSM Check Completed' },
+    ],
+  },
+  {
+    group: '🧯 Safety & Emergency Equipment',
+    events: [
+      { value: 'emergency_equip_insp', label: 'Emergency Equipment Inspection Completed' },
+      { value: 'fire_bottle_replaced', label: 'Fire Bottle Replaced' },
+      { value: 'pbe_oxy_replaced', label: 'PBE / Oxygen Bottle Replaced' },
+      { value: 'slide_raft_insp', label: 'Slide / Raft Inspection Completed' },
+      { value: 'medical_kit_service', label: 'First Aid / Medical Kit Serviced' },
+    ],
+  },
+  {
+    group: '🛫 Dispatch-Critical',
+    events: [
+      { value: 'mel_applied', label: 'MEL Applied' },
+      { value: 'mel_cleared', label: 'MEL Cleared' },
+      { value: 'cdl_applied', label: 'CDL Applied' },
+      { value: 'cdl_cleared', label: 'CDL Cleared' },
+      { value: 'cat_changed', label: 'CAT Capability Changed' },
+      { value: 'etops_changed', label: 'ETOPS Capability Changed' },
+      { value: 'rvsm_changed', label: 'RVSM Capability Changed' },
+      { value: 'perf_limit_added', label: 'Performance-Limiting Condition Added' },
+      { value: 'perf_limit_cleared', label: 'Performance-Limiting Condition Cleared' },
+    ],
+  },
+  {
+    group: '🧵 Cabin & Interior',
+    events: [
+      { value: 'cabin_defect_entered', label: 'Cabin Defect Entered' },
+      { value: 'cabin_defect_cleared', label: 'Cabin Defect Cleared' },
+      { value: 'seat_repair', label: 'Seat Repair Completed' },
+      { value: 'galley_service', label: 'Galley Equipment Serviced' },
+      { value: 'ife_reset', label: 'IFE System Reset / Repair' },
+      { value: 'deep_clean', label: 'Interior Deep Clean Completed' },
+    ],
+  },
+  {
+    group: '🛢️ Fuel & Power',
+    events: [
+      { value: 'fueling_completed', label: 'Fueling Completed' },
+      { value: 'defuel', label: 'Defuel Performed' },
+      { value: 'fuel_system_check', label: 'Fuel System Check Completed' },
+      { value: 'apu_run', label: 'APU Run Performed' },
+      { value: 'engine_run', label: 'Engine Run Performed' },
+    ],
+  },
+  {
+    group: '📋 General',
+    events: [
+      { value: 'inspection', label: 'Inspection & Testing' },
+      { value: 'parts_ordering', label: 'Parts Ordering / Requisition' },
+      { value: 'repair', label: 'Repair & Maintenance' },
+      { value: 'documentation', label: 'Documentation & Paperwork' },
+      { value: 'other', label: 'Other' },
+    ],
+  },
 ];
+
+// Flat list for label lookup
+const EVENT_TYPES_FLAT = EVENT_GROUPS.flatMap(g => g.events);
 
 export default function AddTimelineEventModal({ aircraftTail, onClose, onSubmit, isPending, activeLock }) {
   const [form, setForm] = useState({
-    event_type: 'troubleshooting',
+    event_type: 'service_check',
     event_title: '',
     description: '',
     start_time: new Date().toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: true }),
@@ -41,13 +150,13 @@ export default function AddTimelineEventModal({ aircraftTail, onClose, onSubmit,
     onSubmit({
       aircraft_tail: aircraftTail,
       entry_type: 'info',
-      description: `[${EVENT_TYPES.find(t => t.value === form.event_type)?.label}] ${form.event_title}`,
+      description: `[${EVENT_TYPES_FLAT.find(t => t.value === form.event_type)?.label}] ${form.event_title}`,
       notes: noteParts.join(' | '),
       ata_chapter: form.code_reference ? form.code_reference : '',
       _rts: form.event_type === 'return_to_service',
     });
     setForm({
-      event_type: 'troubleshooting',
+      event_type: 'service_check',
       event_title: '',
       description: '',
       start_time: new Date().toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: true }),
@@ -83,10 +192,14 @@ export default function AddTimelineEventModal({ aircraftTail, onClose, onSubmit,
             <select
               value={form.event_type}
               onChange={(e) => set('event_type', e.target.value)}
-              className="w-full bg-[#141922] border border-white/15 rounded-xl px-4 py-3 text-white text-sm outline-none focus:border-primary transition-colors appearance-none cursor-pointer"
+              className="w-full bg-[#141922] border border-white/15 rounded-xl px-4 py-3 text-white text-sm outline-none focus:border-primary transition-colors cursor-pointer"
             >
-              {EVENT_TYPES.map(t => (
-                <option key={t.value} value={t.value}>{t.label}</option>
+              {EVENT_GROUPS.map(g => (
+                <optgroup key={g.group} label={g.group}>
+                  {g.events.map(t => (
+                    <option key={t.value} value={t.value}>{t.label}</option>
+                  ))}
+                </optgroup>
               ))}
             </select>
             <p className="text-xs text-gray-600 mt-1.5 italic">"Return to Service" is only available when the aircraft is Out of Service / In-Work.</p>
