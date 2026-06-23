@@ -548,7 +548,7 @@ export default function NewLogEntryModal({ aircraftTail, nextLogPage, preset, on
               {/* Entry type */}
               <Field label="Entry Type">
                 <div className="flex gap-2 flex-wrap">
-                  {['discrepancy','corrective_action','deferred','cleared','info'].map(t => (
+                  {['discrepancy','info','deferred'].map(t => (
                     <button key={t} type="button" onClick={() => setH('entry_type', t)}
                       className={cn('px-3 py-1.5 rounded-full text-[11px] font-bold border transition-all',
                         header.entry_type === t
