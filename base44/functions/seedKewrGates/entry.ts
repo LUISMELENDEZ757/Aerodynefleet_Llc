@@ -95,10 +95,10 @@ Deno.serve(async (req) => {
       })),
     ];
     
-    // Check if gates already exist
+    // Check if all 120 gates already exist
     const existingGates = await base44.entities.Gate.filter({ station_icao: 'KEWR' }, 'code', 500);
     
-    if (existingGates.length > 0) {
+    if (existingGates.length >= 120) {
       return Response.json({ 
         message: 'KEWR gates already exist',
         count: existingGates.length,
