@@ -669,6 +669,24 @@ export default function NewLogEntryModal({ aircraftTail, nextLogPage, preset, on
                 </Field>
               )}
 
+              {/* CAT system disturbance warning */}
+              {(() => {
+                const isCatSystem = /\b(cat\s*i{1,3}|cat\s*[123]|autoland|ils|localizer|glide\s*slope|radio\s*altimeter|ra\s*inop|autopilot|auto\s*pilot|flight\s*director|fcc|adiru|mcp|fmc)\b/i.test(discrepancy.description);
+                const isDisturbed = /\b(removed|replaced|adjusted|disturbed|disconnected|unplugged|pulled|opened|accessed|serviced|tested|rigged|calibrated|reset|swapped|installed|modified)\b/i.test(techAction.corrective_action);
+                if (!isCatSystem || !isDisturbed) return null;
+                return (
+                  <div className="flex items-start gap-3 bg-red-950/60 border border-red-500/70 rounded-xl px-4 py-4">
+                    <AlertTriangle className="w-4 h-4 text-red-400 flex-shrink-0 mt-0.5" />
+                    <div>
+                      <p className="text-xs font-extrabold text-red-300 mb-1.5">⚠ CAT System Disturbed — Sign-Off Not Permitted Until Restored</p>
+                      <p className="text-xs text-red-200/80 leading-relaxed">
+                        A CAT II/III approach system component has been disturbed. Before this entry can be signed off, the aircraft requires <span className="font-extrabold text-red-200">full restoration and functional check of the autoland system</span> per the applicable AMM, or the discrepancy must be <span className="font-extrabold text-red-200">deferred under the applicable MEL item</span> with proper placards and crew/maintenance procedures applied. CAT II/III operations are prohibited until sign-off is complete.
+                      </p>
+                    </div>
+                  </div>
+                );
+              })()}
+
               {/* Deferral fields */}
               {techAction.is_deferred && (
                 <div className="space-y-4 bg-amber-900/15 border border-amber-500/30 rounded-xl p-4">
