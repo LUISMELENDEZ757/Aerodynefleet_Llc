@@ -603,6 +603,19 @@ export default function NewLogEntryModal({ aircraftTail, nextLogPage, preset, on
                   className={textareaCls} />
               </Field>
 
+              {/* CAT system warning */}
+              {/\b(cat\s*i{1,3}|cat\s*3|cat\s*2|cat\s*1|autoland|ils|localizer|glide\s*slope|radio\s*altimeter|ra\s*inop|autopilot|auto\s*pilot|flight\s*director|fdx|fcc|adiru|mcp|fmc)\b/i.test(discrepancy.description) && (
+                <div className="flex items-start gap-3 bg-orange-950/50 border border-orange-500/60 rounded-xl px-4 py-3">
+                  <AlertTriangle className="w-4 h-4 text-orange-400 flex-shrink-0 mt-0.5" />
+                  <div>
+                    <p className="text-xs font-extrabold text-orange-300 mb-1">⚠ CAT System Discrepancy Detected</p>
+                    <p className="text-xs text-orange-200/80 leading-relaxed">
+                      This discrepancy appears to involve a CAT II/III approach system (ILS, autoland, autopilot, or related avionics). Maintenance Control must be notified immediately. This aircraft may not be dispatched for CAT II/III operations until the system is restored and a functional check is completed per the applicable AMM.
+                    </p>
+                  </div>
+                </div>
+              )}
+
               <div className="flex items-start gap-3 bg-blue-500/8 border border-blue-500/20 rounded-xl px-4 py-3">
                 <AlertTriangle className="w-4 h-4 text-blue-400 flex-shrink-0 mt-0.5" />
                 <p className="text-xs text-gray-400">
