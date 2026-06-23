@@ -21,7 +21,7 @@ const TECH_CARDS = [
   { icon: BookOpen,      iconBg: 'bg-violet-600', title: 'E-Logbook',      subtitle: 'Discrepancies · Faults · MEL', path: '/TechOpsLogbook' },
   { icon: GraduationCap, iconBg: 'bg-green-600',  title: 'Training',       subtitle: 'Records · Currency',         path: '/Training' },
   { icon: FileText,      iconBg: 'bg-teal-600',   title: 'Documents',      subtitle: 'FARs · SOPs · CBAs',         path: '/Documents' },
-  { icon: BookOpen,      iconBg: 'bg-emerald-500',title: 'Learning',       subtitle: 'App Guide · Tutorials',      path: '/Learning' },
+  { icon: BookOpen,      iconBg: 'bg-emerald-500',title: 'Learning',       subtitle: 'App Guide · Tutorials',      path: '/HowItWorks' },
   { icon: DollarSign,    iconBg: 'bg-rose-700',   title: 'Cost Reporting', subtitle: 'P&L · Delay · Fuel ROI',     path: '/CostReporting' },
   { icon: BarChart3,     iconBg: 'bg-lime-600',   title: 'Analytics',      subtitle: 'OTP · Delays · Fleet',       path: '/Analytics' },
   { icon: Activity,      iconBg: 'bg-emerald-700',title: 'Engineering',    subtitle: 'Trends · Engine Health', path: '/EngineeringDashboard' },
