@@ -232,18 +232,7 @@ export default function FleetRegistry() {
 
   const { data: rawAircraft = [] } = useQuery({
     queryKey: ['fleet-aircraft'],
-    queryFn: async () => {
-      let all = [];
-      let skip = 0;
-      const limit = 200;
-      while (true) {
-        const batch = await base44.entities.Aircraft.list('-created_date', limit, skip);
-        all = all.concat(batch);
-        if (batch.length < limit) break;
-        skip += limit;
-      }
-      return all;
-    },
+    queryFn: () => base44.entities.Aircraft.list('-created_date', 1000),
     staleTime: 60000,
   });
 
