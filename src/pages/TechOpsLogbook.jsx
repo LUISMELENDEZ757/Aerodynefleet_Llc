@@ -672,6 +672,7 @@ export default function TechOpsLogbook() {
       {showNewEntry && (
         <NewLogEntryModal
           aircraftTail={selectedTail}
+          aircraftType={selectedAc?.aircraft_type}
           nextLogPage={nextLogPage}
           preset={entryPreset}
           onClose={() => { setShowNewEntry(false); setEntryPreset(null); }}

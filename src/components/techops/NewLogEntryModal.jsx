@@ -19,6 +19,8 @@ import {
 import ATAChapterSelector from './ATAChapterSelector';
 import { base44 } from '@/api/base44Client';
 import { cn } from '@/lib/utils';
+import { computeCatState } from './CatSystemEngine';
+import CatStatusBanner from './CatStatusBanner';
 
 // ── Constants ────────────────────────────────────────────────────────────────
 const SEVERITY_OPTIONS = [
@@ -329,7 +331,7 @@ function StepBar({ current, total }) {
 }
 
 // ── Main modal ───────────────────────────────────────────────────────────────
-export default function NewLogEntryModal({ aircraftTail, nextLogPage, preset, onClose, onSave }) {
+export default function NewLogEntryModal({ aircraftTail, aircraftType, nextLogPage, preset, onClose, onSave }) {
   const today = new Date().toISOString().split('T')[0];
   const nowUtc = new Date().toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: false });
 
@@ -472,6 +474,9 @@ export default function NewLogEntryModal({ aircraftTail, nextLogPage, preset, on
 
   const canSaveOpen = step >= 2 && discrepancy.description.trim().length > 10;
 
+  // CAT state machine — recomputed on every relevant keystroke
+  const catResult = computeCatState(aircraftType || '', header.ata_chapter, discrepancy.description);
+
   return (
     <div className="fixed inset-0 z-50 flex items-start justify-center bg-black/85 p-3 pt-[96px] overflow-y-auto">
       <div className="w-full max-w-2xl bg-[#0f1623] border border-white/10 rounded-2xl shadow-2xl overflow-hidden flex flex-col max-h-[calc(100vh-112px)]">
@@ -603,18 +608,8 @@ export default function NewLogEntryModal({ aircraftTail, nextLogPage, preset, on
                   className={textareaCls} />
               </Field>
 
-              {/* CAT system warning */}
-              {/\b(cat\s*i{1,3}|cat\s*3|cat\s*2|cat\s*1|autoland|ils|localizer|glide\s*slope|radio\s*altimeter|ra\s*inop|autopilot|auto\s*pilot|flight\s*director|fdx|fcc|adiru|mcp|fmc)\b/i.test(discrepancy.description) && (
-                <div className="flex items-start gap-3 bg-orange-950/50 border border-orange-500/60 rounded-xl px-4 py-3">
-                  <AlertTriangle className="w-4 h-4 text-orange-400 flex-shrink-0 mt-0.5" />
-                  <div>
-                    <p className="text-xs font-extrabold text-orange-300 mb-1">⚠ CAT System Discrepancy Detected</p>
-                    <p className="text-xs text-orange-200/80 leading-relaxed">
-                      This discrepancy appears to involve a CAT II/III approach system (ILS, autoland, autopilot, or related avionics). Maintenance Control must be notified immediately. This aircraft may not be dispatched for CAT II/III operations until the system is restored and a functional check is completed per the applicable AMM.
-                    </p>
-                  </div>
-                </div>
-              )}
+              {/* CAT state machine banner */}
+              <CatStatusBanner catResult={catResult} />
 
               <div className="flex items-start gap-3 bg-blue-500/8 border border-blue-500/20 rounded-xl px-4 py-3">
                 <AlertTriangle className="w-4 h-4 text-blue-400 flex-shrink-0 mt-0.5" />
@@ -669,20 +664,23 @@ export default function NewLogEntryModal({ aircraftTail, nextLogPage, preset, on
                 </Field>
               )}
 
-              {/* CAT system disturbance warning */}
-              {(() => {
-                const isCatSystem = /\b(cat\s*i{1,3}|cat\s*[123]|autoland|ils|localizer|glide\s*slope|radio\s*altimeter|ra\s*inop|autopilot|auto\s*pilot|flight\s*director|fcc|adiru|mcp|fmc)\b/i.test(discrepancy.description);
+              {/* CAT state banner — always shown when relevant; disturbance adds extra context */}
+              {catResult?.state && (() => {
                 const isDisturbed = /\b(removed|replaced|adjusted|disturbed|disconnected|unplugged|pulled|opened|accessed|serviced|tested|rigged|calibrated|reset|swapped|installed|modified)\b/i.test(techAction.corrective_action);
-                if (!isCatSystem || !isDisturbed) return null;
                 return (
-                  <div className="flex items-start gap-3 bg-red-950/60 border border-red-500/70 rounded-xl px-4 py-4">
-                    <AlertTriangle className="w-4 h-4 text-red-400 flex-shrink-0 mt-0.5" />
-                    <div>
-                      <p className="text-xs font-extrabold text-red-300 mb-1.5">⚠ CAT System Disturbed — Sign-Off Not Permitted Until Restored</p>
-                      <p className="text-xs text-red-200/80 leading-relaxed">
-                        A CAT II/III approach system component has been disturbed. Before this entry can be signed off, the aircraft requires <span className="font-extrabold text-red-200">full restoration and functional check of the autoland system</span> per the applicable AMM, or the discrepancy must be <span className="font-extrabold text-red-200">deferred under the applicable MEL item</span> with proper placards and crew/maintenance procedures applied. CAT II/III operations are prohibited until sign-off is complete.
-                      </p>
-                    </div>
+                  <div className="space-y-2">
+                    <CatStatusBanner catResult={catResult} showRemediation={true} />
+                    {isDisturbed && (
+                      <div className="flex items-start gap-3 bg-red-950/60 border border-red-500/70 rounded-xl px-4 py-3">
+                        <AlertTriangle className="w-4 h-4 text-red-400 flex-shrink-0 mt-0.5" />
+                        <div>
+                          <p className="text-xs font-extrabold text-red-300 mb-1">CAT System Disturbed — Sign-Off Blocked Until Resolved</p>
+                          <p className="text-xs text-red-200/75 leading-relaxed">
+                            A CAT-required component has been disturbed during this action. The aircraft requires <span className="font-extrabold text-red-200">full restoration and a functional check</span> per the applicable AMM, or the item must be <span className="font-extrabold text-red-200">deferred under the applicable MEL</span> with placards and procedures applied. CAT II/III operations are prohibited until sign-off is complete.
+                          </p>
+                        </div>
+                      </div>
+                    )}
                   </div>
                 );
               })()}
