@@ -76,38 +76,30 @@
         "ramp",
         "unknown"
       ],
-      "default": "unknown",
-      "description": "Current physical location of the aircraft \u2014 gate (terminal jetway), hangar (enclosed maintenance bay), ramp (open apron/hardstand), or unknown"
+      "default": "unknown"
     },
     "location_label": {
-      "type": "string",
-      "description": "Specific location label set by technician e.g. 'Gate B14', 'Hangar 3', 'Ramp C7'"
+      "type": "string"
     },
     "delivery_date": {
       "type": "string",
-      "format": "date",
-      "description": "Date aircraft was delivered to operator"
+      "format": "date"
     },
     "retirement_date": {
       "type": "string",
-      "format": "date",
-      "description": "Planned or actual retirement date"
+      "format": "date"
     },
     "engine_type": {
-      "type": "string",
-      "description": "Engine type installed e.g. CFM56-7B27, LEAP-1B, GE9X"
+      "type": "string"
     },
     "engine_variant": {
-      "type": "string",
-      "description": "Specific engine sub-variant or thrust rating"
+      "type": "string"
     },
     "mtow_variant": {
-      "type": "string",
-      "description": "MTOW variant / structural weight category e.g. 77.1t, 79.0t"
+      "type": "string"
     },
     "etops_approval": {
-      "type": "number",
-      "description": "Tail-specific ETOPS approval in minutes e.g. 120, 180, 370"
+      "type": "number"
     },
     "cat_approval": {
       "type": "string",
@@ -117,13 +109,11 @@
         "CAT IIIa",
         "CAT IIIb",
         "CAT IIIc"
-      ],
-      "description": "Tail-specific ILS CAT approval"
+      ]
     },
     "rvsm_approved": {
       "type": "boolean",
-      "default": true,
-      "description": "RVSM approval status"
+      "default": true
     },
     "rnp_capability": {
       "type": "string",
@@ -134,17 +124,14 @@
         "RNP AR 0.3",
         "RNP AR 0.1"
       ],
-      "default": "RNP 0.3",
-      "description": "Required Navigation Performance capability"
+      "default": "RNP 0.3"
     },
     "polar_approved": {
       "type": "boolean",
-      "default": false,
-      "description": "Polar operations approved"
+      "default": false
     },
     "cabin_config_ref": {
-      "type": "string",
-      "description": "Cabin configuration reference e.g. 28J/324Y, 8F/48C/152Y"
+      "type": "string"
     },
     "performance_profile": {
       "type": "string",
@@ -158,22 +145,18 @@
         "A350_profile",
         "E190_profile",
         "CRJ700_profile"
-      ],
-      "description": "Performance profile for takeoff/landing/drift-down calculations"
+      ]
     },
     "notes": {
-      "type": "string",
-      "description": "Additional operational notes"
+      "type": "string"
     },
     "mcc_watch": {
       "type": "boolean",
-      "default": false,
-      "description": "MCC has flagged this aircraft for heightened attention \u2014 all personnel should focus on this issue"
+      "default": false
     },
     "ferry_flight": {
       "type": "boolean",
-      "default": false,
-      "description": "Aircraft is scheduled for a ferry flight post-maintenance. Removed by MCC once ferry is complete."
+      "default": false
     }
   },
   "required": [
@@ -186,28 +169,7 @@
         "role": "admin"
       }
     },
-    "read": {
-      "$or": [
-        {
-          "data.fleet_id": "{{user.fleet_id}}"
-        },
-        {
-          "user_condition": {
-            "role": "admin"
-          }
-        },
-        {
-          "user_condition": {
-            "role": "mcc_supervisor"
-          }
-        },
-        {
-          "user_condition": {
-            "role": "engineer"
-          }
-        }
-      ]
-    },
+    "read": {},
     "update": {
       "$or": [
         {
