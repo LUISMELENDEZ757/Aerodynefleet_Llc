@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { base44 } from '@/api/base44Client';
-import { Wrench, AlertTriangle, CheckCircle, Plus, X, Send, Zap } from 'lucide-react';
+import { Wrench, AlertTriangle, CheckCircle, Plus, X, Send, Zap, MapPin } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 const SUPPORT_TYPES = [
@@ -87,8 +87,11 @@ function NewSupportModal({ aircraft, onClose, onCreate }) {
           <div className="grid grid-cols-2 gap-3">
             <div>
               <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest block mb-1.5">Station</label>
-              <input value={form.station} onChange={e => set('station', e.target.value.toUpperCase())}
-                placeholder="KEWR" className="w-full bg-background border border-border rounded-lg px-3 py-2.5 text-sm text-foreground outline-none focus:ring-1 focus:ring-primary" />
+              <select value={form.station} onChange={e => set('station', e.target.value)} required
+                className="w-full bg-background border border-border rounded-lg px-3 py-2.5 text-sm text-foreground outline-none focus:ring-1 focus:ring-primary">
+                <option value="">Select station…</option>
+                {aircraft.map(a => a.base_station).filter(Boolean).map((s, i, arr) => arr.indexOf(s) === i && <option key={s} value={s}>{s}</option>)}
+              </select>
             </div>
             <div>
               <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest block mb-1.5">Urgency</label>
@@ -226,9 +229,12 @@ export default function TechSupportPanel({ aircraft = [] }) {
       station: form.station,
       description: `[TECH-SUPPORT] ${form.description}`,
       technician_name: form.specialist,
-      notes: JSON.stringify({ support_type: form.support_type, urgency: form.urgency, status: 'open' }),
+      notes: JSON.stringify({ support_type: form.support_type, urgency: form.urgency, status: 'open', station: form.station }),
     }),
-    onSuccess: () => qc.invalidateQueries({ queryKey: ['tech-support-requests'] }),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ['tech-support-requests'] });
+      qc.invalidateQueries({ queryKey: ['chronic-mel-items'] });
+    },
   });
 
   const updateStatusMutation = useMutation({

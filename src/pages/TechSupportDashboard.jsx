@@ -5,11 +5,13 @@ import { Link } from 'react-router-dom';
 import {
   ChevronLeft, AlertTriangle, Clock, CheckCircle, TrendingUp,
   Wrench, Plane, Calendar, Users, RefreshCw, Search, Filter,
-  ArrowUpRight, ArrowDownRight, Minus, Zap, Shield, BookOpen
+  ArrowUpRight, ArrowDownRight, Minus, Zap, Shield, BookOpen,
+  MapPin, ChevronDown
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import CatCapabilityBadge from '@/components/techops/CatCapabilityBadge';
 import EtopsCapabilityBadge from '@/components/techops/EtopsCapabilityBadge';
+import { useStations } from '@/hooks/useStations';
 
 const CHRONIC_THRESHOLD = 3; // Number of recurrences to be considered chronic
 
@@ -203,7 +205,9 @@ export default function TechSupportDashboard() {
   const [searchQuery, setSearchQuery] = useState('');
   const [filterCategory, setFilterCategory] = useState('all');
   const [filterStatus, setFilterStatus] = useState('all');
+  const [stationFilter, setStationFilter] = useState('');
   const qc = useQueryClient();
+  const { icaoCodes: stations } = useStations();
 
   const { data: melItems = [], isLoading, refetch } = useQuery({
     queryKey: ['chronic-mel-items'],
@@ -223,6 +227,29 @@ export default function TechSupportDashboard() {
     refetchInterval: 60000,
   });
 
+  const { data: techSupportRequests = [] } = useQuery({
+    queryKey: ['tech-support-requests-dashboard'],
+    queryFn: () => base44.entities.LogbookEntry.filter({ entry_type: 'discrepancy' }, '-created_date', 200),
+    select: (data) => data
+      .filter(e => e.description?.includes('[TECH-SUPPORT]'))
+      .map(e => {
+        const meta = JSON.parse(e.notes || '{}');
+        return {
+          id: e.id,
+          aircraft_tail: e.aircraft_tail,
+          support_type: meta.support_type || 'troubleshooting',
+          ata_chapter: e.ata_chapter,
+          description: e.description.replace('[TECH-SUPPORT] ', ''),
+          station: e.station || meta.station,
+          specialist: e.technician_name,
+          urgency: meta.urgency || 'routine',
+          status: meta.status || 'open',
+          created_date: e.created_date,
+        };
+      }),
+    refetchInterval: 30000,
+  });
+
   // Identify chronic MELs (same ATA chapter + item number appearing multiple times)
   const chronicMels = melItems.filter(m => m.status !== 'cleared');
   
@@ -232,15 +259,26 @@ export default function TechSupportDashboard() {
     return acc;
   }, {});
 
+  // Get aircraft by station
+  const stationTails = stationFilter
+    ? aircraft.filter(a => a.base_station === stationFilter).map(a => a.tail_number)
+    : null;
+
   // Filter MELs
   const filteredMels = chronicMels.filter(mel => {
     if (filterCategory !== 'all' && mel.category !== filterCategory) return false;
     if (filterStatus !== 'all' && mel.status !== filterStatus) return false;
+    if (stationTails && !stationTails.includes(mel.aircraft_tail)) return false;
     if (searchQuery && !mel.description?.toLowerCase().includes(searchQuery.toLowerCase()) &&
         !mel.aircraft_tail?.toLowerCase().includes(searchQuery.toLowerCase()) &&
         !mel.ata_chapter?.toLowerCase().includes(searchQuery.toLowerCase())) return false;
     return true;
   });
+
+  // Filter tech support requests by station
+  const filteredRequests = stationFilter
+    ? techSupportRequests.filter(r => r.station === stationFilter)
+    : techSupportRequests;
 
   // KPIs
   const openCount = chronicMels.filter(m => m.status === 'open').length;
@@ -252,6 +290,8 @@ export default function TechSupportDashboard() {
   const expired = chronicMels.filter(m => m.status === 'expired').length;
   const etopsImpacted = chronicMels.filter(m => m.etops_impact && m.etops_impact !== 'OK').length;
   const chronicCount = Object.values(recurrenceMap).filter(c => c >= CHRONIC_THRESHOLD).length;
+  const activeRequests = filteredRequests.filter(r => r.status !== 'resolved').length;
+  const aogRequests = filteredRequests.filter(r => r.urgency === 'aog' && r.status !== 'resolved').length;
 
   return (
     <div className="min-h-screen bg-background pb-24">
@@ -287,6 +327,20 @@ export default function TechSupportDashboard() {
 
         {/* Filters */}
         <div className="flex items-center gap-3 mt-4 flex-wrap">
+          {/* Station Filter Dropdown */}
+          <div className="relative flex items-center gap-2 bg-secondary border border-border rounded-xl px-3 py-2.5 min-w-[180px]">
+            <MapPin className="w-3.5 h-3.5 text-muted-foreground flex-shrink-0" />
+            <select
+              value={stationFilter}
+              onChange={(e) => setStationFilter(e.target.value)}
+              className="bg-secondary text-sm font-bold text-foreground outline-none flex-1 appearance-none cursor-pointer"
+            >
+              <option value="">All Stations</option>
+              {stations.map(s => <option key={s} value={s}>{s}</option>)}
+            </select>
+            <ChevronDown className="w-3.5 h-3.5 text-muted-foreground flex-shrink-0 pointer-events-none" />
+          </div>
+          
           <div className="relative flex-1 min-w-[200px] max-w-md">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
             <input
@@ -324,23 +378,90 @@ export default function TechSupportDashboard() {
 
       {/* Content */}
       <div className="px-6 py-5 space-y-6 max-w-7xl mx-auto">
-        {filteredMels.length === 0 ? (
-          <div className="text-center py-20">
-            <CheckCircle className="w-16 h-16 text-green-500/30 mx-auto mb-4" />
-            <p className="text-muted-foreground font-bold text-lg">No MEL items match your filters</p>
-          </div>
-        ) : (
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-            {filteredMels.map(mel => (
-              <ChronicMelCard
-                key={mel.id}
-                mel={mel}
-                recurrenceCount={recurrenceMap[`${mel.aircraft_tail}-${mel.ata_chapter}-${mel.item_number}`] || 1}
-                logEntries={logEntries}
-              />
-            ))}
+        {/* Tech Support Requests Section */}
+        {filteredRequests.length > 0 && (
+          <div>
+            <div className="flex items-center justify-between mb-4">
+              <div className="flex items-center gap-2">
+                <Wrench className="w-5 h-5 text-orange-400" />
+                <p className="text-sm font-extrabold text-foreground uppercase tracking-widest">
+                  Crew Chief Tech Support Requests {stationFilter && `— ${stationFilter}`}
+                </p>
+              </div>
+              <div className="flex items-center gap-2 text-xs">
+                <span className="text-orange-400 font-bold">{activeRequests} Active</span>
+                {aogRequests > 0 && <span className="text-red-400 font-bold">· {aogRequests} AOG</span>}
+              </div>
+            </div>
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-3">
+              {filteredRequests.slice(0, 6).map(req => {
+                const urgencyColor = req.urgency === 'aog' ? 'border-red-500/50 bg-red-500/10' :
+                  req.urgency === 'urgent' ? 'border-orange-500/40 bg-orange-500/10' : 'border-border';
+                const statusColor = req.status === 'resolved' ? 'text-green-400' :
+                  req.status === 'in_progress' ? 'text-yellow-400' : 'text-orange-400';
+                return (
+                  <div key={req.id} className={cn('bg-card border rounded-xl p-4 space-y-2', urgencyColor)}>
+                    <div className="flex items-start justify-between gap-2">
+                      <div className="flex-1">
+                        <div className="flex items-center gap-2 flex-wrap mb-1">
+                          <span className={cn('text-[10px] font-bold px-2 py-0.5 rounded-full', statusColor, 'bg-transparent border', req.status === 'resolved' ? 'border-green-500/30' : 'border-orange-500/30')}>
+                            {req.status.toUpperCase()}
+                          </span>
+                          <span className="text-xs font-mono font-bold text-primary">{req.aircraft_tail}</span>
+                          {req.station && (
+                            <span className="text-[10px] text-muted-foreground flex items-center gap-1">
+                              <MapPin className="w-2.5 h-2.5" /> {req.station}
+                            </span>
+                          )}
+                        </div>
+                        <p className="text-sm font-bold text-foreground">{req.description}</p>
+                        {req.specialist && (
+                          <p className="text-[10px] text-muted-foreground mt-1">Specialist: {req.specialist}</p>
+                        )}
+                      </div>
+                      {req.urgency !== 'routine' && (
+                        <span className={cn('text-[9px] font-bold px-2 py-0.5 rounded',
+                          req.urgency === 'aog' ? 'bg-red-500/20 text-red-400' : 'bg-orange-500/20 text-orange-400')}>
+                          {req.urgency.toUpperCase()}
+                        </span>
+                      )}
+                    </div>
+                    <div className="flex items-center gap-3 text-[10px] text-muted-foreground">
+                      <span>ATA {req.ata_chapter || '—'}</span>
+                      <span>·</span>
+                      <span>{new Date(req.created_date).toLocaleDateString()}</span>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
           </div>
         )}
+
+        {/* Chronic MELs Section */}
+        <div>
+          <div className="flex items-center gap-2 mb-4">
+            <BookOpen className="w-5 h-5 text-blue-400" />
+            <p className="text-sm font-extrabold text-foreground uppercase tracking-widest">Chronic MEL Items</p>
+          </div>
+          {filteredMels.length === 0 ? (
+            <div className="text-center py-20">
+              <CheckCircle className="w-16 h-16 text-green-500/30 mx-auto mb-4" />
+              <p className="text-muted-foreground font-bold text-lg">No MEL items match your filters</p>
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+              {filteredMels.map(mel => (
+                <ChronicMelCard
+                  key={mel.id}
+                  mel={mel}
+                  recurrenceCount={recurrenceMap[`${mel.aircraft_tail}-${mel.ata_chapter}-${mel.item_number}`] || 1}
+                  logEntries={logEntries}
+                />
+              ))}
+            </div>
+          )}
+        </div>
       </div>
     </div>
   );
