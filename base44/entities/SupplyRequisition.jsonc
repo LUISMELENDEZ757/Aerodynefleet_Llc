@@ -97,9 +97,28 @@
   ],
   "rls": {
     "create": {
-      "user_condition": {
-        "role": "technician"
-      }
+      "$or": [
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        },
+        {
+          "user_condition": {
+            "role": "mcc_supervisor"
+          }
+        },
+        {
+          "user_condition": {
+            "role": "technician"
+          }
+        },
+        {
+          "user_condition": {
+            "role": "engineer"
+          }
+        }
+      ]
     },
     "read": {
       "$or": [
@@ -119,6 +138,11 @@
         {
           "user_condition": {
             "role": "technician"
+          }
+        },
+        {
+          "user_condition": {
+            "role": "engineer"
           }
         }
       ]
@@ -141,6 +165,11 @@
         {
           "user_condition": {
             "role": "technician"
+          }
+        },
+        {
+          "user_condition": {
+            "role": "engineer"
           }
         }
       ]
