@@ -17,7 +17,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import AddTimelineEventModal from '@/components/fleet/AddTimelineEventModal';
 import TakingOwnershipModal from '@/components/fleet/TakingOwnershipModal';
 import PlaceOOSModal from '@/components/fleet/PlaceOOSModal';
-import { useThrottledFleet } from '@/hooks/useThrottledFleet';
+
 import AHMTickerBanner from '@/components/fleet/AHMTickerBanner';
 
 // ── Status mapping ──────────────────────────────────────────────────────────
@@ -518,7 +518,8 @@ export default function FleetDashboard() {
     }, {})
   );
 
-  const { aircraft, recordTailView } = useThrottledFleet(dedupedAircraft);
+  const aircraft = dedupedAircraft;
+  const recordTailView = () => {};
 
   const { data: mccLocks = [] } = useQuery({
     queryKey: ['mcc-locks'],
