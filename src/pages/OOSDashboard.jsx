@@ -11,6 +11,7 @@ import {
 } from 'lucide-react';
 import FlightAwarePanel from '@/components/techops/FlightAwarePanel';
 import LiveClock from '@/components/ui/LiveClock';
+import { useStations } from '@/hooks/useStations';
 import { cn } from '@/lib/utils';
 
 // ── Shared modal shell ──────────────────────────────────────────────────────
@@ -103,13 +104,14 @@ const ATA_CHAPTERS = [
 // ── 1. New Logbook Entry Modal ──────────────────────────────────────────────
 function NewEntryModal({ onClose }) {
   const queryClient = useQueryClient();
+  const { icaoCodes: stations } = useStations();
   const { data: aircraft = [] } = useQuery({
     queryKey: ['tech-aircraft'],
     queryFn: () => base44.entities.Aircraft.list('tail_number', 200),
   });
   const [form, setForm] = useState({
     aircraft_tail: '', station: '', ata_chapter: '',
-    entry_type: 'discrepancy', description: '',
+    entry_type: 'info', description: '',
     technician_name: '', technician_id: '',
     severity: 'minor', photos: [],
   });
@@ -167,7 +169,10 @@ function NewEntryModal({ onClose }) {
             </select>
           </Field>
           <Field label="Station">
-            <input value={form.station} onChange={e => set('station', e.target.value.toUpperCase())} placeholder="KEWR" className={inputCls} />
+            <select value={form.station} onChange={e => set('station', e.target.value)} className={inputCls}>
+              <option value="">Select station…</option>
+              {stations.map(s => <option key={s} value={s}>{s}</option>)}
+            </select>
           </Field>
         </div>
 
