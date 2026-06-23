@@ -344,10 +344,9 @@ export default function CrewChiefDashboard() {
                 {stations.map(s => <option key={s} value={s}>{s}</option>)}
               </select>
               <ChevronDown className="w-3.5 h-3.5 text-muted-foreground flex-shrink-0 pointer-events-none" />
-              <div className="flex items-center gap-1 ml-2 flex-shrink-0">
-                <span className="w-2 h-2 rounded-full bg-green-400 animate-pulse" />
-                <span className="text-[10px] font-extrabold text-green-400">LIVE</span>
-              </div>
+              <Link to="/GlobalStations" className="ml-1 text-[10px] font-bold text-primary hover:underline flex-shrink-0">
+                Manage
+              </Link>
             </div>
             <button onClick={() => refetch()} className="w-9 h-9 rounded-lg bg-secondary flex items-center justify-center hover:bg-secondary/80">
               <RefreshCw className={cn('w-4 h-4 text-muted-foreground', isLoading && 'animate-spin')} />
