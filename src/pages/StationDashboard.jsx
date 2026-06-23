@@ -433,7 +433,7 @@ export default function StationDashboard() {
                   </span>
                 )}
               </div>
-              <GateManagement stationIcao={icao} />
+              <GateManagement stationIcao={icao} stationTimezone={station?.timezone || 'UTC'} />
             </div>
           </div>
         </div>

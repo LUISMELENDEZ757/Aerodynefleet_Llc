@@ -22,13 +22,13 @@ function GateTypeBadge({ type }) {
   );
 }
 
-function GateCard({ gate, onRemove, onToggleOccupancy, viewMode }) {
+function GateCard({ gate, onRemove, onToggleOccupancy, viewMode, stationTimezone }) {
   const typeCfg = GATE_TYPES.find(t => t.id === gate.type) || GATE_TYPES[0];
   
-  const formatTime = (timeStr) => {
+  const formatTime = (timeStr, timezone = 'UTC') => {
     if (!timeStr) return null;
     const date = new Date(timeStr);
-    return date.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: false, timeZone: 'UTC' }) + 'Z';
+    return date.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: true, timeZone: timezone });
   };
   
   if (viewMode === 'list') {
@@ -64,7 +64,7 @@ function GateCard({ gate, onRemove, onToggleOccupancy, viewMode }) {
           {gate.occupied && gate.scheduled_departure && (
             <div className="text-right">
               <p className="text-[10px] text-gray-500">Departure</p>
-              <p className="text-xs font-bold text-white font-mono">{formatTime(gate.scheduled_departure)}</p>
+              <p className="text-xs font-bold text-white font-mono">{formatTime(gate.scheduled_departure, stationTimezone)}</p>
             </div>
           )}
           <button onClick={() => onToggleOccupancy(gate)}
