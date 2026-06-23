@@ -53,7 +53,7 @@ export default function Home() {
           className="flex-shrink-0 w-full max-w-xs lg:max-w-sm xl:max-w-md"
         >
           <img
-            src="https://media.base44.com/images/public/69bac7d10515c7cd49590072/e594107ab_image.png"
+            src="https://media.base44.com/images/public/69bac7d10515c7cd49590072/ec9dc0256_Image-1.jpg"
             alt="Aerodyne Fleet LLC"
             className="w-full rounded-2xl shadow-2xl"
           />
