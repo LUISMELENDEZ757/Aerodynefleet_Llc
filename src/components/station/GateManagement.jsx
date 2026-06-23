@@ -1,7 +1,7 @@
 import { useState, useEffect, useMemo } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { base44 } from '@/api/base44Client';
-import { Plus, X, Search, Grid, List, Plane } from 'lucide-react';
+import { Plus, X, Search, Grid, List, Plane, RefreshCw } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 const GATE_TYPES = [
@@ -107,6 +107,7 @@ export default function GateManagement({ stationIcao }) {
   const [filterType, setFilterType] = useState('all');
   const [searchQuery, setSearchQuery] = useState('');
   const [sortBy, setSortBy] = useState('alphabetical');
+  const [syncing, setSyncing] = useState(false);
   
   const [newGate, setNewGate] = useState({
     code: '',
@@ -192,6 +193,17 @@ export default function GateManagement({ stationIcao }) {
     });
   };
   
+  const handleSyncFlightAware = async () => {
+    setSyncing(true);
+    try {
+      await base44.functions.invoke('syncFlightAwareGates', { station: stationIcao });
+      queryClient.invalidateQueries(['station-gates', stationIcao]);
+    } catch (error) {
+      console.error('Sync error:', error);
+    }
+    setSyncing(false);
+  };
+  
   const filteredGates = useMemo(() => {
     return gates
       .filter(g => {
@@ -272,6 +284,10 @@ export default function GateManagement({ stationIcao }) {
           <button onClick={() => setShowAddModal(true)}
             className="flex items-center gap-2 px-4 py-2 rounded-lg bg-primary text-primary-foreground text-sm font-bold hover:bg-primary/90 transition-colors">
             <Plus className="w-4 h-4" /> Add Gate
+          </button>
+          <button onClick={handleSyncFlightAware} disabled={syncing}
+            className="flex items-center gap-2 px-4 py-2 rounded-lg bg-cyan-600 text-white text-sm font-bold hover:bg-cyan-500 transition-colors disabled:opacity-50">
+            <RefreshCw className={cn('w-4 h-4', syncing && 'animate-spin')} /> Sync
           </button>
         </div>
       </div>
