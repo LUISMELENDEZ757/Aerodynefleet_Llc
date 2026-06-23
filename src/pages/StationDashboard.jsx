@@ -286,15 +286,25 @@ function MaintenanceWorkloadCard({ entry }) {
 }
 
 export default function StationDashboard() {
-  const [searchParams] = useSearchParams();
-  const icao = searchParams.get('icao')?.toUpperCase();
+  const [searchParams, setSearchParams] = useSearchParams();
+  const icaoParam = searchParams.get('icao')?.toUpperCase();
+  const [selectedIcao, setSelectedIcao] = useState(icaoParam || '');
   
   const { data: stations = [] } = useQuery({
     queryKey: ['global-stations'],
     queryFn: () => base44.entities.Station.list('icao_code', 500),
   });
   
+  // Use selectedIcao or default to first station
+  const icao = selectedIcao || (stations.length > 0 ? stations[0].icao_code : '');
   const station = stations.find(s => s.icao_code === icao);
+  
+  // Update URL when station changes
+  useState(() => {
+    if (icao && icao !== icaoParam) {
+      setSearchParams({ icao });
+    }
+  }, [icao, icaoParam, setSearchParams]);
   
   const { data: allFlights = [], isLoading: loadingFlights, refetch: refetchFlights } = useQuery({
     queryKey: ['station-flights', icao],
@@ -346,12 +356,13 @@ export default function StationDashboard() {
   const gates = ['A1', 'A2', 'A3', 'B1', 'B2', 'B3', 'C1', 'C2'];
   const occupiedGates = gates.slice(0, Math.floor(gates.length / 2));
   
-  if (!icao) {
+  // Show loading or message if no stations exist
+  if (stations.length === 0) {
     return (
       <div className="min-h-screen bg-[#0a0d11] flex items-center justify-center">
         <div className="text-center space-y-3">
-          <p className="text-gray-400 font-bold">No station selected.</p>
-          <Link to="/GlobalStations" className="text-primary hover:underline text-sm">← Back to Global Stations</Link>
+          <p className="text-gray-400 font-bold">No stations configured in the system.</p>
+          <Link to="/GlobalStations" className="text-primary hover:underline text-sm">← Add a Station</Link>
         </div>
       </div>
     );
@@ -381,9 +392,21 @@ export default function StationDashboard() {
             )}
           </div>
         </div>
-        <button onClick={() => refetchFlights()} className="w-9 h-9 rounded-lg bg-white/10 flex items-center justify-center hover:bg-white/20">
-          <RefreshCw className={cn('w-4 h-4 text-gray-400', loadingFlights && 'animate-spin')} />
-        </button>
+        <div className="flex items-center gap-2">
+          {/* Station Selector */}
+          <select 
+            value={icao} 
+            onChange={(e) => setSelectedIcao(e.target.value)}
+            className="bg-[#1a2035] border border-white/10 rounded-lg px-3 py-2 text-sm text-white outline-none focus:border-primary"
+          >
+            {stations.map(s => (
+              <option key={s.id} value={s.icao_code}>{s.icao_code} - {s.station_name}</option>
+            ))}
+          </select>
+          <button onClick={() => refetchFlights()} className="w-9 h-9 rounded-lg bg-white/10 flex items-center justify-center hover:bg-white/20">
+            <RefreshCw className={cn('w-4 h-4 text-gray-400', loadingFlights && 'animate-spin')} />
+          </button>
+        </div>
       </div>
       
       <div className="px-6 py-5 space-y-6 max-w-7xl mx-auto">
