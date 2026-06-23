@@ -1,76 +1,69 @@
 {
   "name": "ScheduledInspection",
   "type": "object",
-  "description": "Scheduled inspection for aircraft \u2014 tracks upcoming maintenance and inspection appointments.",
+  "description": "Scheduled maintenance inspection tracking per aircraft.",
   "properties": {
     "aircraft_tail": {
-      "type": "string",
-      "description": "Aircraft tail number"
+      "type": "string"
     },
     "inspection_type": {
       "type": "string",
       "enum": [
-        "100_hour",
-        "annual",
-        "progressive",
-        "ad_inspection",
-        "component_overhaul",
-        "pre_flight"
-      ],
-      "description": "Type of inspection"
+        "A_check",
+        "B_check",
+        "C_check",
+        "D_check",
+        "daily",
+        "weekly",
+        "phase",
+        "special"
+      ]
     },
     "title": {
-      "type": "string",
-      "description": "Inspection title"
+      "type": "string"
     },
-    "scheduled_date": {
-      "type": "string",
-      "format": "date",
-      "description": "Scheduled date for inspection"
+    "description": {
+      "type": "string"
     },
     "due_date": {
       "type": "string",
-      "format": "date",
-      "description": "Hard due date for inspection"
+      "format": "date"
     },
-    "estimated_hours": {
-      "type": "number",
-      "description": "Estimated man-hours required"
+    "due_hours": {
+      "type": "number"
     },
-    "recurring": {
-      "type": "boolean",
-      "default": false,
-      "description": "Whether this is a recurring inspection"
+    "due_cycles": {
+      "type": "number"
     },
-    "recurring_interval_months": {
-      "type": "number",
-      "description": "Months between recurring inspections"
+    "last_completed_date": {
+      "type": "string",
+      "format": "date"
     },
-    "ata_chapters": {
-      "type": "array",
-      "items": {
-        "type": "string"
-      },
-      "description": "ATA chapters to be inspected"
+    "interval_days": {
+      "type": "number"
+    },
+    "interval_hours": {
+      "type": "number"
+    },
+    "interval_cycles": {
+      "type": "number"
     },
     "status": {
       "type": "string",
       "enum": [
-        "scheduled",
-        "in_progress",
-        "completed",
+        "upcoming",
+        "due",
         "overdue",
-        "cancelled"
+        "completed",
+        "deferred"
       ],
-      "default": "scheduled"
+      "default": "upcoming"
     },
-    "assigned_technician": {
-      "type": "string",
-      "description": "Name of assigned technician"
+    "assigned_to": {
+      "type": "string"
     },
-    "location": {
-      "type": "string",
-      "description": "Location where inspection will be performed"
+    "station": {
+      "type": "string"
     },
     "notes": {
       "type": "string"
@@ -79,15 +72,10 @@
   "required": [
     "aircraft_tail",
     "inspection_type",
-    "scheduled_date"
+    "title"
   ],
   "rls": {
     "create": {
-      "user_condition": {
-        "role": "engineer"
-      }
-    },
-    "read": {
       "$or": [
         {
           "user_condition": {
@@ -96,21 +84,12 @@
         },
         {
           "user_condition": {
-            "role": "mcc_supervisor"
-          }
-        },
-        {
-          "user_condition": {
             "role": "engineer"
-          }
-        },
-        {
-          "user_condition": {
-            "role": "technician"
           }
         }
       ]
     },
+    "read": {},
     "update": {
       "$or": [
         {
@@ -124,6 +103,11 @@
         {
           "user_condition": {
             "role": "engineer"
+          }
+        },
+        {
+          "user_condition": {
+            "role": "mcc_supervisor"
           }
         }
       ]
