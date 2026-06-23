@@ -8,6 +8,7 @@ import {
 import { cn } from '@/lib/utils';
 import AircraftHeader from '@/components/aircraft-detail/AircraftHeader';
 import CatCapabilityBadge from '@/components/techops/CatCapabilityBadge';
+import EtopsCapabilityBadge from '@/components/techops/EtopsCapabilityBadge';
 import RestrictedMELPanel from '@/components/aircraft-detail/RestrictedMELPanel';
 import AircraftStatusBlock from '@/components/aircraft-detail/AircraftStatusBlock';
 import OpenMELTable from '@/components/aircraft-detail/OpenMELTable';
@@ -116,9 +117,10 @@ export default function AircraftComplianceDetail() {
         openMelCount={openMels.length}
       />
 
-      {/* ── CAT Capability Badge ── */}
-      <div className="px-4 pt-4">
+      {/* ── CAT + ETOPS Capability Badges ── */}
+      <div className="px-4 pt-4 grid grid-cols-1 md:grid-cols-2 gap-3">
         <CatCapabilityBadge aircraft={aircraft} melItems={openMels} />
+        <EtopsCapabilityBadge aircraft={aircraft} melItems={openMels} />
       </div>
 
       {/* ── Sticky Section Jump Nav ── */}
