@@ -111,7 +111,7 @@ function NewEntryModal({ onClose }) {
   });
   const [form, setForm] = useState({
     aircraft_tail: '', station: '', ata_chapter: '',
-    entry_type: 'info', description: '',
+    entry_type: 'discrepancy', description: '',
     technician_name: '', technician_id: '',
     severity: 'minor', photos: [],
   });
@@ -176,16 +176,8 @@ function NewEntryModal({ onClose }) {
           </Field>
         </div>
 
-        {/* Entry Type + ATA Chapter */}
-        <div className="grid grid-cols-2 gap-3">
-          <Field label="Entry Type">
-            <select value={form.entry_type} onChange={e => set('entry_type', e.target.value)} className={inputCls}>
-              <option value="discrepancy">Discrepancy</option>
-              <option value="corrective_action">Corrective Action</option>
-              <option value="deferred">Deferred</option>
-              <option value="info">Info</option>
-            </select>
-          </Field>
+        {/* ATA Chapter */}
+        <div>
           <Field label="ATA Chapter">
             <select value={form.ata_chapter} onChange={e => set('ata_chapter', e.target.value)} className={inputCls}>
               <option value="">Select ATA…</option>
