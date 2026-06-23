@@ -55,23 +55,32 @@ export default function CreateTaskPanel({ aircraft = [] }) {
 
   const mutation = useMutation({
     mutationFn: async (data) => {
-      // 1. Create the supply requisition task
-      const task = await base44.entities.SupplyRequisition.create(data);
+      console.log('Creating task with data:', data);
+      try {
+        // 1. Create the supply requisition task
+        const task = await base44.entities.SupplyRequisition.create(data);
+        console.log('Task created:', task);
 
-      // 2. Mirror as a LogbookEntry so Fleet Dashboard shows it on the aircraft timeline
-      await base44.entities.LogbookEntry.create({
-        aircraft_tail: data.aircraft_tail,
-        entry_type: 'info',
-        discrepancy_status: 'IN_PROGRESS',
-        station: data.station || '',
-        description: `[TASK ASSIGNED] ${data.part_name} — Assigned to: ${data.requested_by}${data.notes ? ' | ' + data.notes : ''}`,
-        technician_name: data.requested_by,
-        ata_chapter: '',
-      });
+        // 2. Mirror as a LogbookEntry so Fleet Dashboard shows it on the aircraft timeline
+        const logEntry = await base44.entities.LogbookEntry.create({
+          aircraft_tail: data.aircraft_tail,
+          entry_type: 'info',
+          discrepancy_status: 'IN_PROGRESS',
+          station: data.station || '',
+          description: `[TASK ASSIGNED] ${data.part_name} — Assigned to: ${data.requested_by}${data.notes ? ' | ' + data.notes : ''}`,
+          technician_name: data.requested_by,
+          ata_chapter: '',
+        });
+        console.log('Log entry created:', logEntry);
 
-      return task;
+        return task;
+      } catch (error) {
+        console.error('Error creating task:', error);
+        throw error;
+      }
     },
     onSuccess: () => {
+      console.log('Task creation successful');
       qc.invalidateQueries({ queryKey: ['bow-daily-assignments'] });
       qc.invalidateQueries({ queryKey: ['fleet-logbook'] });
       qc.invalidateQueries({ queryKey: ['fleet-aircraft'] });
@@ -79,25 +88,39 @@ export default function CreateTaskPanel({ aircraft = [] }) {
       setTimeout(() => {
         setForm(EMPTY);
         setSubmitted(false);
-      }, 2000);
+      }, 3000);
+    },
+    onError: (error) => {
+      console.error('Mutation error:', error);
+      alert('Failed to create task: ' + (error.message || 'Unknown error'));
     },
   });
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    if (!form.part_name || !form.aircraft_tail || !form.requested_by) {
-      console.error('Missing required fields:', { part_name: form.part_name, aircraft_tail: form.aircraft_tail, requested_by: form.requested_by });
+    console.log('Form submitted!', form);
+    
+    if (!form.part_name?.trim()) {
+      alert('Please enter a task description');
       return;
     }
-    console.log('Submitting task:', form);
+    if (!form.aircraft_tail?.trim()) {
+      alert('Please select an aircraft');
+      return;
+    }
+    if (!form.requested_by?.trim()) {
+      alert('Please enter technician name');
+      return;
+    }
+    
     mutation.mutate({
       aircraft_tail: form.aircraft_tail.toUpperCase(),
       part_name: `[${form.task_type}] ${form.part_name}`,
-      station: form.station.toUpperCase(),
+      station: form.station?.toUpperCase() || '',
       priority: form.priority,
       requested_by: form.requested_by,
       notes: [form.notes, form.estimated_hours ? `Est. ${form.estimated_hours} hrs` : ''].filter(Boolean).join(' | '),
-      status: 'pending',
+      status: 'technician_assigned',
     });
   };
 
@@ -106,8 +129,8 @@ export default function CreateTaskPanel({ aircraft = [] }) {
       <div className="flex flex-col items-center justify-center py-20 gap-6">
         <CheckCircle className="w-20 h-20 text-green-400" />
         <div className="text-center space-y-2">
-          <p className="text-2xl font-extrabold text-foreground">Task Created for {form.requested_by}</p>
-          <p className="text-sm text-muted-foreground">Task added to Daily Assignments and visible on the Fleet Dashboard aircraft timeline.</p>
+          <p className="text-2xl font-extrabold text-foreground">Task Created for {form.requested_by?.toUpperCase()}</p>
+          <p className="text-sm text-muted-foreground">Would you like to create another task?</p>
         </div>
         <div className="flex gap-3">
           <button onClick={() => { setForm(EMPTY); setSubmitted(false); }}
