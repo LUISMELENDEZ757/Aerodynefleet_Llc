@@ -151,7 +151,7 @@ export default function HowItWorks() {
     <div className="min-h-screen bg-[#0d1117] text-white pb-24">
       {/* Header */}
       <div className="flex items-center gap-3 px-5 py-4 border-b border-white/10 sticky top-0 z-20 bg-[#0d1117]">
-        <Link to="/Learning" className="w-9 h-9 rounded-lg bg-white/10 flex items-center justify-center hover:bg-white/20 transition-colors">
+        <Link to="/Academy" className="w-9 h-9 rounded-lg bg-white/10 flex items-center justify-center hover:bg-white/20 transition-colors">
           <ChevronLeft className="w-5 h-5 text-white" />
         </Link>
         <div>
@@ -210,7 +210,7 @@ export default function HowItWorks() {
 
         {/* Back CTA */}
         <div className="pt-2">
-          <Link to="/Learning"
+          <Link to="/Academy"
             className="flex items-center justify-center gap-2 w-full py-3 rounded-2xl bg-primary/10 border border-primary/25 text-primary font-bold text-sm hover:bg-primary/20 transition-colors">
             <ChevronLeft className="w-4 h-4" /> Back to Learning Center
           </Link>
