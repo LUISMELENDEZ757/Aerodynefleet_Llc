@@ -599,7 +599,7 @@ export default function Home() {
       {/* Footer */}
       <footer className="border-t border-border bg-card/50 px-5 py-6 text-center text-xs text-muted-foreground">
         <p className="font-bold text-foreground mb-1">Aerodyne Fleet LLC</p>
-        <p>Aircraft Maintenance Management System · Aviation Academy Platform · Part 147 Aligned</p>
+        <p>Aircraft Maintenance Management System &nbsp;·&nbsp; Aviation Academy Platform &nbsp;·&nbsp; Part 147 Aligned</p>
       </footer>
     </div>
   );
