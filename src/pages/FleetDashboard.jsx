@@ -642,93 +642,110 @@ function AircraftCard({ aircraft, onSelect, discrepancies, melItems = [], active
   const tailOpenTasks = openTasks.filter(t => t.aircraft_tail === aircraft.tail_number);
   const activeMels = melItems.filter(m => m.status !== 'cleared' && m.status !== 'voided');
   const expiredMels = melItems.filter(m => m.status === 'expired');
+  const restrictiveMels = activeMels.filter(m =>
+    m.flight_restrictions || m.etops_critical || m.etops_impact === 'NO_ETOPS' ||
+    m.etops_impact === 'ETOPS_WITH_LIMITS' || m.placard_required
+  );
 
   const { etr, flightEta } = parseTimelineInfo(logEntries);
   const oosDuration = (aircraft.status === 'oos' || aircraft.status === 'maintenance')
     ? formatOosDuration(oosEntries, aircraft.tail_number)
     : null;
 
-  // OOS duration check
   const isOosOver24h = (() => {
     if (aircraft.status !== 'oos' && aircraft.status !== 'maintenance') return false;
     const tailEntry = oosEntries.find(e => e.tail_number === aircraft.tail_number || e.aircraft_tail === aircraft.tail_number);
     if (!tailEntry) return false;
-    const refDate = tailEntry.oos_date
-      ? new Date(tailEntry.oos_date + 'T00:00:00')
-      : new Date(tailEntry.created_date);
+    const refDate = tailEntry.oos_date ? new Date(tailEntry.oos_date + 'T00:00:00') : new Date(tailEntry.created_date);
     return (Date.now() - refDate.getTime()) / 3600000 >= 24;
   })();
 
-  // Card border based on urgency
-  const borderCls = acLock ? 'border-[#D32F2F]/70 bg-red-950/10' :
-    aircraft.status === 'oos' ? 'border-[#D32F2F]/50' :
-    aircraft.status === 'maintenance' ? 'border-[#1565C0]/50' :
-    expiredMels.length > 0 ? 'border-[#FFA000]/50' :
-    openDiscs.length > 0 ? 'border-[#FFA000]/30' : 'border-border';
+  const isAog = aircraft.status === 'oos';
+  const isInWork = aircraft.status === 'maintenance';
+
+  const borderCls = acLock
+    ? 'border-red-500/60 bg-red-950/10'
+    : isAog
+    ? 'border-red-500/50 bg-red-950/5'
+    : isInWork
+    ? 'border-blue-500/40 bg-blue-950/5'
+    : expiredMels.length > 0
+    ? 'border-amber-500/50'
+    : openDiscs.length > 0
+    ? 'border-amber-500/25'
+    : 'border-white/8';
+
+  // Shared badge class for uniformity
+  const badge = 'inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[9px] font-bold border leading-none';
 
   return (
-    <div onClick={() => onSelect(aircraft)}
-      className={cn('bg-card rounded-xl border flex flex-col cursor-pointer hover:brightness-110 transition-all active:scale-[0.97]', borderCls)}>
-
-      {/* ── ROW 1: Identity ── */}
-      <div className="px-3 pt-3 pb-2">
-        <div className="flex items-start justify-between gap-1">
-          <div className="min-w-0">
-            <p className="text-base font-black text-primary tracking-wide font-mono leading-none">{aircraft.tail_number}</p>
-            <p className="text-[11px] font-medium text-gray-400 mt-0.5">{aircraft.aircraft_type}</p>
-            <p className="text-[10px] text-gray-600 mt-0.5">{aircraft.base_station || '—'}</p>
+    <div
+      onClick={() => onSelect(aircraft)}
+      className={cn('bg-[#141922] rounded-xl border flex flex-col cursor-pointer hover:brightness-110 active:scale-[0.97] transition-all overflow-hidden', borderCls)}
+    >
+      {/* ── HEADER: Tail + Type + Station + Readiness ── */}
+      <div className="px-3 pt-3 pb-2.5 flex items-start justify-between gap-2">
+        <div className="min-w-0 flex-1">
+          <p className="text-base font-black text-primary tracking-wide font-mono leading-none">{aircraft.tail_number}</p>
+          <p className="text-[11px] font-semibold text-gray-400 mt-0.5 truncate">{aircraft.aircraft_type}</p>
+          <div className="flex items-center gap-1.5 mt-1">
+            <MapPin className="w-2.5 h-2.5 text-gray-600 flex-shrink-0" />
+            <p className="text-[10px] text-gray-500">{aircraft.base_station || '—'}</p>
           </div>
-          <ReadinessScore aircraft={aircraft} openDiscs={openDiscs} melItems={melItems} />
         </div>
+        <ReadinessScore aircraft={aircraft} openDiscs={openDiscs} melItems={melItems} />
       </div>
 
-      {/* ── ROW 2: Status + Badges ── */}
-      <div className="px-3 pb-2 flex flex-wrap gap-1 items-center">
-        <span className={cn('flex items-center gap-1 px-2 py-0.5 rounded text-[9px] font-black text-white', status.bg)}>
+      {/* ── DIVIDER ── */}
+      <div className="border-t border-white/6 mx-3" />
+
+      {/* ── STATUS + CAPABILITY BADGES ── */}
+      <div className="px-3 py-2 flex flex-wrap gap-1 items-center">
+        {/* Operational status — always first */}
+        <span className={cn('flex items-center gap-1 px-2 py-0.5 rounded text-[9px] font-black text-white leading-none', status.bg)}>
           <StatusIcon className="w-2.5 h-2.5" /> {status.label}
         </span>
+        {/* ETOPS approval */}
         {aircraft.etops_approval && (
-          <span className="text-[9px] font-bold px-1.5 py-0.5 rounded bg-cyan-900/60 text-cyan-400 border border-cyan-700/40">
+          <span className={cn(badge, 'bg-cyan-950/60 text-cyan-400 border-cyan-700/40')}>
             ETOPS-{aircraft.etops_approval}
           </span>
         )}
+        {/* CAT approval */}
         {aircraft.cat_approval && aircraft.cat_approval !== 'CAT I' && (
-          <span className="text-[9px] font-bold px-1.5 py-0.5 rounded bg-indigo-900/60 text-indigo-300 border border-indigo-700/40">
+          <span className={cn(badge, 'bg-indigo-950/60 text-indigo-300 border-indigo-700/40')}>
             {aircraft.cat_approval}
           </span>
         )}
-        {activeMels.length > 0 && (() => {
-          const restrictive = activeMels.filter(m =>
-            m.flight_restrictions || m.etops_critical || m.etops_impact === 'NO_ETOPS' ||
-            m.etops_impact === 'ETOPS_WITH_LIMITS' || m.placard_required
-          );
-          return restrictive.length > 0 ? (
-            <Link
-              to={`/AircraftDetail?tail=${aircraft.tail_number}`}
-              onClick={e => e.stopPropagation()}
-              className="text-[9px] font-black px-1.5 py-0.5 rounded bg-red-900/30 text-red-400 border border-red-500/50 hover:bg-red-900/50 transition-colors"
-            >
-              {activeMels.length} MEL · Restrictive
-            </Link>
-          ) : (
-            <span className="text-[9px] font-black px-1.5 py-0.5 rounded bg-[#FFA000]/20 text-[#FFA000] border border-[#FFA000]/40">
-              MEL {activeMels.length}
-            </span>
-          );
-        })()}
+        {/* MEL badge */}
+        {activeMels.length > 0 && (
+          <Link
+            to={`/AircraftDetail?tail=${aircraft.tail_number}`}
+            onClick={e => e.stopPropagation()}
+            className={cn(badge,
+              restrictiveMels.length > 0
+                ? 'bg-red-950/50 text-red-400 border-red-500/50 hover:bg-red-900/60'
+                : 'bg-amber-950/40 text-amber-400 border-amber-600/40 hover:bg-amber-900/50',
+              'transition-colors'
+            )}
+          >
+            MEL {activeMels.length}{restrictiveMels.length > 0 && ' ⚠'}
+          </Link>
+        )}
+        {/* Flags */}
         {acLock && (
-          <span className="text-[9px] font-black px-1.5 py-0.5 rounded bg-[#D32F2F]/20 text-[#EF5350] border border-[#D32F2F]/40 flex items-center gap-0.5">
+          <span className={cn(badge, 'bg-red-950/50 text-red-400 border-red-500/40')}>
             <Lock className="w-2 h-2" /> LOCKED
           </span>
         )}
         {aircraft.mcc_watch && (
-          <span className="text-[9px] font-black px-1.5 py-0.5 rounded bg-amber-500/20 text-amber-400 border border-amber-500/40 animate-pulse flex items-center gap-0.5">
+          <span className={cn(badge, 'bg-amber-950/50 text-amber-400 border-amber-500/40 animate-pulse')}>
             <Eye className="w-2 h-2" /> WATCH
           </span>
         )}
         {aircraft.ferry_flight && (
-          <span className="text-[9px] font-bold px-1.5 py-0.5 rounded bg-sky-500/20 text-sky-400 border border-sky-500/40">
-            FERRY
+          <span className={cn(badge, 'bg-sky-950/50 text-sky-400 border-sky-500/40')}>
+            <Plane className="w-2 h-2" /> FERRY
           </span>
         )}
         <AircraftLocationBadge
@@ -738,44 +755,66 @@ function AircraftCard({ aircraft, onSelect, discrepancies, melItems = [], active
         />
       </div>
 
-      {/* ── ROW 3: OOS timing info ── */}
+      {/* ── OOS TIMING STRIP (only when relevant) ── */}
       {(oosDuration || etr || flightEta) && (
-        <div className="px-3 pb-2 pt-1.5 border-t border-white/6 grid grid-cols-3 gap-1">
-          <div className="flex flex-col">
-            <span className="text-[8px] font-bold text-gray-500 uppercase tracking-wider">OOS Time</span>
-            <span className={cn('text-[10px] font-black', isOosOver24h ? 'text-orange-400' : 'text-gray-300')}>
-              {oosDuration || '—'}
-            </span>
-          </div>
-          <div className="flex flex-col">
-            <span className="text-[8px] font-bold text-gray-500 uppercase tracking-wider">ETR</span>
-            <span className="text-[10px] font-black text-amber-400">{etr || '—'}</span>
-          </div>
-          <div className="flex flex-col">
-            <span className="text-[8px] font-bold text-gray-500 uppercase tracking-wider">Flt ETA</span>
-            <span className="text-[10px] font-black text-cyan-400">{flightEta || '—'}</span>
-          </div>
+        <div className="border-t border-white/6 mx-3" />
+      )}
+      {(oosDuration || etr || flightEta) && (
+        <div className="px-3 py-2 grid grid-cols-3 gap-2">
+          {[
+            { label: 'OOS Time', value: oosDuration || '—', color: isOosOver24h ? 'text-orange-400' : 'text-gray-300' },
+            { label: 'ETR',      value: etr || '—',         color: 'text-amber-400' },
+            { label: 'Flt ETA', value: flightEta || '—',    color: 'text-cyan-400' },
+          ].map(({ label, value, color }) => (
+            <div key={label} className="flex flex-col gap-0.5">
+              <span className="text-[8px] font-bold text-gray-600 uppercase tracking-wider">{label}</span>
+              <span className={cn('text-[10px] font-black', color)}>{value}</span>
+            </div>
+          ))}
         </div>
       )}
 
-      {/* ── ROW 4: Risk indicators ── */}
+      {/* ── RISK INDICATORS ── */}
       {(openDiscs.length > 0 || expiredMels.length > 0 || isOosOver24h || tailOpenTasks.length > 0) && (
-        <div className="px-3 pb-2 pt-1 border-t border-white/6 flex flex-col gap-0.5">
-          {isOosOver24h && <span className="text-[9px] text-amber-400 font-bold">⏳ OOS 24h+</span>}
-          {openDiscs.length > 0 && <span className="text-[9px] text-amber-400 font-bold">⚠️ {openDiscs.length} Open write-up{openDiscs.length > 1 ? 's' : ''}</span>}
-          {expiredMels.length > 0 && <span className="text-[9px] text-red-400 font-bold">🔴 {expiredMels.length} Expired MEL</span>}
-          {tailOpenTasks.length > 0 && <span className="text-[9px] text-blue-400 font-bold">🔧 {tailOpenTasks.length} task{tailOpenTasks.length > 1 ? 's' : ''} assigned</span>}
-        </div>
+        <>
+          <div className="border-t border-white/6 mx-3" />
+          <div className="px-3 py-2 flex flex-col gap-1">
+            {isOosOver24h && (
+              <div className="flex items-center gap-1.5">
+                <Clock className="w-3 h-3 text-amber-400 flex-shrink-0" />
+                <span className="text-[10px] font-bold text-amber-400">OOS 24h+</span>
+              </div>
+            )}
+            {openDiscs.length > 0 && (
+              <div className="flex items-center gap-1.5">
+                <AlertTriangle className="w-3 h-3 text-amber-400 flex-shrink-0" />
+                <span className="text-[10px] font-bold text-amber-300">{openDiscs.length} open write-up{openDiscs.length > 1 ? 's' : ''}</span>
+              </div>
+            )}
+            {expiredMels.length > 0 && (
+              <div className="flex items-center gap-1.5">
+                <Zap className="w-3 h-3 text-red-400 flex-shrink-0" />
+                <span className="text-[10px] font-bold text-red-400">{expiredMels.length} expired MEL{expiredMels.length > 1 ? 's' : ''}</span>
+              </div>
+            )}
+            {tailOpenTasks.length > 0 && (
+              <div className="flex items-center gap-1.5">
+                <Wrench className="w-3 h-3 text-blue-400 flex-shrink-0" />
+                <span className="text-[10px] font-bold text-blue-400">{tailOpenTasks.length} task{tailOpenTasks.length > 1 ? 's' : ''} assigned</span>
+              </div>
+            )}
+          </div>
+        </>
       )}
 
-      {/* ── ROW 5: Detail link ── */}
-      <div className="px-3 pb-2.5 pt-1.5 border-t border-white/6">
+      {/* ── FOOTER: Compliance detail link ── */}
+      <div className="mt-auto border-t border-white/6 px-3 py-2">
         <Link
           to={`/AircraftDetail?tail=${aircraft.tail_number}`}
           onClick={e => e.stopPropagation()}
-          className="flex items-center gap-1 text-[9px] font-bold text-primary/70 hover:text-primary transition-colors"
+          className="flex items-center gap-1 text-[9px] font-bold text-primary/60 hover:text-primary transition-colors"
         >
-          <ExternalLink className="w-2.5 h-2.5" /> View Compliance Detail
+          <ExternalLink className="w-2.5 h-2.5" /> Compliance Detail
         </Link>
       </div>
     </div>
