@@ -207,6 +207,7 @@ export default function TechSupportDashboard() {
   const [filterCategory, setFilterCategory] = useState('all');
   const [filterStatus, setFilterStatus] = useState('all');
   const [stationFilter, setStationFilter] = useState('');
+  const [showChart, setShowChart] = useState(true);
   const qc = useQueryClient();
   const { icaoCodes: stations } = useStations();
 
@@ -357,62 +358,69 @@ export default function TechSupportDashboard() {
         </div>
 
         {/* MEL Frequency Chart */}
-        <div className="mt-4 bg-card border border-border rounded-2xl p-5">
-          <div className="flex items-center justify-between mb-4">
+        <div className="mt-4 bg-card border border-border rounded-2xl overflow-hidden">
+          <div onClick={() => setShowChart(!showChart)} className="px-5 py-4 cursor-pointer hover:bg-secondary/30 transition-colors flex items-center justify-between">
             <div>
               <p className="text-sm font-extrabold text-foreground">MEL Deferral Frequency - Last 30 Days</p>
               <p className="text-xs text-muted-foreground mt-0.5">Daily count of new MEL deferrals</p>
             </div>
-            <div className="flex items-center gap-3 text-xs">
-              <div className="flex items-center gap-1.5">
-                <div className="w-3 h-3 rounded-sm bg-blue-500/80" />
-                <span className="text-muted-foreground">Normal</span>
+            <div className="flex items-center gap-3">
+              <div className="hidden sm:flex items-center gap-3 text-xs">
+                <div className="flex items-center gap-1.5">
+                  <div className="w-3 h-3 rounded-sm bg-blue-500/80" />
+                  <span className="text-muted-foreground">Normal</span>
+                </div>
+                <div className="flex items-center gap-1.5">
+                  <div className="w-3 h-3 rounded-sm bg-orange-500" />
+                  <span className="text-muted-foreground">High (3+)</span>
+                </div>
               </div>
-              <div className="flex items-center gap-1.5">
-                <div className="w-3 h-3 rounded-sm bg-orange-500" />
-                <span className="text-muted-foreground">High (3+)</span>
-              </div>
+              <ChevronDown className={cn('w-5 h-5 text-muted-foreground transition-transform', !showChart && '-rotate-90')} />
             </div>
           </div>
-          <div className="h-48">
-            <ResponsiveContainer width="100%" height="100%">
-              <BarChart data={melFrequencyData}>
-                <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" vertical={false} />
-                <XAxis 
-                  dataKey="date" 
-                  stroke="hsl(var(--muted-foreground))" 
-                  fontSize={10}
-                  tickLine={false}
-                  axisLine={false}
-                  interval={4}
-                />
-                <YAxis 
-                  stroke="hsl(var(--muted-foreground))" 
-                  fontSize={10}
-                  tickLine={false}
-                  axisLine={false}
-                  allowDecimals={false}
-                />
-                <Tooltip
-                  contentStyle={{
-                    backgroundColor: 'hsl(var(--card))',
-                    border: '1px solid hsl(var(--border))',
-                    borderRadius: '8px',
-                    fontSize: '11px',
-                  }}
-                  labelStyle={{ color: 'hsl(var(--foreground))', fontWeight: '600', marginBottom: '4px' }}
-                />
-                <Bar dataKey="count" radius={[4, 4, 0, 0]}>
-                  {melFrequencyData.map((entry, index) => (
-                    <Cell 
-                      key={`cell-${index}`} 
-                      fill={entry.isHigh ? 'hsl(38, 92%, 50%)' : 'hsl(210, 90%, 60%)'} 
+          {showChart && (
+            <div className="px-5 pb-5 border-t border-border">
+              <div className="h-48 mt-4">
+                <ResponsiveContainer width="100%" height="100%">
+                  <BarChart data={melFrequencyData}>
+                    <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" vertical={false} />
+                    <XAxis 
+                      dataKey="date" 
+                      stroke="hsl(var(--muted-foreground))" 
+                      fontSize={10}
+                      tickLine={false}
+                      axisLine={false}
+                      interval={4}
                     />
-                  ))}
-                </Bar>
-              </BarChart>
-            </ResponsiveContainer>
-          </div>
+                    <YAxis 
+                      stroke="hsl(var(--muted-foreground))" 
+                      fontSize={10}
+                      tickLine={false}
+                      axisLine={false}
+                      allowDecimals={false}
+                    />
+                    <Tooltip
+                      contentStyle={{
+                        backgroundColor: 'hsl(var(--card))',
+                        border: '1px solid hsl(var(--border))',
+                        borderRadius: '8px',
+                        fontSize: '11px',
+                      }}
+                      labelStyle={{ color: 'hsl(var(--foreground))', fontWeight: '600', marginBottom: '4px' }}
+                    />
+                    <Bar dataKey="count" radius={[4, 4, 0, 0]}>
+                      {melFrequencyData.map((entry, index) => (
+                        <Cell 
+                          key={`cell-${index}`} 
+                          fill={entry.isHigh ? 'hsl(38, 92%, 50%)' : 'hsl(210, 90%, 60%)'} 
+                        />
+                      ))}
+                    </Bar>
+                  </BarChart>
+                </ResponsiveContainer>
+              </div>
+            </div>
+          )}
         </div>
 
         {/* Filters */}
