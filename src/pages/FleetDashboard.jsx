@@ -474,11 +474,22 @@ function AircraftDetailOverlay({ aircraft: initialAircraft, onClose }) {
 
           <AnimatePresence>
             {showAddEventModal && <AddTimelineEventModal aircraftTail={aircraft.tail_number} onClose={() => setShowAddEventModal(false)} onSubmit={(data) => createEntryMutation.mutate(data)} isPending={createEntryMutation.isPending} activeLock={activeTailLock} />}
-            {showTakingOwnershipModal && <TakingOwnershipModal aircraft={aircraft} onClose={() => setShowTakingOwnershipModal(false)} onSubmit={handleTakingOwnershipSubmit} isPending={createEntryMutation.isPending} />}
             {showPlaceOOSModal && <PlaceOOSModal aircraft={aircraft} onClose={() => setShowPlaceOOSModal(false)} onSubmit={handlePlaceOOSSubmit} isPending={createEntryMutation.isPending} />}
           </AnimatePresence>
         </div>
       </div>
+
+      {/* Ownership modal rendered at root of overlay to escape scroll container */}
+      <AnimatePresence>
+        {showTakingOwnershipModal && (
+          <TakingOwnershipModal
+            aircraft={aircraft}
+            onClose={() => setShowTakingOwnershipModal(false)}
+            onSubmit={handleTakingOwnershipSubmit}
+            isPending={createEntryMutation.isPending}
+          />
+        )}
+      </AnimatePresence>
     </motion.div>
   );
 }
