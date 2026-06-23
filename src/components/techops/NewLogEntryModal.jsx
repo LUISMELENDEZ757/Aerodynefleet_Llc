@@ -334,7 +334,7 @@ function StepBar({ current, total }) {
 // ── Main modal ───────────────────────────────────────────────────────────────
 export default function NewLogEntryModal({ aircraftTail, nextLogPage, preset, onClose, onSave }) {
   const today = new Date().toISOString().split('T')[0];
-  const nowUtc = new Date().toISOString().slice(11, 16);
+  const nowUtc = new Date().toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: false });
 
   const [step, setStep] = useState(1);
 
@@ -527,7 +527,7 @@ export default function NewLogEntryModal({ aircraftTail, nextLogPage, preset, on
                 <Field label="Date (UTC)">
                   <input type="date" value={header.entry_date} onChange={e => setH('entry_date', e.target.value)} className={inputCls} />
                 </Field>
-                <Field label="Time (UTC / Zulu)">
+                <Field label="Time (Local)">
                   <input type="time" value={header.entry_time} onChange={e => setH('entry_time', e.target.value)} className={inputCls} />
                 </Field>
               </div>
