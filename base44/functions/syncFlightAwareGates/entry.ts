@@ -67,6 +67,7 @@ Deno.serve(async (req) => {
         occupied: true,
         flight: flight.ident || flight.flight_number,
         aircraft_tail: flight.tailnumber || null,
+        scheduled_departure: flight.scheduled_out || null,
       });
 
       gateAssignments.push({

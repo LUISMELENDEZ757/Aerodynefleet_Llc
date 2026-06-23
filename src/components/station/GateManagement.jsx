@@ -25,6 +25,12 @@ function GateTypeBadge({ type }) {
 function GateCard({ gate, onRemove, onToggleOccupancy, viewMode }) {
   const typeCfg = GATE_TYPES.find(t => t.id === gate.type) || GATE_TYPES[0];
   
+  const formatTime = (timeStr) => {
+    if (!timeStr) return null;
+    const date = new Date(timeStr);
+    return date.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: false, timeZone: 'UTC' }) + 'Z';
+  };
+  
   if (viewMode === 'list') {
     return (
       <div className={cn('flex items-center justify-between px-4 py-3 rounded-xl border transition-all',
@@ -34,22 +40,33 @@ function GateCard({ gate, onRemove, onToggleOccupancy, viewMode }) {
             gate.occupied ? 'bg-orange-500/20 text-orange-300' : 'bg-green-500/20 text-green-400')}>
             {gate.name || gate.code}
           </div>
-          <div>
+          <div className="min-w-0">
             <p className="text-sm font-bold text-white">{gate.name || gate.code} {gate.label && `— ${gate.label}`}</p>
-            <div className="flex items-center gap-2 mt-0.5">
+            <div className="flex items-center gap-3 mt-0.5 flex-wrap">
               <GateTypeBadge type={gate.type} />
               {gate.terminal && gate.type === 'gate' && (
                 <span className="text-[10px] text-gray-500">Terminal {gate.terminal}</span>
               )}
               {gate.occupied && gate.flight && (
-                <span className="text-[10px] text-gray-400 flex items-center gap-1">
-                  <Plane className="w-2.5 h-2.5" /> {gate.flight}
-                </span>
+                <>
+                  <span className="text-[10px] text-primary font-mono flex items-center gap-1">
+                    <Plane className="w-2.5 h-2.5" /> {gate.flight}
+                  </span>
+                  {gate.aircraft_tail && (
+                    <span className="text-[10px] text-gray-400 font-mono">{gate.aircraft_tail}</span>
+                  )}
+                </>
               )}
             </div>
           </div>
         </div>
         <div className="flex items-center gap-2">
+          {gate.occupied && gate.scheduled_departure && (
+            <div className="text-right">
+              <p className="text-[10px] text-gray-500">Departure</p>
+              <p className="text-xs font-bold text-white font-mono">{formatTime(gate.scheduled_departure)}</p>
+            </div>
+          )}
           <button onClick={() => onToggleOccupancy(gate)}
             className={cn('px-3 py-1.5 rounded-lg text-xs font-bold transition-colors',
               gate.occupied ? 'bg-green-600 text-white hover:bg-green-500' : 'bg-orange-600 text-white hover:bg-orange-500')}>
@@ -86,9 +103,20 @@ function GateCard({ gate, onRemove, onToggleOccupancy, viewMode }) {
       )}
       
       {gate.occupied && gate.flight && (
-        <p className="text-[10px] text-gray-500 mt-2 font-mono flex items-center gap-1">
-          <Plane className="w-2.5 h-2.5" /> {gate.flight}
-        </p>
+        <div className="w-full mt-3 pt-3 border-t border-white/10 space-y-2">
+          <div className="text-center">
+            <p className="text-sm font-bold text-primary font-mono">{gate.flight}</p>
+            {gate.aircraft_tail && (
+              <p className="text-[10px] text-gray-400 font-mono mt-0.5">{gate.aircraft_tail}</p>
+            )}
+          </div>
+          {gate.scheduled_departure && (
+            <div className="text-center">
+              <p className="text-[9px] text-gray-500 uppercase">Departure</p>
+              <p className="text-xs font-bold text-white font-mono">{formatTime(gate.scheduled_departure)}</p>
+            </div>
+          )}
+        </div>
       )}
       
       <button onClick={() => onToggleOccupancy(gate)}
