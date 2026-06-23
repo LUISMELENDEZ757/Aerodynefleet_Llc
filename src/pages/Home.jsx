@@ -18,6 +18,15 @@ export default function Home() {
   return (
     <div className="min-h-screen bg-background flex flex-col">
 
+      {/* Support Banner */}
+      <div className="w-full bg-primary/10 border-b border-primary/20 px-4 py-2 text-center text-xs text-primary/90">
+        For support questions, contact{' '}
+        <a href="mailto:luis@aerodynefleet.com" className="font-bold underline underline-offset-2 hover:text-primary transition-colors">
+          luis@aerodynefleet.com
+        </a>{' '}
+        for US and Americas assistance.
+      </div>
+
       {/* Navigation */}
       <nav className="sticky top-0 z-50 border-b border-border bg-card/95 backdrop-blur-md px-6 py-3 flex items-center shadow-sm">
         <div className="max-w-7xl mx-auto w-full flex items-center justify-between">
