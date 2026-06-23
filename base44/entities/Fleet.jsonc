@@ -12,16 +12,13 @@
       "description": "IATA or ICAO operator code e.g. AEX"
     },
     "iata_code": {
-      "type": "string",
-      "description": "IATA 2-letter code e.g. AX"
+      "type": "string"
     },
     "callsign": {
-      "type": "string",
-      "description": "Radio telephony callsign e.g. AERODYNE"
+      "type": "string"
     },
     "hub_station": {
-      "type": "string",
-      "description": "Primary hub ICAO e.g. KEWR"
+      "type": "string"
     },
     "fleet_type": {
       "type": "string",
@@ -33,27 +30,22 @@
         "private",
         "wet_lease"
       ],
-      "default": "mainline",
-      "description": "Fleet category"
+      "default": "mainline"
     },
     "aircraft_types": {
       "type": "array",
       "items": {
         "type": "string"
-      },
-      "description": "Aircraft types operated by this fleet"
+      }
     },
     "color": {
-      "type": "string",
-      "description": "Brand color hex e.g. #3b82f6"
+      "type": "string"
     },
     "logo_url": {
-      "type": "string",
-      "description": "Fleet logo image URL"
+      "type": "string"
     },
     "total_aircraft": {
-      "type": "number",
-      "description": "Total aircraft count in this fleet"
+      "type": "number"
     },
     "status": {
       "type": "string",
