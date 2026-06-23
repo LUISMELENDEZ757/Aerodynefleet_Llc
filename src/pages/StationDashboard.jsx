@@ -271,6 +271,20 @@ export default function StationDashboard() {
     refetchInterval: 60000,
   });
   
+  const { data: gates = [] } = useQuery({
+    queryKey: ['station-gates', icao],
+    queryFn: async () => {
+      const gates = await base44.entities.Gate.filter({ station_icao: icao }, 'code', 500);
+      // Auto-seed KEWR gates if none exist
+      if (icao === 'KEWR' && gates.length === 0) {
+        await base44.functions.invoke('seedKewrGates', {});
+        return await base44.entities.Gate.filter({ station_icao: icao }, 'code', 500);
+      }
+      return gates;
+    },
+    enabled: !!icao,
+  });
+  
   const flights = allFlights.filter(f => f.origin === icao || f.destination === icao);
   const departures = flights.filter(f => f.origin === icao);
   const arrivals = flights.filter(f => f.destination === icao);
@@ -415,105 +429,11 @@ export default function StationDashboard() {
                 </div>
                 {icao === 'KEWR' && (
                   <span className="text-[10px] font-bold text-primary bg-primary/10 px-2 py-1 rounded">
-                    120+ Gates (Terminals A, B & C)
+                    {gates.length} Gates (Terminals A, B & C)
                   </span>
                 )}
               </div>
-              <GateManagement 
-                stationIcao={icao}
-                initialGates={icao === 'KEWR' 
-                  ? [
-                      ...Array.from({ length: 33 }, (_, i) => ({
-                        id: `A${i + 1}`,
-                        code: `A${i + 1}`,
-                        name: `A${i + 1}`,
-                        type: 'gate',
-                        terminal: 'A',
-                        label: i < 10 ? 'Domestic' : i < 20 ? 'International' : 'Wide-body',
-                        numeric: i + 1,
-                        station_icao: 'KEWR',
-                        occupied: false,
-                        flight: null,
-                      })),
-                      ...Array.from({ length: 10 }, (_, i) => ({
-                        id: `B${40 + i}`,
-                        code: `B${40 + i}`,
-                        name: `B${40 + i}`,
-                        type: 'gate',
-                        terminal: 'B',
-                        label: 'International - Concourse B1',
-                        numeric: 40 + i,
-                        station_icao: 'KEWR',
-                        occupied: false,
-                        flight: null,
-                      })),
-                      ...Array.from({ length: 8 }, (_, i) => ({
-                        id: `B${51 + i}`,
-                        code: `B${51 + i}`,
-                        name: `B${51 + i}`,
-                        type: 'gate',
-                        terminal: 'B',
-                        label: 'International - Concourse B2',
-                        numeric: 51 + i,
-                        station_icao: 'KEWR',
-                        occupied: false,
-                        flight: null,
-                      })),
-                      ...Array.from({ length: 9 }, (_, i) => ({
-                        id: `B${60 + i}`,
-                        code: `B${60 + i}`,
-                        name: `B${60 + i}`,
-                        type: 'gate',
-                        terminal: 'B',
-                        label: 'International - Concourse B3',
-                        numeric: 60 + i,
-                        station_icao: 'KEWR',
-                        occupied: false,
-                        flight: null,
-                      })),
-                      ...Array.from({ length: 30 }, (_, i) => ({
-                        id: `C${70 + i}`,
-                        code: `C${70 + i}`,
-                        name: `C${70 + i}`,
-                        type: 'gate',
-                        terminal: 'C',
-                        label: 'United - Concourse C1',
-                        numeric: 70 + i,
-                        station_icao: 'KEWR',
-                        occupied: false,
-                        flight: null,
-                      })),
-                      ...Array.from({ length: 13 }, (_, i) => ({
-                        id: `C${101 + i}`,
-                        code: `C${101 + i}`,
-                        name: `C${101 + i}`,
-                        type: 'gate',
-                        terminal: 'C',
-                        label: 'United - Concourse C2',
-                        numeric: 101 + i,
-                        station_icao: 'KEWR',
-                        occupied: false,
-                        flight: null,
-                      })),
-                      ...Array.from({ length: 20 }, (_, i) => ({
-                        id: `C${120 + i}`,
-                        code: `C${120 + i}`,
-                        name: `C${120 + i}`,
-                        type: 'gate',
-                        terminal: 'C',
-                        label: 'United - Concourse C3',
-                        numeric: 120 + i,
-                        station_icao: 'KEWR',
-                        occupied: false,
-                        flight: null,
-                      })),
-                    ]
-                  : []
-                }
-                onChange={(updatedGates) => {
-                  console.log('Gates updated:', updatedGates);
-                }}
-              />
+              <GateManagement stationIcao={icao} />
             </div>
           </div>
         </div>

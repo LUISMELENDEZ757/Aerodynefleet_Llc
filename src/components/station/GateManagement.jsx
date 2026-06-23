@@ -1,5 +1,7 @@
-import { useState, useMemo } from 'react';
-import { Plus, X, Search, Filter, Grid, List, Plane } from 'lucide-react';
+import { useState, useEffect, useMemo } from 'react';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { base44 } from '@/api/base44Client';
+import { Plus, X, Search, Grid, List, Plane } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 const GATE_TYPES = [
@@ -10,31 +12,6 @@ const GATE_TYPES = [
 ];
 
 const TERMINALS = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'J', 'K', 'L', 'M', 'N', 'P', 'Q', 'R', 'S', 'T', 'U', 'V', 'W', 'X', 'Y', 'Z'];
-
-// Extract numeric portion from gate code (e.g., "A12" -> 12, "R3" -> 3)
-function extractNumericPortion(code) {
-  const match = code.match(/(\d+)$/);
-  return match ? parseInt(match[1], 10) : 0;
-}
-
-// Validate gate code
-function validateGateCode(code, type, existingGates) {
-  if (!code || code.length < 2) {
-    return { valid: false, error: 'Gate code must be at least 2 characters (e.g., A1, R3)' };
-  }
-  
-  // Check format: letter(s) + number(s)
-  if (!/^[A-Z]+\d+$/.test(code.toUpperCase())) {
-    return { valid: false, error: 'Format must be letter(s) + number(s) (e.g., A1, B12, R3)' };
-  }
-  
-  // Check for duplicates
-  if (existingGates.some(g => g.code.toUpperCase() === code.toUpperCase())) {
-    return { valid: false, error: 'This gate already exists' };
-  }
-  
-  return { valid: true, error: null };
-}
 
 function GateTypeBadge({ type }) {
   const cfg = GATE_TYPES.find(t => t.id === type) || GATE_TYPES[0];
@@ -52,7 +29,7 @@ function GateCard({ gate, onRemove, onToggleOccupancy, viewMode }) {
     return (
       <div className={cn('flex items-center justify-between px-4 py-3 rounded-xl border transition-all',
         gate.occupied ? 'bg-orange-500/10 border-orange-500/30' : 'bg-green-500/10 border-green-500/30')}>
-        <div className="flex items-center gap-3 flex-1">
+        <div className="flex items-center gap-3 flex-1 min-w-0">
           <div className={cn('w-10 h-10 rounded-lg flex items-center justify-center font-black text-sm',
             gate.occupied ? 'bg-orange-500/20 text-orange-300' : 'bg-green-500/20 text-green-400')}>
             {gate.name || gate.code}
@@ -73,12 +50,12 @@ function GateCard({ gate, onRemove, onToggleOccupancy, viewMode }) {
           </div>
         </div>
         <div className="flex items-center gap-2">
-          <button onClick={() => onToggleOccupancy(gate.id)}
+          <button onClick={() => onToggleOccupancy(gate)}
             className={cn('px-3 py-1.5 rounded-lg text-xs font-bold transition-colors',
               gate.occupied ? 'bg-green-600 text-white hover:bg-green-500' : 'bg-orange-600 text-white hover:bg-orange-500')}>
             {gate.occupied ? 'OCCUPIED' : 'AVAILABLE'}
           </button>
-          <button onClick={() => onRemove(gate.id)}
+          <button onClick={() => onRemove(gate)}
             className="w-8 h-8 rounded-lg bg-red-900/30 border border-red-700/30 flex items-center justify-center hover:bg-red-900/60 transition-colors">
             <X className="w-4 h-4 text-red-400" />
           </button>
@@ -87,11 +64,10 @@ function GateCard({ gate, onRemove, onToggleOccupancy, viewMode }) {
     );
   }
   
-  // Grid view
   return (
     <div className={cn('rounded-xl border-2 p-4 flex flex-col items-center justify-center transition-all relative group',
       gate.occupied ? 'bg-orange-500/10 border-orange-500/40' : 'bg-green-500/10 border-green-500/30')}>
-      <button onClick={() => onRemove(gate.id)}
+      <button onClick={() => onRemove(gate)}
         className="absolute top-2 right-2 w-6 h-6 rounded-lg bg-red-900/30 border border-red-700/30 flex items-center justify-center opacity-0 group-hover:opacity-100 hover:bg-red-900/60 transition-all">
         <X className="w-3 h-3 text-red-400" />
       </button>
@@ -115,7 +91,7 @@ function GateCard({ gate, onRemove, onToggleOccupancy, viewMode }) {
         </p>
       )}
       
-      <button onClick={() => onToggleOccupancy(gate.id)}
+      <button onClick={() => onToggleOccupancy(gate)}
         className={cn('mt-3 px-3 py-1.5 rounded-lg text-[10px] font-bold transition-colors w-full',
           gate.occupied ? 'bg-green-600 text-white hover:bg-green-500' : 'bg-orange-600 text-white hover:bg-orange-500')}>
         {gate.occupied ? 'OCCUPIED' : 'AVAILABLE'}
@@ -124,15 +100,14 @@ function GateCard({ gate, onRemove, onToggleOccupancy, viewMode }) {
   );
 }
 
-export default function GateManagement({ initialGates = [], stationIcao, onChange }) {
-  const [gates, setGates] = useState(initialGates || []);
+export default function GateManagement({ stationIcao }) {
+  const queryClient = useQueryClient();
   const [showAddModal, setShowAddModal] = useState(false);
   const [viewMode, setViewMode] = useState('grid');
   const [filterType, setFilterType] = useState('all');
   const [searchQuery, setSearchQuery] = useState('');
   const [sortBy, setSortBy] = useState('alphabetical');
   
-  // Add gate form state
   const [newGate, setNewGate] = useState({
     code: '',
     type: 'gate',
@@ -141,57 +116,82 @@ export default function GateManagement({ initialGates = [], stationIcao, onChang
   });
   const [validationError, setValidationError] = useState(null);
   
-  // Auto-extract numeric portion
-  const numericPortion = useMemo(() => extractNumericPortion(newGate.code), [newGate.code]);
+  const { data: gates = [], isLoading } = useQuery({
+    queryKey: ['station-gates', stationIcao],
+    queryFn: () => base44.entities.Gate.filter({ station_icao: stationIcao }, 'code', 500),
+    enabled: !!stationIcao,
+  });
+  
+  const addGateMutation = useMutation({
+    mutationFn: async (gateData) => {
+      return await base44.entities.Gate.create(gateData);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries(['station-gates', stationIcao]);
+    },
+  });
+  
+  const updateGateMutation = useMutation({
+    mutationFn: async ({ id, data }) => {
+      return await base44.entities.Gate.update(id, data);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries(['station-gates', stationIcao]);
+    },
+  });
+  
+  const deleteGateMutation = useMutation({
+    mutationFn: async (gateId) => {
+      return await base44.entities.Gate.delete(gateId);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries(['station-gates', stationIcao]);
+    },
+  });
   
   const handleAddGate = () => {
     const code = newGate.code.toUpperCase().trim();
-    const validation = validateGateCode(code, newGate.type, gates);
-    
-    if (!validation.valid) {
-      setValidationError(validation.error);
+    if (!code || code.length < 2 || !/^[A-Z]+\d+$/.test(code)) {
+      setValidationError('Format must be letter(s) + number(s) (e.g., A1, B12, R3)');
       return;
     }
     
-    const gate = {
-      id: Date.now().toString(),
+    if (gates.some(g => g.code.toUpperCase() === code)) {
+      setValidationError('This gate already exists');
+      return;
+    }
+    
+    addGateMutation.mutate({
       code,
       name: code,
       type: newGate.type,
-      terminal: newGate.type === 'gate' || newGate.type === 'concourse' ? newGate.terminal : null,
+      terminal: (newGate.type === 'gate' || newGate.type === 'concourse') ? newGate.terminal : null,
       label: newGate.label,
-      numeric: numericPortion,
+      numeric: parseInt(code.match(/(\d+)$/)?.[1] || '0', 10),
       station_icao: stationIcao,
       occupied: false,
       flight: null,
-    };
+    });
     
-    const updated = [...gates, gate];
-    setGates(updated);
-    onChange?.(updated);
     setShowAddModal(false);
     setNewGate({ code: '', type: 'gate', terminal: 'A', label: '' });
     setValidationError(null);
   };
   
-  const handleRemoveGate = (gateId) => {
-    const updated = gates.filter(g => g.id !== gateId);
-    setGates(updated);
-    onChange?.(updated);
+  const handleRemoveGate = (gate) => {
+    deleteGateMutation.mutate(gate.id);
   };
   
-  const handleToggleOccupancy = (gateId) => {
-    const updated = gates.map(g => {
-      if (g.id === gateId) {
-        return { ...g, occupied: !g.occupied, flight: !g.occupied ? 'FLT1234' : null };
-      }
-      return g;
+  const handleToggleOccupancy = (gate) => {
+    updateGateMutation.mutate({
+      id: gate.id,
+      data: {
+        occupied: !gate.occupied,
+        flight: !gate.occupied ? 'FLT1234' : null,
+      },
     });
-    setGates(updated);
-    onChange?.(updated);
   };
   
-  // Filter and sort gates
   const filteredGates = useMemo(() => {
     return gates
       .filter(g => {
@@ -215,22 +215,12 @@ export default function GateManagement({ initialGates = [], stationIcao, onChang
       });
   }, [gates, filterType, searchQuery, sortBy]);
   
-  // Group gates by type
-  const groupedGates = useMemo(() => {
-    return filteredGates.reduce((acc, gate) => {
-      if (!acc[gate.type]) acc[gate.type] = [];
-      acc[gate.type].push(gate);
-      return acc;
-    }, {});
-  }, [filteredGates]);
-  
   const totalGates = gates.length;
   const occupiedCount = gates.filter(g => g.occupied).length;
   const availableCount = totalGates - occupiedCount;
   
   return (
     <div className="space-y-4">
-      {/* Controls Bar */}
       <div className="flex items-center justify-between flex-wrap gap-3">
         <div className="flex items-center gap-2 flex-1 min-w-0">
           <div className="relative flex-1 max-w-xs">
@@ -286,7 +276,6 @@ export default function GateManagement({ initialGates = [], stationIcao, onChang
         </div>
       </div>
       
-      {/* Stats */}
       <div className="grid grid-cols-3 gap-3">
         <div className="bg-[#141922] border border-white/10 rounded-xl px-4 py-3 text-center">
           <p className="text-2xl font-black text-white">{totalGates}</p>
@@ -302,15 +291,22 @@ export default function GateManagement({ initialGates = [], stationIcao, onChang
         </div>
       </div>
       
-      {/* Gates Display */}
-      {filteredGates.length === 0 ? (
+      {isLoading ? (
+        <div className="bg-[#141922] border border-white/10 rounded-2xl p-8 text-center">
+          <p className="text-gray-400 text-sm">Loading gates...</p>
+        </div>
+      ) : filteredGates.length === 0 ? (
         <div className="bg-[#141922] border border-white/10 rounded-2xl p-8 text-center">
           <p className="text-gray-400 text-sm">No gates found. Add your first gate to get started.</p>
         </div>
       ) : (
         <div className="space-y-6">
           {sortBy === 'type' ? (
-            Object.entries(groupedGates).map(([type, typeGates]) => {
+            Object.entries(filteredGates.reduce((acc, gate) => {
+              if (!acc[gate.type]) acc[gate.type] = [];
+              acc[gate.type].push(gate);
+              return acc;
+            }, {})).map(([type, typeGates]) => {
               const typeCfg = GATE_TYPES.find(t => t.id === type);
               return (
                 <div key={type}>
@@ -352,7 +348,6 @@ export default function GateManagement({ initialGates = [], stationIcao, onChang
         </div>
       )}
       
-      {/* Add Gate Modal */}
       {showAddModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/85 p-4">
           <div className="w-full max-w-md bg-[#0f1623] border border-white/10 rounded-2xl shadow-2xl overflow-hidden">
@@ -365,7 +360,6 @@ export default function GateManagement({ initialGates = [], stationIcao, onChang
             </div>
             
             <div className="p-6 space-y-4">
-              {/* Gate Type */}
               <div>
                 <label className="text-[10px] font-bold text-gray-500 uppercase tracking-widest block mb-2">Gate Type</label>
                 <div className="grid grid-cols-2 gap-2">
@@ -382,11 +376,8 @@ export default function GateManagement({ initialGates = [], stationIcao, onChang
                 </div>
               </div>
               
-              {/* Gate Code */}
               <div>
-                <label className="text-[10px] font-bold text-gray-500 uppercase tracking-widest block mb-2">
-                  Gate Code
-                </label>
+                <label className="text-[10px] font-bold text-gray-500 uppercase tracking-widest block mb-2">Gate Code</label>
                 <input
                   type="text"
                   placeholder={newGate.type === 'remote' ? 'R1, R2, R3...' : newGate.type === 'hardstand' ? 'H1, H2...' : 'A1, B12, C5...'}
@@ -403,14 +394,8 @@ export default function GateManagement({ initialGates = [], stationIcao, onChang
                     <X className="w-3 h-3" /> {validationError}
                   </p>
                 )}
-                {newGate.code && (
-                  <p className="text-[10px] text-gray-500 mt-2">
-                    Will be registered as: <span className="text-primary font-bold">{newGate.code.toUpperCase()}</span>
-                  </p>
-                )}
               </div>
               
-              {/* Terminal (for gate/concourse types) */}
               {(newGate.type === 'gate' || newGate.type === 'concourse') && (
                 <div>
                   <label className="text-[10px] font-bold text-gray-500 uppercase tracking-widest block mb-2">Terminal</label>
@@ -426,11 +411,8 @@ export default function GateManagement({ initialGates = [], stationIcao, onChang
                 </div>
               )}
               
-              {/* Label */}
               <div>
-                <label className="text-[10px] font-bold text-gray-500 uppercase tracking-widest block mb-2">
-                  Label (Optional)
-                </label>
+                <label className="text-[10px] font-bold text-gray-500 uppercase tracking-widest block mb-2">Label (Optional)</label>
                 <input
                   type="text"
                   placeholder="e.g., International, Domestic, Cargo, Wide-body"
@@ -439,22 +421,6 @@ export default function GateManagement({ initialGates = [], stationIcao, onChang
                   className="w-full bg-[#1a2035] border border-white/10 rounded-lg px-3 py-2.5 text-sm text-white placeholder-gray-600 outline-none focus:border-primary"
                 />
               </div>
-              
-              {/* Preview */}
-              {newGate.code && (
-                <div className="bg-[#1a2035] border border-white/10 rounded-xl p-4">
-                  <p className="text-[10px] text-gray-500 uppercase tracking-widest mb-2">Preview</p>
-                  <div className="flex items-center gap-3">
-                    <div className="w-12 h-12 rounded-xl bg-green-500/20 border border-green-500/30 flex items-center justify-center font-black text-lg text-green-400">
-                      {newGate.code.toUpperCase()}
-                    </div>
-                    <div>
-                      <p className="text-sm font-bold text-white">{newGate.code.toUpperCase()}</p>
-                      <GateTypeBadge type={newGate.type} />
-                    </div>
-                  </div>
-                </div>
-              )}
             </div>
             
             <div className="flex items-center justify-end gap-2 px-6 py-4 border-t border-white/10 bg-[#1a2035]/50">
@@ -463,9 +429,9 @@ export default function GateManagement({ initialGates = [], stationIcao, onChang
                 Cancel
               </button>
               <button onClick={handleAddGate}
-                disabled={!newGate.code}
+                disabled={!newGate.code || addGateMutation.isPending}
                 className="px-4 py-2 rounded-lg bg-primary text-primary-foreground text-sm font-bold hover:bg-primary/90 transition-colors disabled:opacity-50 disabled:cursor-not-allowed">
-                Add Gate
+                {addGateMutation.isPending ? 'Adding...' : 'Add Gate'}
               </button>
             </div>
           </div>
