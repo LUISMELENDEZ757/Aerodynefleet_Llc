@@ -334,12 +334,12 @@ export default function CrewChiefDashboard() {
           </div>
           <div className="flex items-center gap-2">
             {/* Station Filter Dropdown */}
-            <div className="relative flex items-center gap-2 bg-background border border-border rounded-xl px-3 py-2 min-w-[180px]">
+            <div className="relative flex items-center gap-2 bg-card border border-border rounded-xl px-3 py-2 min-w-[180px]">
               <MapPin className="w-3.5 h-3.5 text-muted-foreground flex-shrink-0" />
               <select
                 value={stationFilter}
                 onChange={e => setStationFilter(e.target.value)}
-                className="bg-transparent text-sm font-bold text-foreground outline-none flex-1 appearance-none cursor-pointer"
+                className="bg-card text-sm font-bold text-foreground outline-none flex-1 appearance-none cursor-pointer"
               >
                 <option value="">All Stations</option>
                 {stations.map(s => <option key={s} value={s}>{s}</option>)}
