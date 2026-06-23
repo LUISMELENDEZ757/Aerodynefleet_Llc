@@ -465,11 +465,18 @@ export default function StationDashboard() {
           {/* Gate Management */}
           <div className="lg:col-span-2">
             <div className="bg-[#0d1117] border border-white/10 rounded-2xl overflow-hidden p-5">
-              <div className="mb-4">
-                <p className="font-extrabold text-white text-sm flex items-center gap-2">
-                  <MapPin className="w-4 h-4 text-cyan-400" /> Gate Management
-                </p>
-                <p className="text-xs text-gray-500 mt-0.5">Manage terminal gates, remote ramps, and hardstand positions</p>
+              <div className="mb-4 flex items-center justify-between">
+                <div>
+                  <p className="font-extrabold text-white text-sm flex items-center gap-2">
+                    <MapPin className="w-4 h-4 text-cyan-400" /> Gate Management
+                  </p>
+                  <p className="text-xs text-gray-500 mt-0.5">Manage terminal gates, remote ramps, and hardstand positions</p>
+                </div>
+                {icao === 'KEWR' && (
+                  <span className="text-[10px] font-bold text-primary bg-primary/10 px-2 py-1 rounded">
+                    33 Gates (A1-A33)
+                  </span>
+                )}
               </div>
               <GateManagement 
                 stationIcao={icao}
@@ -489,7 +496,6 @@ export default function StationDashboard() {
                   : []
                 }
                 onChange={(updatedGates) => {
-                  // Handle gate updates - save to database or state
                   console.log('Gates updated:', updatedGates);
                 }}
               />
