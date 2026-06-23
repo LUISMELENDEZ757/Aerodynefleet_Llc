@@ -474,7 +474,7 @@ export default function StationDashboard() {
                 </div>
                 {icao === 'KEWR' && (
                   <span className="text-[10px] font-bold text-primary bg-primary/10 px-2 py-1 rounded">
-                    60 Gates (Terminals A & B)
+                    120+ Gates (Terminals A, B & C)
                   </span>
                 )}
               </div>
@@ -531,6 +531,46 @@ export default function StationDashboard() {
                         terminal: 'B',
                         label: 'International - Concourse B3',
                         numeric: 60 + i,
+                        station_icao: 'KEWR',
+                        occupied: false,
+                        flight: null,
+                      })),
+                      // Terminal C: United Airlines (exclusive) - ~68 gates
+                      // C1: Gates C70-C99 (30 gates)
+                      ...Array.from({ length: 30 }, (_, i) => ({
+                        id: `C${70 + i}`,
+                        code: `C${70 + i}`,
+                        name: `C${70 + i}`,
+                        type: 'gate',
+                        terminal: 'C',
+                        label: 'United - Concourse C1',
+                        numeric: 70 + i,
+                        station_icao: 'KEWR',
+                        occupied: false,
+                        flight: null,
+                      })),
+                      // C2: Gates C101-C113 (13 gates)
+                      ...Array.from({ length: 13 }, (_, i) => ({
+                        id: `C${101 + i}`,
+                        code: `C${101 + i}`,
+                        name: `C${101 + i}`,
+                        type: 'gate',
+                        terminal: 'C',
+                        label: 'United - Concourse C2',
+                        numeric: 101 + i,
+                        station_icao: 'KEWR',
+                        occupied: false,
+                        flight: null,
+                      })),
+                      // C3: Gates C120-C139 (20 gates)
+                      ...Array.from({ length: 20 }, (_, i) => ({
+                        id: `C${120 + i}`,
+                        code: `C${120 + i}`,
+                        name: `C${120 + i}`,
+                        type: 'gate',
+                        terminal: 'C',
+                        label: 'United - Concourse C3',
+                        numeric: 120 + i,
                         station_icao: 'KEWR',
                         occupied: false,
                         flight: null,
