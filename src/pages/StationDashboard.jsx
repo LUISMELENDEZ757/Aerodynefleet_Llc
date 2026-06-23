@@ -13,6 +13,7 @@ import CatCapabilityBadge from '@/components/techops/CatCapabilityBadge';
 import EtopsCapabilityBadge from '@/components/techops/EtopsCapabilityBadge';
 import { selectPrimaryMel } from '@/lib/MelSeverityEngine';
 import GateManagement from '@/components/station/GateManagement';
+import TurnPerformanceCard from '@/components/station/TurnPerformanceCard';
 
 const SERVICING_STATES = {
   not_started: { label: 'Not Started', color: 'text-gray-400', bg: 'bg-gray-500/15', border: 'border-gray-500/30' },
@@ -198,53 +199,6 @@ function AircraftTile({ aircraft, melItems, logEntries, flights }) {
   );
 }
 
-function TurnPerformanceCard({ flight }) {
-  const plannedTurn = 45;
-  const actualTurn = 38;
-  const remaining = Math.max(0, plannedTurn - actualTurn);
-  const isOnTime = remaining >= 10;
-  
-  return (
-    <div className="bg-[#141922] border border-white/10 rounded-2xl p-4 space-y-3">
-      <div className="flex items-center justify-between">
-        <div>
-          <p className="text-sm font-bold text-white">{flight.flight_number}</p>
-          <p className="text-xs text-gray-500">{flight.aircraft_tail} · {flight.destination}</p>
-        </div>
-        <span className={cn('text-[10px] font-bold px-2 py-0.5 rounded-full', 
-          isOnTime ? 'bg-green-500/15 text-green-400' : 'bg-red-500/15 text-red-400')}>
-          {isOnTime ? 'ON TIME' : 'DELAYED'}
-        </span>
-      </div>
-      
-      <div className="flex items-center gap-3">
-        <div className="flex-1">
-          <div className="flex items-center justify-between text-[10px] text-gray-500 mb-1">
-            <span>Planned: {plannedTurn}m</span>
-            <span>Actual: {actualTurn}m</span>
-          </div>
-          <div className="h-2 bg-white/10 rounded-full overflow-hidden">
-            <div className={cn('h-full rounded-full transition-all', isOnTime ? 'bg-green-500' : 'bg-red-500')}
-              style={{ width: `${Math.min(100, (actualTurn / plannedTurn) * 100)}%` }} />
-          </div>
-        </div>
-        <div className="text-right">
-          <p className="text-[10px] text-gray-500">Remaining</p>
-          <p className={cn('text-lg font-black', isOnTime ? 'text-green-400' : 'text-red-400')}>{remaining}m</p>
-        </div>
-      </div>
-      
-      <div className="flex flex-wrap gap-1.5 pt-1">
-        <ServiceBadge service="fuel" state="completed" />
-        <ServiceBadge service="bags" state="in_progress" />
-        <ServiceBadge service="cleaning" state="in_progress" />
-      </div>
-    </div>
-  );
-}
-
-
-
 function MaintenanceWorkloadCard({ entry }) {
   const statusCfg = {
     open: { label: 'OPEN', color: 'text-red-400', bg: 'bg-red-500/15' },
@@ -284,11 +238,9 @@ export default function StationDashboard() {
     queryFn: () => base44.entities.Station.list('icao_code', 500),
   });
   
-  // Use selectedIcao or default to first station
   const icao = selectedIcao || (stations.length > 0 ? stations[0].icao_code : '');
   const station = stations.find(s => s.icao_code === icao);
   
-  // Update URL when station changes
   useEffect(() => {
     if (icao && icao !== icaoParam) {
       setSearchParams({ icao });
@@ -325,25 +277,23 @@ export default function StationDashboard() {
   const airborne = flights.filter(f => f.status === 'airborne').length;
   const delayed = flights.filter(f => (f.delay_minutes || 0) > 0).length;
   
-  // Aircraft currently at station
   const aircraftAtStation = allAircraft.filter(a => a.base_station === icao);
   const aogCount = aircraftAtStation.filter(a => a.status === 'oos').length;
   const activeCount = aircraftAtStation.filter(a => a.status === 'active').length;
   
-  // Maintenance workload at station
   const mxWorkload = logEntries.filter(e => e.station === icao && e.discrepancy_status !== 'CLOSED');
   const inProgress = mxWorkload.filter(e => e.discrepancy_status === 'IN_PROGRESS').length;
   const waitingParts = mxWorkload.filter(e => e.notes?.includes('WAITING PARTS')).length;
   
-  // Restrictive MELs at station
   const restrictiveMels = melItems.filter(m => 
     m.status !== 'cleared' && 
     (m.etops_impact === 'NO_ETOPS' || m.etops_impact === 'ETOPS_WITH_LIMITS' || m.flight_restrictions)
   );
   
+  const handleFlightUpdate = (flightId, newFlightNumber) => {
+    refetchFlights();
+  };
 
-  
-  // Show loading or message if no stations exist
   if (stations.length === 0) {
     return (
       <div className="min-h-screen bg-[#0a0d11] flex items-center justify-center">
@@ -357,7 +307,6 @@ export default function StationDashboard() {
   
   return (
     <div className="min-h-screen bg-[#0a0d11] pb-24">
-      {/* Header */}
       <div className="flex items-center justify-between px-6 py-4 border-b border-white/10 bg-[#0d1117] sticky top-0 z-20">
         <div className="flex items-center gap-3">
           <Link to="/GlobalStations" className="w-9 h-9 rounded-lg bg-white/10 flex items-center justify-center hover:bg-white/20 transition-colors">
@@ -380,7 +329,6 @@ export default function StationDashboard() {
           </div>
         </div>
         <div className="flex items-center gap-2">
-          {/* Station Selector */}
           <select 
             value={icao} 
             onChange={(e) => setSelectedIcao(e.target.value)}
@@ -397,8 +345,6 @@ export default function StationDashboard() {
       </div>
       
       <div className="px-6 py-5 space-y-6 max-w-7xl mx-auto">
-        
-        {/* KPI Row - Core Overview */}
         <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-6 gap-3">
           <KpiCard label="Aircraft on Ground" value={aircraftAtStation.length} sub={`${activeCount} active · ${aogCount} AOG`} color="text-white" icon={Plane} />
           <KpiCard label="Total Movements" value={flights.length} sub={`${departures.length} DEP · ${arrivals.length} ARR`} color="text-cyan-400" icon={Activity} />
@@ -408,7 +354,6 @@ export default function StationDashboard() {
           <KpiCard label="Restrictive MELs" value={restrictiveMels.length} alert={restrictiveMels.length > 0} color="text-red-400" icon={AlertTriangle} />
         </div>
         
-        {/* Aircraft Status Tiles */}
         <div>
           <div className="flex items-center justify-between mb-3">
             <p className="text-xs font-bold text-gray-500 uppercase tracking-widest flex items-center gap-2">
@@ -423,7 +368,6 @@ export default function StationDashboard() {
           </div>
         </div>
         
-        {/* Turn Performance */}
         <div>
           <div className="flex items-center justify-between mb-3">
             <p className="text-xs font-bold text-gray-500 uppercase tracking-widest flex items-center gap-2">
@@ -433,14 +377,12 @@ export default function StationDashboard() {
           </div>
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
             {departures.filter(f => f.status !== 'departed').slice(0, 3).map(f => (
-              <TurnPerformanceCard key={f.id} flight={f} />
+              <TurnPerformanceCard key={f.id} flight={f} onUpdate={handleFlightUpdate} />
             ))}
           </div>
         </div>
         
-        {/* Two Column: Maintenance + Gates */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
-          {/* Maintenance Workload */}
           <div className="bg-[#0d1117] border border-white/10 rounded-2xl overflow-hidden">
             <div className="px-5 py-3 border-b border-white/10 flex items-center justify-between">
               <p className="font-extrabold text-white text-sm flex items-center gap-2">
@@ -462,7 +404,6 @@ export default function StationDashboard() {
             </div>
           </div>
           
-          {/* Gate Management */}
           <div className="lg:col-span-2">
             <div className="bg-[#0d1117] border border-white/10 rounded-2xl overflow-hidden p-5">
               <div className="mb-4 flex items-center justify-between">
@@ -482,7 +423,6 @@ export default function StationDashboard() {
                 stationIcao={icao}
                 initialGates={icao === 'KEWR' 
                   ? [
-                      // Terminal A: 33 gates (A1-A33)
                       ...Array.from({ length: 33 }, (_, i) => ({
                         id: `A${i + 1}`,
                         code: `A${i + 1}`,
@@ -495,8 +435,6 @@ export default function StationDashboard() {
                         occupied: false,
                         flight: null,
                       })),
-                      // Terminal B: 27 gates across 3 concourses
-                      // B1: Gates B40-B47 (10 gates)
                       ...Array.from({ length: 10 }, (_, i) => ({
                         id: `B${40 + i}`,
                         code: `B${40 + i}`,
@@ -509,7 +447,6 @@ export default function StationDashboard() {
                         occupied: false,
                         flight: null,
                       })),
-                      // B2: Gates B51-B58 (8 gates)
                       ...Array.from({ length: 8 }, (_, i) => ({
                         id: `B${51 + i}`,
                         code: `B${51 + i}`,
@@ -522,7 +459,6 @@ export default function StationDashboard() {
                         occupied: false,
                         flight: null,
                       })),
-                      // B3: Gates B60-B68 (9 gates)
                       ...Array.from({ length: 9 }, (_, i) => ({
                         id: `B${60 + i}`,
                         code: `B${60 + i}`,
@@ -535,8 +471,6 @@ export default function StationDashboard() {
                         occupied: false,
                         flight: null,
                       })),
-                      // Terminal C: United Airlines (exclusive) - ~68 gates
-                      // C1: Gates C70-C99 (30 gates)
                       ...Array.from({ length: 30 }, (_, i) => ({
                         id: `C${70 + i}`,
                         code: `C${70 + i}`,
@@ -549,7 +483,6 @@ export default function StationDashboard() {
                         occupied: false,
                         flight: null,
                       })),
-                      // C2: Gates C101-C113 (13 gates)
                       ...Array.from({ length: 13 }, (_, i) => ({
                         id: `C${101 + i}`,
                         code: `C${101 + i}`,
@@ -562,7 +495,6 @@ export default function StationDashboard() {
                         occupied: false,
                         flight: null,
                       })),
-                      // C3: Gates C120-C139 (20 gates)
                       ...Array.from({ length: 20 }, (_, i) => ({
                         id: `C${120 + i}`,
                         code: `C${120 + i}`,
@@ -586,7 +518,6 @@ export default function StationDashboard() {
           </div>
         </div>
         
-        {/* Restrictive MELs Alert */}
         {restrictiveMels.length > 0 && (
           <div className="bg-red-950/40 border border-red-500/60 rounded-2xl p-4 space-y-2">
             <div className="flex items-center gap-2 mb-1">
@@ -617,7 +548,6 @@ export default function StationDashboard() {
           </div>
         )}
         
-        {/* Station Health Metrics */}
         <div className="bg-[#0d1117] border border-white/10 rounded-2xl overflow-hidden">
           <div className="px-5 py-3 border-b border-white/10">
             <p className="font-extrabold text-white text-sm flex items-center gap-2">
