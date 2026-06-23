@@ -151,7 +151,7 @@ function AppContent() {
 
           {/* Brand — hide long subtitle on mobile */}
           <div className="flex flex-col leading-none">
-            <span className="text-[11px] font-black text-primary tracking-widest uppercase">Aerodyne Fleet LLC</span>
+            <span className="text-[11px] font-black text-primary tracking-widest uppercase">Aerodyne Fleet</span>
             {!isMobile && (
               <span className="text-[9px] text-muted-foreground tracking-widest uppercase">Aircraft Maintenance Management System</span>
             )}
