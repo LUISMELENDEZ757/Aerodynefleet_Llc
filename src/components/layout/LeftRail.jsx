@@ -48,6 +48,7 @@ const NAV_GROUPS = [
       { label: 'Mx Supervisor', icon: '📋', path: '/MxSupervisor' },
       { label: 'Line Maintenance', icon: '🔧', path: '/LineMaintenanceDashboard' },
       { label: 'TechOps Dashboard', icon: '🛠️', path: '/TechOps' },
+      { label: 'Tech Support', icon: '🚨', path: '/TechSupport' },
       { label: 'E-Logbook', icon: '📖', path: '/TechOpsLogbook' },
       { label: 'Aircraft Status', icon: '📚', path: '/MaintenanceLogbook' },
       { label: 'Mx Tracking', icon: '📡', path: '/MxTracking' },
