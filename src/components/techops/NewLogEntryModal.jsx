@@ -476,8 +476,8 @@ export default function NewLogEntryModal({ aircraftTail, nextLogPage, preset, on
   const canSaveOpen = step >= 2 && discrepancy.description.trim().length > 10;
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/85 p-3">
-      <div className="w-full max-w-2xl bg-[#0f1623] border border-white/10 rounded-2xl shadow-2xl overflow-hidden flex flex-col max-h-[95vh]">
+    <div className="fixed inset-0 z-50 flex items-start justify-center bg-black/85 p-3 pt-[96px] overflow-y-auto">
+      <div className="w-full max-w-2xl bg-[#0f1623] border border-white/10 rounded-2xl shadow-2xl overflow-hidden flex flex-col max-h-[calc(100vh-112px)]">
 
         {/* ── Top header ── */}
         <div className="flex items-center justify-between px-6 py-4 border-b border-white/10 bg-[#0a0f1a] flex-shrink-0">
