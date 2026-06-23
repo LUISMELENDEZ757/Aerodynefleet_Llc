@@ -10,8 +10,7 @@
       "type": "string"
     },
     "ata_chapter": {
-      "type": "string",
-      "description": "ATA chapter e.g. 21-31"
+      "type": "string"
     },
     "item_number": {
       "type": "string"
@@ -52,8 +51,7 @@
     },
     "etops_critical": {
       "type": "boolean",
-      "default": false,
-      "description": "This MEL item is ETOPS-critical \u2014 tagged regardless of aircraft type"
+      "default": false
     },
     "etops_impact": {
       "type": "string",
@@ -62,16 +60,13 @@
         "NO_ETOPS",
         "ETOPS_WITH_LIMITS"
       ],
-      "default": "OK",
-      "description": "ETOPS dispatch impact: OK = no restriction, NO_ETOPS = blocks all ETOPS, ETOPS_WITH_LIMITS = allowed with rating/route limits"
+      "default": "OK"
     },
     "etops_limit_rating": {
-      "type": "number",
-      "description": "If etops_impact=ETOPS_WITH_LIMITS, maximum ETOPS rating still permitted e.g. 180"
+      "type": "number"
     },
     "etops_notes": {
-      "type": "string",
-      "description": "ETOPS-specific notes e.g. ETOPS not allowed if APU inop, ETOPS allowed up to 180 only"
+      "type": "string"
     },
     "status": {
       "type": "string",
@@ -105,15 +100,7 @@
   ],
   "rls": {
     "create": {
-      "user_condition": {
-        "role": "technician"
-      }
-    },
-    "read": {
       "$or": [
-        {
-          "created_by_id": "{{user.id}}"
-        },
         {
           "user_condition": {
             "role": "admin"
@@ -121,36 +108,12 @@
         },
         {
           "user_condition": {
-            "role": "mcc_supervisor"
-          }
-        },
-        {
-          "user_condition": {
-            "role": "engineer"
-          }
-        },
-        {
-          "user_condition": {
             "role": "technician"
-          }
-        },
-        {
-          "user_condition": {
-            "role": "dispatcher"
-          }
-        },
-        {
-          "user_condition": {
-            "role": "captain"
-          }
-        },
-        {
-          "user_condition": {
-            "role": "first_officer"
           }
         }
       ]
     },
+    "read": {},
     "update": {
       "$or": [
         {
