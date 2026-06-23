@@ -473,7 +473,21 @@ export default function StationDashboard() {
               </div>
               <GateManagement 
                 stationIcao={icao}
-                initialGates={[]}
+                initialGates={icao === 'KEWR' 
+                  ? Array.from({ length: 33 }, (_, i) => ({
+                      id: `A${i + 1}`,
+                      code: `A${i + 1}`,
+                      name: `A${i + 1}`,
+                      type: 'gate',
+                      terminal: 'A',
+                      label: i < 10 ? 'Domestic' : i < 20 ? 'International' : 'Wide-body',
+                      numeric: i + 1,
+                      station_icao: 'KEWR',
+                      occupied: false,
+                      flight: null,
+                    }))
+                  : []
+                }
                 onChange={(updatedGates) => {
                   // Handle gate updates - save to database or state
                   console.log('Gates updated:', updatedGates);
