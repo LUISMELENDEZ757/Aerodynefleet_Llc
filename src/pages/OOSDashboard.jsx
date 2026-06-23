@@ -145,9 +145,17 @@ function NewEntryModal({ onClose }) {
 
   const catWarning = CAT_AFFECTED_ATAS[form.ata_chapter] || null;
 
+  const { data: existingEntries = [] } = useQuery({
+    queryKey: ['logbook-entry-count', form.aircraft_tail],
+    queryFn: () => base44.entities.LogbookEntry.filter({ aircraft_tail: form.aircraft_tail }),
+    enabled: !!form.aircraft_tail,
+  });
+  const nextLogPage = `LP#${String(existingEntries.length + 1).padStart(4, '0')}`;
+
   const mutation = useMutation({
     mutationFn: (data) => base44.entities.LogbookEntry.create({
       ...data,
+      log_page: nextLogPage,
       notes: `Severity: ${data.severity}. ${data.photos?.length || 0} photo(s) attached.`,
     }),
     onSuccess: () => { queryClient.invalidateQueries({ queryKey: ['logbook-entries'] }); onClose(); },
@@ -452,9 +460,17 @@ function OilServiceModal({ onClose }) {
   const MAX_OIL_QT = 12;
   const MAX_APU_QT = 5;
 
+  const { data: oilEntries = [] } = useQuery({
+    queryKey: ['oil-logbook-count', form.aircraft_tail],
+    queryFn: () => base44.entities.LogbookEntry.filter({ aircraft_tail: form.aircraft_tail }),
+    enabled: !!form.aircraft_tail,
+  });
+  const oilNextLogPage = `LP#${String(oilEntries.length + 1).padStart(4, '0')}`;
+
   const mutation = useMutation({
     mutationFn: () => base44.entities.LogbookEntry.create({
       aircraft_tail: form.aircraft_tail,
+      log_page: oilNextLogPage,
       station: form.station,
       ata_chapter: '79',
       entry_type: 'info',
@@ -752,13 +768,20 @@ function OxygenServiceModal({ onClose }) {
     win.close();
   };
 
+  const { data: oxygenEntries = [] } = useQuery({
+    queryKey: ['oxygen-logbook-count', form.aircraft_tail],
+    queryFn: () => base44.entities.LogbookEntry.filter({ aircraft_tail: form.aircraft_tail }),
+    enabled: !!form.aircraft_tail,
+  });
+  const oxygenNextLogPage = `LP#${String(oxygenEntries.length + 1).padStart(4, '0')}`;
+
   const mutation = useMutation({
     mutationFn: () => base44.entities.LogbookEntry.create({
       aircraft_tail: form.aircraft_tail,
+      log_page: oxygenNextLogPage,
       station: form.station,
       ata_chapter: '35',
       entry_type: 'info',
-      log_page: logPage,
       description: [
         `[OXYGEN SERVICE] ATA 35 — Oxygen System Servicing`,
         `Date: ${form.date}  Time (UTC): ${form.time_utc}  Station: ${form.station}`,
