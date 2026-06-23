@@ -103,10 +103,22 @@ export default function CreateTaskPanel({ aircraft = [] }) {
 
   if (submitted) {
     return (
-      <div className="flex flex-col items-center justify-center py-20 gap-4">
-        <CheckCircle className="w-16 h-16 text-green-400" />
-        <p className="text-xl font-extrabold text-foreground">Task Created</p>
-        <p className="text-sm text-muted-foreground">Task added to Daily Assignments and visible on the Fleet Dashboard aircraft timeline.</p>
+      <div className="flex flex-col items-center justify-center py-20 gap-6">
+        <CheckCircle className="w-20 h-20 text-green-400" />
+        <div className="text-center space-y-2">
+          <p className="text-2xl font-extrabold text-foreground">Task Created for {form.requested_by}</p>
+          <p className="text-sm text-muted-foreground">Task added to Daily Assignments and visible on the Fleet Dashboard aircraft timeline.</p>
+        </div>
+        <div className="flex gap-3">
+          <button onClick={() => { setForm(EMPTY); setSubmitted(false); }}
+            className="px-6 py-3 rounded-xl bg-primary text-primary-foreground font-extrabold text-sm hover:bg-primary/90 transition-colors">
+            Create Another Task
+          </button>
+          <button onClick={() => setSubmitted(false)}
+            className="px-6 py-3 rounded-xl border border-border text-sm font-bold text-muted-foreground hover:text-foreground transition-colors">
+            Close
+          </button>
+        </div>
       </div>
     );
   }
