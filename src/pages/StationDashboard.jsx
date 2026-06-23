@@ -12,6 +12,7 @@ import { cn } from '@/lib/utils';
 import CatCapabilityBadge from '@/components/techops/CatCapabilityBadge';
 import EtopsCapabilityBadge from '@/components/techops/EtopsCapabilityBadge';
 import { selectPrimaryMel } from '@/lib/MelSeverityEngine';
+import GateManagement from '@/components/station/GateManagement';
 
 const SERVICING_STATES = {
   not_started: { label: 'Not Started', color: 'text-gray-400', bg: 'bg-gray-500/15', border: 'border-gray-500/30' },
@@ -242,19 +243,7 @@ function TurnPerformanceCard({ flight }) {
   );
 }
 
-function GateStatusCard({ gate, occupied, flight }) {
-  return (
-    <div className={cn('rounded-xl border-2 p-3 flex flex-col items-center justify-center transition-all',
-      occupied ? 'bg-orange-500/10 border-orange-500/40' : 'bg-green-500/10 border-green-500/30')}>
-      <MapPin className={cn('w-5 h-5 mb-1', occupied ? 'text-orange-400' : 'text-green-400')} />
-      <p className={cn('text-sm font-black', occupied ? 'text-orange-300' : 'text-green-400')}>{gate}</p>
-      {occupied && flight && (
-        <p className="text-[10px] text-gray-500 mt-0.5">{flight.flight_number}</p>
-      )}
-      <p className="text-[10px] text-gray-500">{occupied ? 'Occupied' : 'Available'}</p>
-    </div>
-  );
-}
+
 
 function MaintenanceWorkloadCard({ entry }) {
   const statusCfg = {
@@ -352,9 +341,7 @@ export default function StationDashboard() {
     (m.etops_impact === 'NO_ETOPS' || m.etops_impact === 'ETOPS_WITH_LIMITS' || m.flight_restrictions)
   );
   
-  // Mock gate data
-  const gates = ['A1', 'A2', 'A3', 'B1', 'B2', 'B3', 'C1', 'C2'];
-  const occupiedGates = gates.slice(0, Math.floor(gates.length / 2));
+
   
   // Show loading or message if no stations exist
   if (stations.length === 0) {
@@ -475,34 +462,23 @@ export default function StationDashboard() {
             </div>
           </div>
           
-          {/* Gate Status */}
-          <div className="bg-[#0d1117] border border-white/10 rounded-2xl overflow-hidden">
-            <div className="px-5 py-3 border-b border-white/10">
-              <p className="font-extrabold text-white text-sm flex items-center gap-2">
-                <MapPin className="w-4 h-4 text-cyan-400" /> Gate Utilization
-              </p>
-            </div>
-            <div className="p-4">
-              <div className="grid grid-cols-4 gap-2">
-                {gates.map(gate => (
-                  <GateStatusCard 
-                    key={gate} 
-                    gate={gate} 
-                    occupied={occupiedGates.includes(gate)}
-                    flight={flights.find(f => f.gate === gate && f.status !== 'departed')}
-                  />
-                ))}
+          {/* Gate Management */}
+          <div className="lg:col-span-2">
+            <div className="bg-[#0d1117] border border-white/10 rounded-2xl overflow-hidden p-5">
+              <div className="mb-4">
+                <p className="font-extrabold text-white text-sm flex items-center gap-2">
+                  <MapPin className="w-4 h-4 text-cyan-400" /> Gate Management
+                </p>
+                <p className="text-xs text-gray-500 mt-0.5">Manage terminal gates, remote ramps, and hardstand positions</p>
               </div>
-              <div className="flex items-center gap-4 mt-4 text-[10px] text-gray-500">
-                <div className="flex items-center gap-1.5">
-                  <div className="w-3 h-3 rounded bg-green-500/20 border border-green-500/40" />
-                  <span>Available</span>
-                </div>
-                <div className="flex items-center gap-1.5">
-                  <div className="w-3 h-3 rounded bg-orange-500/20 border border-orange-500/40" />
-                  <span>Occupied</span>
-                </div>
-              </div>
+              <GateManagement 
+                stationIcao={icao}
+                initialGates={[]}
+                onChange={(updatedGates) => {
+                  // Handle gate updates - save to database or state
+                  console.log('Gates updated:', updatedGates);
+                }}
+              />
             </div>
           </div>
         </div>

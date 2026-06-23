@@ -1,20 +1,40 @@
-import { useState } from 'react';
-import { Plus, X, Search, Filter, Grid, List } from 'lucide-react';
+import { useState, useMemo } from 'react';
+import { Plus, X, Search, Filter, Grid, List, Plane } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 const GATE_TYPES = [
-  { id: 'terminal', label: 'Terminal Gate', color: 'text-blue-400', bg: 'bg-blue-500/15', border: 'border-blue-500/30' },
+  { id: 'gate', label: 'Terminal Gate', color: 'text-blue-400', bg: 'bg-blue-500/15', border: 'border-blue-500/30' },
   { id: 'concourse', label: 'Concourse Gate', color: 'text-cyan-400', bg: 'bg-cyan-500/15', border: 'border-cyan-500/30' },
   { id: 'remote', label: 'Remote Ramp', color: 'text-orange-400', bg: 'bg-orange-500/15', border: 'border-orange-500/30' },
   { id: 'hardstand', label: 'Hardstand', color: 'text-amber-400', bg: 'bg-amber-500/15', border: 'border-amber-500/30' },
 ];
 
-const GATE_PREFIXES = {
-  terminal: ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'J', 'K', 'L', 'M', 'N', 'P', 'Q', 'R', 'S', 'T', 'U', 'V', 'W', 'X', 'Y', 'Z'],
-  concourse: ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'J', 'K', 'L', 'M', 'N', 'P', 'Q', 'R', 'S', 'T', 'U', 'V', 'W', 'X', 'Y', 'Z'],
-  remote: ['R'],
-  hardstand: ['H'],
-};
+const TERMINALS = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'J', 'K', 'L', 'M', 'N', 'P', 'Q', 'R', 'S', 'T', 'U', 'V', 'W', 'X', 'Y', 'Z'];
+
+// Extract numeric portion from gate code (e.g., "A12" -> 12, "R3" -> 3)
+function extractNumericPortion(code) {
+  const match = code.match(/(\d+)$/);
+  return match ? parseInt(match[1], 10) : 0;
+}
+
+// Validate gate code
+function validateGateCode(code, type, existingGates) {
+  if (!code || code.length < 2) {
+    return { valid: false, error: 'Gate code must be at least 2 characters (e.g., A1, R3)' };
+  }
+  
+  // Check format: letter(s) + number(s)
+  if (!/^[A-Z]+\d+$/.test(code.toUpperCase())) {
+    return { valid: false, error: 'Format must be letter(s) + number(s) (e.g., A1, B12, R3)' };
+  }
+  
+  // Check for duplicates
+  if (existingGates.some(g => g.code.toUpperCase() === code.toUpperCase())) {
+    return { valid: false, error: 'This gate already exists' };
+  }
+  
+  return { valid: true, error: null };
+}
 
 function GateTypeBadge({ type }) {
   const cfg = GATE_TYPES.find(t => t.id === type) || GATE_TYPES[0];
@@ -35,14 +55,19 @@ function GateCard({ gate, onRemove, onToggleOccupancy, viewMode }) {
         <div className="flex items-center gap-3 flex-1">
           <div className={cn('w-10 h-10 rounded-lg flex items-center justify-center font-black text-sm',
             gate.occupied ? 'bg-orange-500/20 text-orange-300' : 'bg-green-500/20 text-green-400')}>
-            {gate.name}
+            {gate.name || gate.code}
           </div>
           <div>
-            <p className="text-sm font-bold text-white">{gate.name} {gate.label && `— ${gate.label}`}</p>
+            <p className="text-sm font-bold text-white">{gate.name || gate.code} {gate.label && `— ${gate.label}`}</p>
             <div className="flex items-center gap-2 mt-0.5">
               <GateTypeBadge type={gate.type} />
+              {gate.terminal && gate.type === 'gate' && (
+                <span className="text-[10px] text-gray-500">Terminal {gate.terminal}</span>
+              )}
               {gate.occupied && gate.flight && (
-                <span className="text-[10px] text-gray-400">{gate.flight}</span>
+                <span className="text-[10px] text-gray-400 flex items-center gap-1">
+                  <Plane className="w-2.5 h-2.5" /> {gate.flight}
+                </span>
               )}
             </div>
           </div>
@@ -73,15 +98,21 @@ function GateCard({ gate, onRemove, onToggleOccupancy, viewMode }) {
       
       <div className={cn('w-12 h-12 rounded-xl flex items-center justify-center font-black text-lg mb-2',
         gate.occupied ? 'bg-orange-500/20 text-orange-300' : 'bg-green-500/20 text-green-400')}>
-        {gate.name}
+        {gate.name || gate.code}
       </div>
       
       {gate.label && <p className="text-[10px] text-gray-400 mb-2">{gate.label}</p>}
       
       <GateTypeBadge type={gate.type} />
       
+      {gate.terminal && gate.type === 'gate' && (
+        <p className="text-[10px] text-gray-500 mt-1">Terminal {gate.terminal}</p>
+      )}
+      
       {gate.occupied && gate.flight && (
-        <p className="text-[10px] text-gray-500 mt-2 font-mono">{gate.flight}</p>
+        <p className="text-[10px] text-gray-500 mt-2 font-mono flex items-center gap-1">
+          <Plane className="w-2.5 h-2.5" /> {gate.flight}
+        </p>
       )}
       
       <button onClick={() => onToggleOccupancy(gate.id)}
@@ -93,41 +124,44 @@ function GateCard({ gate, onRemove, onToggleOccupancy, viewMode }) {
   );
 }
 
-export default function GateManagement({ initialGates = [], onChange }) {
+export default function GateManagement({ initialGates = [], stationIcao, onChange }) {
   const [gates, setGates] = useState(initialGates || []);
   const [showAddModal, setShowAddModal] = useState(false);
-  const [viewMode, setViewMode] = useState('grid'); // 'grid' | 'list'
+  const [viewMode, setViewMode] = useState('grid');
   const [filterType, setFilterType] = useState('all');
   const [searchQuery, setSearchQuery] = useState('');
-  const [sortBy, setSortBy] = useState('alphabetical'); // 'alphabetical' | 'type'
+  const [sortBy, setSortBy] = useState('alphabetical');
   
   // Add gate form state
   const [newGate, setNewGate] = useState({
-    prefix: 'A',
-    number: '',
-    type: 'terminal',
+    code: '',
+    type: 'gate',
+    terminal: 'A',
     label: '',
   });
+  const [validationError, setValidationError] = useState(null);
   
-  // Generate gate name from prefix + number
-  const generateGateName = () => {
-    if (newGate.type === 'remote') {
-      return `R${newGate.number || '1'}`;
-    }
-    if (newGate.type === 'hardstand') {
-      return `H${newGate.number || '1'}`;
-    }
-    return `${newGate.prefix}${newGate.number}`;
-  };
+  // Auto-extract numeric portion
+  const numericPortion = useMemo(() => extractNumericPortion(newGate.code), [newGate.code]);
   
   const handleAddGate = () => {
-    if (!newGate.number) return;
+    const code = newGate.code.toUpperCase().trim();
+    const validation = validateGateCode(code, newGate.type, gates);
+    
+    if (!validation.valid) {
+      setValidationError(validation.error);
+      return;
+    }
     
     const gate = {
       id: Date.now().toString(),
-      name: generateGateName(),
+      code,
+      name: code,
       type: newGate.type,
+      terminal: newGate.type === 'gate' || newGate.type === 'concourse' ? newGate.terminal : null,
       label: newGate.label,
+      numeric: numericPortion,
+      station_icao: stationIcao,
       occupied: false,
       flight: null,
     };
@@ -136,7 +170,8 @@ export default function GateManagement({ initialGates = [], onChange }) {
     setGates(updated);
     onChange?.(updated);
     setShowAddModal(false);
-    setNewGate({ prefix: 'A', number: '', type: 'terminal', label: '' });
+    setNewGate({ code: '', type: 'gate', terminal: 'A', label: '' });
+    setValidationError(null);
   };
   
   const handleRemoveGate = (gateId) => {
@@ -157,34 +192,37 @@ export default function GateManagement({ initialGates = [], onChange }) {
   };
   
   // Filter and sort gates
-  const filteredGates = gates
-    .filter(g => {
-      if (filterType !== 'all' && g.type !== filterType) return false;
-      if (searchQuery && !g.name.toLowerCase().includes(searchQuery.toLowerCase()) &&
-          !g.label?.toLowerCase().includes(searchQuery.toLowerCase())) return false;
-      return true;
-    })
-    .sort((a, b) => {
-      if (sortBy === 'alphabetical') {
-        // Natural sort for gate names (A1, A2, A10, B1, R1, H1)
-        return a.name.localeCompare(b.name, undefined, { numeric: true, sensitivity: 'base' });
-      }
-      if (sortBy === 'type') {
-        const typeOrder = { terminal: 0, concourse: 1, remote: 2, hardstand: 3 };
-        if (typeOrder[a.type] !== typeOrder[b.type]) {
-          return typeOrder[a.type] - typeOrder[b.type];
+  const filteredGates = useMemo(() => {
+    return gates
+      .filter(g => {
+        if (filterType !== 'all' && g.type !== filterType) return false;
+        if (searchQuery && !g.code.toLowerCase().includes(searchQuery.toLowerCase()) &&
+            !g.label?.toLowerCase().includes(searchQuery.toLowerCase())) return false;
+        return true;
+      })
+      .sort((a, b) => {
+        if (sortBy === 'alphabetical') {
+          return a.code.localeCompare(b.code, undefined, { numeric: true, sensitivity: 'base' });
         }
-        return a.name.localeCompare(b.name, undefined, { numeric: true, sensitivity: 'base' });
-      }
-      return 0;
-    });
+        if (sortBy === 'type') {
+          const typeOrder = { gate: 0, concourse: 1, remote: 2, hardstand: 3 };
+          if (typeOrder[a.type] !== typeOrder[b.type]) {
+            return typeOrder[a.type] - typeOrder[b.type];
+          }
+          return a.code.localeCompare(b.code, undefined, { numeric: true, sensitivity: 'base' });
+        }
+        return 0;
+      });
+  }, [gates, filterType, searchQuery, sortBy]);
   
-  // Group gates by type for display
-  const groupedGates = filteredGates.reduce((acc, gate) => {
-    if (!acc[gate.type]) acc[gate.type] = [];
-    acc[gate.type].push(gate);
-    return acc;
-  }, {});
+  // Group gates by type
+  const groupedGates = useMemo(() => {
+    return filteredGates.reduce((acc, gate) => {
+      if (!acc[gate.type]) acc[gate.type] = [];
+      acc[gate.type].push(gate);
+      return acc;
+    }, {});
+  }, [filteredGates]);
   
   const totalGates = gates.length;
   const occupiedCount = gates.filter(g => g.occupied).length;
@@ -195,7 +233,6 @@ export default function GateManagement({ initialGates = [], onChange }) {
       {/* Controls Bar */}
       <div className="flex items-center justify-between flex-wrap gap-3">
         <div className="flex items-center gap-2 flex-1 min-w-0">
-          {/* Search */}
           <div className="relative flex-1 max-w-xs">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-500" />
             <input
@@ -207,7 +244,6 @@ export default function GateManagement({ initialGates = [], onChange }) {
             />
           </div>
           
-          {/* Filter by type */}
           <select
             value={filterType}
             onChange={(e) => setFilterType(e.target.value)}
@@ -219,7 +255,6 @@ export default function GateManagement({ initialGates = [], onChange }) {
             ))}
           </select>
           
-          {/* Sort */}
           <select
             value={sortBy}
             onChange={(e) => setSortBy(e.target.value)}
@@ -231,7 +266,6 @@ export default function GateManagement({ initialGates = [], onChange }) {
         </div>
         
         <div className="flex items-center gap-2">
-          {/* View mode toggle */}
           <div className="flex items-center bg-[#1a2035] border border-white/10 rounded-lg p-1">
             <button onClick={() => setViewMode('grid')}
               className={cn('px-2 py-1.5 rounded-md transition-colors',
@@ -245,7 +279,6 @@ export default function GateManagement({ initialGates = [], onChange }) {
             </button>
           </div>
           
-          {/* Add gate button */}
           <button onClick={() => setShowAddModal(true)}
             className="flex items-center gap-2 px-4 py-2 rounded-lg bg-primary text-primary-foreground text-sm font-bold hover:bg-primary/90 transition-colors">
             <Plus className="w-4 h-4" /> Add Gate
@@ -277,13 +310,12 @@ export default function GateManagement({ initialGates = [], onChange }) {
       ) : (
         <div className="space-y-6">
           {sortBy === 'type' ? (
-            // Grouped by type
             Object.entries(groupedGates).map(([type, typeGates]) => {
               const typeCfg = GATE_TYPES.find(t => t.id === type);
               return (
                 <div key={type}>
                   <div className="flex items-center gap-2 mb-3">
-                    <div className={cn('w-2 h-2 rounded-full', typeCfg?.bg.replace('bg-', 'bg-').replace('/15', ''))} />
+                    <div className={cn('w-2 h-2 rounded-full', typeCfg?.color.replace('text-', 'bg-'))} />
                     <p className={cn('text-xs font-bold uppercase tracking-widest', typeCfg?.color)}>
                       {typeCfg?.label} ({typeGates.length})
                     </p>
@@ -304,7 +336,6 @@ export default function GateManagement({ initialGates = [], onChange }) {
               );
             })
           ) : (
-            // Alphabetical (all together)
             <div className={cn('grid gap-3',
               viewMode === 'grid' ? 'grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6' : 'grid-cols-1')}>
               {filteredGates.map(gate => (
@@ -351,60 +382,89 @@ export default function GateManagement({ initialGates = [], onChange }) {
                 </div>
               </div>
               
-              {/* Gate Number */}
+              {/* Gate Code */}
               <div>
                 <label className="text-[10px] font-bold text-gray-500 uppercase tracking-widest block mb-2">
-                  Gate {newGate.type === 'remote' ? 'Ramp' : newGate.type === 'hardstand' ? 'Stand' : 'Number'}
+                  Gate Code
                 </label>
-                <div className="flex items-center gap-2">
-                  {(newGate.type === 'terminal' || newGate.type === 'concourse') && (
-                    <select
-                      value={newGate.prefix}
-                      onChange={(e) => setNewGate(p => ({ ...p, prefix: e.target.value }))}
-                      className="bg-[#1a2035] border border-white/10 rounded-lg px-3 py-2.5 text-sm text-white outline-none focus:border-primary"
-                    >
-                      {GATE_PREFIXES[newGate.type].map(p => (
-                        <option key={p} value={p}>{p}</option>
-                      ))}
-                    </select>
-                  )}
-                  <input
-                    type="number"
-                    min="1"
-                    max="99"
-                    placeholder="1"
-                    value={newGate.number}
-                    onChange={(e) => setNewGate(p => ({ ...p, number: e.target.value }))}
-                    className="flex-1 bg-[#1a2035] border border-white/10 rounded-lg px-3 py-2.5 text-sm text-white placeholder-gray-600 outline-none focus:border-primary"
-                  />
-                </div>
-                <p className="text-[10px] text-gray-500 mt-2">
-                  Will be named: <span className="text-primary font-bold">{generateGateName()}</span>
-                </p>
+                <input
+                  type="text"
+                  placeholder={newGate.type === 'remote' ? 'R1, R2, R3...' : newGate.type === 'hardstand' ? 'H1, H2...' : 'A1, B12, C5...'}
+                  value={newGate.code}
+                  onChange={(e) => {
+                    setNewGate(p => ({ ...p, code: e.target.value.toUpperCase() }));
+                    setValidationError(null);
+                  }}
+                  className={cn('w-full bg-[#1a2035] border border-white/10 rounded-lg px-3 py-2.5 text-sm text-white placeholder-gray-600 outline-none focus:border-primary',
+                    validationError && 'border-red-500/50 focus:border-red-500')}
+                />
+                {validationError && (
+                  <p className="text-[10px] text-red-400 mt-1.5 flex items-center gap-1">
+                    <X className="w-3 h-3" /> {validationError}
+                  </p>
+                )}
+                {newGate.code && (
+                  <p className="text-[10px] text-gray-500 mt-2">
+                    Will be registered as: <span className="text-primary font-bold">{newGate.code.toUpperCase()}</span>
+                  </p>
+                )}
               </div>
               
-              {/* Optional Label */}
+              {/* Terminal (for gate/concourse types) */}
+              {(newGate.type === 'gate' || newGate.type === 'concourse') && (
+                <div>
+                  <label className="text-[10px] font-bold text-gray-500 uppercase tracking-widest block mb-2">Terminal</label>
+                  <select
+                    value={newGate.terminal}
+                    onChange={(e) => setNewGate(p => ({ ...p, terminal: e.target.value }))}
+                    className="w-full bg-[#1a2035] border border-white/10 rounded-lg px-3 py-2.5 text-sm text-white outline-none focus:border-primary"
+                  >
+                    {TERMINALS.map(t => (
+                      <option key={t} value={t}>Terminal {t}</option>
+                    ))}
+                  </select>
+                </div>
+              )}
+              
+              {/* Label */}
               <div>
                 <label className="text-[10px] font-bold text-gray-500 uppercase tracking-widest block mb-2">
                   Label (Optional)
                 </label>
                 <input
                   type="text"
-                  placeholder="e.g., International, Domestic, Cargo"
+                  placeholder="e.g., International, Domestic, Cargo, Wide-body"
                   value={newGate.label}
                   onChange={(e) => setNewGate(p => ({ ...p, label: e.target.value }))}
                   className="w-full bg-[#1a2035] border border-white/10 rounded-lg px-3 py-2.5 text-sm text-white placeholder-gray-600 outline-none focus:border-primary"
                 />
               </div>
+              
+              {/* Preview */}
+              {newGate.code && (
+                <div className="bg-[#1a2035] border border-white/10 rounded-xl p-4">
+                  <p className="text-[10px] text-gray-500 uppercase tracking-widest mb-2">Preview</p>
+                  <div className="flex items-center gap-3">
+                    <div className="w-12 h-12 rounded-xl bg-green-500/20 border border-green-500/30 flex items-center justify-center font-black text-lg text-green-400">
+                      {newGate.code.toUpperCase()}
+                    </div>
+                    <div>
+                      <p className="text-sm font-bold text-white">{newGate.code.toUpperCase()}</p>
+                      <GateTypeBadge type={newGate.type} />
+                    </div>
+                  </div>
+                </div>
+              )}
             </div>
             
-            <div className="flex items-center justify-end gap-3 px-6 py-4 border-t border-white/10">
+            <div className="flex items-center justify-end gap-2 px-6 py-4 border-t border-white/10 bg-[#1a2035]/50">
               <button onClick={() => setShowAddModal(false)}
-                className="px-5 py-2.5 rounded-xl border border-white/15 text-sm font-bold text-gray-300 hover:bg-white/5 transition-colors">
+                className="px-4 py-2 rounded-lg border border-white/10 text-sm font-bold text-gray-400 hover:text-white hover:bg-white/5 transition-colors">
                 Cancel
               </button>
-              <button onClick={handleAddGate} disabled={!newGate.number}
-                className="px-6 py-2.5 rounded-xl bg-primary text-primary-foreground text-sm font-bold hover:bg-primary/90 disabled:opacity-40 transition-colors">
+              <button onClick={handleAddGate}
+                disabled={!newGate.code}
+                className="px-4 py-2 rounded-lg bg-primary text-primary-foreground text-sm font-bold hover:bg-primary/90 transition-colors disabled:opacity-50 disabled:cursor-not-allowed">
                 Add Gate
               </button>
             </div>
