@@ -4,7 +4,8 @@
   "description": "Aircraft maintenance event \u2014 records completed maintenance work including inspections, repairs, and component replacements.",
   "properties": {
     "aircraft_tail": {
-      "type": "string"
+      "type": "string",
+      "description": "Aircraft tail number"
     },
     "event_type": {
       "type": "string",
@@ -15,38 +16,48 @@
         "scheduled_maintenance",
         "ad_compliance",
         "urgent_repair"
-      ]
+      ],
+      "description": "Type of maintenance event"
     },
     "title": {
-      "type": "string"
+      "type": "string",
+      "description": "Brief title of the maintenance work"
     },
     "description": {
-      "type": "string"
+      "type": "string",
+      "description": "Detailed description of work performed"
     },
     "ata_chapter": {
-      "type": "string"
+      "type": "string",
+      "description": "ATA chapter reference (e.g., 72 for engines, 32 for landing gear)"
     },
     "component_replaced": {
-      "type": "string"
+      "type": "string",
+      "description": "Part number if component was replaced"
     },
     "work_hours": {
-      "type": "number"
+      "type": "number",
+      "description": "Man-hours spent on this work"
     },
     "completed_date": {
       "type": "string",
-      "format": "date"
+      "format": "date",
+      "description": "Date the maintenance was completed"
     },
     "technician_name": {
-      "type": "string"
+      "type": "string",
+      "description": "Name of technician who performed the work"
     },
     "certifications": {
       "type": "array",
       "items": {
         "type": "string"
-      }
+      },
+      "description": "Technician certifications (e.g., A&P, IA)"
     },
     "cost": {
-      "type": "number"
+      "type": "number",
+      "description": "Cost of maintenance work"
     },
     "status": {
       "type": "string",
@@ -69,10 +80,28 @@
   ],
   "rls": {
     "create": {
+      "user_condition": {
+        "role": "technician"
+      }
+    },
+    "read": {
       "$or": [
+        {
+          "created_by_id": "{{user.id}}"
+        },
         {
           "user_condition": {
             "role": "admin"
+          }
+        },
+        {
+          "user_condition": {
+            "role": "mcc_supervisor"
+          }
+        },
+        {
+          "user_condition": {
+            "role": "engineer"
           }
         },
         {
@@ -82,7 +111,6 @@
         }
       ]
     },
-    "read": {},
     "update": {
       "$or": [
         {

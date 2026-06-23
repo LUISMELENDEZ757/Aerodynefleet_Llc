@@ -4,45 +4,58 @@
   "description": "MCC Positive Fix Lock \u2014 placed by Maintenance Control when an aircraft requires a positive fix and technician concurrence before return to service.",
   "properties": {
     "aircraft_tail": {
-      "type": "string"
+      "type": "string",
+      "description": "Aircraft tail number"
     },
     "reason": {
-      "type": "string"
+      "type": "string",
+      "description": "Reason for the lock / required positive fix"
     },
     "placed_by": {
-      "type": "string"
+      "type": "string",
+      "description": "MCC controller name who placed the lock"
     },
     "placed_by_id": {
-      "type": "string"
+      "type": "string",
+      "description": "Employee ID of MCC controller"
     },
     "technician_concurrence": {
       "type": "boolean",
-      "default": false
+      "default": false,
+      "description": "Has a technician concurred with the required fix?"
     },
     "technician_name": {
-      "type": "string"
+      "type": "string",
+      "description": "Technician who provided concurrence"
     },
     "technician_cert": {
-      "type": "string"
+      "type": "string",
+      "description": "Technician certificate/employee number"
     },
     "concurrence_notes": {
-      "type": "string"
+      "type": "string",
+      "description": "Technician concurrence notes"
     },
     "concurred_at": {
-      "type": "string"
+      "type": "string",
+      "description": "ISO timestamp of technician concurrence"
     },
     "is_active": {
       "type": "boolean",
-      "default": true
+      "default": true,
+      "description": "Lock is currently active (true) or removed (false)"
     },
     "removed_by": {
-      "type": "string"
+      "type": "string",
+      "description": "MCC controller who removed the lock"
     },
     "removed_at": {
-      "type": "string"
+      "type": "string",
+      "description": "ISO timestamp when lock was removed"
     },
     "removal_reason": {
-      "type": "string"
+      "type": "string",
+      "description": "Reason for removing the lock"
     }
   },
   "required": [
@@ -56,7 +69,11 @@
         "role": "mcc_supervisor"
       }
     },
-    "read": {},
+    "read": {
+      "user_condition": {
+        "role": "mcc_supervisor"
+      }
+    },
     "update": {
       "user_condition": {
         "role": "mcc_supervisor"

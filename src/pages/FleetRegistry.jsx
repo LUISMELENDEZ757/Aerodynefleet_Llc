@@ -230,20 +230,10 @@ export default function FleetRegistry() {
     queryFn: () => base44.entities.Fleet.list('name', 100),
   });
 
-  const { data: rawAircraft = [] } = useQuery({
-    queryKey: ['fleet-aircraft'],
-    queryFn: () => base44.entities.Aircraft.list('-created_date', 1000),
-    staleTime: 60000,
+  const { data: aircraft = [] } = useQuery({
+    queryKey: ['registry-aircraft'],
+    queryFn: () => base44.entities.Aircraft.list('tail_number', 2000),
   });
-
-  const aircraft = Object.values(
-    rawAircraft.reduce((acc, a) => {
-      if (!acc[a.tail_number] || new Date(a.updated_date) > new Date(acc[a.tail_number].updated_date)) {
-        acc[a.tail_number] = a;
-      }
-      return acc;
-    }, {})
-  );
 
   const saveMutation = useMutation({
     mutationFn: (data) => data.id
@@ -357,6 +347,7 @@ export default function FleetRegistry() {
           fleets={fleets}
           onClose={() => setShowAircraftModal(false)}
           onSuccess={() => {
+            queryClient.invalidateQueries({ queryKey: ['registry-aircraft'] });
             queryClient.invalidateQueries({ queryKey: ['fleet-aircraft'] });
           }}
         />

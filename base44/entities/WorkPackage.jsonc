@@ -1,40 +1,36 @@
 {
   "name": "WorkPackage",
   "type": "object",
-  "description": "Maintenance work package \u2014 groups related tasks for a maintenance event.",
+  "description": "Heavy maintenance work packages (A/C/D checks, ETOPS, etc) with task tracking and supplier system integration",
   "properties": {
     "aircraft_tail": {
-      "type": "string"
+      "type": "string",
+      "description": "Aircraft tail number"
     },
-    "package_number": {
-      "type": "string"
+    "aircraft_type": {
+      "type": "string",
+      "description": "Aircraft type for reference"
     },
-    "title": {
-      "type": "string"
-    },
-    "description": {
-      "type": "string"
-    },
-    "work_type": {
+    "check_type": {
       "type": "string",
       "enum": [
-        "scheduled",
-        "unscheduled",
-        "aog",
-        "modification",
-        "inspection"
-      ]
+        "A",
+        "C",
+        "D",
+        "overnight",
+        "ETOPS"
+      ],
+      "description": "Type of maintenance check"
     },
-    "station": {
-      "type": "string"
-    },
-    "start_date": {
+    "scheduled_date": {
       "type": "string",
-      "format": "date"
+      "format": "date",
+      "description": "When the work package is scheduled"
     },
-    "end_date": {
+    "estimated_completion_date": {
       "type": "string",
-      "format": "date"
+      "format": "date",
+      "description": "Expected completion date"
     },
     "status": {
       "type": "string",
@@ -42,30 +38,94 @@
         "planned",
         "in_progress",
         "completed",
-        "deferred",
-        "cancelled"
+        "overdue"
       ],
       "default": "planned"
     },
-    "assigned_team": {
-      "type": "string"
+    "station": {
+      "type": "string",
+      "description": "Station ICAO where work will be performed"
     },
-    "man_hours_estimated": {
-      "type": "number"
+    "estimated_man_hours": {
+      "type": "number",
+      "description": "Total man-hours estimated for the package"
     },
-    "man_hours_actual": {
-      "type": "number"
+    "estimated_cost": {
+      "type": "number",
+      "description": "Estimated total cost in USD"
     },
-    "priority": {
+    "tasks": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "task_id": {
+            "type": "string"
+          },
+          "description": {
+            "type": "string"
+          },
+          "ata_chapter": {
+            "type": "string"
+          },
+          "estimated_hours": {
+            "type": "number"
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "pending",
+              "in_progress",
+              "completed"
+            ]
+          },
+          "assigned_to": {
+            "type": "string",
+            "description": "Technician name or team assigned"
+          }
+        }
+      },
+      "description": "Individual tasks within the work package"
+    },
+    "parts_required": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "part_number": {
+            "type": "string"
+          },
+          "part_name": {
+            "type": "string"
+          },
+          "quantity": {
+            "type": "number"
+          },
+          "lead_time_days": {
+            "type": "number"
+          },
+          "unit_cost": {
+            "type": "number"
+          }
+        }
+      }
+    },
+    "supplier_system": {
       "type": "string",
       "enum": [
-        "aog",
-        "critical",
-        "high",
-        "normal",
-        "low"
+        "manual",
+        "TRAX",
+        "AMOS",
+        "SCEPTRE",
+        "AHEAD",
+        "AHM"
       ],
-      "default": "normal"
+      "default": "manual",
+      "description": "Source system for work package generation"
+    },
+    "supplier_reference": {
+      "type": "string",
+      "description": "Reference ID from supplier system"
     },
     "notes": {
       "type": "string"
@@ -73,11 +133,16 @@
   },
   "required": [
     "aircraft_tail",
-    "title",
-    "work_type"
+    "check_type",
+    "scheduled_date"
   ],
   "rls": {
     "create": {
+      "user_condition": {
+        "role": "engineer"
+      }
+    },
+    "read": {
       "$or": [
         {
           "user_condition": {
@@ -92,32 +157,19 @@
         {
           "user_condition": {
             "role": "mcc_supervisor"
+          }
+        },
+        {
+          "user_condition": {
+            "role": "technician"
           }
         }
       ]
     },
-    "read": {},
     "update": {
-      "$or": [
-        {
-          "created_by_id": "{{user.id}}"
-        },
-        {
-          "user_condition": {
-            "role": "admin"
-          }
-        },
-        {
-          "user_condition": {
-            "role": "engineer"
-          }
-        },
-        {
-          "user_condition": {
-            "role": "mcc_supervisor"
-          }
-        }
-      ]
+      "user_condition": {
+        "role": "engineer"
+      }
     },
     "delete": {
       "user_condition": {

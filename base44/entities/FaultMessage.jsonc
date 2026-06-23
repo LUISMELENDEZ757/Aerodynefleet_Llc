@@ -7,7 +7,8 @@
       "type": "string"
     },
     "fault_code": {
-      "type": "string"
+      "type": "string",
+      "description": "System fault code e.g. ENG1 OIL PRESS"
     },
     "ata_chapter": {
       "type": "string"
@@ -41,10 +42,12 @@
       "type": "string"
     },
     "detected_at": {
-      "type": "string"
+      "type": "string",
+      "description": "ISO timestamp when fault was detected"
     },
     "flight_phase": {
-      "type": "string"
+      "type": "string",
+      "description": "Flight phase when fault occurred"
     },
     "status": {
       "type": "string",
@@ -72,8 +75,49 @@
     "status"
   ],
   "rls": {
-    "create": {},
-    "read": {},
+    "create": {
+      "$or": [
+        {
+          "user_condition": {
+            "role": {
+              "$ne": "anonymous"
+            }
+          }
+        },
+        {
+          "user_condition": {
+            "role": "service_role"
+          }
+        }
+      ]
+    },
+    "read": {
+      "$or": [
+        {
+          "created_by_id": "{{user.id}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        },
+        {
+          "user_condition": {
+            "role": "mcc_supervisor"
+          }
+        },
+        {
+          "user_condition": {
+            "role": "engineer"
+          }
+        },
+        {
+          "user_condition": {
+            "role": "technician"
+          }
+        }
+      ]
+    },
     "update": {
       "$or": [
         {

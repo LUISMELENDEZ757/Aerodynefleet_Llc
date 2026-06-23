@@ -1,19 +1,23 @@
 {
   "name": "Flight",
   "type": "object",
-  "description": "Aerodyne Fleet LLC \u2014 Flight schedule and status.",
+  "description": "Aerodyne Fleet LLC \u2014 Flight schedule and status. Multi-fleet resource. Each flight is tagged with fleet_id and airline for cross-fleet filtering.",
   "properties": {
     "flight_number": {
-      "type": "string"
+      "type": "string",
+      "description": "Flight number e.g. AAL 4474"
     },
     "fleet_id": {
-      "type": "string"
+      "type": "string",
+      "description": "Reference to Fleet entity ID"
     },
     "airline": {
-      "type": "string"
+      "type": "string",
+      "description": "Operating airline name \u2014 denormalized from Fleet"
     },
     "aircraft_tail": {
-      "type": "string"
+      "type": "string",
+      "description": "Aircraft tail number e.g. N455GJ"
     },
     "aircraft_type": {
       "type": "string",
@@ -34,29 +38,37 @@
         "E175",
         "CRJ700",
         "CRJ900"
-      ]
+      ],
+      "description": "Aircraft type"
     },
     "origin": {
-      "type": "string"
+      "type": "string",
+      "description": "Origin airport ICAO code"
     },
     "destination": {
-      "type": "string"
+      "type": "string",
+      "description": "Destination airport ICAO code"
     },
     "scheduled_departure": {
-      "type": "string"
+      "type": "string",
+      "description": "Scheduled departure time HH:MM (Zulu)"
     },
     "scheduled_arrival": {
-      "type": "string"
+      "type": "string",
+      "description": "Scheduled arrival time HH:MM (Zulu)"
     },
     "actual_departure": {
-      "type": "string"
+      "type": "string",
+      "description": "Actual departure time HH:MM (Zulu)"
     },
     "actual_arrival": {
-      "type": "string"
+      "type": "string",
+      "description": "Actual arrival time HH:MM (Zulu)"
     },
     "flight_date": {
       "type": "string",
-      "format": "date"
+      "format": "date",
+      "description": "Date of the flight (YYYY-MM-DD)"
     },
     "status": {
       "type": "string",
@@ -71,20 +83,25 @@
         "on_time",
         "landed"
       ],
-      "default": "scheduled"
+      "default": "scheduled",
+      "description": "Current flight status"
     },
     "gate": {
-      "type": "string"
+      "type": "string",
+      "description": "Departure gate e.g. B12"
     },
     "delay_minutes": {
       "type": "number",
-      "default": 0
+      "default": 0,
+      "description": "Delay in minutes"
     },
     "delay_reason": {
-      "type": "string"
+      "type": "string",
+      "description": "Reason for delay"
     },
     "notes": {
-      "type": "string"
+      "type": "string",
+      "description": "Operational notes"
     }
   },
   "required": [
@@ -96,7 +113,18 @@
   ],
   "rls": {
     "create": {
+      "user_condition": {
+        "role": "dispatcher"
+      }
+    },
+    "read": {
       "$or": [
+        {
+          "created_by_id": "{{user.id}}"
+        },
+        {
+          "data.fleet_id": "{{user.fleet_id}}"
+        },
         {
           "user_condition": {
             "role": "admin"
@@ -106,10 +134,24 @@
           "user_condition": {
             "role": "dispatcher"
           }
+        },
+        {
+          "user_condition": {
+            "role": "captain"
+          }
+        },
+        {
+          "user_condition": {
+            "role": "first_officer"
+          }
+        },
+        {
+          "user_condition": {
+            "role": "flight_attendant"
+          }
         }
       ]
     },
-    "read": {},
     "update": {
       "$or": [
         {
