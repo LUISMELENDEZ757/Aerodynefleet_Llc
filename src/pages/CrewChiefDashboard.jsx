@@ -334,8 +334,8 @@ export default function CrewChiefDashboard() {
           </div>
           <div className="flex items-center gap-2">
             {/* Station Filter Dropdown */}
-            <div className="relative flex items-center gap-2 bg-secondary border border-border rounded-xl px-3 py-2 min-w-[180px]">
-              <MapPin className="w-3.5 h-3.5 text-primary flex-shrink-0" />
+            <div className="relative flex items-center gap-2 bg-background border border-border rounded-xl px-3 py-2 min-w-[180px]">
+              <MapPin className="w-3.5 h-3.5 text-muted-foreground flex-shrink-0" />
               <select
                 value={stationFilter}
                 onChange={e => setStationFilter(e.target.value)}
