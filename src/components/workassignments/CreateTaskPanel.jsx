@@ -85,7 +85,11 @@ export default function CreateTaskPanel({ aircraft = [] }) {
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    if (!form.part_name || !form.aircraft_tail || !form.requested_by) return;
+    if (!form.part_name || !form.aircraft_tail || !form.requested_by) {
+      console.error('Missing required fields:', { part_name: form.part_name, aircraft_tail: form.aircraft_tail, requested_by: form.requested_by });
+      return;
+    }
+    console.log('Submitting task:', form);
     mutation.mutate({
       aircraft_tail: form.aircraft_tail.toUpperCase(),
       part_name: `[${form.task_type}] ${form.part_name}`,
@@ -227,7 +231,8 @@ export default function CreateTaskPanel({ aircraft = [] }) {
           </div>
 
           {/* Submit */}
-          <button type="submit" disabled={mutation.isPending || !form.part_name || !form.aircraft_tail || !form.requested_by}
+          <button type="submit" 
+            disabled={mutation.isPending || !form.part_name.trim() || !form.aircraft_tail.trim() || !form.requested_by.trim()}
             className="w-full flex items-center justify-center gap-2 py-3 rounded-xl bg-primary text-primary-foreground font-extrabold text-sm hover:bg-primary/90 transition-colors disabled:opacity-40">
             {mutation.isPending ? <Loader2 className="w-4 h-4 animate-spin" /> : <Plus className="w-4 h-4" />}
             {mutation.isPending ? 'Creating Task…' : 'Create & Assign Task'}
