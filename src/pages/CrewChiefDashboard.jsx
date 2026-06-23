@@ -2,13 +2,14 @@ import { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import TechAssignmentPanel from '@/components/techops/TechAssignmentPanel';
 import GateManagement from '@/components/station/GateManagement';
+import ShiftReportModal from '@/components/reports/ShiftReportModal';
 import { base44 } from '@/api/base44Client';
 import { useStations } from '@/hooks/useStations';
 import { Link } from 'react-router-dom';
 import {
   Wrench, ChevronLeft, AlertTriangle, CheckCircle, Clock, Users,
   Package, RefreshCw, Plus, Zap, Shield, BookOpen, FileCheck,
-  Play, Send, X, Activity, ChevronRight, MapPin, ChevronDown
+  Play, Send, X, Activity, ChevronRight, MapPin, ChevronDown, FileText
 } from 'lucide-react';
 import LiveClock from '@/components/ui/LiveClock';
 import { cn } from '@/lib/utils';
@@ -204,12 +205,13 @@ function QuickAssignModal({ entry, onClose, onAssign }) {
   );
 }
 
-const TABS = ['discrepancies', 'faults', 'parts', 'handover', 'work_assignments', 'gates'];
+const TABS = ['discrepancies', 'faults', 'parts', 'handover', 'work_assignments', 'gates', 'shift_report'];
 
 export default function CrewChiefDashboard() {
   const [tab, setTab] = useState('discrepancies');
   const [assignEntry, setAssignEntry] = useState(null);
   const [stationFilter, setStationFilter] = useState('');
+  const [showReport, setShowReport] = useState(false);
   const qc = useQueryClient();
 
   const { data: discrepancies = [], isLoading, refetch } = useQuery({
@@ -349,6 +351,9 @@ export default function CrewChiefDashboard() {
                 Manage
               </Link>
             </div>
+            <button onClick={() => setShowReport(true)} className="flex items-center gap-2 px-4 py-2 rounded-lg bg-primary/20 border border-primary/30 text-primary text-sm font-bold hover:bg-primary/30 transition-colors">
+              <FileText className="w-4 h-4" /> Shift Report
+            </button>
             <button onClick={() => refetch()} className="w-9 h-9 rounded-lg bg-secondary flex items-center justify-center hover:bg-secondary/80">
               <RefreshCw className={cn('w-4 h-4 text-muted-foreground', isLoading && 'animate-spin')} />
             </button>
@@ -390,10 +395,12 @@ export default function CrewChiefDashboard() {
             { id: 'work_assignments', label: 'Work Assignments', badge: requisitions.filter(r => r.status === 'pending_approval').length },
             { id: 'tech_assignment', label: 'Tech Assignment' },
             { id: 'gates', label: 'Gate Management' },
+            { id: 'shift_report', label: 'Shift Report', icon: FileText },
           ].map(t => (
-            <button key={t.id} onClick={() => setTab(t.id)}
+            <button key={t.id} onClick={() => t.id === 'shift_report' ? setShowReport(true) : setTab(t.id)}
               className={cn('flex items-center gap-1.5 px-4 py-2 rounded-xl text-xs font-bold whitespace-nowrap transition-all flex-shrink-0',
                 tab === t.id ? 'bg-primary text-primary-foreground' : 'bg-secondary text-muted-foreground hover:text-foreground')}>
+              {t.icon && <t.icon className="w-3.5 h-3.5" />}
               {t.label}
               {t.badge > 0 && (
                 <span className={cn('text-[9px] font-extrabold px-1.5 py-0.5 rounded-full',
@@ -674,6 +681,10 @@ export default function CrewChiefDashboard() {
 
       {assignEntry && (
         <QuickAssignModal entry={assignEntry} onClose={() => setAssignEntry(null)} onAssign={handleAssign} />
+      )}
+      
+      {showReport && (
+        <ShiftReportModal stationFilter={stationFilter} onClose={() => setShowReport(false)} />
       )}
     </div>
   );
