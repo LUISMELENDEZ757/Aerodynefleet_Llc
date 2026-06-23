@@ -7,7 +7,7 @@ import OfflineQueueManager from '@/components/techops/OfflineQueueManager';
 import {
   Plus, CheckCircle, List, BookOpen, Droplets, Wind, Search, RotateCcw,
   ChevronLeft, X, Send, Wrench, AlertTriangle, Printer, PlaneLanding,
-  ClipboardList, User
+  ClipboardList, User, Camera
 } from 'lucide-react';
 import FlightAwarePanel from '@/components/techops/FlightAwarePanel';
 import LiveClock from '@/components/ui/LiveClock';
@@ -111,25 +111,35 @@ function NewEntryModal({ onClose }) {
     aircraft_tail: '', station: '', ata_chapter: '',
     entry_type: 'discrepancy', description: '',
     technician_name: '', technician_id: '',
+    severity: 'minor', photos: [],
   });
+  const [photoCount, setPhotoCount] = useState(0);
   const set = (k, v) => setForm(p => ({ ...p, [k]: v }));
 
-  // ATA chapters that affect CAT II/III approach authorization
+  const SEVERITY_LEVELS = [
+    { key: 'minor', label: 'MINOR', sub: 'Routine', color: 'bg-blue-500 text-white' },
+    { key: 'moderate', label: 'MODERATE', sub: 'Priority', color: 'bg-amber-500 text-white' },
+    { key: 'major', label: 'MAJOR', sub: 'Critical', color: 'bg-red-500 text-white' },
+  ];
+
   const CAT_AFFECTED_ATAS = {
-    '22': 'ATA 22 — Auto Flight affects CAT II/III autoland capability. Aircraft CAT status may be downgraded.',
-    '34': 'ATA 34 — Navigation systems (ILS/GPS/RA) are CAT II/III critical. Aircraft CAT status may be downgraded.',
-    '31': 'ATA 31 — Indicating/Recording systems include CAT II/III flight instruments. Aircraft CAT status may be downgraded.',
-    '24': 'ATA 24 — Electrical Power is essential for CAT II/III operations. Aircraft CAT status may be downgraded.',
-    '30': 'ATA 30 — Ice & Rain Protection (windshield heat, probes) affects CAT II/III minima. Aircraft CAT status may be downgraded.',
-    '27': 'ATA 27 — Flight Controls (autopilot servos, spoilers) are required for autoland. Aircraft CAT status may be downgraded.',
-    '32': 'ATA 32 — Landing Gear (auto-brakes, antiskid) are CAT II/III approach critical. Aircraft CAT status may be downgraded.',
-    '23': 'ATA 23 — Communications systems (marker beacons, radio altimeter) are CAT II/III critical. Aircraft CAT status may be downgraded.',
+    '22': 'ATA 22 — Auto Flight affects CAT II/III autoland capability.',
+    '34': 'ATA 34 — Navigation systems (ILS/GPS/RA) are CAT II/III critical.',
+    '31': 'ATA 31 — Indicating/Recording systems include CAT II/III flight instruments.',
+    '24': 'ATA 24 — Electrical Power is essential for CAT II/III operations.',
+    '30': 'ATA 30 — Ice & Rain Protection (windshield heat, probes) affects CAT II/III minima.',
+    '27': 'ATA 27 — Flight Controls (autopilot servos, spoilers) are required for autoland.',
+    '32': 'ATA 32 — Landing Gear (auto-brakes, antiskid) are CAT II/III approach critical.',
+    '23': 'ATA 23 — Communications systems (marker beacons, radio altimeter) are CAT II/III critical.',
   };
 
   const catWarning = CAT_AFFECTED_ATAS[form.ata_chapter] || null;
 
   const mutation = useMutation({
-    mutationFn: (data) => base44.entities.LogbookEntry.create(data),
+    mutationFn: (data) => base44.entities.LogbookEntry.create({
+      ...data,
+      notes: `Severity: ${data.severity}. ${data.photos?.length || 0} photo(s) attached.`,
+    }),
     onSuccess: () => { queryClient.invalidateQueries({ queryKey: ['logbook-entries'] }); onClose(); },
   });
 
@@ -139,9 +149,16 @@ function NewEntryModal({ onClose }) {
     mutation.mutate(form);
   };
 
+  const handlePhotoInput = (e) => {
+    const files = Array.from(e.target.files || []);
+    if (photoCount + files.length > 5) return;
+    setPhotoCount(p => Math.min(5, p + files.length));
+  };
+
   return (
     <Modal title="New Logbook Entry" onClose={onClose}>
       <form onSubmit={handleSubmit} className="p-5 space-y-4">
+        {/* Aircraft Tail + Station */}
         <div className="grid grid-cols-2 gap-3">
           <Field label="Aircraft Tail *">
             <select value={form.aircraft_tail} onChange={e => set('aircraft_tail', e.target.value)} required className={inputCls}>
@@ -153,6 +170,8 @@ function NewEntryModal({ onClose }) {
             <input value={form.station} onChange={e => set('station', e.target.value.toUpperCase())} placeholder="KEWR" className={inputCls} />
           </Field>
         </div>
+
+        {/* Entry Type + ATA Chapter */}
         <div className="grid grid-cols-2 gap-3">
           <Field label="Entry Type">
             <select value={form.entry_type} onChange={e => set('entry_type', e.target.value)} className={inputCls}>
@@ -169,6 +188,8 @@ function NewEntryModal({ onClose }) {
             </select>
           </Field>
         </div>
+
+        {/* CAT Warning */}
         {catWarning && (
           <div className="flex items-start gap-3 bg-amber-500/15 border border-amber-500/40 rounded-xl px-4 py-3">
             <AlertTriangle className="w-5 h-5 text-amber-400 flex-shrink-0 mt-0.5" />
@@ -180,22 +201,68 @@ function NewEntryModal({ onClose }) {
           </div>
         )}
 
+        {/* Description */}
         <Field label="Description *">
           <textarea required rows={4} value={form.description} onChange={e => set('description', e.target.value)}
             placeholder="Describe the discrepancy or action…"
             className={inputCls + " resize-none"} />
         </Field>
+
+        {/* Severity Levels */}
+        <Field label="Severity Level *">
+          <div className="grid grid-cols-3 gap-2">
+            {SEVERITY_LEVELS.map(sev => (
+              <button
+                key={sev.key}
+                type="button"
+                onClick={() => set('severity', sev.key)}
+                className={cn(
+                  'py-3 px-2 rounded-xl text-center transition-all',
+                  form.severity === sev.key ? sev.color : 'bg-[#1a1f2e] text-gray-400 border border-white/10 hover:bg-white/5'
+                )}
+              >
+                <p className="text-sm font-extrabold">{sev.label}</p>
+                <p className="text-[10px] text-current opacity-70">{sev.sub}</p>
+              </button>
+            ))}
+          </div>
+        </Field>
+
+        {/* Technician Info */}
         <div className="grid grid-cols-2 gap-3">
-          <Field label="Technician Name">
+          <Field label="Technician Name *">
             <input value={form.technician_name} onChange={e => set('technician_name', e.target.value)} placeholder="Name" className={inputCls} />
           </Field>
           <Field label="Tech ID / License">
             <input value={form.technician_id} onChange={e => set('technician_id', e.target.value)} placeholder="ID#" className={inputCls} />
           </Field>
         </div>
+
+        {/* Photo Attachments */}
+        <Field label="Attach Photos (Optional)">
+          <div className="border border-white/10 rounded-xl overflow-hidden">
+            <div className="px-4 py-3 bg-[#1a1f2e] border-b border-white/10 flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <Camera className="w-4 h-4 text-gray-400" />
+                <p className="text-xs font-bold text-gray-300 uppercase tracking-widest">Photo Attachments</p>
+              </div>
+              <span className="text-xs font-mono text-gray-500">{photoCount}/5</span>
+            </div>
+            <div className="p-4 border border-dashed border-white/10 m-3 rounded-xl">
+              <input type="file" accept="image/*" multiple className="hidden" id="tech-photos" onChange={handlePhotoInput} />
+              <label htmlFor="tech-photos" className="flex flex-col items-center justify-center gap-2 py-6 px-4 rounded-xl bg-[#1a1f2e] border border-white/10 hover:bg-white/5 disabled:opacity-50 transition-colors cursor-pointer">
+                <Camera className="w-6 h-6 text-gray-400" />
+                <span className="text-xs font-bold text-gray-300 text-center">Tap to Add Photos</span>
+                <span className="text-[10px] text-gray-500">Up to 5 photos (optional)</span>
+              </label>
+            </div>
+          </div>
+        </Field>
+
+        {/* Submit */}
         <div className="flex gap-3 pt-1">
           <button type="button" onClick={onClose} className="flex-1 py-2.5 rounded-xl border border-white/10 text-sm font-bold text-gray-400 hover:bg-white/5">Cancel</button>
-          <button type="submit" disabled={mutation.isPending || !form.aircraft_tail || !form.description}
+          <button type="submit" disabled={mutation.isPending || !form.aircraft_tail || !form.description || !form.technician_name}
             className="flex-1 py-2.5 rounded-xl bg-amber-500 text-white text-sm font-bold hover:bg-amber-400 disabled:opacity-50 flex items-center justify-center gap-2">
             <Send className="w-4 h-4" /> {mutation.isPending ? 'Saving…' : 'Save Entry'}
           </button>
