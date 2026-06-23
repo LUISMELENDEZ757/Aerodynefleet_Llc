@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import TechAssignmentPanel from '@/components/techops/TechAssignmentPanel';
+import GateManagement from '@/components/station/GateManagement';
 import { base44 } from '@/api/base44Client';
 import { useStations } from '@/hooks/useStations';
 import { Link } from 'react-router-dom';
@@ -203,7 +204,7 @@ function QuickAssignModal({ entry, onClose, onAssign }) {
   );
 }
 
-const TABS = ['discrepancies', 'faults', 'parts', 'handover', 'work_assignments'];
+const TABS = ['discrepancies', 'faults', 'parts', 'handover', 'work_assignments', 'gates'];
 
 export default function CrewChiefDashboard() {
   const [tab, setTab] = useState('discrepancies');
@@ -388,8 +389,7 @@ export default function CrewChiefDashboard() {
             { id: 'handover', label: 'Shift Handover' },
             { id: 'work_assignments', label: 'Work Assignments', badge: requisitions.filter(r => r.status === 'pending_approval').length },
             { id: 'tech_assignment', label: 'Tech Assignment' },
-
-
+            { id: 'gates', label: 'Gate Management' },
           ].map(t => (
             <button key={t.id} onClick={() => setTab(t.id)}
               className={cn('flex items-center gap-1.5 px-4 py-2 rounded-xl text-xs font-bold whitespace-nowrap transition-all flex-shrink-0',
@@ -645,6 +645,30 @@ export default function CrewChiefDashboard() {
             discrepancies={discrepancies}
             onAssign={(id) => { const e = discrepancies.find(x => x.id === id); if (e) setAssignEntry(e); }}
           />
+        )}
+
+        {/* GATE MANAGEMENT TAB */}
+        {tab === 'gates' && (
+          <div className="bg-card border border-border rounded-2xl p-5">
+            <div className="mb-4 flex items-center justify-between">
+              <div>
+                <p className="font-extrabold text-foreground text-sm flex items-center gap-2">
+                  <MapPin className="w-4 h-4 text-primary" /> Gate Management — {stationFilter || 'All Stations'}
+                </p>
+                <p className="text-xs text-muted-foreground mt-0.5">
+                  {stationFilter ? `Managing gates at ${stationFilter}` : 'Select a station from the dropdown above to view gates'}
+                </p>
+              </div>
+            </div>
+            {stationFilter ? (
+              <GateManagement stationIcao={stationFilter} stationTimezone={stations.find(s => s === stationFilter) ? 'UTC' : 'UTC'} />
+            ) : (
+              <div className="text-center py-12 text-muted-foreground">
+                <MapPin className="w-12 h-12 mx-auto mb-3 opacity-30" />
+                <p className="text-sm font-bold">Select a station to view gate management</p>
+              </div>
+            )}
+          </div>
         )}
       </div>
 
