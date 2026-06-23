@@ -18,6 +18,7 @@ import AddTimelineEventModal from '@/components/fleet/AddTimelineEventModal';
 import TakingOwnershipModal from '@/components/fleet/TakingOwnershipModal';
 import PlaceOOSModal from '@/components/fleet/PlaceOOSModal';
 import { useThrottledFleet } from '@/hooks/useThrottledFleet';
+import AHMTickerBanner from '@/components/fleet/AHMTickerBanner';
 
 // ── Status mapping ──────────────────────────────────────────────────────────
 const STATUS_STYLES = {
@@ -586,6 +587,9 @@ export default function FleetDashboard() {
         <div style={{ width: 1, height: 16, background: '#1E2A42', margin: '0 8px' }} />
         <UtcClock />
       </div>
+
+      {/* ── AHM TICKER ── */}
+      <AHMTickerBanner />
 
       {/* ── FILTER BAR ── */}
       <div style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '10px 20px', background: '#0F1422', borderBottom: '1px solid #1E2A42', flexWrap: 'wrap' }}>
