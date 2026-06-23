@@ -4,12 +4,10 @@
   "description": "TechOps aircraft electronic logbook entry \u2014 discrepancies, corrective actions, and deferral tracking.",
   "properties": {
     "aircraft_tail": {
-      "type": "string",
-      "description": "Aircraft tail number"
+      "type": "string"
     },
     "log_page": {
-      "type": "string",
-      "description": "Log page number e.g. LP#0001"
+      "type": "string"
     },
     "flight_number": {
       "type": "string"
@@ -139,22 +137,18 @@
     },
     "is_signed": {
       "type": "boolean",
-      "default": false,
-      "description": "True when at least one valid digital signature has been applied. Signed entries are locked from further modification."
+      "default": false
     },
     "signature_hash": {
-      "type": "string",
-      "description": "SHA-256 hash of the entry content at the time of signing (hex string). Used to detect tampering."
+      "type": "string"
     },
     "digital_signatures": {
       "type": "array",
-      "description": "Immutable append-only array of digital signature records. Each entry is cryptographically tied to the record state at signing time.",
       "items": {
         "type": "object",
         "properties": {
           "signed_at": {
-            "type": "string",
-            "description": "ISO timestamp of signature"
+            "type": "string"
           },
           "signer_email": {
             "type": "string"
@@ -163,12 +157,10 @@
             "type": "string"
           },
           "signer_role": {
-            "type": "string",
-            "description": "Role at time of signing e.g. technician, inspector_rii"
+            "type": "string"
           },
           "signer_cert": {
-            "type": "string",
-            "description": "A&P / IA certificate number"
+            "type": "string"
           },
           "signature_type": {
             "type": "string",
@@ -177,16 +169,13 @@
               "rii_signoff",
               "supervisor_approval",
               "mcc_review"
-            ],
-            "description": "Type of signature"
+            ]
           },
           "content_hash": {
-            "type": "string",
-            "description": "SHA-256 of the entry fields at signing time"
+            "type": "string"
           },
           "hash_fields": {
-            "type": "string",
-            "description": "Comma-separated list of fields included in the hash"
+            "type": "string"
           }
         }
       }
@@ -222,48 +211,7 @@
         }
       ]
     },
-    "read": {
-      "$or": [
-        {
-          "created_by_id": "{{user.id}}"
-        },
-        {
-          "user_condition": {
-            "role": "admin"
-          }
-        },
-        {
-          "user_condition": {
-            "role": "mcc_supervisor"
-          }
-        },
-        {
-          "user_condition": {
-            "role": "engineer"
-          }
-        },
-        {
-          "user_condition": {
-            "role": "technician"
-          }
-        },
-        {
-          "user_condition": {
-            "role": "inspector_rii"
-          }
-        },
-        {
-          "user_condition": {
-            "role": "captain"
-          }
-        },
-        {
-          "user_condition": {
-            "role": "first_officer"
-          }
-        }
-      ]
-    },
+    "read": {},
     "update": {
       "$and": [
         {
