@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { base44 } from '@/api/base44Client';
 import { Link } from 'react-router-dom';
@@ -9,6 +9,7 @@ import {
   MapPin, ChevronDown
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Cell } from 'recharts';
 import CatCapabilityBadge from '@/components/techops/CatCapabilityBadge';
 import EtopsCapabilityBadge from '@/components/techops/EtopsCapabilityBadge';
 import { useStations } from '@/hooks/useStations';
@@ -293,6 +294,36 @@ export default function TechSupportDashboard() {
   const activeRequests = filteredRequests.filter(r => r.status !== 'resolved').length;
   const aogRequests = filteredRequests.filter(r => r.urgency === 'aog' && r.status !== 'resolved').length;
 
+  // Calculate MEL frequency over last 30 days
+  const melFrequencyData = useMemo(() => {
+    const now = new Date();
+    const thirtyDaysAgo = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
+    
+    // Group MELs by date
+    const dateMap = {};
+    for (let i = 29; i >= 0; i--) {
+      const date = new Date(now.getTime() - i * 24 * 60 * 60 * 1000);
+      const dateStr = date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+      dateMap[dateStr] = 0;
+    }
+    
+    chronicMels.forEach(mel => {
+      if (mel.deferred_date) {
+        const melDate = new Date(mel.deferred_date);
+        if (melDate >= thirtyDaysAgo && melDate <= now) {
+          const dateStr = melDate.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+          dateMap[dateStr] = (dateMap[dateStr] || 0) + 1;
+        }
+      }
+    });
+    
+    return Object.entries(dateMap).map(([date, count]) => ({
+      date,
+      count,
+      isHigh: count >= 3,
+    }));
+  }, [chronicMels]);
+
   return (
     <div className="min-h-screen bg-background pb-24">
       {/* Header */}
@@ -323,6 +354,65 @@ export default function TechSupportDashboard() {
           <KpiCard label="ETOPS Impacted" value={etopsImpacted} color="text-violet-400" icon={Shield} />
           <KpiCard label="Chronic Items" value={chronicCount} sub="≥3 recurrences" color="text-amber-400" icon={TrendingUp} />
           <KpiCard label="Total Active" value={chronicMels.length} color="text-blue-400" icon={BookOpen} />
+        </div>
+
+        {/* MEL Frequency Chart */}
+        <div className="mt-4 bg-card border border-border rounded-2xl p-5">
+          <div className="flex items-center justify-between mb-4">
+            <div>
+              <p className="text-sm font-extrabold text-foreground">MEL Deferral Frequency - Last 30 Days</p>
+              <p className="text-xs text-muted-foreground mt-0.5">Daily count of new MEL deferrals</p>
+            </div>
+            <div className="flex items-center gap-3 text-xs">
+              <div className="flex items-center gap-1.5">
+                <div className="w-3 h-3 rounded-sm bg-blue-500/80" />
+                <span className="text-muted-foreground">Normal</span>
+              </div>
+              <div className="flex items-center gap-1.5">
+                <div className="w-3 h-3 rounded-sm bg-orange-500" />
+                <span className="text-muted-foreground">High (3+)</span>
+              </div>
+            </div>
+          </div>
+          <div className="h-48">
+            <ResponsiveContainer width="100%" height="100%">
+              <BarChart data={melFrequencyData}>
+                <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" vertical={false} />
+                <XAxis 
+                  dataKey="date" 
+                  stroke="hsl(var(--muted-foreground))" 
+                  fontSize={10}
+                  tickLine={false}
+                  axisLine={false}
+                  interval={4}
+                />
+                <YAxis 
+                  stroke="hsl(var(--muted-foreground))" 
+                  fontSize={10}
+                  tickLine={false}
+                  axisLine={false}
+                  allowDecimals={false}
+                />
+                <Tooltip
+                  contentStyle={{
+                    backgroundColor: 'hsl(var(--card))',
+                    border: '1px solid hsl(var(--border))',
+                    borderRadius: '8px',
+                    fontSize: '11px',
+                  }}
+                  labelStyle={{ color: 'hsl(var(--foreground))', fontWeight: '600', marginBottom: '4px' }}
+                />
+                <Bar dataKey="count" radius={[4, 4, 0, 0]}>
+                  {melFrequencyData.map((entry, index) => (
+                    <Cell 
+                      key={`cell-${index}`} 
+                      fill={entry.isHigh ? 'hsl(38, 92%, 50%)' : 'hsl(210, 90%, 60%)'} 
+                    />
+                  ))}
+                </Bar>
+              </BarChart>
+            </ResponsiveContainer>
+          </div>
         </div>
 
         {/* Filters */}
