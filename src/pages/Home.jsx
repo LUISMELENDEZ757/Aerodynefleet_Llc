@@ -146,7 +146,10 @@ export default function Home() {
           >
             <p className="text-xs font-extrabold text-primary uppercase tracking-widest">Founder Message</p>
             <p className="text-sm text-foreground leading-relaxed">
-              I built Aerodyne Fleet because I have lived the challenges it solves — the delays, the decisions under pressure, the gap between what our tools offered and what our operation demanded. This platform is built for both the operator in the field and the student learning the craft.
+              I built Aerodyne Fleet because I've lived the challenges it solves. I've been in the room when a delay turns into a disruption, when a maintenance issue becomes a decision point, when a crew needs clarity, and when the operation needs answers fast.
+            </p>
+            <p className="text-sm text-foreground leading-relaxed mt-3">
+              Aviation deserves tools that match the stakes. Aerodyne Fleet is my commitment to that standard — a platform shaped by real operational experience, engineered with modern technology, and designed to give teams the confidence and situational awareness they need to keep the operation moving.
             </p>
             <p className="text-xs text-muted-foreground mt-4">Luis Melendez · Founder, Aerodyne Fleet</p>
           </motion.div>
