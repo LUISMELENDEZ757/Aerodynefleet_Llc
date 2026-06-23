@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { base44 } from '@/api/base44Client';
@@ -105,10 +105,18 @@ const ATA_CHAPTERS = [
 function NewEntryModal({ onClose }) {
   const queryClient = useQueryClient();
   const { icaoCodes: stations } = useStations();
-  const { data: aircraft = [] } = useQuery({
+  const { data: rawAircraft = [] } = useQuery({
     queryKey: ['tech-aircraft'],
     queryFn: () => base44.entities.Aircraft.list('tail_number', 200),
   });
+  const aircraft = useMemo(() => {
+    const seen = new Set();
+    return rawAircraft.filter(a => {
+      if (seen.has(a.tail_number)) return false;
+      seen.add(a.tail_number);
+      return true;
+    });
+  }, [rawAircraft]);
   const [form, setForm] = useState({
     aircraft_tail: '', station: '', ata_chapter: '',
     entry_type: 'discrepancy', description: '',
