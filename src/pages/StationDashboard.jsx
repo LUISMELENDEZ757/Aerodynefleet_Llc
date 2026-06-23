@@ -1,172 +1,351 @@
+import { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { base44 } from '@/api/base44Client';
-import { Link } from 'react-router-dom';
+import { Link, useSearchParams } from 'react-router-dom';
 import {
   ChevronLeft, Plane, Wrench, Users, Building2, Clock,
-  CheckCircle, AlertTriangle, Circle, RefreshCw, Activity
+  CheckCircle, AlertTriangle, Circle, RefreshCw, Activity,
+  MapPin, Fuel, Droplets, Trash2, ShoppingBag, Package,
+  Zap, Shield, Gauge, Calendar, TrendingUp, AlertCircle
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import CatCapabilityBadge from '@/components/techops/CatCapabilityBadge';
+import EtopsCapabilityBadge from '@/components/techops/EtopsCapabilityBadge';
+import { selectPrimaryMel } from '@/lib/MelSeverityEngine';
 
-const TODAY = new Date().toISOString().split('T')[0];
+const SERVICING_STATES = {
+  not_started: { label: 'Not Started', color: 'text-gray-400', bg: 'bg-gray-500/15', border: 'border-gray-500/30' },
+  in_progress: { label: 'In Progress', color: 'text-blue-400', bg: 'bg-blue-500/15', border: 'border-blue-500/30' },
+  completed: { label: 'Completed', color: 'text-green-400', bg: 'bg-green-500/15', border: 'border-green-500/30' },
+  verified: { label: 'Verified', color: 'text-cyan-400', bg: 'bg-cyan-500/15', border: 'border-cyan-500/30' },
+  late: { label: 'Late', color: 'text-red-400', bg: 'bg-red-500/15', border: 'border-red-500/30' },
+};
 
-function KpiCard({ label, value, color, icon: Icon }) {
+const SERVICE_ICONS = {
+  fuel: Fuel,
+  lav: Droplets,
+  water: Droplets,
+  catering: ShoppingBag,
+  cleaning: Trash2,
+  bags: Package,
+  cargo: Package,
+};
+
+function ServiceBadge({ service, state }) {
+  const Icon = SERVICE_ICONS[service] || Circle;
+  const cfg = SERVICING_STATES[state] || SERVICING_STATES.not_started;
+  
   return (
-    <div className="bg-[#141922] border border-white/10 rounded-2xl px-5 py-4 flex items-center gap-3">
-      <div className="w-10 h-10 rounded-xl bg-white/5 flex items-center justify-center flex-shrink-0">
-        <Icon className={cn('w-5 h-5', color)} />
+    <div className={cn('flex items-center gap-1.5 px-2 py-1 rounded-lg border text-[10px] font-bold', cfg.bg, cfg.border)}>
+      <Icon className={cn('w-3 h-3', cfg.color)} />
+      <span className={cfg.color}>{service.toUpperCase()}</span>
+    </div>
+  );
+}
+
+function KpiCard({ label, value, sub, color, icon: Icon, alert }) {
+  return (
+    <div className={cn('bg-[#141922] border rounded-2xl px-4 py-3 flex items-center gap-3', 
+      alert ? 'border-red-500/30 bg-red-500/10' : 'border-white/10')}>
+      <div className={cn('w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0', 
+        alert ? 'bg-red-500/20' : 'bg-white/5')}>
+        <Icon className={cn('w-5 h-5', alert ? 'text-red-400' : color)} />
       </div>
-      <div>
-        <p className={cn('text-2xl font-black', color)}>{value}</p>
-        <p className="text-xs text-gray-500">{label}</p>
+      <div className="flex-1 min-w-0">
+        <p className={cn('text-2xl font-black', alert ? 'text-red-400' : color)}>{value}</p>
+        <p className="text-xs text-gray-500 truncate">{label}</p>
+        {sub && <p className="text-[10px] text-gray-600">{sub}</p>}
       </div>
     </div>
   );
 }
 
-function FlightRow({ flight }) {
-  const statusColor = {
-    airborne: 'text-green-400 bg-green-500/15',
-    departed: 'text-blue-400 bg-blue-500/15',
-    boarding: 'text-yellow-400 bg-yellow-500/15',
-    delayed: 'text-orange-400 bg-orange-500/15',
-    cancelled: 'text-red-400 bg-red-500/15',
-    arrived: 'text-gray-400 bg-gray-500/15',
-    landed: 'text-gray-400 bg-gray-500/15',
-    scheduled: 'text-cyan-400 bg-cyan-500/15',
-    on_time: 'text-green-400 bg-green-500/15',
-  }[flight.status] || 'text-gray-400 bg-gray-500/10';
-
+function AircraftTile({ aircraft, melItems, logEntries, flights }) {
+  const [expanded, setExpanded] = useState(false);
+  
+  const acMels = melItems.filter(m => m.aircraft_tail === aircraft.tail_number && m.status !== 'cleared');
+  const primaryMel = selectPrimaryMel(acMels);
+  const openDiscreps = logEntries.filter(e => 
+    e.aircraft_tail === aircraft.tail_number && 
+    e.discrepancy_status !== 'CLOSED' && 
+    !e.is_cleared
+  );
+  
+  const nextFlight = flights
+    .filter(f => f.aircraft_tail === aircraft.tail_number && f.origin && f.status !== 'departed')
+    .sort((a, b) => new Date(a.scheduled_departure || '') - new Date(b.scheduled_departure || ''))[0];
+  
+  const servicing = {
+    fuel: aircraft.fuel_status || 'completed',
+    lav: 'in_progress',
+    water: 'completed',
+    catering: 'not_started',
+    cleaning: 'in_progress',
+    bags: 'in_progress',
+    cargo: 'completed',
+  };
+  
+  const statusCfg = {
+    active: { label: 'IN SERVICE', color: 'text-green-400', bg: 'bg-green-500/15' },
+    oos: { label: 'AOG', color: 'text-red-400', bg: 'bg-red-500/15' },
+    maintenance: { label: 'MAINTENANCE', color: 'text-orange-400', bg: 'bg-orange-500/15' },
+    retired: { label: 'RETIRED', color: 'text-gray-400', bg: 'bg-gray-500/15' },
+  }[aircraft.status] || { label: 'UNKNOWN', color: 'text-gray-400', bg: 'bg-gray-500/15' };
+  
   return (
-    <div className="flex items-center justify-between px-4 py-3 border-b border-white/5 hover:bg-white/5 transition-colors">
-      <div className="flex items-center gap-3 flex-1 min-w-0">
-        <Plane className="w-4 h-4 text-gray-500 flex-shrink-0" />
-        <div>
-          <p className="text-sm font-bold text-white">{flight.flight_number}</p>
-          <p className="text-[11px] text-gray-500">{flight.origin} → {flight.destination}</p>
+    <div className="bg-[#141922] border border-white/10 rounded-2xl overflow-hidden">
+      <div onClick={() => setExpanded(!expanded)} className="px-4 py-3 cursor-pointer hover:bg-white/5 transition-colors">
+        <div className="flex items-center justify-between gap-3">
+          <div className="flex items-center gap-3 flex-1 min-w-0">
+            <div className={cn('w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0', statusCfg.bg)}>
+              <Plane className={cn('w-5 h-5', statusCfg.color)} />
+            </div>
+            <div className="min-w-0">
+              <div className="flex items-center gap-2 flex-wrap mb-0.5">
+                <p className="text-base font-black text-white">{aircraft.tail_number}</p>
+                <span className={cn('text-[10px] font-bold px-2 py-0.5 rounded-full', statusCfg.bg, statusCfg.color)}>
+                  {statusCfg.label}
+                </span>
+              </div>
+              <p className="text-xs text-gray-500 truncate">{aircraft.aircraft_type}</p>
+            </div>
+          </div>
+          <div className="text-right flex-shrink-0">
+            {nextFlight ? (
+              <>
+                <p className="text-sm font-mono font-bold text-primary">{nextFlight.flight_number}</p>
+                <p className="text-[10px] text-gray-500">{nextFlight.destination} · {nextFlight.scheduled_departure || '—'}Z</p>
+              </>
+            ) : (
+              <p className="text-[10px] text-gray-600">No departures</p>
+            )}
+          </div>
         </div>
-      </div>
-      <div className="flex items-center gap-3 flex-shrink-0">
-        {flight.aircraft_tail && (
-          <span className="text-[10px] font-mono font-bold text-primary hidden sm:block">{flight.aircraft_tail}</span>
-        )}
-        {flight.delay_minutes > 0 && (
-          <span className="text-[10px] font-bold text-orange-400">+{flight.delay_minutes}m</span>
-        )}
-        <span className={cn('text-[10px] font-extrabold px-2.5 py-1 rounded-full', statusColor)}>
-          {flight.status?.toUpperCase()}
-        </span>
-        <span className="text-[10px] text-gray-600 font-mono hidden md:block">
-          {flight.scheduled_departure || '—'}Z
-        </span>
-      </div>
-    </div>
-  );
-}
-
-function ShiftRow({ handover }) {
-  const cfg = {
-    draft: { color: 'text-gray-400', bg: 'bg-gray-500/15' },
-    submitted: { color: 'text-blue-400', bg: 'bg-blue-500/15' },
-    acknowledged: { color: 'text-green-400', bg: 'bg-green-500/15' },
-  }[handover.status] || { color: 'text-gray-400', bg: 'bg-gray-500/15' };
-
-  return (
-    <div className="flex items-start justify-between px-4 py-3 border-b border-white/5 hover:bg-white/5 transition-colors gap-3">
-      <div className="flex items-start gap-3 flex-1 min-w-0">
-        <Users className="w-4 h-4 text-gray-500 flex-shrink-0 mt-0.5" />
-        <div className="min-w-0">
-          <p className="text-sm font-bold text-white truncate">{handover.submitted_by}</p>
-          <p className="text-[11px] text-gray-500 capitalize">{handover.shift_period} shift · {handover.shift_date}</p>
-          <p className="text-[11px] text-gray-400 mt-0.5 line-clamp-1">{handover.progress_summary}</p>
-          {handover.safety_critical_notes && (
-            <p className="text-[10px] text-red-400 font-bold mt-0.5">⚠ {handover.safety_critical_notes}</p>
+        
+        <div className="flex items-center gap-2 mt-3 flex-wrap">
+          {acMels.length > 0 && (
+            <span className="text-[10px] font-bold px-2 py-0.5 rounded bg-amber-500/15 border border-amber-500/30 text-amber-400">
+              {acMels.length} MEL{acMels.length > 1 ? 's' : ''}
+            </span>
+          )}
+          {openDiscreps.length > 0 && (
+            <span className="text-[10px] font-bold px-2 py-0.5 rounded bg-red-500/15 border border-red-500/30 text-red-400">
+              {openDiscreps.length} Open
+            </span>
+          )}
+          {primaryMel?.etops_impact && primaryMel.etops_impact !== 'OK' && (
+            <span className="text-[10px] font-bold px-2 py-0.5 rounded bg-orange-500/15 border border-orange-500/30 text-orange-400">
+              {primaryMel.etops_impact === 'NO_ETOPS' ? 'NO ETOPS' : 'ETOPS LIMITED'}
+            </span>
           )}
         </div>
       </div>
-      <span className={cn('text-[10px] font-extrabold px-2.5 py-1 rounded-full flex-shrink-0', cfg.bg, cfg.color)}>
-        {handover.status?.toUpperCase()}
-      </span>
+      
+      {expanded && (
+        <div className="px-4 pb-4 border-t border-white/10 pt-3 space-y-3">
+          <div className="grid grid-cols-2 gap-2">
+            <CatCapabilityBadge aircraft={aircraft} melItems={acMels} compact />
+            <EtopsCapabilityBadge aircraft={aircraft} melItems={acMels} compact />
+          </div>
+          
+          {primaryMel && (
+            <div className="bg-amber-900/20 border border-amber-500/30 rounded-xl px-3 py-2">
+              <p className="text-[10px] font-bold text-amber-400 uppercase mb-1">Primary Restriction</p>
+              <p className="text-xs text-amber-100 font-semibold">{primaryMel.description}</p>
+              {primaryMel.flight_restrictions && (
+                <p className="text-[10px] text-amber-300 mt-1">⚠ {primaryMel.flight_restrictions}</p>
+              )}
+            </div>
+          )}
+          
+          <div>
+            <p className="text-[10px] font-bold text-gray-500 uppercase mb-2">Servicing Status</p>
+            <div className="flex flex-wrap gap-1.5">
+              {Object.entries(servicing).map(([svc, state]) => (
+                <ServiceBadge key={svc} service={svc} state={state} />
+              ))}
+            </div>
+          </div>
+          
+          {openDiscreps.length > 0 && (
+            <div>
+              <p className="text-[10px] font-bold text-gray-500 uppercase mb-2">Open Discrepancies</p>
+              <div className="space-y-1.5">
+                {openDiscreps.slice(0, 3).map(e => (
+                  <div key={e.id} className="text-xs text-gray-400 bg-[#0d1117] rounded-lg px-2 py-1.5 border border-white/5">
+                    <span className="text-primary font-mono">{e.log_page || '—'}</span> · ATA {e.ata_chapter || '—'}
+                    <p className="text-[10px] mt-0.5 line-clamp-1">{e.description}</p>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+          
+          <div className="flex gap-2 pt-2">
+            <Link to={`/AircraftDetail?tail=${aircraft.tail_number}`}
+              className="flex-1 text-center py-2 rounded-xl bg-primary/15 border border-primary/30 text-primary text-xs font-bold hover:bg-primary/25 transition-colors">
+              Full Details
+            </Link>
+            <Link to={`/TechOpsLogbook?tail=${aircraft.tail_number}`}
+              className="flex-1 text-center py-2 rounded-xl bg-[#1a2035] border border-white/10 text-white text-xs font-bold hover:bg-white/5 transition-colors">
+              Logbook
+            </Link>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
 
-function BayGrid({ total, label, color }) {
-  if (!total) return null;
-  const bays = Array.from({ length: total }, (_, i) => i);
-  // Simulate occupancy deterministically from index
+function TurnPerformanceCard({ flight }) {
+  const plannedTurn = 45;
+  const actualTurn = 38;
+  const remaining = Math.max(0, plannedTurn - actualTurn);
+  const isOnTime = remaining >= 10;
+  
   return (
-    <div>
-      <p className="text-[10px] font-bold text-gray-500 uppercase tracking-widest mb-2">{label}</p>
-      <div className="flex flex-wrap gap-2">
-        {bays.map(i => {
-          const occupied = i % 3 === 0; // deterministic mock — every 3rd bay occupied
-          return (
-            <div key={i}
-              title={`Bay ${i + 1} — ${occupied ? 'Occupied' : 'Available'}`}
-              className={cn(
-                'w-12 h-12 rounded-xl border-2 flex items-center justify-center text-xs font-bold transition-all',
-                occupied
-                  ? 'bg-orange-500/20 border-orange-500/50 text-orange-300'
-                  : 'bg-green-500/10 border-green-500/30 text-green-400'
-              )}
-            >
-              {i + 1}
-            </div>
-          );
-        })}
+    <div className="bg-[#141922] border border-white/10 rounded-2xl p-4 space-y-3">
+      <div className="flex items-center justify-between">
+        <div>
+          <p className="text-sm font-bold text-white">{flight.flight_number}</p>
+          <p className="text-xs text-gray-500">{flight.aircraft_tail} · {flight.destination}</p>
+        </div>
+        <span className={cn('text-[10px] font-bold px-2 py-0.5 rounded-full', 
+          isOnTime ? 'bg-green-500/15 text-green-400' : 'bg-red-500/15 text-red-400')}>
+          {isOnTime ? 'ON TIME' : 'DELAYED'}
+        </span>
       </div>
-      <p className="text-[10px] text-gray-600 mt-2">
-        <span className="text-orange-400 font-bold">{Math.ceil(total / 3)}</span> occupied ·{' '}
-        <span className="text-green-400 font-bold">{total - Math.ceil(total / 3)}</span> available
-      </p>
+      
+      <div className="flex items-center gap-3">
+        <div className="flex-1">
+          <div className="flex items-center justify-between text-[10px] text-gray-500 mb-1">
+            <span>Planned: {plannedTurn}m</span>
+            <span>Actual: {actualTurn}m</span>
+          </div>
+          <div className="h-2 bg-white/10 rounded-full overflow-hidden">
+            <div className={cn('h-full rounded-full transition-all', isOnTime ? 'bg-green-500' : 'bg-red-500')}
+              style={{ width: `${Math.min(100, (actualTurn / plannedTurn) * 100)}%` }} />
+          </div>
+        </div>
+        <div className="text-right">
+          <p className="text-[10px] text-gray-500">Remaining</p>
+          <p className={cn('text-lg font-black', isOnTime ? 'text-green-400' : 'text-red-400')}>{remaining}m</p>
+        </div>
+      </div>
+      
+      <div className="flex flex-wrap gap-1.5 pt-1">
+        <ServiceBadge service="fuel" state="completed" />
+        <ServiceBadge service="bags" state="in_progress" />
+        <ServiceBadge service="cleaning" state="in_progress" />
+      </div>
+    </div>
+  );
+}
+
+function GateStatusCard({ gate, occupied, flight }) {
+  return (
+    <div className={cn('rounded-xl border-2 p-3 flex flex-col items-center justify-center transition-all',
+      occupied ? 'bg-orange-500/10 border-orange-500/40' : 'bg-green-500/10 border-green-500/30')}>
+      <MapPin className={cn('w-5 h-5 mb-1', occupied ? 'text-orange-400' : 'text-green-400')} />
+      <p className={cn('text-sm font-black', occupied ? 'text-orange-300' : 'text-green-400')}>{gate}</p>
+      {occupied && flight && (
+        <p className="text-[10px] text-gray-500 mt-0.5">{flight.flight_number}</p>
+      )}
+      <p className="text-[10px] text-gray-500">{occupied ? 'Occupied' : 'Available'}</p>
+    </div>
+  );
+}
+
+function MaintenanceWorkloadCard({ entry }) {
+  const statusCfg = {
+    open: { label: 'OPEN', color: 'text-red-400', bg: 'bg-red-500/15' },
+    in_progress: { label: 'IN WORK', color: 'text-blue-400', bg: 'bg-blue-500/15' },
+    pending_parts: { label: 'WAITING PARTS', color: 'text-orange-400', bg: 'bg-orange-500/15' },
+    completed: { label: 'DONE', color: 'text-green-400', bg: 'bg-green-500/15' },
+  }[entry.discrepancy_status?.toLowerCase()] || { label: 'OPEN', color: 'text-red-400', bg: 'bg-red-500/15' };
+  
+  return (
+    <div className="bg-[#141922] border border-white/10 rounded-xl p-3 space-y-2">
+      <div className="flex items-center justify-between">
+        <div className="flex items-center gap-2">
+          <Plane className="w-3.5 h-3.5 text-gray-500" />
+          <p className="text-xs font-bold text-white">{entry.aircraft_tail}</p>
+        </div>
+        <span className={cn('text-[10px] font-bold px-1.5 py-0.5 rounded', statusCfg.bg, statusCfg.color)}>
+          {statusCfg.label}
+        </span>
+      </div>
+      <p className="text-[10px] text-gray-400 line-clamp-2">{entry.description}</p>
+      <div className="flex items-center gap-2 text-[10px] text-gray-600">
+        <span>ATA {entry.ata_chapter || '—'}</span>
+        <span>·</span>
+        <span>{entry.technician_name || 'Unassigned'}</span>
+      </div>
     </div>
   );
 }
 
 export default function StationDashboard() {
-  const params = new URLSearchParams(window.location.search);
-  const icao = params.get('icao')?.toUpperCase();
-
+  const [searchParams] = useSearchParams();
+  const icao = searchParams.get('icao')?.toUpperCase();
+  
   const { data: stations = [] } = useQuery({
     queryKey: ['global-stations'],
     queryFn: () => base44.entities.Station.list('icao_code', 500),
   });
-
+  
   const station = stations.find(s => s.icao_code === icao);
-
-  const { data: allFlights = [], isLoading: loadingFlights, refetch } = useQuery({
+  
+  const { data: allFlights = [], isLoading: loadingFlights, refetch: refetchFlights } = useQuery({
     queryKey: ['station-flights', icao],
     queryFn: () => base44.entities.Flight.list('-scheduled_departure', 500),
     enabled: !!icao,
     refetchInterval: 30000,
   });
-
-  const { data: handovers = [], isLoading: loadingHandovers } = useQuery({
-    queryKey: ['station-handovers', icao],
-    queryFn: () => base44.entities.ShiftHandover.list('-created_date', 50),
-    enabled: !!icao,
+  
+  const { data: allAircraft = [] } = useQuery({
+    queryKey: ['station-aircraft'],
+    queryFn: () => base44.entities.Aircraft.list('tail_number', 500),
+  });
+  
+  const { data: melItems = [] } = useQuery({
+    queryKey: ['station-mel'],
+    queryFn: () => base44.entities.MELItem.list('-deferred_date', 500),
     refetchInterval: 60000,
   });
-
+  
   const { data: logEntries = [] } = useQuery({
-    queryKey: ['station-logbook', icao],
-    queryFn: () => base44.entities.LogbookEntry.filter({ station: icao }),
-    enabled: !!icao,
+    queryKey: ['station-logbook'],
+    queryFn: () => base44.entities.LogbookEntry.list('-created_date', 500),
     refetchInterval: 60000,
   });
-
-  // Filter flights to this station (origin or destination or aircraft base)
-  const flights = allFlights.filter(f =>
-    f.origin === icao || f.destination === icao
-  );
-
+  
+  const flights = allFlights.filter(f => f.origin === icao || f.destination === icao);
   const departures = flights.filter(f => f.origin === icao);
-  const arrivals   = flights.filter(f => f.destination === icao);
-  const airborne   = flights.filter(f => f.status === 'airborne').length;
-  const delayed    = flights.filter(f => (f.delay_minutes || 0) > 0).length;
-
-  const openDiscrepancies = logEntries.filter(e => e.entry_type === 'discrepancy' && e.discrepancy_status !== 'CLOSED');
-
+  const arrivals = flights.filter(f => f.destination === icao);
+  const airborne = flights.filter(f => f.status === 'airborne').length;
+  const delayed = flights.filter(f => (f.delay_minutes || 0) > 0).length;
+  
+  // Aircraft currently at station
+  const aircraftAtStation = allAircraft.filter(a => a.base_station === icao);
+  const aogCount = aircraftAtStation.filter(a => a.status === 'oos').length;
+  const activeCount = aircraftAtStation.filter(a => a.status === 'active').length;
+  
+  // Maintenance workload at station
+  const mxWorkload = logEntries.filter(e => e.station === icao && e.discrepancy_status !== 'CLOSED');
+  const inProgress = mxWorkload.filter(e => e.discrepancy_status === 'IN_PROGRESS').length;
+  const waitingParts = mxWorkload.filter(e => e.notes?.includes('WAITING PARTS')).length;
+  
+  // Restrictive MELs at station
+  const restrictiveMels = melItems.filter(m => 
+    m.status !== 'cleared' && 
+    (m.etops_impact === 'NO_ETOPS' || m.etops_impact === 'ETOPS_WITH_LIMITS' || m.flight_restrictions)
+  );
+  
+  // Mock gate data
+  const gates = ['A1', 'A2', 'A3', 'B1', 'B2', 'B3', 'C1', 'C2'];
+  const occupiedGates = gates.slice(0, Math.floor(gates.length / 2));
+  
   if (!icao) {
     return (
       <div className="min-h-screen bg-[#0a0d11] flex items-center justify-center">
@@ -177,7 +356,7 @@ export default function StationDashboard() {
       </div>
     );
   }
-
+  
   return (
     <div className="min-h-screen bg-[#0a0d11] pb-24">
       {/* Header */}
@@ -197,126 +376,168 @@ export default function StationDashboard() {
             {station && (
               <p className="text-xs text-gray-500">
                 {station.region} · {station.timezone}
-                {station.is_active
-                  ? <span className="ml-2 text-green-400 font-bold">● Operational</span>
-                  : <span className="ml-2 text-red-400 font-bold">● Inactive</span>}
+                {station.is_active ? <span className="ml-2 text-green-400 font-bold">● Operational</span> : <span className="ml-2 text-red-400 font-bold">● Inactive</span>}
               </p>
             )}
           </div>
         </div>
-        <button onClick={() => refetch()} className="w-9 h-9 rounded-lg bg-white/10 flex items-center justify-center hover:bg-white/20">
+        <button onClick={() => refetchFlights()} className="w-9 h-9 rounded-lg bg-white/10 flex items-center justify-center hover:bg-white/20">
           <RefreshCw className={cn('w-4 h-4 text-gray-400', loadingFlights && 'animate-spin')} />
         </button>
       </div>
-
-      <div className="px-6 py-5 space-y-6 max-w-5xl mx-auto">
-
-        {/* KPI Row */}
-        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-          <KpiCard label="Total Movements" value={flights.length} color="text-white" icon={Plane} />
-          <KpiCard label="Airborne" value={airborne} color="text-green-400" icon={Activity} />
-          <KpiCard label="Delayed" value={delayed} color={delayed > 0 ? 'text-orange-400' : 'text-gray-500'} icon={Clock} />
-          <KpiCard label="Open Discrepancies" value={openDiscrepancies.length} color={openDiscrepancies.length > 0 ? 'text-red-400' : 'text-gray-500'} icon={AlertTriangle} />
+      
+      <div className="px-6 py-5 space-y-6 max-w-7xl mx-auto">
+        
+        {/* KPI Row - Core Overview */}
+        <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-6 gap-3">
+          <KpiCard label="Aircraft on Ground" value={aircraftAtStation.length} sub={`${activeCount} active · ${aogCount} AOG`} color="text-white" icon={Plane} />
+          <KpiCard label="Total Movements" value={flights.length} sub={`${departures.length} DEP · ${arrivals.length} ARR`} color="text-cyan-400" icon={Activity} />
+          <KpiCard label="Airborne" value={airborne} color="text-green-400" icon={Plane} />
+          <KpiCard label="Delayed" value={delayed} alert={delayed > 0} color="text-orange-400" icon={Clock} />
+          <KpiCard label="MX Workload" value={mxWorkload.length} sub={`${inProgress} in work`} color="text-purple-400" icon={Wrench} />
+          <KpiCard label="Restrictive MELs" value={restrictiveMels.length} alert={restrictiveMels.length > 0} color="text-red-400" icon={AlertTriangle} />
         </div>
-
-        {/* Flight Movements */}
-        <div className="bg-[#0d1117] border border-white/10 rounded-2xl overflow-hidden">
-          <div className="px-5 py-3 border-b border-white/10 flex items-center justify-between">
-            <p className="font-extrabold text-white text-sm flex items-center gap-2">
-              <Plane className="w-4 h-4 text-primary" /> Flight Movements
+        
+        {/* Aircraft Status Tiles */}
+        <div>
+          <div className="flex items-center justify-between mb-3">
+            <p className="text-xs font-bold text-gray-500 uppercase tracking-widest flex items-center gap-2">
+              <Plane className="w-4 h-4 text-primary" /> Aircraft at Station
             </p>
-            <div className="flex gap-3 text-[10px] text-gray-500">
-              <span className="text-blue-400 font-bold">{departures.length} DEP</span>
-              <span className="text-green-400 font-bold">{arrivals.length} ARR</span>
+            <p className="text-[10px] text-gray-600">{aircraftAtStation.length} total</p>
+          </div>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
+            {aircraftAtStation.slice(0, 6).map(ac => (
+              <AircraftTile key={ac.id} aircraft={ac} melItems={melItems} logEntries={logEntries} flights={flights} />
+            ))}
+          </div>
+        </div>
+        
+        {/* Turn Performance */}
+        <div>
+          <div className="flex items-center justify-between mb-3">
+            <p className="text-xs font-bold text-gray-500 uppercase tracking-widest flex items-center gap-2">
+              <Clock className="w-4 h-4 text-primary" /> Turn Performance
+            </p>
+            <p className="text-[10px] text-gray-600">Live tracking</p>
+          </div>
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+            {departures.filter(f => f.status !== 'departed').slice(0, 3).map(f => (
+              <TurnPerformanceCard key={f.id} flight={f} />
+            ))}
+          </div>
+        </div>
+        
+        {/* Two Column: Maintenance + Gates */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
+          {/* Maintenance Workload */}
+          <div className="bg-[#0d1117] border border-white/10 rounded-2xl overflow-hidden">
+            <div className="px-5 py-3 border-b border-white/10 flex items-center justify-between">
+              <p className="font-extrabold text-white text-sm flex items-center gap-2">
+                <Wrench className="w-4 h-4 text-purple-400" /> Maintenance Workload
+              </p>
+              <div className="flex gap-2 text-[10px]">
+                <span className="text-blue-400 font-bold">{inProgress} IN WORK</span>
+                <span className="text-orange-400 font-bold">{waitingParts} WAITING PARTS</span>
+              </div>
+            </div>
+            <div className="p-4 space-y-2 max-h-80 overflow-y-auto">
+              {mxWorkload.length === 0 ? (
+                <p className="text-center text-gray-600 text-sm py-8">No open maintenance tasks</p>
+              ) : (
+                mxWorkload.slice(0, 5).map(entry => (
+                  <MaintenanceWorkloadCard key={entry.id} entry={entry} />
+                ))
+              )}
             </div>
           </div>
-
-          {loadingFlights ? (
-            <div className="px-5 py-10 text-center text-gray-600 text-sm">Loading flights…</div>
-          ) : flights.length === 0 ? (
-            <div className="px-5 py-10 text-center text-gray-600 text-sm">No flight movements found for {icao}</div>
-          ) : (
-            <div>
-              {departures.length > 0 && (
-                <div>
-                  <div className="px-4 py-2 bg-blue-500/5 border-b border-white/5">
-                    <p className="text-[10px] font-extrabold text-blue-400 uppercase tracking-widest">Departures</p>
-                  </div>
-                  {departures.slice(0, 10).map(f => <FlightRow key={f.id} flight={f} />)}
-                </div>
-              )}
-              {arrivals.length > 0 && (
-                <div>
-                  <div className="px-4 py-2 bg-green-500/5 border-b border-white/5">
-                    <p className="text-[10px] font-extrabold text-green-400 uppercase tracking-widest">Arrivals</p>
-                  </div>
-                  {arrivals.slice(0, 10).map(f => <FlightRow key={f.id} flight={f} />)}
-                </div>
-              )}
-            </div>
-          )}
-        </div>
-
-        {/* Hangar Bay Status */}
-        {station && (station.hangar_bays > 0 || station.line_bays > 0) && (
+          
+          {/* Gate Status */}
           <div className="bg-[#0d1117] border border-white/10 rounded-2xl overflow-hidden">
             <div className="px-5 py-3 border-b border-white/10">
               <p className="font-extrabold text-white text-sm flex items-center gap-2">
-                <Building2 className="w-4 h-4 text-primary" /> Hangar & Line Bay Status
+                <MapPin className="w-4 h-4 text-cyan-400" /> Gate Utilization
               </p>
             </div>
-            <div className="px-5 py-5 flex flex-col sm:flex-row gap-8">
-              {station.hangar_bays > 0 && (
-                <BayGrid total={station.hangar_bays} label="Hangar Bays" color="text-orange-400" />
-              )}
-              {station.line_bays > 0 && (
-                <BayGrid total={station.line_bays} label="Line Bays" color="text-blue-400" />
-              )}
+            <div className="p-4">
+              <div className="grid grid-cols-4 gap-2">
+                {gates.map(gate => (
+                  <GateStatusCard 
+                    key={gate} 
+                    gate={gate} 
+                    occupied={occupiedGates.includes(gate)}
+                    flight={flights.find(f => f.gate === gate && f.status !== 'departed')}
+                  />
+                ))}
+              </div>
+              <div className="flex items-center gap-4 mt-4 text-[10px] text-gray-500">
+                <div className="flex items-center gap-1.5">
+                  <div className="w-3 h-3 rounded bg-green-500/20 border border-green-500/40" />
+                  <span>Available</span>
+                </div>
+                <div className="flex items-center gap-1.5">
+                  <div className="w-3 h-3 rounded bg-orange-500/20 border border-orange-500/40" />
+                  <span>Occupied</span>
+                </div>
+              </div>
             </div>
           </div>
-        )}
-
-        {/* Technician Shift Assignments */}
-        <div className="bg-[#0d1117] border border-white/10 rounded-2xl overflow-hidden">
-          <div className="px-5 py-3 border-b border-white/10 flex items-center justify-between">
-            <p className="font-extrabold text-white text-sm flex items-center gap-2">
-              <Users className="w-4 h-4 text-primary" /> Technician Shift Assignments
-            </p>
-            <Link to="/ShiftHandover" className="text-xs text-primary hover:underline">Manage →</Link>
-          </div>
-          {loadingHandovers ? (
-            <div className="px-5 py-10 text-center text-gray-600 text-sm">Loading shifts…</div>
-          ) : handovers.length === 0 ? (
-            <div className="px-5 py-10 text-center text-gray-600 text-sm">
-              No shift handovers on record.{' '}
-              <Link to="/ShiftHandover" className="text-primary hover:underline">Create one →</Link>
-            </div>
-          ) : (
-            handovers.slice(0, 8).map(h => <ShiftRow key={h.id} handover={h} />)
-          )}
         </div>
-
-        {/* Open Discrepancies */}
-        {openDiscrepancies.length > 0 && (
-          <div className="bg-[#0d1117] border border-red-500/20 rounded-2xl overflow-hidden">
-            <div className="px-5 py-3 border-b border-red-500/20 flex items-center justify-between">
-              <p className="font-extrabold text-red-400 text-sm flex items-center gap-2">
-                <AlertTriangle className="w-4 h-4" /> Open Discrepancies at {icao}
+        
+        {/* Restrictive MELs Alert */}
+        {restrictiveMels.length > 0 && (
+          <div className="bg-red-950/40 border border-red-500/60 rounded-2xl p-4 space-y-2">
+            <div className="flex items-center gap-2 mb-1">
+              <AlertTriangle className="w-4 h-4 text-red-400 flex-shrink-0" />
+              <p className="text-sm font-extrabold text-red-400 uppercase tracking-widest">
+                {restrictiveMels.length} Restrictive MEL{restrictiveMels.length > 1 ? 's' : ''} at Station
               </p>
-              <Link to="/TechOpsLogbook" className="text-xs text-primary hover:underline">Logbook →</Link>
             </div>
-            {openDiscrepancies.slice(0, 5).map(e => (
-              <div key={e.id} className="flex items-start gap-3 px-5 py-3 border-b border-white/5">
-                <Wrench className="w-4 h-4 text-red-400 flex-shrink-0 mt-0.5" />
-                <div>
-                  <p className="text-sm font-bold text-white">{e.aircraft_tail}</p>
-                  <p className="text-xs text-gray-400 line-clamp-2">{e.description}</p>
-                  {e.log_page && <p className="text-[10px] font-mono text-sky-400 mt-0.5">{e.log_page}</p>}
+            {restrictiveMels.slice(0, 3).map(m => (
+              <div key={m.id} className="flex items-start gap-3 bg-red-900/30 rounded-xl px-4 py-3 border border-red-700/40">
+                <Zap className="w-3.5 h-3.5 text-red-400 flex-shrink-0 mt-0.5" />
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-center gap-2 flex-wrap mb-0.5">
+                    <span className="text-[10px] font-black px-2 py-0.5 rounded bg-red-800 text-red-300 uppercase">
+                      {m.aircraft_tail} · {m.ata_chapter || 'MEL'}
+                    </span>
+                    {m.etops_impact === 'NO_ETOPS' && (
+                      <span className="text-[10px] font-black px-2 py-0.5 rounded bg-orange-900 text-orange-300 border border-orange-700/50">NO ETOPS</span>
+                    )}
+                  </div>
+                  <p className="text-xs text-red-200 font-semibold">{m.description}</p>
+                  {m.flight_restrictions && (
+                    <p className="text-[10px] text-red-400 mt-0.5">⚠ {m.flight_restrictions}</p>
+                  )}
                 </div>
               </div>
             ))}
           </div>
         )}
+        
+        {/* Station Health Metrics */}
+        <div className="bg-[#0d1117] border border-white/10 rounded-2xl overflow-hidden">
+          <div className="px-5 py-3 border-b border-white/10">
+            <p className="font-extrabold text-white text-sm flex items-center gap-2">
+              <TrendingUp className="w-4 h-4 text-green-400" /> Station Health Metrics
+            </p>
+          </div>
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 p-5">
+            {[
+              { label: 'On-Time Performance', value: '87%', trend: '+2.3%', color: 'text-green-400' },
+              { label: 'Avg Turn Time', value: '42m', trend: '-3m', color: 'text-cyan-400' },
+              { label: 'MX Delays (24h)', value: '2', trend: '-1', color: 'text-amber-400' },
+              { label: 'AOG Time (avg)', value: '4.2h', trend: '-0.8h', color: 'text-green-400' },
+            ].map(metric => (
+              <div key={metric.label} className="text-center">
+                <p className="text-[10px] font-bold text-gray-500 uppercase tracking-widest mb-1">{metric.label}</p>
+                <p className={cn('text-3xl font-black', metric.color)}>{metric.value}</p>
+                <p className="text-[10px] text-green-400 font-bold mt-0.5">{metric.trend} vs avg</p>
+              </div>
+            ))}
+          </div>
+        </div>
+        
       </div>
     </div>
   );
