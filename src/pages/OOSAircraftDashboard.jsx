@@ -8,6 +8,7 @@ import {
   ArrowRight, RefreshCw, Shield, Tag, ChevronDown, ChevronUp,
   FileText, X, Send
 } from 'lucide-react';
+import OOSTriggerBanner from '@/components/oos/OOSTriggerBanner';
 import { cn } from '@/lib/utils';
 
 // ── State Machine Definition ────────────────────────────────────────────────
@@ -401,6 +402,9 @@ function AircraftStateCard({ aircraft, melItems, oosEntries, onTransition }) {
       {/* Expanded detail */}
       {expanded && (
         <div className="border-t border-white/10 px-4 py-3 space-y-3 bg-[#0f1520]">
+
+          {/* Hard OOS Trigger Banner */}
+          <OOSTriggerBanner aircraftTail={aircraft.tail_number} />
 
           {/* RTS checklist steps */}
           {aircraft.status === 'rts_pending' && (

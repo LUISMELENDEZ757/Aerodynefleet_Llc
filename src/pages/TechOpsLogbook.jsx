@@ -18,6 +18,7 @@ import NewLogEntryModal from '@/components/techops/NewLogEntryModal';
 import NewFaultModal from '@/components/techops/NewFaultModal';
 import LogEntryCard from '@/components/techops/LogEntryCard';
 import MELSignOffModal from '@/components/techops/MELSignOffModal';
+import OOSTriggerBanner from '@/components/oos/OOSTriggerBanner';
 
 // ── Config ───────────────────────────────────────────────────────────────────
 const STATUS_STYLES = {
@@ -402,6 +403,9 @@ export default function TechOpsLogbook() {
             </div>
           </div>
         </div>
+
+        {/* ── OOS HARD TRIGGER BANNER ───────────────────────────────────────── */}
+        {selectedTail && <OOSTriggerBanner aircraftTail={selectedTail} />}
 
         {/* ── CAT + ETOPS CAPABILITY BADGES ─────────────────────────────────── */}
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
