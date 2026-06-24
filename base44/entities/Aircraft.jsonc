@@ -61,12 +61,55 @@
       "type": "string",
       "enum": [
         "active",
+        "mel_ops",
         "oos",
+        "rts_pending",
+        "released",
         "maintenance",
         "retired"
       ],
       "default": "active",
-      "description": "Current operational status"
+      "description": "Operational state: active=airworthy, mel_ops=airworthy under MEL/CDL, oos=cannot be dispatched, rts_pending=work done but release not complete, released=fully airworthy RTS complete, maintenance=heavy check"
+    },
+    "oos_reason": {
+      "type": "string",
+      "description": "Brief reason aircraft is OOS \u2014 populated when status transitions to oos"
+    },
+    "oos_since": {
+      "type": "string",
+      "description": "ISO timestamp when aircraft entered OOS state"
+    },
+    "rts_checklist": {
+      "type": "object",
+      "description": "RTS completion checklist flags",
+      "properties": {
+        "work_complete": {
+          "type": "boolean",
+          "default": false
+        },
+        "rii_signed": {
+          "type": "boolean",
+          "default": false
+        },
+        "qa_approved": {
+          "type": "boolean",
+          "default": false
+        },
+        "ops_check": {
+          "type": "boolean",
+          "default": false
+        },
+        "captain_accepted": {
+          "type": "boolean",
+          "default": false
+        },
+        "released_by": {
+          "type": "string"
+        },
+        "released_at": {
+          "type": "string"
+        }
+      }
     },
     "location_type": {
       "type": "string",
@@ -188,6 +231,11 @@
         {
           "user_condition": {
             "role": "engineer"
+          }
+        },
+        {
+          "user_condition": {
+            "role": "technician"
           }
         }
       ]
