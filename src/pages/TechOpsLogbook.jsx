@@ -78,6 +78,7 @@ export default function TechOpsLogbook() {
 
   const [selectedTail, setSelectedTail] = useState(tailParam || null);
   const [tailDropdown, setTailDropdown] = useState(false);
+  const [tailSearch, setTailSearch] = useState('');
   const [showNewEntry, setShowNewEntry] = useState(false);
   const [showNewFault, setShowNewFault] = useState(false);
   const [showQRScanner, setShowQRScanner] = useState(false);
@@ -95,6 +96,18 @@ export default function TechOpsLogbook() {
   });
 
   const selectedAc = aircraft.find(a => a.tail_number === selectedTail) || aircraft[0];
+
+  // Filter aircraft based on search query
+  const filteredAircraft = useMemo(() => {
+    if (!tailSearch.trim()) return aircraft;
+    const search = tailSearch.toLowerCase();
+    return aircraft.filter(a =>
+      a.tail_number?.toLowerCase().includes(search) ||
+      a.aircraft_type?.toLowerCase().includes(search) ||
+      a.base_station?.toLowerCase().includes(search) ||
+      a.msn?.toLowerCase().includes(search)
+    );
+  }, [aircraft, tailSearch]);
 
   useEffect(() => {
     if (!selectedTail && aircraft.length > 0) setSelectedTail(aircraft[0].tail_number);
@@ -272,14 +285,57 @@ export default function TechOpsLogbook() {
               <ChevronDown className="w-4 h-4 text-gray-500" />
             </button>
             {tailDropdown && (
-              <div className="absolute right-0 top-full mt-1 w-52 bg-[#1a1f2e] border border-white/10 rounded-xl overflow-hidden z-50 shadow-xl max-h-72 overflow-y-auto">
-                {aircraft.map(a => (
-                  <button key={a.id} onClick={() => { setSelectedTail(a.tail_number); setTailDropdown(false); }}
-                    className={cn('w-full flex items-center gap-3 px-4 py-2.5 text-sm hover:bg-white/5 transition-colors text-left', a.tail_number === selectedTail && 'bg-primary/10 text-primary')}>
-                    <span className="font-bold">{a.tail_number}</span>
-                    <span className="text-xs text-gray-400">{a.aircraft_type}</span>
-                  </button>
-                ))}
+              <div className="absolute right-0 top-full mt-1 w-72 bg-[#1a1f2e] border border-white/10 rounded-xl overflow-hidden z-50 shadow-xl">
+                {/* Search input */}
+                <div className="p-3 border-b border-white/10">
+                  <input
+                    autoFocus
+                    value={tailSearch}
+                    onChange={e => setTailSearch(e.target.value)}
+                    placeholder="Search tail, type, station..."
+                    className="w-full bg-[#0d1117] border border-white/10 rounded-lg px-3 py-2 text-sm text-white placeholder-gray-600 outline-none focus:border-primary"
+                  />
+                </div>
+                {/* Aircraft list */}
+                <div className="max-h-80 overflow-y-auto">
+                  {filteredAircraft.length === 0 ? (
+                    <div className="px-4 py-8 text-center text-gray-500 text-xs">
+                      No aircraft found
+                    </div>
+                  ) : (
+                    filteredAircraft.map(a => {
+                      const statusCfg = STATUS_STYLES[a.status] || STATUS_STYLES.active;
+                      return (
+                        <button
+                          key={a.id}
+                          onClick={() => { setSelectedTail(a.tail_number); setTailDropdown(false); setTailSearch(''); }}
+                          className={cn(
+                            'w-full flex items-center gap-3 px-4 py-2.5 text-sm hover:bg-white/5 transition-colors text-left border-b border-white/5 last:border-0',
+                            a.tail_number === selectedTail && 'bg-primary/10 text-primary'
+                          )}
+                        >
+                          <div className="flex-1 min-w-0">
+                            <div className="flex items-center gap-2 mb-0.5">
+                              <span className="font-bold text-white">{a.tail_number}</span>
+                              <span className={cn('w-1.5 h-1.5 rounded-full', statusCfg.dot)} />
+                            </div>
+                            <div className="flex items-center gap-2 text-xs text-gray-400">
+                              <span>{a.aircraft_type}</span>
+                              <span>·</span>
+                              <span>{a.base_station || '—'}</span>
+                              {a.msn && (
+                                <>
+                                  <span>·</span>
+                                  <span>MSN {a.msn}</span>
+                                </>
+                              )}
+                            </div>
+                          </div>
+                        </button>
+                      );
+                    })
+                  )}
+                </div>
               </div>
             )}
           </div>
