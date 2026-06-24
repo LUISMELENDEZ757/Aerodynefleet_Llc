@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import TechAssignmentPanel from '@/components/techops/TechAssignmentPanel';
+import TechProductivityPanel from '@/components/crewchief/TechProductivityPanel';
 import GateManagement from '@/components/station/GateManagement';
 import ShiftReportModal from '@/components/reports/ShiftReportModal';
 import { base44 } from '@/api/base44Client';
@@ -9,7 +10,7 @@ import { Link } from 'react-router-dom';
 import {
   Wrench, ChevronLeft, AlertTriangle, CheckCircle, Clock, Users,
   Package, RefreshCw, Plus, Zap, Shield, BookOpen, FileCheck,
-  Play, Send, X, Activity, ChevronRight, MapPin, ChevronDown, FileText
+  Play, Send, X, Activity, ChevronRight, MapPin, ChevronDown, FileText, TrendingUp
 } from 'lucide-react';
 import LiveClock from '@/components/ui/LiveClock';
 import { cn } from '@/lib/utils';
@@ -394,6 +395,7 @@ export default function CrewChiefDashboard() {
             { id: 'handover', label: 'Shift Handover' },
             { id: 'work_assignments', label: 'Work Assignments', badge: requisitions.filter(r => r.status === 'pending_approval').length },
             { id: 'tech_assignment', label: 'Tech Assignment' },
+            { id: 'productivity', label: 'Productivity', icon: TrendingUp },
             { id: 'gates', label: 'Gate Management' },
             { id: 'shift_report', label: 'Shift Report', icon: FileText },
           ].map(t => (
@@ -652,6 +654,11 @@ export default function CrewChiefDashboard() {
             discrepancies={discrepancies}
             onAssign={(id) => { const e = discrepancies.find(x => x.id === id); if (e) setAssignEntry(e); }}
           />
+        )}
+
+        {/* PRODUCTIVITY TAB */}
+        {tab === 'productivity' && (
+          <TechProductivityPanel stationFilter={stationFilter} aircraft={aircraft} />
         )}
 
         {/* GATE MANAGEMENT TAB */}
