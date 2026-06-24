@@ -96,31 +96,87 @@ const TRANSITIONS = {
   retired:     [],
 };
 
-// RTS checklist items
+// RTS checklist items — all conditions that must clear before release
 const RTS_STEPS = [
-  { key: 'work_complete',    label: 'Work Complete',         icon: Wrench },
-  { key: 'rii_signed',       label: 'RII Inspector Signed',  icon: Shield },
-  { key: 'qa_approved',      label: 'QA Approved',           icon: CheckCircle },
-  { key: 'ops_check',        label: 'Ops / Functional Check', icon: Activity },
-  { key: 'captain_accepted', label: 'Captain Accepted',      icon: Plane },
+  { key: 'work_complete',         label: 'All Discrepancies Corrected / MEL-Deferred', icon: Wrench },
+  { key: 'inspections_complete',  label: 'All Inspections Completed',                  icon: CheckCircle },
+  { key: 'rii_signed',            label: 'RII Inspector Signed',                       icon: Shield },
+  { key: 'ops_check',             label: 'Ops / Functional Check Passed',              icon: Activity },
+  { key: 'paperwork_complete',    label: 'All Paperwork & Signatures Complete',        icon: FileText },
+  { key: 'system_resets',         label: 'All System Resets Successful',               icon: RefreshCw },
+  { key: 'mcc_approved',          label: 'MCC/OCC RTS Approval',                       icon: Package },
+  { key: 'qa_approved',           label: 'QA / Engineering Approved (if required)',    icon: CheckCircle },
+  { key: 'captain_accepted',      label: 'Captain Accepted',                           icon: Plane },
 ];
 
+// Human-triggered OOS reasons grouped by initiator role
+const HUMAN_OOS_REASONS = {
+  mechanic: [
+    'Mechanic: Non-deferrable discrepancy found',
+    'Mechanic: Safety-critical system fault identified',
+    'Mechanic: Structural damage discovered',
+    'Mechanic: Fuel leak confirmed',
+    'Mechanic: Engine run / taxi test required before RTS',
+  ],
+  mcc: [
+    'MCC: Placed OOS for operational control',
+    'MCC: Awaiting engineering evaluation',
+    'MCC: AOG parts on order — holding OOS',
+    'MCC: Weight & balance / config mismatch',
+    'MCC: Fuel imbalance / fuel system MEL exceeds limits',
+  ],
+  engineering: [
+    'Engineering: Blocked pending technical evaluation',
+    'Engineering: AD compliance check required',
+    'Engineering: Pending repair scheme approval',
+    'Engineering: Engine removal — heavy maintenance entry',
+  ],
+  pilot: [
+    'Pilot: Severe discrepancy reported on arrival',
+    'Pilot: Abnormal checklist item unresolved',
+    'Pilot: Cabin pressurization issue during flight',
+    'Pilot: Hydraulic / flight control anomaly in flight',
+  ],
+  ops: [
+    'Ops: Bird strike — inspection required',
+    'Ops: Lightning strike — inspection required',
+    'Ops: Foreign object ingestion suspected',
+    'Ops: Contamination — fuel / hydraulic',
+    'Ops: Ground damage during servicing',
+    'Ops: Hard landing — inspection required',
+  ],
+};
+
 // ── State Transition Modal ──────────────────────────────────────────────────
+const INITIATOR_ROLES = [
+  { key: 'mechanic',    label: 'Mechanic / Technician', color: 'text-amber-400' },
+  { key: 'mcc',         label: 'MCC / OCC',             color: 'text-blue-400' },
+  { key: 'engineering', label: 'Engineering',           color: 'text-purple-400' },
+  { key: 'pilot',       label: 'Pilot Report',          color: 'text-cyan-400' },
+  { key: 'ops',         label: 'Operations',            color: 'text-orange-400' },
+];
+
 function StateTransitionModal({ aircraft, onClose, onSave }) {
   const currentState = OOS_STATES[aircraft.status] || OOS_STATES.active;
   const allowed = TRANSITIONS[aircraft.status] || [];
   const [targetState, setTargetState] = useState(allowed[0] || '');
   const [reason, setReason] = useState('');
+  const [initiatorRole, setInitiatorRole] = useState('mechanic');
   const [releasedBy, setReleasedBy] = useState('');
-  const [rtsChecklist, setRtsChecklist] = useState(
-    aircraft.rts_checklist || { work_complete: false, rii_signed: false, qa_approved: false, ops_check: false, captain_accepted: false }
-  );
+  const [rtsChecklist, setRtsChecklist] = useState(() => {
+    const saved = aircraft.rts_checklist || {};
+    return RTS_STEPS.reduce((acc, s) => ({ ...acc, [s.key]: saved[s.key] || false }), {});
+  });
 
   const targetCfg = OOS_STATES[targetState] || {};
   const toggleStep = (key) => setRtsChecklist(p => ({ ...p, [key]: !p[key] }));
   const completedSteps = RTS_STEPS.filter(s => rtsChecklist[s.key]).length;
   const isRtsPending = aircraft.status === 'rts_pending';
+  const goingToOOS = targetState === 'oos' || targetState === 'maintenance';
   const goingToReleased = targetState === 'released';
+  const showRtsPanel = isRtsPending || targetState === 'rts_pending';
+
+  const presetReasons = goingToOOS ? (HUMAN_OOS_REASONS[initiatorRole] || []) : [];
 
   const canSave = targetState && reason.trim() &&
     (goingToReleased ? completedSteps === RTS_STEPS.length && releasedBy.trim() : true);
@@ -129,8 +185,8 @@ function StateTransitionModal({ aircraft, onClose, onSave }) {
     const now = new Date().toISOString();
     const update = {
       status: targetState,
-      oos_reason: ['oos','maintenance','rts_pending'].includes(targetState) ? reason : null,
-      oos_since: ['oos','maintenance'].includes(targetState) ? now : null,
+      oos_reason: ['oos','maintenance','rts_pending'].includes(targetState) ? `[${initiatorRole.toUpperCase()}] ${reason}` : null,
+      oos_since: goingToOOS ? now : (aircraft.oos_since || null),
       rts_checklist: isRtsPending ? {
         ...rtsChecklist,
         released_by: releasedBy,
@@ -154,7 +210,7 @@ function StateTransitionModal({ aircraft, onClose, onSave }) {
           </button>
         </div>
 
-        <div className="p-5 space-y-4 overflow-y-auto max-h-[75vh]">
+        <div className="p-5 space-y-4 overflow-y-auto max-h-[80vh]">
           {/* Current state */}
           <div className={cn('rounded-xl border px-4 py-3 flex items-center gap-3', currentState.bg, currentState.border)}>
             <span className={cn('w-2.5 h-2.5 rounded-full flex-shrink-0', currentState.dot)} />
@@ -171,14 +227,9 @@ function StateTransitionModal({ aircraft, onClose, onSave }) {
               {allowed.map(s => {
                 const cfg = OOS_STATES[s];
                 return (
-                  <button
-                    key={s}
-                    onClick={() => setTargetState(s)}
-                    className={cn(
-                      'w-full flex items-center gap-3 rounded-xl border px-4 py-3 text-left transition-all',
-                      targetState === s ? `${cfg.bg} ${cfg.border}` : 'bg-[#1a1f2e] border-white/10 hover:border-white/20'
-                    )}
-                  >
+                  <button key={s} onClick={() => setTargetState(s)}
+                    className={cn('w-full flex items-center gap-3 rounded-xl border px-4 py-3 text-left transition-all',
+                      targetState === s ? `${cfg.bg} ${cfg.border}` : 'bg-[#1a1f2e] border-white/10 hover:border-white/20')}>
                     <span className={cn('w-2.5 h-2.5 rounded-full flex-shrink-0', cfg.dot)} />
                     <div>
                       <p className={cn('text-sm font-bold', targetState === s ? cfg.color : 'text-white')}>{cfg.label}</p>
@@ -190,43 +241,74 @@ function StateTransitionModal({ aircraft, onClose, onSave }) {
             </div>
           </div>
 
-          {/* Reason */}
+          {/* Initiator Role — shown when placing OOS */}
+          {goingToOOS && (
+            <div>
+              <label className="text-[10px] font-bold text-gray-400 uppercase tracking-widest block mb-2">Initiated By</label>
+              <div className="flex flex-wrap gap-2">
+                {INITIATOR_ROLES.map(r => (
+                  <button key={r.key} onClick={() => setInitiatorRole(r.key)}
+                    className={cn('px-3 py-1.5 rounded-lg border text-xs font-bold transition-all',
+                      initiatorRole === r.key
+                        ? `bg-white/10 border-white/30 ${r.color}`
+                        : 'bg-[#1a1f2e] border-white/10 text-gray-500 hover:text-gray-300')}>
+                    {r.label}
+                  </button>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* Preset reason quick-picks — shown when placing OOS */}
+          {goingToOOS && presetReasons.length > 0 && (
+            <div>
+              <label className="text-[10px] font-bold text-gray-400 uppercase tracking-widest block mb-2">Quick Reason</label>
+              <div className="space-y-1">
+                {presetReasons.map(r => (
+                  <button key={r} onClick={() => setReason(r)}
+                    className={cn('w-full text-left px-3 py-2 rounded-lg border text-xs transition-all',
+                      reason === r
+                        ? 'bg-red-900/40 border-red-500/50 text-red-200'
+                        : 'bg-[#1a1f2e] border-white/8 text-gray-400 hover:border-white/20 hover:text-white')}>
+                    {r}
+                  </button>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* Reason text */}
           <div>
-            <label className="text-[10px] font-bold text-gray-400 uppercase tracking-widest block mb-1.5">Reason / Notes *</label>
-            <textarea
-              rows={3}
-              value={reason}
-              onChange={e => setReason(e.target.value)}
+            <label className="text-[10px] font-bold text-gray-400 uppercase tracking-widest block mb-1.5">
+              {goingToOOS ? 'Additional Details' : 'Reason / Notes'} *
+            </label>
+            <textarea rows={3} value={reason} onChange={e => setReason(e.target.value)}
               placeholder={
-                targetState === 'oos' ? 'Describe the discrepancy causing OOS…' :
-                targetState === 'rts_pending' ? 'Describe work completed…' :
-                targetState === 'released' ? 'Release authorization details…' :
-                targetState === 'mel_ops' ? 'MEL item number and restriction…' :
+                goingToOOS ? 'Describe the specific condition, location, or finding…' :
+                targetState === 'rts_pending' ? 'Describe work completed, what was corrected or deferred…' :
+                targetState === 'released' ? 'Release authorization details and approving authority…' :
+                targetState === 'mel_ops' ? 'MEL item reference number and operational restriction…' :
                 'Reason for state change…'
               }
               className="w-full bg-[#1a1f2e] border border-white/10 rounded-xl px-4 py-2.5 text-sm text-white placeholder-gray-600 outline-none focus:border-primary resize-none"
             />
           </div>
 
-          {/* RTS Checklist — shown when transitioning to released OR in rts_pending */}
-          {(isRtsPending || targetState === 'rts_pending') && (
+          {/* RTS Checklist — keep-OOS blocker logic visible */}
+          {showRtsPanel && (
             <div className="bg-amber-950/30 border border-amber-500/30 rounded-xl p-4 space-y-3">
-              <p className="text-xs font-extrabold text-amber-400 uppercase tracking-widest">
-                RTS Release Checklist — {completedSteps}/{RTS_STEPS.length} Complete
-              </p>
-              <div className="space-y-2">
+              <div className="flex items-center justify-between">
+                <p className="text-xs font-extrabold text-amber-400 uppercase tracking-widest">
+                  RTS Release Checklist
+                </p>
+                <span className="text-xs font-black text-amber-300">{completedSteps}/{RTS_STEPS.length}</span>
+              </div>
+              <p className="text-[10px] text-amber-300/60 -mt-1">Aircraft stays OOS until ALL items are cleared</p>
+              <div className="space-y-1.5">
                 {RTS_STEPS.map(({ key, label, icon: Icon }) => (
-                  <button
-                    key={key}
-                    type="button"
-                    onClick={() => toggleStep(key)}
-                    className={cn(
-                      'w-full flex items-center gap-3 rounded-lg px-3 py-2.5 text-left border transition-all',
-                      rtsChecklist[key]
-                        ? 'bg-green-900/30 border-green-600/40'
-                        : 'bg-[#1a1f2e] border-white/10 hover:border-white/20'
-                    )}
-                  >
+                  <button key={key} type="button" onClick={() => toggleStep(key)}
+                    className={cn('w-full flex items-center gap-3 rounded-lg px-3 py-2.5 text-left border transition-all',
+                      rtsChecklist[key] ? 'bg-green-900/30 border-green-600/40' : 'bg-[#1a1f2e] border-white/10 hover:border-white/20')}>
                     <div className={cn('w-5 h-5 rounded border-2 flex items-center justify-center flex-shrink-0 transition-all',
                       rtsChecklist[key] ? 'bg-green-500 border-green-500' : 'border-gray-600')}>
                       {rtsChecklist[key] && <CheckCircle className="w-3.5 h-3.5 text-white" />}
@@ -241,44 +323,42 @@ function StateTransitionModal({ aircraft, onClose, onSave }) {
               {goingToReleased && (
                 <div>
                   <label className="text-[10px] font-bold text-gray-400 uppercase tracking-widest block mb-1.5">Released By (Name / Cert #) *</label>
-                  <input
-                    value={releasedBy}
-                    onChange={e => setReleasedBy(e.target.value)}
+                  <input value={releasedBy} onChange={e => setReleasedBy(e.target.value)}
                     placeholder="e.g. J. Smith · AMT-12345"
-                    className="w-full bg-[#1a1f2e] border border-white/10 rounded-xl px-4 py-2.5 text-sm text-white placeholder-gray-600 outline-none focus:border-primary"
-                  />
+                    className="w-full bg-[#1a1f2e] border border-white/10 rounded-xl px-4 py-2.5 text-sm text-white placeholder-gray-600 outline-none focus:border-primary" />
                 </div>
               )}
-            </div>
-          )}
 
-          {/* Progress bar */}
-          {(isRtsPending || targetState === 'rts_pending') && (
-            <div className="space-y-1">
-              <div className="flex justify-between text-[10px] text-gray-500">
-                <span>Release Progress</span>
-                <span>{Math.round((completedSteps / RTS_STEPS.length) * 100)}%</span>
+              {/* Progress bar */}
+              <div className="space-y-1">
+                <div className="flex justify-between text-[10px] text-gray-500">
+                  <span>Release Progress</span>
+                  <span>{Math.round((completedSteps / RTS_STEPS.length) * 100)}%</span>
+                </div>
+                <div className="w-full bg-white/10 rounded-full h-2">
+                  <div className="h-full rounded-full bg-gradient-to-r from-amber-500 to-green-500 transition-all duration-500"
+                    style={{ width: `${(completedSteps / RTS_STEPS.length) * 100}%` }} />
+                </div>
               </div>
-              <div className="w-full bg-white/10 rounded-full h-2">
-                <div
-                  className="h-full rounded-full bg-gradient-to-r from-amber-500 to-green-500 transition-all duration-500"
-                  style={{ width: `${(completedSteps / RTS_STEPS.length) * 100}%` }}
-                />
-              </div>
+
+              {/* Blocker warning if trying to release with incomplete items */}
+              {goingToReleased && completedSteps < RTS_STEPS.length && (
+                <div className="flex items-start gap-2 bg-red-950/50 border border-red-700/50 rounded-lg px-3 py-2.5">
+                  <AlertTriangle className="w-3.5 h-3.5 text-red-400 flex-shrink-0 mt-0.5" />
+                  <p className="text-[10px] text-red-300 leading-snug">
+                    {RTS_STEPS.length - completedSteps} item{RTS_STEPS.length - completedSteps > 1 ? 's' : ''} still pending — aircraft cannot be released until all checklist items are complete.
+                  </p>
+                </div>
+              )}
             </div>
           )}
 
           {/* Actions */}
           <div className="flex gap-3 pt-1">
             <button onClick={onClose} className="flex-1 py-2.5 rounded-xl border border-white/10 text-sm font-bold text-gray-400 hover:bg-white/5">Cancel</button>
-            <button
-              disabled={!canSave}
-              onClick={handleSave}
-              className={cn(
-                'flex-1 py-2.5 rounded-xl text-white text-sm font-bold disabled:opacity-40 flex items-center justify-center gap-2 transition-colors',
-                targetState ? `${OOS_STATES[targetState]?.badgeBg || 'bg-primary'} hover:brightness-125` : 'bg-primary'
-              )}
-            >
+            <button disabled={!canSave} onClick={handleSave}
+              className={cn('flex-1 py-2.5 rounded-xl text-white text-sm font-bold disabled:opacity-40 flex items-center justify-center gap-2 transition-colors',
+                targetState ? `${OOS_STATES[targetState]?.badgeBg || 'bg-primary'} hover:brightness-125` : 'bg-primary')}>
               <Send className="w-4 h-4" /> Confirm Transition
             </button>
           </div>
@@ -406,19 +486,27 @@ function AircraftStateCard({ aircraft, melItems, oosEntries, onTransition }) {
           {/* Hard OOS Trigger Banner */}
           <OOSTriggerBanner aircraftTail={aircraft.tail_number} />
 
-          {/* RTS checklist steps */}
-          {aircraft.status === 'rts_pending' && (
+          {/* RTS checklist steps — shown for rts_pending AND as keep-OOS blockers for oos state */}
+          {(aircraft.status === 'rts_pending' || aircraft.status === 'oos' || aircraft.status === 'maintenance') && (
             <div>
-              <p className="text-[10px] font-bold text-amber-400 uppercase tracking-widest mb-2">Release Checklist</p>
-              <div className="space-y-1.5">
+              <div className="flex items-center justify-between mb-2">
+                <p className={cn('text-[10px] font-bold uppercase tracking-widest',
+                  aircraft.status === 'rts_pending' ? 'text-amber-400' : 'text-red-400')}>
+                  {aircraft.status === 'rts_pending' ? 'Release Checklist' : 'RTS Blockers — Keeps Aircraft OOS'}
+                </p>
+                <span className="text-[10px] text-gray-500">{completedRts}/{RTS_STEPS.length} cleared</span>
+              </div>
+              <div className="space-y-1">
                 {RTS_STEPS.map(({ key, label, icon: Icon }) => (
                   <div key={key} className={cn('flex items-center gap-2 px-3 py-2 rounded-lg border',
-                    rts[key] ? 'bg-green-900/20 border-green-700/30' : 'bg-white/5 border-white/8')}>
+                    rts[key] ? 'bg-green-900/20 border-green-700/30' : 'bg-red-900/10 border-red-800/20')}>
                     <div className={cn('w-4 h-4 rounded-full flex items-center justify-center flex-shrink-0',
-                      rts[key] ? 'bg-green-500' : 'bg-white/10')}>
-                      {rts[key] && <CheckCircle className="w-3 h-3 text-white" />}
+                      rts[key] ? 'bg-green-500' : 'bg-red-900/40')}>
+                      {rts[key]
+                        ? <CheckCircle className="w-3 h-3 text-white" />
+                        : <X className="w-2.5 h-2.5 text-red-500" />}
                     </div>
-                    <Icon className={cn('w-3 h-3', rts[key] ? 'text-green-400' : 'text-gray-600')} />
+                    <Icon className={cn('w-3 h-3', rts[key] ? 'text-green-400' : 'text-red-600')} />
                     <span className={cn('text-xs font-bold', rts[key] ? 'text-green-300' : 'text-gray-500')}>{label}</span>
                   </div>
                 ))}
