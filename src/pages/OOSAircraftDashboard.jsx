@@ -92,9 +92,21 @@ const TRANSITIONS = {
   oos:         ['rts_pending', 'active'],
   maintenance: ['rts_pending', 'active'],
   rts_pending: ['released', 'oos'],
-  released:    ['active', 'oos'],
+  released:    ['active', 'oos'],   // active = final RTS / In Service
   retired:     [],
 };
+
+// RTS-to-InService gate conditions (displayed at final release step)
+const RTS_TO_SERVICE_GATES = [
+  'No open non-deferrable discrepancies',
+  'All MEL/CDL valid and within interval limits',
+  'All required inspections completed',
+  'All RII tasks signed off',
+  'All operational checks passed',
+  'All paperwork and logbook entries complete',
+  'MCC/OCC has released the aircraft',
+  'Mechanic performed final RTS action and signed off',
+];
 
 // RTS checklist items — all conditions that must clear before release
 const RTS_STEPS = [
@@ -174,20 +186,33 @@ function StateTransitionModal({ aircraft, onClose, onSave }) {
   const isRtsPending = aircraft.status === 'rts_pending';
   const goingToOOS = targetState === 'oos' || targetState === 'maintenance';
   const goingToReleased = targetState === 'released';
+  const goingToActive = targetState === 'active';
   const showRtsPanel = isRtsPending || targetState === 'rts_pending';
+  // Final RTS gate — only shown when going from released → active
+  const [rtsGates, setRtsGates] = useState(() =>
+    RTS_TO_SERVICE_GATES.reduce((acc, g) => ({ ...acc, [g]: false }), {})
+  );
+  const allGatesCleared = RTS_TO_SERVICE_GATES.every(g => rtsGates[g]);
+  const toggleGate = (g) => setRtsGates(p => ({ ...p, [g]: !p[g] }));
 
   const presetReasons = goingToOOS ? (HUMAN_OOS_REASONS[initiatorRole] || []) : [];
 
   const canSave = targetState && reason.trim() &&
-    (goingToReleased ? completedSteps === RTS_STEPS.length && releasedBy.trim() : true);
+    (goingToReleased ? completedSteps === RTS_STEPS.length && releasedBy.trim() : true) &&
+    (goingToActive && aircraft.status === 'released' ? allGatesCleared && releasedBy.trim() : true);
 
   const handleSave = () => {
     const now = new Date().toISOString();
     const update = {
       status: targetState,
       oos_reason: ['oos','maintenance','rts_pending'].includes(targetState) ? `[${initiatorRole.toUpperCase()}] ${reason}` : null,
-      oos_since: goingToOOS ? now : (aircraft.oos_since || null),
-      rts_checklist: isRtsPending ? {
+      oos_since: goingToOOS ? now : (goingToActive ? null : (aircraft.oos_since || null)),
+      // Clear checklist on full return to service
+      rts_checklist: goingToActive ? {
+        work_complete: true, inspections_complete: true, rii_signed: true, ops_check: true,
+        paperwork_complete: true, system_resets: true, mcc_approved: true, qa_approved: true,
+        captain_accepted: true, released_by: releasedBy, released_at: now,
+      } : isRtsPending ? {
         ...rtsChecklist,
         released_by: releasedBy,
         released_at: goingToReleased ? now : null,
@@ -353,13 +378,57 @@ function StateTransitionModal({ aircraft, onClose, onSave }) {
             </div>
           )}
 
+          {/* Final RTS-to-In-Service gate — released → active only */}
+          {goingToActive && aircraft.status === 'released' && (
+            <div className="bg-emerald-950/30 border border-emerald-500/30 rounded-xl p-4 space-y-3">
+              <div className="flex items-center justify-between">
+                <p className="text-xs font-extrabold text-emerald-400 uppercase tracking-widest">Return to Service Gate</p>
+                <span className="text-xs font-black text-emerald-300">
+                  {RTS_TO_SERVICE_GATES.filter(g => rtsGates[g]).length}/{RTS_TO_SERVICE_GATES.length}
+                </span>
+              </div>
+              <p className="text-[10px] text-emerald-300/60 -mt-1">
+                Confirm all conditions are satisfied before marking aircraft In Service
+              </p>
+              <div className="space-y-1.5">
+                {RTS_TO_SERVICE_GATES.map(gate => (
+                  <button key={gate} type="button" onClick={() => toggleGate(gate)}
+                    className={cn('w-full flex items-center gap-3 rounded-lg px-3 py-2.5 text-left border transition-all',
+                      rtsGates[gate] ? 'bg-green-900/30 border-green-600/40' : 'bg-[#1a1f2e] border-white/10 hover:border-white/20')}>
+                    <div className={cn('w-5 h-5 rounded border-2 flex items-center justify-center flex-shrink-0 transition-all',
+                      rtsGates[gate] ? 'bg-green-500 border-green-500' : 'border-gray-600')}>
+                      {rtsGates[gate] && <CheckCircle className="w-3.5 h-3.5 text-white" />}
+                    </div>
+                    <span className={cn('text-xs font-bold leading-snug', rtsGates[gate] ? 'text-green-300' : 'text-gray-300')}>{gate}</span>
+                  </button>
+                ))}
+              </div>
+              <div>
+                <label className="text-[10px] font-bold text-gray-400 uppercase tracking-widest block mb-1.5">Released By (Mechanic Name / Cert #) *</label>
+                <input value={releasedBy} onChange={e => setReleasedBy(e.target.value)}
+                  placeholder="e.g. J. Smith · AMT-12345 — Final RTS Sign-off"
+                  className="w-full bg-[#1a1f2e] border border-white/10 rounded-xl px-4 py-2.5 text-sm text-white placeholder-gray-600 outline-none focus:border-emerald-500" />
+              </div>
+              {!allGatesCleared && (
+                <div className="flex items-start gap-2 bg-amber-950/40 border border-amber-700/40 rounded-lg px-3 py-2.5">
+                  <AlertTriangle className="w-3.5 h-3.5 text-amber-400 flex-shrink-0 mt-0.5" />
+                  <p className="text-[10px] text-amber-300 leading-snug">
+                    All {RTS_TO_SERVICE_GATES.length} conditions must be confirmed before aircraft can return to In Service.
+                  </p>
+                </div>
+              )}
+            </div>
+          )}
+
           {/* Actions */}
           <div className="flex gap-3 pt-1">
             <button onClick={onClose} className="flex-1 py-2.5 rounded-xl border border-white/10 text-sm font-bold text-gray-400 hover:bg-white/5">Cancel</button>
             <button disabled={!canSave} onClick={handleSave}
               className={cn('flex-1 py-2.5 rounded-xl text-white text-sm font-bold disabled:opacity-40 flex items-center justify-center gap-2 transition-colors',
+                goingToActive ? 'bg-emerald-700 hover:bg-emerald-600' :
                 targetState ? `${OOS_STATES[targetState]?.badgeBg || 'bg-primary'} hover:brightness-125` : 'bg-primary')}>
-              <Send className="w-4 h-4" /> Confirm Transition
+              <Send className="w-4 h-4" />
+              {goingToActive && aircraft.status === 'released' ? 'Confirm Return to Service' : 'Confirm Transition'}
             </button>
           </div>
         </div>
