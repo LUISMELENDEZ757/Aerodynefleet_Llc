@@ -6,9 +6,10 @@ import {
   ChevronLeft, AlertTriangle, Wrench, Clock, CheckCircle,
   Plane, Search, Plus, Activity, Package, BookOpen,
   ArrowRight, RefreshCw, Shield, Tag, ChevronDown, ChevronUp,
-  FileText, X, Send
+  FileText, X, Send, PenLine
 } from 'lucide-react';
 import OOSTriggerBanner from '@/components/oos/OOSTriggerBanner';
+import RIISignatureLog from '@/components/oos/RIISignatureLog.jsx';
 import { cn } from '@/lib/utils';
 
 // ── State Machine Definition ────────────────────────────────────────────────
@@ -159,6 +160,42 @@ const HUMAN_OOS_REASONS = {
   ],
 };
 
+// ── Step Signer Capture ─────────────────────────────────────────────────────
+function StepSignerCapture({ label, onConfirm, onCancel }) {
+  const [name, setName] = useState('');
+  const [cert, setCert] = useState('');
+  return (
+    <div className="bg-violet-950/40 border border-violet-500/40 rounded-xl p-3 space-y-2">
+      <p className="text-[10px] font-extrabold text-violet-300 uppercase tracking-widest flex items-center gap-1.5">
+        <Shield className="w-3 h-3" /> Sign Off: {label}
+      </p>
+      <input
+        autoFocus
+        value={name}
+        onChange={e => setName(e.target.value)}
+        placeholder="Signer full name *"
+        className="w-full bg-[#0d1117] border border-white/10 rounded-lg px-3 py-2 text-xs text-white placeholder-gray-600 outline-none focus:border-violet-400"
+      />
+      <input
+        value={cert}
+        onChange={e => setCert(e.target.value)}
+        placeholder="Cert / Employee # (optional)"
+        className="w-full bg-[#0d1117] border border-white/10 rounded-lg px-3 py-2 text-xs text-white placeholder-gray-600 outline-none focus:border-violet-400"
+      />
+      <div className="flex gap-2 pt-1">
+        <button onClick={onCancel} className="flex-1 py-1.5 rounded-lg border border-white/10 text-xs font-bold text-gray-400 hover:bg-white/5">Cancel</button>
+        <button
+          disabled={!name.trim()}
+          onClick={() => onConfirm(name.trim(), cert.trim())}
+          className="flex-1 py-1.5 rounded-lg bg-violet-700 hover:bg-violet-600 text-white text-xs font-bold disabled:opacity-40 transition-colors"
+        >
+          Confirm Sign-off
+        </button>
+      </div>
+    </div>
+  );
+}
+
 // ── State Transition Modal ──────────────────────────────────────────────────
 const INITIATOR_ROLES = [
   { key: 'mechanic',    label: 'Mechanic / Technician', color: 'text-amber-400' },
@@ -179,9 +216,25 @@ function StateTransitionModal({ aircraft, onClose, onSave }) {
     const saved = aircraft.rts_checklist || {};
     return RTS_STEPS.reduce((acc, s) => ({ ...acc, [s.key]: saved[s.key] || false }), {});
   });
+  // Per-step signer info: { [stepKey]: { name, cert } }
+  const [stepSigners, setStepSigners] = useState({});
+  const [activeSignStep, setActiveSignStep] = useState(null); // key of step currently being signed
 
   const targetCfg = OOS_STATES[targetState] || {};
-  const toggleStep = (key) => setRtsChecklist(p => ({ ...p, [key]: !p[key] }));
+  const toggleStep = (key) => {
+    if (!rtsChecklist[key]) {
+      // Prompt for signer before checking
+      setActiveSignStep(key);
+    } else {
+      setRtsChecklist(p => ({ ...p, [key]: false }));
+      setStepSigners(p => { const n = { ...p }; delete n[key]; return n; });
+    }
+  };
+  const confirmStepSign = (key, name, cert) => {
+    setRtsChecklist(p => ({ ...p, [key]: true }));
+    setStepSigners(p => ({ ...p, [key]: { name, cert, signed_at: new Date().toISOString() } }));
+    setActiveSignStep(null);
+  };
   const completedSteps = RTS_STEPS.filter(s => rtsChecklist[s.key]).length;
   const isRtsPending = aircraft.status === 'rts_pending';
   const goingToOOS = targetState === 'oos' || targetState === 'maintenance';
@@ -212,10 +265,12 @@ function StateTransitionModal({ aircraft, onClose, onSave }) {
         work_complete: true, inspections_complete: true, rii_signed: true, ops_check: true,
         paperwork_complete: true, system_resets: true, mcc_approved: true, qa_approved: true,
         captain_accepted: true, released_by: releasedBy, released_at: now,
+        step_signatures: { ...(aircraft.rts_checklist?.step_signatures || {}), ...stepSigners },
       } : isRtsPending ? {
         ...rtsChecklist,
         released_by: releasedBy,
         released_at: goingToReleased ? now : null,
+        step_signatures: { ...(aircraft.rts_checklist?.step_signatures || {}), ...stepSigners },
       } : (aircraft.rts_checklist || {}),
     };
     onSave(aircraft.id, update, reason);
@@ -330,19 +385,41 @@ function StateTransitionModal({ aircraft, onClose, onSave }) {
               </div>
               <p className="text-[10px] text-amber-300/60 -mt-1">Aircraft stays OOS until ALL items are cleared</p>
               <div className="space-y-1.5">
-                {RTS_STEPS.map(({ key, label, icon: Icon }) => (
-                  <button key={key} type="button" onClick={() => toggleStep(key)}
-                    className={cn('w-full flex items-center gap-3 rounded-lg px-3 py-2.5 text-left border transition-all',
-                      rtsChecklist[key] ? 'bg-green-900/30 border-green-600/40' : 'bg-[#1a1f2e] border-white/10 hover:border-white/20')}>
-                    <div className={cn('w-5 h-5 rounded border-2 flex items-center justify-center flex-shrink-0 transition-all',
-                      rtsChecklist[key] ? 'bg-green-500 border-green-500' : 'border-gray-600')}>
-                      {rtsChecklist[key] && <CheckCircle className="w-3.5 h-3.5 text-white" />}
-                    </div>
-                    <Icon className={cn('w-3.5 h-3.5 flex-shrink-0', rtsChecklist[key] ? 'text-green-400' : 'text-gray-500')} />
-                    <span className={cn('text-sm font-bold', rtsChecklist[key] ? 'text-green-300' : 'text-gray-300')}>{label}</span>
-                  </button>
-                ))}
+                {RTS_STEPS.map(({ key, label, icon: Icon }) => {
+                  const signer = stepSigners[key];
+                  return (
+                    <button key={key} type="button" onClick={() => toggleStep(key)}
+                      className={cn('w-full flex items-center gap-3 rounded-lg px-3 py-2.5 text-left border transition-all',
+                        rtsChecklist[key] ? 'bg-green-900/30 border-green-600/40' : 'bg-[#1a1f2e] border-white/10 hover:border-white/20')}>
+                      <div className={cn('w-5 h-5 rounded border-2 flex items-center justify-center flex-shrink-0 transition-all',
+                        rtsChecklist[key] ? 'bg-green-500 border-green-500' : 'border-gray-600')}>
+                        {rtsChecklist[key] && <CheckCircle className="w-3.5 h-3.5 text-white" />}
+                      </div>
+                      <Icon className={cn('w-3.5 h-3.5 flex-shrink-0', rtsChecklist[key] ? 'text-green-400' : 'text-gray-500')} />
+                      <div className="flex-1 min-w-0">
+                        <span className={cn('text-sm font-bold block', rtsChecklist[key] ? 'text-green-300' : 'text-gray-300')}>{label}</span>
+                        {signer && (
+                          <span className="text-[10px] text-green-400/70 font-mono block truncate">
+                            ✍ {signer.name}{signer.cert ? ` · ${signer.cert}` : ''}
+                          </span>
+                        )}
+                      </div>
+                    </button>
+                  );
+                })}
               </div>
+
+              {/* Per-step signer capture mini-panel */}
+              {activeSignStep && (() => {
+                const stepMeta = RTS_STEPS.find(s => s.key === activeSignStep);
+                return (
+                  <StepSignerCapture
+                    label={stepMeta?.label || activeSignStep}
+                    onConfirm={(name, cert) => confirmStepSign(activeSignStep, name, cert)}
+                    onCancel={() => setActiveSignStep(null)}
+                  />
+                );
+              })()}
 
               {/* Released By */}
               {goingToReleased && (
@@ -555,13 +632,17 @@ function AircraftStateCard({ aircraft, melItems, oosEntries, onTransition }) {
           {/* Hard OOS Trigger Banner */}
           <OOSTriggerBanner aircraftTail={aircraft.tail_number} />
 
-          {/* RTS checklist steps — shown for rts_pending AND as keep-OOS blockers for oos state */}
-          {(aircraft.status === 'rts_pending' || aircraft.status === 'oos' || aircraft.status === 'maintenance') && (
+          {/* RTS checklist / RII Signature Log */}
+          {(aircraft.status === 'rts_pending' || aircraft.status === 'released') && (
+            <RIISignatureLog rts_checklist={rts} aircraftTail={aircraft.tail_number} />
+          )}
+
+          {/* OOS/Maintenance: simple blocker list (no signer data needed) */}
+          {(aircraft.status === 'oos' || aircraft.status === 'maintenance') && (
             <div>
               <div className="flex items-center justify-between mb-2">
-                <p className={cn('text-[10px] font-bold uppercase tracking-widest',
-                  aircraft.status === 'rts_pending' ? 'text-amber-400' : 'text-red-400')}>
-                  {aircraft.status === 'rts_pending' ? 'Release Checklist' : 'RTS Blockers — Keeps Aircraft OOS'}
+                <p className="text-[10px] font-bold uppercase tracking-widest text-red-400">
+                  RTS Blockers — Keeps Aircraft OOS
                 </p>
                 <span className="text-[10px] text-gray-500">{completedRts}/{RTS_STEPS.length} cleared</span>
               </div>
@@ -571,18 +652,13 @@ function AircraftStateCard({ aircraft, melItems, oosEntries, onTransition }) {
                     rts[key] ? 'bg-green-900/20 border-green-700/30' : 'bg-red-900/10 border-red-800/20')}>
                     <div className={cn('w-4 h-4 rounded-full flex items-center justify-center flex-shrink-0',
                       rts[key] ? 'bg-green-500' : 'bg-red-900/40')}>
-                      {rts[key]
-                        ? <CheckCircle className="w-3 h-3 text-white" />
-                        : <X className="w-2.5 h-2.5 text-red-500" />}
+                      {rts[key] ? <CheckCircle className="w-3 h-3 text-white" /> : <X className="w-2.5 h-2.5 text-red-500" />}
                     </div>
                     <Icon className={cn('w-3 h-3', rts[key] ? 'text-green-400' : 'text-red-600')} />
                     <span className={cn('text-xs font-bold', rts[key] ? 'text-green-300' : 'text-gray-500')}>{label}</span>
                   </div>
                 ))}
               </div>
-              {rts.released_by && (
-                <p className="text-[10px] text-gray-400 mt-2">Released by: <span className="text-white font-bold">{rts.released_by}</span></p>
-              )}
             </div>
           )}
 
