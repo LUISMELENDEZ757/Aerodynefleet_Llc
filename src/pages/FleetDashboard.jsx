@@ -70,6 +70,8 @@ import AddTimelineEventModal from '@/components/fleet/AddTimelineEventModal';
 import TakingOwnershipModal from '@/components/fleet/TakingOwnershipModal';
 import PlaceOOSModal from '@/components/fleet/PlaceOOSModal';
 import VirtualizedFleetGrid from '@/components/fleet/VirtualizedFleetGrid';
+import FleetCommandCard from '@/components/fleet/FleetCommandCard';
+import FleetCommandHeader from '@/components/fleet/FleetCommandHeader';
 import { useThrottledFleet } from '@/hooks/useThrottledFleet';
 
 const STATUS_OPTIONS = ['All Status', 'active', 'oos', 'maintenance', 'retired'];
@@ -835,12 +837,12 @@ function AircraftRow({ aircraft, onSelect, discrepancies, activeLocks = [] }) {
   return (
     <div onClick={() => onSelect(aircraft)}
       className={cn(
-        "flex items-center justify-between px-5 py-3 rounded-xl bg-card border hover:border-primary/30 transition-all cursor-pointer",
-        acLock ? 'border-red-500/60 bg-red-950/10' : count > 0 ? 'border-amber-500/40' : 'border-border'
+        "flex items-center justify-between px-5 py-3 rounded-xl bg-[#1e262e] border border-white/5 hover:border-white/20 transition-all cursor-pointer font-mono",
+        acLock ? 'border-[#e74c3c]/40' : count > 0 ? 'border-amber-500/30' : 'border-white/5'
       )}>
       <div className="flex items-center gap-5 flex-1 min-w-0">
       <div className="flex items-center gap-2 w-40">
-        <p className="text-sm font-extrabold text-primary font-mono">{aircraft.tail_number}</p>
+        <p className={cn('text-sm font-extrabold font-mono', status.text)}>{aircraft.tail_number}</p>
         {aircraft.mcc_watch && <Eye className="w-3.5 h-3.5 text-amber-400 flex-shrink-0 animate-pulse" title="MCC Watch" />}
         {aircraft.ferry_flight && <Plane className="w-3.5 h-3.5 text-sky-400 flex-shrink-0 animate-pulse" title="Scheduled for Ferry Flight" />}
         {acLock && <Lock className="w-3.5 h-3.5 text-red-400 flex-shrink-0" title={`MCC Lock: ${acLock.reason}`} />}
@@ -876,6 +878,15 @@ export default function FleetDashboard() {
   const [selectedAircraft, setSelectedAircraft] = useState(null);
   const [kpiFilter, setKpiFilter] = useState(null);
   const [quickFilter, setQuickFilter] = useState(null); // 'aog' | 'mel' | 'etops' | 'maintenance' | 'active' | null
+  const [viewTab, setViewTab] = useState('all'); // 'all' | 'mine' | 'watch'
+  const [lockedFilter, setLockedFilter] = useState(false);
+  const [activeMetric, setActiveMetric] = useState(null);
+
+  const { data: currentUser } = useQuery({
+    queryKey: ['me'],
+    queryFn: () => base44.auth.me(),
+    staleTime: 60000,
+  });
 
   const queryClient = useQueryClient();
 
@@ -972,6 +983,9 @@ export default function FleetDashboard() {
   const inWork      = aircraft.filter(a => a.status === 'maintenance').length;
   const outOfSvc    = aircraft.filter(a => a.status === 'oos').length;
   const aogCount    = outOfSvc;
+  const watchCount  = aircraft.filter(a => a.mcc_watch).length;
+  const ferryCount  = aircraft.filter(a => a.ferry_flight).length;
+  const mineCount   = currentUser ? aircraft.filter(a => a.created_by_id === currentUser.id).length : 0;
 
   const filtered = aircraft
     .filter(a => {
@@ -985,6 +999,20 @@ export default function FleetDashboard() {
 
       const matchesStatus = statusFilter === 'All Status' || a.status === statusFilter;
       const matchesKpi = !kpiFilter || a.status === kpiFilter;
+
+      const acLock = mccLocks.find(l => l.aircraft_tail === a.tail_number && l.is_active !== false);
+      let matchesView = true;
+      if (viewTab === 'mine') matchesView = currentUser ? a.created_by_id === currentUser.id : false;
+      else if (viewTab === 'watch') matchesView = !!a.mcc_watch;
+      const matchesLocked = !lockedFilter || !!acLock;
+
+      let matchesMetric = true;
+      if (activeMetric === 'ots') matchesMetric = a.status === 'oos';
+      else if (activeMetric === 'inmx') matchesMetric = a.status === 'maintenance';
+      else if (activeMetric === 'watch') matchesMetric = !!a.mcc_watch;
+      else if (activeMetric === 'ferry') matchesMetric = !!a.ferry_flight;
+      else if (activeMetric === 'mine') matchesMetric = currentUser ? a.created_by_id === currentUser.id : false;
+
       // Quick filter logic
       let matchesQuick = true;
       if (quickFilter === 'aog') matchesQuick = a.status === 'oos';
@@ -996,7 +1024,7 @@ export default function FleetDashboard() {
       else if (quickFilter === 'etops') matchesQuick = !!a.etops_approval;
       else if (quickFilter === 'maintenance') matchesQuick = a.status === 'maintenance';
       else if (quickFilter === 'active') matchesQuick = a.status === 'active';
-      return matchesSearch && matchesStatus && matchesKpi && matchesQuick;
+      return matchesSearch && matchesStatus && matchesKpi && matchesQuick && matchesView && matchesLocked && matchesMetric;
     })
     // MCC priority sort: AOG → IN WORK → RON → IN SERVICE → RETIRED
     .sort((a, b) => (STATUS_PRIORITY[a.status] ?? 99) - (STATUS_PRIORITY[b.status] ?? 99));
@@ -1017,164 +1045,117 @@ export default function FleetDashboard() {
 
   // B: memoized renderCard so VirtualizedFleetGrid Row doesn't re-create closures
   const renderCard = useCallback((a) => (
-    <AircraftCard
+    <FleetCommandCard
       aircraft={a}
       onSelect={(ac) => { setSelectedAircraft(ac); recordTailView(ac.tail_number); }}
       discrepancies={discrepanciesByTail[a.tail_number]}
       melItems={melByTail[a.tail_number] || []}
       activeLocks={mccLocks}
-      oosEntries={oosEntries}
-      timelineEvents={timelineEvents}
-      openTasks={openTasks}
-      logEntries={logEntriesByTailAll[a.tail_number] || []}
     />
-  ), [discrepanciesByTail, melByTail, mccLocks, oosEntries, timelineEvents, openTasks, recordTailView, logEntriesByTailAll]);
+  ), [discrepanciesByTail, melByTail, mccLocks, recordTailView]);
 
   return (
-    <div className="min-h-screen bg-background pb-24">
+    <div className="min-h-screen bg-[#0d1117] pb-24">
 
-      {/* ── HEADER ── */}
-      <div className="px-6 pt-7 pb-4">
-        <div className="flex items-center gap-3 mb-6 bg-card border border-border p-4 rounded-2xl">
-          <div className="w-10 h-10 rounded-xl bg-primary/20 flex items-center justify-center">
-            <Plane className="w-6 h-6 text-primary" />
-          </div>
-          <h1 className="text-2xl sm:text-3xl font-black text-primary tracking-widest uppercase">
-            Aerodyne Fleet Registry
-          </h1>
-          <div className="ml-auto flex items-center gap-4">
-            <Link to="/CapabilityDashboard" className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-indigo-500/20 border border-indigo-500/30 text-indigo-300 text-xs font-bold hover:bg-indigo-500/30 transition-colors">
-              <Shield className="w-3.5 h-3.5" /> ETOPS · RVSM · CAT
-            </Link>
-            <LiveClock />
-            <FleetBadge />
-          </div>
-        </div>
+        {/* ── HEADER ── */}
+      <FleetCommandHeader
+        stats={{ total, outOfSvc, inWork, mine: mineCount, watch: watchCount, ferry: ferryCount }}
+        activeMetric={activeMetric}
+        onMetricClick={setActiveMetric}
+      />
 
-        {/* ── TAB BAR ── */}
-        <div className="flex items-center gap-2 flex-wrap mb-4">
-          {TABS.map(({ id, label, icon: Icon, live }) => (
-            <button key={id} onClick={() => setActiveTab(id)}
-              className={cn(
-                'flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-extrabold transition-all',
-                activeTab === id
-                  ? 'bg-primary text-primary-foreground shadow-lg shadow-primary/20'
-                  : 'bg-[#1a1f2e] text-gray-400 hover:text-white border border-white/8'
-              )}>
-              <Icon className="w-4 h-4" />
-              {label}
-              {live && <span className="text-[9px] font-extrabold px-1.5 py-0.5 rounded-full bg-green-500 text-white ml-0.5">LIVE</span>}
-            </button>
-          ))}
-
-
-        </div>
-
-        {/* ── System Status ── */}
-        <div className="flex items-center gap-2 mb-6">
-          <span className="text-xs text-gray-500">System Status</span>
-          <span className="w-2 h-2 rounded-full bg-green-400 animate-pulse" />
-          <span className="text-xs font-extrabold text-green-400 tracking-widest">OPERATIONAL</span>
-        </div>
-
-        {/* ── KPI CARDS ── */}
-        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
-          <KpiCard
-            label="Total Fleet"
-            value={isLoading ? '…' : total.toLocaleString()}
-            sublabel={acTypeLabel}
-            valueColor="text-white"
-            icon={Plane}
-            iconColor="text-primary"
-            onClick={() => setKpiFilter(kpiFilter === null ? null : null)}
-          />
-          <KpiCard
-            label="In Service"
-            value={isLoading ? '…' : inService.toLocaleString()}
-            sublabel="Active Operations"
-            valueColor="text-green-400"
-            icon={CheckCircle}
-            iconColor="text-green-400"
-            onClick={() => setKpiFilter(kpiFilter === 'active' ? null : 'active')}
-          />
-          <KpiCard
-            label="In Work"
-            value={isLoading ? '…' : inWork.toLocaleString()}
-            sublabel="Under Maintenance"
-            valueColor="text-primary"
-            icon={Wrench}
-            iconColor="text-primary"
-            onClick={() => setKpiFilter(kpiFilter === 'maintenance' ? null : 'maintenance')}
-          />
-          <KpiCard
-            label="Out of Service"
-            value={isLoading ? '…' : outOfSvc.toLocaleString()}
-            sublabel="Awaiting Service"
-            valueColor={outOfSvc > 0 ? 'text-orange-400' : 'text-gray-600'}
-            icon={Clock}
-            iconColor={outOfSvc > 0 ? 'text-orange-400' : 'text-gray-600'}
-            onClick={() => setKpiFilter(kpiFilter === 'oos' ? null : 'oos')}
-          />
-        </div>
+      {/* ── TAB BAR ── */}
+      <div className="px-6 flex items-center gap-2 flex-wrap mb-4">
+        {TABS.map(({ id, label, icon: Icon, live }) => (
+          <button key={id} onClick={() => setActiveTab(id)}
+            className={cn(
+              'flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-extrabold transition-all',
+              activeTab === id
+                ? 'bg-[#f1c40f] text-black shadow-lg'
+                : 'bg-[#1e262e] text-[#7f8c8d] hover:text-white border border-white/8'
+            )}>
+            <Icon className="w-4 h-4" />
+            {label}
+            {live && <span className="text-[9px] font-extrabold px-1.5 py-0.5 rounded-full bg-green-500 text-white ml-0.5">LIVE</span>}
+          </button>
+        ))}
       </div>
 
       {/* ── TAB CONTENT ── */}
       {activeTab === 'fleet' && (
         <div className="px-6">
-          {/* Quick Filter Bar */}
-          <div className="flex items-center gap-2 mb-3 flex-wrap">
-            {QUICK_FILTERS.map(f => (
-              <button
-                key={String(f.id)}
-                onClick={() => setQuickFilter(quickFilter === f.id ? null : f.id)}
-                className={cn(
-                  'px-3 py-1.5 rounded-lg text-[11px] font-bold border transition-all',
-                  quickFilter === f.id
-                    ? 'bg-primary/20 border-primary text-primary'
-                    : 'bg-card border-border text-gray-400 hover:text-white hover:border-white/20'
-                )}
-              >
-                {f.label}
+          {/* Filter Bar — Fleet Command design */}
+          <div className="flex items-center gap-3 mb-3 flex-wrap">
+            <span className="text-[11px] font-bold text-[#7f8c8d] uppercase tracking-widest font-mono">SHOW</span>
+            <div className="flex gap-1.5">
+              {[
+                { id: 'all',   label: 'All Fleet' },
+                { id: 'mine',  label: 'My Aircraft' },
+                { id: 'watch', label: 'Watch List' },
+              ].map(t => (
+                <button key={t.id} onClick={() => setViewTab(t.id)}
+                  className={cn('px-3 py-1.5 rounded-lg text-[11px] font-bold font-mono border transition-all',
+                    viewTab === t.id
+                      ? 'bg-[#f1c40f]/15 border-[#f1c40f] text-[#f1c40f]'
+                      : 'bg-[#1e262e] border-white/10 text-[#7f8c8d] hover:text-white hover:border-white/20')}>
+                  {t.label}
+                </button>
+              ))}
+            </div>
+            <div className="flex gap-1.5">
+              <button onClick={() => setQuickFilter(quickFilter === 'aog' ? null : 'aog')}
+                className={cn('px-3 py-1.5 rounded-lg text-[11px] font-bold font-mono border transition-all',
+                  quickFilter === 'aog'
+                    ? 'bg-[#e74c3c]/15 border-[#e74c3c] text-[#e74c3c]'
+                    : 'bg-[#1e262e] border-white/10 text-[#7f8c8d] hover:text-white hover:border-white/20')}>
+                OTS
               </button>
-            ))}
+              <button onClick={() => setLockedFilter(v => !v)}
+                className={cn('px-3 py-1.5 rounded-lg text-[11px] font-bold font-mono border transition-all',
+                  lockedFilter
+                    ? 'bg-red-500/15 border-red-500 text-red-400'
+                    : 'bg-[#1e262e] border-white/10 text-[#7f8c8d] hover:text-white hover:border-white/20')}>
+                Locked
+              </button>
+            </div>
           </div>
 
           {/* Search + Filters */}
           <div className="flex flex-col sm:flex-row gap-3 mb-4">
-            <div className="flex-1 flex items-center gap-2 bg-card border border-border rounded-xl px-4 py-2.5">
-              <Search className="w-4 h-4 text-gray-400 flex-shrink-0" />
+            <div className="flex-1 flex items-center gap-2 bg-[#1e262e] border border-white/10 rounded-xl px-4 py-2.5 font-mono">
+              <Search className="w-4 h-4 text-[#7f8c8d] flex-shrink-0" />
               <input type="text" placeholder="Search tail, type, base..." value={search}
                 onChange={e => setSearch(e.target.value)}
-                className="flex-1 bg-transparent text-sm text-white placeholder-gray-500 outline-none" />
+                className="flex-1 bg-transparent text-sm text-white placeholder-[#7f8c8d] outline-none font-mono" />
             </div>
             <select value={statusFilter} onChange={e => setStatusFilter(e.target.value)}
-              className="bg-card border border-border rounded-xl px-4 py-2.5 text-sm text-white outline-none hover:border-primary/40">
+              className="bg-[#1e262e] border border-white/10 rounded-xl px-4 py-2.5 text-sm text-white outline-none hover:border-white/30 font-mono">
               {STATUS_OPTIONS.map(s => (
                 <option key={s} value={s}>{s === 'All Status' ? s : s === 'oos' ? 'Out of Service' : s.charAt(0).toUpperCase() + s.slice(1)}</option>
               ))}
             </select>
-            <div className="flex rounded-xl overflow-hidden bg-card border border-border">
+            <div className="flex rounded-xl overflow-hidden bg-[#1e262e] border border-white/10">
               <button onClick={() => setViewMode('grid')}
-                className={cn('px-3 py-2.5 flex items-center justify-center transition-all', viewMode === 'grid' ? 'bg-primary text-primary-foreground' : 'text-gray-400 hover:text-white')}>
+                className={cn('px-3 py-2.5 flex items-center justify-center transition-all', viewMode === 'grid' ? 'bg-[#f1c40f] text-black' : 'text-[#7f8c8d] hover:text-white')}>
                 <LayoutGrid className="w-4 h-4" />
               </button>
               <button onClick={() => setViewMode('list')}
-                className={cn('px-3 py-2.5 flex items-center justify-center transition-all', viewMode === 'list' ? 'bg-primary text-primary-foreground' : 'text-gray-400 hover:text-white')}>
+                className={cn('px-3 py-2.5 flex items-center justify-center transition-all', viewMode === 'list' ? 'bg-[#f1c40f] text-black' : 'text-[#7f8c8d] hover:text-white')}>
                 <List className="w-4 h-4" />
               </button>
             </div>
           </div>
 
           <div className="flex items-center justify-between mb-4">
-            <p className="text-xs text-gray-500">
-              Showing {filtered.length.toLocaleString()} of {total.toLocaleString()} aircraft
-              {quickFilter && <span className="ml-1 text-primary font-bold">· filtered</span>}
+            <p className="text-xs text-[#7f8c8d] font-mono">
+              {filtered.length} of {total} aircraft
+              {(quickFilter || lockedFilter || viewTab !== 'all' || activeMetric) && <span className="ml-1 text-[#f1c40f] font-bold">· filtered</span>}
             </p>
             <div className="flex items-center gap-2">
-              {(kpiFilter || quickFilter) && (
+              {(kpiFilter || quickFilter || lockedFilter || viewTab !== 'all' || activeMetric) && (
                 <button
-                  onClick={() => { setKpiFilter(null); setQuickFilter(null); }}
-                  className="text-xs font-bold text-primary hover:text-primary/80 flex items-center gap-1"
+                  onClick={() => { setKpiFilter(null); setQuickFilter(null); setLockedFilter(false); setViewTab('all'); setActiveMetric(null); }}
+                  className="text-xs font-bold text-[#f1c40f] hover:text-[#f1c40f]/80 flex items-center gap-1 font-mono"
                 >
                   <X className="w-3 h-3" /> Clear filters
                 </button>
@@ -1192,7 +1173,7 @@ export default function FleetDashboard() {
               items={filtered}
               renderCard={renderCard}
               columnCount={columnCount}
-              cardHeight={168}
+              cardHeight={236}
             />
           ) : (
             <div className="flex flex-col gap-1.5">
