@@ -26,12 +26,6 @@ export default function FleetCommandCard({ aircraft, onSelect, melItems = [], ac
   });
 
   const stop = (e) => e.stopPropagation();
-  const openDetail = (e) => { e.stopPropagation(); onSelect(aircraft); };
-
-  const toggleFerry = (e) => {
-    stop(e);
-    toggleMutation.mutate({ ferry_flight: !aircraft.ferry_flight });
-  };
 
   // Middle status line
   const statusLine = acLock
@@ -111,26 +105,6 @@ export default function FleetCommandCard({ aircraft, onSelect, melItems = [], ac
           <span className="text-[10px] text-[#7f8c8d] font-mono truncate">
             {aircraft.base_station || '—'}{aircraft.location_label ? ` · ${aircraft.location_label}` : ''}
           </span>
-          <div className="flex items-center gap-1.5 flex-shrink-0">
-            <button
-              onClick={toggleFerry}
-              className={cn('px-2.5 py-1 rounded text-[10px] font-bold font-mono border transition-colors',
-                aircraft.ferry_flight
-                  ? 'border-sky-500/50 text-sky-400 bg-sky-500/10'
-                  : actionBtn)}
-            >
-              FERRY FLT
-            </button>
-            {aircraft.status === 'oos' ? (
-              <span className="px-2.5 py-1 rounded text-[10px] font-bold font-mono bg-[#e74c3c]/15 border border-[#e74c3c]/40 text-[#e74c3c]">
-                AOG
-              </span>
-            ) : (
-              <button onClick={openDetail} className="px-2.5 py-1 rounded text-[10px] font-bold font-mono border border-[#e74c3c]/40 text-[#e74c3c] hover:bg-[#e74c3c]/10 transition-colors">
-                OTS
-              </button>
-            )}
-          </div>
         </div>
       </div>
     </div>
