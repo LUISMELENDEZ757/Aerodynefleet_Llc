@@ -194,7 +194,7 @@ Based on ALL the above fleet data, provide a structured predictive maintenance b
 
 Be specific, use tail numbers and ATA chapters from the data. Format with clear headers and bullet points.`;
 
-    const result = await base44.integrations.Core.InvokeLLM({ prompt, model: 'claude_sonnet_4_6' });
+    const result = await base44.integrations.Core.InvokeLLM({ prompt });
     setAiInsights(result);
     setLoading(false);
   };
@@ -541,7 +541,7 @@ export default function AICopilot() {
     const systemCtx = buildSystemContext(ctx, aircraft, logEntries, melItems, oosEntries, crewAssignments, flights, requisitions, workPackages, safetyReports);
     const prompt = `${systemCtx}\n\n${history ? 'CONVERSATION HISTORY:\n' + history + '\n\n' : ''}User: ${msg}\n\nAssistant:`;
 
-    const result = await base44.integrations.Core.InvokeLLM({ prompt, model: 'claude_sonnet_4_6' });
+    const result = await base44.integrations.Core.InvokeLLM({ prompt });
 
     setMessages(prev => {
       const copy = [...prev];
@@ -597,7 +597,7 @@ export default function AICopilot() {
           </div>
           <div className="flex items-center gap-2 px-3 py-2 rounded-xl bg-card border border-border">
             <span className="w-1.5 h-1.5 rounded-full bg-green-400 animate-pulse" />
-            <span className="text-[10px] font-bold text-muted-foreground hidden lg:block">Claude Sonnet 4.5 · Full App Context</span>
+            <span className="text-[10px] font-bold text-muted-foreground hidden lg:block">Fast AI · Full App Context</span>
           </div>
         </div>
       </div>
