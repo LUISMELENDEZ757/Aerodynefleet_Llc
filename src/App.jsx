@@ -19,7 +19,6 @@ import OfflineBadge from '@/components/layout/OfflineBadge';
 import ScreensaverController from '@/components/screensaver/ScreensaverController';
 
 const Home                  = lazy(() => import('@/pages/AerodyneHome'));
-const LandingPage           = lazy(() => import('@/pages/Home'));
 const OpsHub                = lazy(() => import('@/pages/OpsHub'));
 const Dashboard             = lazy(() => import('@/pages/Dashboard'));
 const OOSDetail             = lazy(() => import('@/pages/OOSDetail'));
@@ -230,7 +229,7 @@ const AuthenticatedApp = () => {
     <Routes>
       <Route path="/" element={<Home />} />
       <Route path="/Home" element={<Home />} />
-      <Route path="/Landing" element={<LandingPage />} />
+      <Route path="/Landing" element={<Home />} />
       <Route element={<AppLayout />}>
         <Route path="/OpsHub" element={<OpsHub />} />
         <Route path="/Dashboard" element={<Dashboard />} />
