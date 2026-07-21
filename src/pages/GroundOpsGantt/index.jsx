@@ -1,5 +1,7 @@
 import { useState, useEffect, useMemo, useRef } from "react";
 import { useNavigate } from "react-router-dom";
+import { useQuery } from "@tanstack/react-query";
+import { base44 } from "@/api/base44Client";
 import { subscribeFleet } from "@/data/fleet.js";
 import { setSelectedStation } from "@/data/stations.js";
 import { subscribeRoster } from "@/data/manpower.js";
@@ -126,6 +128,19 @@ export default function GroundOpsGantt({ onOpenAircraft, onNavigate }) {
   }, [fleet, confPairs]);
 
   const stations = useMemo(() => [...new Set(fleet.flatMap((a) => a.events.map((e) => e.stn)))].sort(), [fleet]);
+
+  // ── Global Stations registry (system-wide Station entity) ──
+  const { data: globalStations = [] } = useQuery({
+    queryKey: ["global-stations"],
+    queryFn: () => base44.entities.Station.list("icao_code", 500),
+    refetchInterval: 300000,
+  });
+  const stationReg = useMemo(() => {
+    const m = {};
+    globalStations.forEach((s) => { m[(s.icao_code || "").toUpperCase()] = s; });
+    return m;
+  }, [globalStations]);
+  const regOf = (code) => stationReg[(code || "").toUpperCase()] || null;
   const capacity = useMemo(() => capacityForBoard(fleet), [fleet, force]);
   const capOverloaded = capacity.filter((c) => c.state === "over").length;
   const [showCap, setShowCap] = useState(true);
@@ -280,7 +295,12 @@ export default function GroundOpsGantt({ onOpenAircraft, onNavigate }) {
   const selAc = sel ? fleet.find((a) => a.tail === sel.tail) : null;
   const selEvt = selAc ? selAc.events.find((e) => e.id === sel.id) : null;
 
-  function openStation(icao) { setSelectedStation(icao); if (onNavigate) onNavigate("world-stations"); }
+  function openStation(icao) {
+    setSelectedStation(icao);
+    // Registered stations open their system Station Dashboard; unknown codes go to the registry to be added.
+    if (regOf(icao)) routerNav(`/StationDashboard?icao=${icao}`);
+    else routerNav("/GlobalStations");
+  }
 
   const bar = (ac, e, lane) => {
     const schedEnd = e.dep ?? (e.etr ?? WINDOW_MIN);
@@ -420,13 +440,18 @@ export default function GroundOpsGantt({ onOpenAircraft, onNavigate }) {
                   {stations.map((s) => {
                     const on = stnSel.has(s);
                     const n = fleet.reduce((k, a) => k + a.events.filter((e) => e.stn === s).length, 0);
+                    const reg = regOf(s);
                     return (
                       <div key={s} style={{ display: "flex", alignItems: "center" }}>
                         <button onClick={() => toggleStn(s)} style={{ flex: 1, textAlign: "left", padding: "8px 12px", display: "flex", alignItems: "center", gap: 8, fontFamily: MONO, fontSize: 11, background: on ? `${C.turn}12` : "transparent", border: "none", color: on ? C.turn : C.text, cursor: "pointer" }}>
                           <span style={{ width: 14, height: 14, borderRadius: 3, display: "inline-flex", alignItems: "center", justifyContent: "center", border: `1px solid ${on ? C.turn : C.line}`, background: on ? `${C.turn}22` : "transparent", fontSize: 9 }}>{on ? "✓" : ""}</span>
-                          {s}<span style={{ marginLeft: "auto", color: C.dim, fontSize: 9 }}>{n}</span>
+                          <span style={{ display: "flex", flexDirection: "column", minWidth: 0 }}>
+                            <span>{s}{reg && !reg.is_active && <span style={{ color: C.aog, fontSize: 8, marginLeft: 6 }}>INACTIVE</span>}{!reg && <span style={{ color: C.delay, fontSize: 8, marginLeft: 6 }}>UNREGISTERED</span>}</span>
+                            {reg && <span style={{ fontSize: 8.5, color: C.dim, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis", maxWidth: 130 }}>{reg.station_name}</span>}
+                          </span>
+                          <span style={{ marginLeft: "auto", color: C.dim, fontSize: 9 }}>{n}</span>
                         </button>
-                        <button onClick={() => { openStation(s); setStnOpen(false); }} title={`Open ${s} on World Stations`} style={{ background: "transparent", border: "none", color: C.mut, cursor: "pointer", fontSize: 11, padding: "0 10px" }}>🌐</button>
+                        <button onClick={() => { openStation(s); setStnOpen(false); }} title={reg ? `Open ${s} Station Dashboard` : `${s} not in Global Stations — open registry`} style={{ background: "transparent", border: "none", color: reg ? C.mut : C.delay, cursor: "pointer", fontSize: 11, padding: "0 10px" }}>🌐</button>
                       </div>
                     );
                   })}
@@ -489,7 +514,8 @@ export default function GroundOpsGantt({ onOpenAircraft, onNavigate }) {
                   title={`${c.station}: ${c.committed.toFixed(1)} MH committed across ${c.events} open turnarounds · ${c.techs} techs on shift (${c.avail} available, ${c.onTask} on task) · ${c.techHours.toFixed(0)} tech-hrs`}
                   style={{ flex: "1 1 150px", minWidth: 150, maxWidth: 230, textAlign: "left", background: C.bg, border: `1px solid ${col}${c.state === "over" ? "" : "55"}`, borderRadius: 9, padding: "9px 11px", cursor: "pointer", boxShadow: c.state === "over" ? `0 0 10px ${C.aog}33` : "none" }}>
                   <div style={{ display: "flex", alignItems: "center", gap: 6, marginBottom: 6 }}>
-                    <span style={{ fontFamily: MONO, fontSize: 12, fontWeight: 800, color: C.text }}>{c.station}</span>
+                    <span style={{ fontFamily: MONO, fontSize: 12, fontWeight: 800, color: C.text }} title={regOf(c.station)?.station_name || `${c.station} — not in Global Stations registry`}>{c.station}</span>
+                    {!regOf(c.station) && <span style={{ fontFamily: MONO, fontSize: 7.5, color: C.delay }}>UNREG</span>}
                     <span style={{ fontFamily: MONO, fontSize: 8, fontWeight: 800, color: col, background: `${col}1a`, border: `1px solid ${col}66`, borderRadius: 999, padding: "1px 6px" }}>{label}</span>
                     {c.aogMh > 0 && <span style={{ fontFamily: MONO, fontSize: 8, color: C.aog }}>⬤ {c.aogMh.toFixed(0)}h AOG</span>}
                     <span style={{ marginLeft: "auto", fontFamily: MONO, fontSize: 9.5, fontWeight: 700, color: col }}>{isFinite(c.ratio) ? `${Math.round(c.ratio * 100)}%` : "—"}</span>
@@ -715,6 +741,30 @@ export default function GroundOpsGantt({ onOpenAircraft, onNavigate }) {
               </div>
             </div>
 
+            {/* Global Stations registry info for this turnaround's station */}
+            {(() => {
+              const reg = regOf(selEvt.stn);
+              if (!reg) return (
+                <div style={{ marginTop: 16, padding: 12, borderRadius: 8, border: `1px solid ${C.delay}55`, background: `${C.delay}0e` }}>
+                  <div style={{ fontSize: 10, color: C.delay, fontFamily: MONO, fontWeight: 700 }}>🌐 {selEvt.stn} — NOT IN GLOBAL STATIONS REGISTRY</div>
+                  <div style={{ fontSize: 11, color: C.ice, marginTop: 4 }}>Register this station to enable system-wide dashboards, bays, and timezone data.</div>
+                  <button onClick={() => routerNav("/GlobalStations")} style={{ marginTop: 8, padding: "6px 12px", borderRadius: 6, fontSize: 11, fontWeight: 700, border: `1px solid ${C.delay}`, color: C.delay, background: "transparent", fontFamily: MONO, cursor: "pointer" }}>OPEN REGISTRY →</button>
+                </div>
+              );
+              return (
+                <div style={{ marginTop: 16, padding: 12, borderRadius: 8, border: `1px solid ${C.ice}44`, background: `${C.ice}0a` }}>
+                  <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
+                    <span style={{ fontSize: 10, color: C.ice, fontFamily: MONO, fontWeight: 700 }}>🌐 {reg.icao_code} · {reg.station_name}</span>
+                    <span style={{ marginLeft: "auto", fontFamily: MONO, fontSize: 9, fontWeight: 800, color: reg.is_active ? C.swap : C.aog }}>{reg.is_active ? "ACTIVE" : "INACTIVE"}</span>
+                  </div>
+                  <div style={{ fontSize: 11, color: C.ice, marginTop: 4, fontFamily: MONO }}>
+                    {reg.timezone ? `LOCAL ${zoneTime(clock, reg.timezone)} · ${reg.timezone}` : "NO TIMEZONE SET"}
+                    {(reg.hangar_bays > 0 || reg.line_bays > 0) && ` · ${reg.hangar_bays || 0} HGR / ${reg.line_bays || 0} LINE BAYS`}
+                  </div>
+                </div>
+              );
+            })()}
+
             {/* station manpower capacity for this turnaround's station */}
             {(() => {
               const cap = capacityByStation(fleet, selEvt.stn);
@@ -736,7 +786,7 @@ export default function GroundOpsGantt({ onOpenAircraft, onNavigate }) {
             {/* cross-links */}
             <div style={{ display: "flex", flexDirection: "column", gap: 8, marginTop: 22 }}>
               {selEvt._ac && <button onClick={() => onOpenAircraft && onOpenAircraft(selEvt._ac)} style={linkBtn(C.turn)}>✈ Open on Fleet Dashboard</button>}
-              <button onClick={() => openStation(selEvt.stn)} style={linkBtn(C.ice)}>🌐 View {selEvt.stn} on World Stations</button>
+              <button onClick={() => openStation(selEvt.stn)} style={linkBtn(C.ice)}>🌐 {regOf(selEvt.stn) ? `Open ${selEvt.stn} Station Dashboard` : `Register ${selEvt.stn} in Global Stations`}</button>
               {(selEvt.aog || selEvt.depRisk) && <button onClick={() => onNavigate && onNavigate("mcc")} style={linkBtn(C.aog)}>🎯 Escalate to MCC Ops Hub</button>}
               {String(selEvt.id).startsWith("M-") && <button onClick={() => delManual(selEvt.id)} style={{ ...linkBtn(C.aog), textAlign: "center" }}>REMOVE TURNAROUND</button>}
             </div>
