@@ -137,6 +137,7 @@ const DiscrepancyLab           = lazy(() => import('@/pages/DiscrepancyLab'));
 const AircraftComplianceDetail = lazy(() => import('@/pages/AircraftComplianceDetail.jsx'));
 const CapabilityDashboard      = lazy(() => import('@/pages/CapabilityDashboard.jsx'));
 const NumberingStandardPage     = lazy(() => import('@/pages/NumberingStandardPage.jsx'));
+const AircraftMxTimeline        = lazy(() => import('@/pages/AircraftMxTimeline.jsx'));
 
 function PageFallback() {
   return (
@@ -275,7 +276,8 @@ const AuthenticatedApp = () => {
         <Route path="/InspectorMode" element={<InspectorMode />} />
         <Route path="/UserManagement" element={<UserManagement />} />
         <Route path="/CostReporting" element={<CostReporting />} />
-        <Route path="/FleetDashboard" element={<FleetDashboard onOpenAircraft={(a) => window.location.assign(`/TechOpsLogbook?tail=${encodeURIComponent(a.tail)}`)} />} />
+        <Route path="/FleetDashboard" element={<FleetDashboard onOpenAircraft={(a) => window.location.assign(`/AircraftTimeline?tail=${encodeURIComponent(a.tail)}`)} />} />
+        <Route path="/AircraftTimeline" element={<AircraftMxTimeline />} />
         <Route path="/TechOpsLogbook" element={<TechOpsLogbook />} />
         <Route path="/CabinDiscrepancy" element={<CabinDiscrepancy />} />
         <Route path="/ToolingManagement" element={<ToolingManagement />} />
