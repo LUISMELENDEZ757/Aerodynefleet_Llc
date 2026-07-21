@@ -1,4 +1,5 @@
 import { useState, useMemo, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import { FLEET, BOARD_FILTERS, subscribeFleet, departureRisk } from "../data/fleet.js";
 import { getSelectedStation, clearSelectedStation, subscribeStation, getStation } from "../data/stations.js";
 import { getTimeline, subscribeTimelines, lastUpdateMs, fmtEtr } from "./RepairTimeline.jsx";
@@ -229,6 +230,11 @@ function Leg({ color, label, round }) {
 }
 
 export default function FleetDashboard({ onOpenAircraft }) {
+  const navigate = useNavigate();
+  // Default: SPA-navigate straight to the aircraft's maintenance timeline,
+  // carrying tail + type + base so the correct record is opened/registered.
+  const openAircraft = onOpenAircraft || ((a) =>
+    navigate(`/AircraftTimeline?tail=${encodeURIComponent(a.tail)}&type=${encodeURIComponent(a.variant || "")}&base=${encodeURIComponent(a.base || "")}`));
   const [filter, setFilter] = useState("ALL");
   const [search, setSearch] = useState("");
   const [, forceTl] = useState(0);
@@ -320,7 +326,7 @@ export default function FleetDashboard({ onOpenAircraft }) {
 
       {/* Grid */}
       <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(290px, 1fr))", gap: 12, padding: "16px 24px 0" }}>
-        {filtered.slice(0, 60).map((a) => <FleetCard key={a.id} a={a} onOpen={onOpenAircraft} nowMs={nowMs} />)}
+        {filtered.slice(0, 60).map((a) => <FleetCard key={a.id} a={a} onOpen={openAircraft} nowMs={nowMs} />)}
       </div>
       {filtered.length > 60 && (
         <div style={{ textAlign: "center", padding: 22, color: C.muted, fontSize: 12, fontFamily: "'JetBrains Mono',monospace" }}>
