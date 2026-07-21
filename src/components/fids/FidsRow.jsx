@@ -3,12 +3,16 @@ import { cn } from '@/lib/utils';
 import { STATUS_COLORS, fmtZulu } from './fidsModel';
 
 // Display Model (Board Row): Flight · Route · Scheduled · Estimated · Gate · Status · Aircraft
-export default function FidsRow({ flight }) {
+export default function FidsRow({ flight, onClick }) {
   const cfg = STATUS_COLORS[flight.status] || STATUS_COLORS['ON TIME'];
   const estDiffers = flight.estimated && flight.scheduled && fmtZulu(flight.estimated) !== fmtZulu(flight.scheduled);
 
   return (
-    <div className={cn('flex items-center gap-3 px-4 py-2.5 rounded-lg border border-border/60', cfg.bg)}>
+    <div
+      onClick={onClick}
+      title="Click to view route map"
+      className={cn('flex items-center gap-3 px-4 py-2.5 rounded-lg border border-border/60', cfg.bg, onClick && 'cursor-pointer hover:border-primary/50 transition-colors')}
+    >
       {/* Flight */}
       <div className="flex items-center gap-2 w-24 flex-shrink-0">
         <div className={cn('w-2 h-2 rounded-full flex-shrink-0', cfg.dot)} />

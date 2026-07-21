@@ -62,6 +62,7 @@ export function normalizeFlight(f, type, now = Date.now()) {
     : (f.actual_in || f.estimated_in || f.estimated_on || scheduled);
   return {
     id: f.fa_flight_id || `${f.ident}-${scheduled}`,
+    fa_id: f.fa_flight_id || null,
     type,                                              // Flight Type
     airline: f.operator_iata || f.operator || '—',     // Airline
     flight_number: f.ident_iata || f.ident || '—',     // Flight Number

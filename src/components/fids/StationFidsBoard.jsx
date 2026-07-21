@@ -5,11 +5,13 @@ import { Link } from 'react-router-dom';
 import { Radar, RefreshCw, ExternalLink } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import FidsRow from './FidsRow';
+import FlightRouteMapModal from './FlightRouteMapModal';
 import { normalizeFlight } from './fidsModel';
 
 // Compact live FIDS board embedded in the Station Dashboard — powered by AeroAPI
 export default function StationFidsBoard({ icao }) {
   const [mode, setMode] = useState('departures');
+  const [selectedFlight, setSelectedFlight] = useState(null);
 
   const { data, isLoading, isFetching, refetch, dataUpdatedAt } = useQuery({
     queryKey: ['fids-board', icao],
@@ -65,9 +67,12 @@ export default function StationFidsBoard({ icao }) {
         ) : rows.length === 0 ? (
           <p className="text-center text-gray-600 text-sm py-8">No live {mode} for {icao}</p>
         ) : (
-          rows.map(f => <FidsRow key={`${f.type}-${f.id}`} flight={f} />)
+          rows.map(f => <FidsRow key={`${f.type}-${f.id}`} flight={f} onClick={() => setSelectedFlight(f)} />)
         )}
       </div>
+      {selectedFlight && (
+        <FlightRouteMapModal flight={selectedFlight} onClose={() => setSelectedFlight(null)} />
+      )}
     </div>
   );
 }

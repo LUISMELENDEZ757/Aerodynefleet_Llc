@@ -5,6 +5,7 @@ import { Link } from 'react-router-dom';
 import { Plane, RefreshCw } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import FidsRow from '@/components/fids/FidsRow';
+import FlightRouteMapModal from '@/components/fids/FlightRouteMapModal';
 import { normalizeFlight, STATUS_COLORS } from '@/components/fids/fidsModel';
 
 const QUICK_AIRPORTS = ['KEWR', 'KJFK', 'KLGA', 'KORD', 'KATL', 'KLAX'];
@@ -20,6 +21,7 @@ export default function FlightBoard() {
   const [airportInput, setAirportInput] = useState(urlIcao || 'KEWR');
   const [mode, setMode] = useState('departures');
   const [zuluTime, setZuluTime] = useState(new Date());
+  const [selectedFlight, setSelectedFlight] = useState(null);
 
   useEffect(() => {
     const t = setInterval(() => setZuluTime(new Date()), 1000);
@@ -141,10 +143,14 @@ export default function FlightBoard() {
           <div className="rounded-xl bg-card border border-border px-4 py-10 text-center text-sm text-muted-foreground">No flights found for {airport}</div>
         ) : (
           <div className="space-y-1">
-            {rows.map(f => <FidsRow key={`${f.type}-${f.id}`} flight={f} />)}
+            {rows.map(f => <FidsRow key={`${f.type}-${f.id}`} flight={f} onClick={() => setSelectedFlight(f)} />)}
           </div>
         )}
       </div>
+
+      {selectedFlight && (
+        <FlightRouteMapModal flight={selectedFlight} onClose={() => setSelectedFlight(null)} />
+      )}
     </div>
   );
 }
