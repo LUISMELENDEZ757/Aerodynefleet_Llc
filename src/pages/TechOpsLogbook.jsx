@@ -15,6 +15,7 @@ import LiveClock from '@/components/ui/LiveClock';
 import CatCapabilityBadge from '@/components/techops/CatCapabilityBadge';
 import EtopsCapabilityBadge from '@/components/techops/EtopsCapabilityBadge';
 import NewLogEntryModal from '@/components/techops/NewLogEntryModal';
+import GlobalLogbookSearch from '@/components/techops/GlobalLogbookSearch';
 import NewFaultModal from '@/components/techops/NewFaultModal';
 import LogEntryCard from '@/components/techops/LogEntryCard';
 import MELSignOffModal from '@/components/techops/MELSignOffModal';
@@ -364,6 +365,9 @@ export default function TechOpsLogbook() {
       </div>
 
       <div className="p-5 space-y-5 max-w-5xl mx-auto">
+
+        {/* ── GLOBAL SEARCH ──────────────────────────────────────────────────── */}
+        <GlobalLogbookSearch onSelectTail={(tail) => setSelectedTail(tail)} />
 
         {/* ── AIRCRAFT INFO + KPI STRIP ──────────────────────────────────────── */}
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
