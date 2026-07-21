@@ -123,8 +123,6 @@ const NAV_GROUPS = [
     items: [
       { label: 'Crew Control', icon: '👨‍💼', path: '/CrewControl' },
       { label: 'Crew Pairings', icon: '🔗', path: '/CrewPairing' },
-      { label: 'Crew Directory', icon: '📇', path: '/CrewDirectory' },
-      { label: 'Training Records', icon: '📚', path: '/Training' },
       { label: 'FAR 117 Calculator', icon: '🧮', path: '/FAR117' },
     ],
   },
@@ -155,6 +153,8 @@ const NAV_GROUPS = [
     title: 'Admin / System',
     items: [
       { label: 'User Management', icon: '👤', path: '/UserManagement' },
+      { label: 'Crew Directory', icon: '📇', path: '/CrewDirectory' },
+      { label: 'Training Records', icon: '📚', path: '/Training' },
       { label: 'Settings', icon: '⚙️', path: '/Settings' },
       { label: 'Academy', icon: '🎓', path: '/Academy' },
 

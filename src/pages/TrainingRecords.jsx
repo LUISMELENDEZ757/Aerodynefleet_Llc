@@ -5,6 +5,7 @@ import { GraduationCap, RefreshCw, Plus, AlertTriangle, CheckCircle, Clock } fro
 import { Link } from 'react-router-dom';
 import { cn } from '@/lib/utils';
 import { differenceInDays, parseISO } from 'date-fns';
+import RoleGuard from '@/components/rbac/RoleGuard';
 
 const TODAY = new Date().toISOString().split('T')[0];
 
@@ -101,7 +102,16 @@ function NewTrainingModal({ onSave, onClose }) {
   );
 }
 
+// Admin-only — personnel training files restricted to administrators
 export default function TrainingRecords() {
+  return (
+    <RoleGuard roles={['admin']}>
+      <TrainingRecordsContent />
+    </RoleGuard>
+  );
+}
+
+function TrainingRecordsContent() {
   const [showNew, setShowNew] = useState(false);
   const [search, setSearch] = useState('');
   const [roleFilter, setRoleFilter] = useState('all');

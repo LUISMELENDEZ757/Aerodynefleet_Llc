@@ -4,6 +4,7 @@ import { base44 } from '@/api/base44Client';
 import { Link } from 'react-router-dom';
 import { Users, Search, Phone, Mail, RefreshCw } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import RoleGuard from '@/components/rbac/RoleGuard';
 
 const ROLE_CONFIG = {
   captain:          { label: 'CPT',  color: 'text-primary bg-primary/15' },
@@ -68,7 +69,16 @@ function CrewCard({ crew }) {
   );
 }
 
+// Admin-only — personnel IDs restricted to administrators
 export default function CrewDirectory() {
+  return (
+    <RoleGuard roles={['admin']}>
+      <CrewDirectoryContent />
+    </RoleGuard>
+  );
+}
+
+function CrewDirectoryContent() {
   const [search, setSearch] = useState('');
   const [roleFilter, setRoleFilter] = useState('all');
   const TODAY = new Date().toISOString().split('T')[0];

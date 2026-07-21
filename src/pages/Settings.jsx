@@ -4,7 +4,8 @@ import { base44 } from '@/api/base44Client';
 import { Link } from 'react-router-dom';
 import {
   Settings, Users, Shield, FileText, BarChart3, AlertCircle,
-  ChevronRight, Plus, Server, Bell, LogOut, ChevronLeft, Lock, Plane, Megaphone, Radio
+  ChevronRight, Plus, Server, Bell, LogOut, ChevronLeft, Lock, Plane, Megaphone, Radio,
+  BookUser, GraduationCap
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import UserApprovalPanel from '@/components/settings/UserApprovalPanel';
@@ -189,6 +190,32 @@ export default function SettingsPage() {
           >
             <Plus className="w-3.5 h-3.5" /> Add Aircraft
           </button>
+        </AdminCard>
+
+        {/* Crew Directory — personnel IDs, admin-restricted */}
+        <AdminCard
+          icon={BookUser}
+          title="Crew Directory"
+          description="Personnel roster, employee IDs, and FAR 117 status"
+          action="/CrewDirectory"
+          actionLabel="Open Directory"
+        >
+          <div className="bg-secondary/50 rounded-lg px-3 py-2 text-xs text-muted-foreground">
+            Restricted · administrator access only
+          </div>
+        </AdminCard>
+
+        {/* Training Records — personnel files, admin-restricted */}
+        <AdminCard
+          icon={GraduationCap}
+          title="Training Records"
+          description="Personnel training files, sim checks, and currency expiry"
+          action="/Training"
+          actionLabel="View Records"
+        >
+          <div className="bg-secondary/50 rounded-lg px-3 py-2 text-xs text-muted-foreground">
+            Restricted · administrator access only
+          </div>
         </AdminCard>
 
         {/* Telemetry Hub — admin-restricted */}

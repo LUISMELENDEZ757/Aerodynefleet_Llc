@@ -5,6 +5,7 @@ import { getSession } from '@/lib/supabaseAuth';
 import { Link } from 'react-router-dom';
 import { Shield, UserPlus, RefreshCw, Search, Crown, User, Trash2 } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import RoleGuard from '@/components/rbac/RoleGuard';
 
 const ROLE_CONFIG = {
   admin: { label: 'Admin', color: 'text-primary bg-primary/15', icon: Crown },
@@ -107,7 +108,16 @@ function UserCard({ user, onRoleChange, onDelete }) {
   );
 }
 
+// Admin-only — personnel records restricted to administrators
 export default function UserManagement() {
+  return (
+    <RoleGuard roles={['admin']}>
+      <UserManagementContent />
+    </RoleGuard>
+  );
+}
+
+function UserManagementContent() {
   const [search, setSearch] = useState('');
   const [showInvite, setShowInvite] = useState(false);
   const [deleteConfirm, setDeleteConfirm] = useState(null); // { id, email }
