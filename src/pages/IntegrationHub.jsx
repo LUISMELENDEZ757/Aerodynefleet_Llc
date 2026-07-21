@@ -6,6 +6,7 @@ import {
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import AeroApiConfigModal from '@/components/integrations/AeroApiConfigModal';
+import RoleGuard from '@/components/rbac/RoleGuard';
 
 // ─── SYSTEM DATA ───────────────────────────────────────────────────────────
 
@@ -288,8 +289,16 @@ function SystemDetailModal({ sys, onClose }) {
   );
 }
 
-// ─── MAIN PAGE ─────────────────────────────────────────────────────────────
+// ─── MAIN PAGE — admin-only access ──────────────────────────────────────────
 export default function IntegrationHub() {
+  return (
+    <RoleGuard roles={['admin']}>
+      <IntegrationHubContent />
+    </RoleGuard>
+  );
+}
+
+function IntegrationHubContent() {
   const [activeTab, setActiveTab] = useState('systems');
   const [selectedSys, setSelectedSys] = useState(null);
   const [expandedEvent, setExpandedEvent] = useState(null);
