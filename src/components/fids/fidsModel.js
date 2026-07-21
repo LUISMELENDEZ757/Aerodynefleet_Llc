@@ -13,6 +13,33 @@ export const STATUS_COLORS = {
   'AT GATE':   { color: 'text-muted-foreground', bg: 'bg-muted/30', dot: 'bg-muted-foreground' },
 };
 
+// Derive flight phase from the latest track position (altitude in hundreds of ft, groundspeed in kts)
+export function derivePhase(pos) {
+  if (!pos) return null;
+  const alt = pos.altitude ?? 0;          // hundreds of feet
+  const gs = pos.groundspeed ?? 0;        // knots
+  const chg = pos.altitude_change;        // 'C' climbing, 'D' descending, '-' level
+
+  if (alt >= 180) {
+    if (chg === 'C') return { label: 'CLIMBING', detail: 'En route · climbing', color: '#38bdf8' };
+    if (chg === 'D') return { label: 'DESCENDING', detail: 'En route · descending', color: '#fbbf24' };
+    return { label: 'CRUISING', detail: 'En route · level', color: '#38bdf8' };
+  }
+  if (alt > 30) {
+    if (chg === 'D') return { label: 'APPROACH', detail: 'On approach', color: '#fbbf24' };
+    if (chg === 'C') return { label: 'CLIMBING', detail: 'Initial climb', color: '#38bdf8' };
+    return { label: 'IN FLIGHT', detail: 'Low altitude', color: '#38bdf8' };
+  }
+  if (alt > 0) {
+    return chg === 'D'
+      ? { label: 'LANDING', detail: 'Short final', color: '#fb923c' }
+      : { label: 'TAKEOFF', detail: 'Departing runway', color: '#38bdf8' };
+  }
+  if (gs > 40) return { label: 'ON RUNWAY', detail: 'Takeoff / landing roll', color: '#fb923c' };
+  if (gs > 2) return { label: 'TAXIING', detail: 'Taxiing on ground', color: '#22d3ee' };
+  return { label: 'PARKED', detail: 'Stationary · at gate or stand', color: '#94a3b8' };
+}
+
 export function fmtZulu(iso) {
   if (!iso) return '--:--';
   const d = new Date(iso);
