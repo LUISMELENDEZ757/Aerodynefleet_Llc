@@ -1,0 +1,61 @@
+{
+  "name": "SystemUpdate",
+  "type": "object",
+  "description": "Aerodyne Fleet OS system update news \u2014 manually posted release notes, feature announcements, and maintenance notices shown on the home page.",
+  "properties": {
+    "title": {
+      "type": "string",
+      "description": "Update headline"
+    },
+    "body": {
+      "type": "string",
+      "description": "Update details / release notes"
+    },
+    "category": {
+      "type": "string",
+      "enum": [
+        "release",
+        "feature",
+        "maintenance",
+        "alert",
+        "announcement"
+      ],
+      "default": "announcement",
+      "description": "Type of update"
+    },
+    "version": {
+      "type": "string",
+      "description": "Optional version tag e.g. v2.4.1"
+    },
+    "is_published": {
+      "type": "boolean",
+      "default": true,
+      "description": "Only published updates appear on the home page"
+    },
+    "posted_by": {
+      "type": "string",
+      "description": "Name of the person who posted the update"
+    }
+  },
+  "required": [
+    "title"
+  ],
+  "rls": {
+    "create": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "read": {},
+    "update": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "delete": {
+      "user_condition": {
+        "role": "admin"
+      }
+    }
+  }
+}
