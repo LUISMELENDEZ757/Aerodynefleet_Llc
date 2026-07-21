@@ -1,6 +1,7 @@
 import { useState, useMemo, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { FLEET, BOARD_FILTERS, subscribeFleet, departureRisk } from "../data/fleet.js";
+import { BOARD_FILTERS, subscribeFleet, departureRisk } from "../data/fleet.js";
+import useLiveFleetBoard from "@/hooks/useLiveFleetBoard";
 import { getSelectedStation, clearSelectedStation, subscribeStation, getStation } from "../data/stations.js";
 import { getTimeline, subscribeTimelines, lastUpdateMs, fmtEtr } from "./RepairTimeline.jsx";
 import { isServiceCleared, subscribeServiceStatus } from "../data/serviceStatus.js";
@@ -242,6 +243,7 @@ export default function FleetDashboard({ onOpenAircraft }) {
   const [stationVer, setStationVer] = useState(0);
   const [nowMs, setNowMs] = useState(Date.now());
   const zulu = useZuluClock();
+  const { fleet: FLEET, isLoading: fleetLoading } = useLiveFleetBoard();
 
   useEffect(() => subscribeTimelines(() => forceTl((n) => n + 1)), []);
   useEffect(() => subscribeServiceStatus(() => forceTl((n) => n + 1)), []);
@@ -261,7 +263,7 @@ export default function FleetDashboard({ onOpenAircraft }) {
       return a.tail.toLowerCase().includes(q) || a.variant.toLowerCase().includes(q) || a.base.toLowerCase().includes(q) || a.location.toLowerCase().includes(q);
     }
     return true;
-  }), [filter, search, activeFilter, fleetVer, station, stationVer]);
+  }), [FLEET, filter, search, activeFilter, fleetVer, station, stationVer]);
 
   return (
     <div style={{ padding: "0 0 28px" }}>
@@ -333,7 +335,8 @@ export default function FleetDashboard({ onOpenAircraft }) {
           + {filtered.length - 60} more aircraft (showing first 60 for performance)
         </div>
       )}
-      {filtered.length === 0 && <div style={{ textAlign: "center", padding: 50, color: C.muted, fontSize: 14 }}>No aircraft match this filter.</div>}
+      {filtered.length === 0 && !fleetLoading && <div style={{ textAlign: "center", padding: 50, color: C.muted, fontSize: 14 }}>No aircraft match this filter.</div>}
+      {fleetLoading && FLEET.length === 0 && <div style={{ textAlign: "center", padding: 50, color: C.muted, fontSize: 14, fontFamily: "'JetBrains Mono',monospace" }}>Loading live fleet…</div>}
     </div>
   );
 }
