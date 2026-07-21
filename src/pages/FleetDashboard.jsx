@@ -1,1213 +1,333 @@
-import { useState, useCallback, useMemo } from 'react';
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { base44 } from '@/api/base44Client';
-import { Link } from 'react-router-dom';
-import { useFleet } from '@/lib/FleetContext';
-import { FleetBadge } from '@/components/fleet/FleetSwitcher';
-import {
-  Plane, Search, LayoutGrid, List, Wrench, CheckCircle, Globe, Shield, ClipboardList,
-  BookOpen, MapPin, Cpu, X, AlertTriangle, UserCheck, Plus, Clock,
-  ChevronDown, Activity, Zap, Brain, Lock, LockOpen, Eye, ExternalLink
-} from 'lucide-react';
+import { useState, useMemo, useEffect } from "react";
+import { FLEET, BOARD_FILTERS, subscribeFleet, departureRisk } from "../data/fleet.js";
+import { getSelectedStation, clearSelectedStation, subscribeStation, getStation } from "../data/stations.js";
+import { getTimeline, subscribeTimelines, lastUpdateMs, fmtEtr } from "./RepairTimeline.jsx";
+import { isServiceCleared, subscribeServiceStatus } from "../data/serviceStatus.js";
+import { effectiveCat, catBadgeColor, levelMeta, subscribeCat } from "../data/cat.js";
+import { getMcc, subscribeMcc } from "../data/mccControls.js";
 
-const TerminalIcon = ({ className }) => (
-  <svg viewBox="0 0 64 64" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}>
-    {/* Control tower crenellations */}
-    <line x1="16" y1="14" x2="20" y2="14" strokeWidth="2" />
-    <line x1="20" y1="14" x2="20" y2="18" strokeWidth="2" />
-    <line x1="20" y1="18" x2="24" y2="18" strokeWidth="2" />
-    <line x1="24" y1="18" x2="24" y2="14" strokeWidth="2" />
-    <line x1="24" y1="14" x2="28" y2="14" strokeWidth="2" />
-    <line x1="28" y1="14" x2="28" y2="18" strokeWidth="2" />
-    {/* Tower body - wide base */}
-    <path d="M 14 20 L 18 28 L 30 28 L 34 20 Z" strokeWidth="2" />
-    {/* Tower main shaft */}
-    <rect x="18" y="28" width="12" height="20" strokeWidth="2" />
-    {/* Tower connector line to building */}
-    <line x1="30" y1="35" x2="36" y2="35" strokeWidth="2" />
-    {/* Terminal building main box */}
-    <rect x="36" y="30" width="18" height="18" strokeWidth="2" />
-    {/* Terminal roof line */}
-    <line x1="36" y1="30" x2="54" y2="30" strokeWidth="2" />
-    {/* Terminal windows */}
-    <circle cx="41" cy="37" r="2" strokeWidth="1.5" />
-    <circle cx="48" cy="37" r="2" strokeWidth="1.5" />
-    <circle cx="41" cy="44" r="2" strokeWidth="1.5" />
-    <circle cx="48" cy="44" r="2" strokeWidth="1.5" />
-    {/* Ground line */}
-    <line x1="8" y1="48" x2="56" y2="48" strokeWidth="2.5" />
-  </svg>
-);
-
-const HangarIcon = ({ className }) => (
-  <svg viewBox="0 0 64 64" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}>
-    {/* Outer peaked roof */}
-    <path d="M 10 28 L 32 8 L 54 28" strokeWidth="2.5" />
-    {/* Outer walls */}
-    <line x1="10" y1="28" x2="10" y2="52" strokeWidth="2.5" />
-    <line x1="54" y1="28" x2="54" y2="52" strokeWidth="2.5" />
-    {/* Ground line */}
-    <line x1="10" y1="52" x2="54" y2="52" strokeWidth="2.5" />
-    {/* Inner peaked roof */}
-    <path d="M 14 32 L 32 16 L 50 32" strokeWidth="2" />
-    {/* Inner walls */}
-    <line x1="14" y1="32" x2="14" y2="50" strokeWidth="2" />
-    <line x1="50" y1="32" x2="50" y2="50" strokeWidth="2" />
-    {/* Large door */}
-    <rect x="20" y="35" width="24" height="15" strokeWidth="2" />
-    {/* Door handle/window */}
-    <rect x="28" y="38" width="8" height="4" strokeWidth="1.5" />
-  </svg>
-);
-import AiMaintenanceInsights from '@/components/fleet/AiMaintenanceInsights';
-import AircraftLocationBadge from '@/components/fleet/AircraftLocationBadge';
-import LocationTypeToggle from '@/components/fleet/LocationTypeToggle';
-import AiMaintenanceCard from '@/components/ai/AiMaintenanceCard';
-import { cn } from '@/lib/utils';
-import LiveClock from '@/components/ui/LiveClock';
-import { motion, AnimatePresence } from 'framer-motion';
-import AddTimelineEventModal from '@/components/fleet/AddTimelineEventModal';
-import TakingOwnershipModal from '@/components/fleet/TakingOwnershipModal';
-import PlaceOOSModal from '@/components/fleet/PlaceOOSModal';
-import VirtualizedFleetGrid from '@/components/fleet/VirtualizedFleetGrid';
-import FleetCommandCard from '@/components/fleet/FleetCommandCard';
-import FleetCommandHeader from '@/components/fleet/FleetCommandHeader';
-import { useThrottledFleet } from '@/hooks/useThrottledFleet';
-
-const STATUS_OPTIONS = ['All Status', 'active', 'oos', 'maintenance', 'retired'];
-
-// Industry-standard aviation status color palette
-const STATUS_STYLES = {
-  active:      { label: 'IN SERVICE',    bg: 'bg-[#388E3C]',  border: 'border-[#388E3C]', text: 'text-[#66BB6A]', icon: CheckCircle },
-  oos:         { label: 'AOG',           bg: 'bg-[#D32F2F]',  border: 'border-[#D32F2F]', text: 'text-[#EF5350]', icon: Wrench },
-  maintenance: { label: 'IN WORK',       bg: 'bg-[#1565C0]',  border: 'border-[#1565C0]', text: 'text-[#42A5F5]', icon: Wrench },
-  retired:     { label: 'RETIRED',       bg: 'bg-[#616161]',  border: 'border-[#616161]', text: 'text-[#9E9E9E]', icon: Plane },
-  ron:         { label: 'RON',           bg: 'bg-[#546E7A]',  border: 'border-[#546E7A]', text: 'text-[#90A4AE]', icon: Clock },
+// Reference palette (AeroMOS Fleet Board)
+const C = {
+  green: "#00D48A", red: "#F03252", amber: "#F5A623", blue: "#3D8EF0",
+  cyan: "#00D4F5", muted: "#8296B8", ice: "#A7BAD8", white: "#EEF3FF",
+  card: "#131929", border: "#1E2A42", purple: "#C084FC",
 };
 
-// MCC priority sort order: AOG → IN WORK → RON → IN SERVICE → RETIRED
-const STATUS_PRIORITY = { oos: 0, maintenance: 1, ron: 2, active: 3, retired: 4 };
+function useZuluClock() {
+  const [now, setNow] = useState(new Date());
+  useEffect(() => {
+    const t = setInterval(() => setNow(new Date()), 1000);
+    return () => clearInterval(t);
+  }, []);
+  const p = (v) => String(v).padStart(2, "0");
+  return `${p(now.getUTCHours())}:${p(now.getUTCMinutes())}:${p(now.getUTCSeconds())} Z`;
+}
 
-// Quick filter definitions
-const QUICK_FILTERS = [
-  { id: null,          label: 'All',              color: 'text-gray-400' },
-  { id: 'aog',         label: '🔴 AOG',            color: 'text-red-400' },
-  { id: 'mel',         label: '🟡 MEL',            color: 'text-amber-400' },
-  { id: 'restrictive', label: '🚫 Restrictive MEL', color: 'text-red-400' },
-  { id: 'etops',       label: '🌍 ETOPS',          color: 'text-cyan-400' },
-  { id: 'maintenance', label: '🔵 In Work',        color: 'text-blue-400' },
-  { id: 'active',      label: '🟢 In Service',     color: 'text-green-400' },
-];
+function fuelColor(pct) {
+  if (pct > 0.55) return C.green;
+  if (pct > 0.28) return C.amber;
+  return C.red;
+}
 
-// ── KPI Card ─────────────────────────────────────────────────────────────────
-function KpiCard({ label, value, sublabel, valueColor, icon: Icon, iconColor, onClick }) {
+// Status-driven styling
+const STATUS_STYLE = {
+  released: { stripe: C.green, reg: C.green, sb: C.green, label: "RELEASED" },
+  oos: { stripe: C.red, reg: C.red, sb: C.red, label: "OUT OF SVC" },
+  maint: { stripe: C.blue, reg: C.blue, sb: C.blue, label: "MAINT" },
+};
+
+// ── flag chip ──
+function chip(label, color, opts = {}) {
   return (
-    <div
-      onClick={onClick}
-      className={cn(
-        "bg-card rounded-2xl p-6 flex flex-col gap-2 border border-border transition-all",
-        onClick && "cursor-pointer hover:border-primary/40 active:scale-[0.98]"
-      )}
-    >
-      <div className="flex items-start justify-between">
-        <p className="text-xs font-extrabold text-gray-400 uppercase tracking-widest">{label}</p>
-        <Icon className={cn('w-5 h-5', iconColor)} />
-      </div>
-      <p className={cn('text-6xl font-black leading-none tracking-tight', valueColor)}>{value}</p>
-      <p className="text-sm text-gray-500">{sublabel}</p>
-    </div>
+    <span style={{ display: "inline-flex", alignItems: "center", gap: 4, padding: "3px 9px", borderRadius: 5, fontFamily: "'JetBrains Mono',monospace", fontSize: 9, fontWeight: opts.heavy ? 800 : 700, letterSpacing: "0.06em", background: `${color}1a`, color, border: `1px solid ${color}44`, whiteSpace: "nowrap", animation: opts.anim }}>
+      {opts.dot && <span style={{ width: 5, height: 5, borderRadius: "50%", background: color }} />}
+      {label}
+    </span>
   );
 }
 
-// ── Aircraft Detail Overlay ─────────────────────────────────────────────────
-function AircraftDetailOverlay({ aircraft: initialAircraft, onClose }) {
-  const queryClient = useQueryClient();
-  const [aircraft, setAircraft] = useState(initialAircraft);
-  const status = STATUS_STYLES[aircraft.status] || STATUS_STYLES.active;
-  const StatusIcon = status.icon;
+function FleetCard({ a, onOpen, nowMs }) {
+  const ss = STATUS_STYLE[a.boardStatus] || STATUS_STYLE.released;
+  const fobPct = a.fob / a.fobMax;
+  const fc = fuelColor(fobPct);
 
-  const { data: logEntries = [] } = useQuery({
-    queryKey: ['fleet-logbook', aircraft.tail_number],
-    queryFn: () => base44.entities.LogbookEntry.filter({ aircraft_tail: aircraft.tail_number }),
-  });
+  // Indicators in reference order: MX, AOG, MEL, O2, OIL, MOC
+  const inds = [];
+  // Wrench: red = open discrepancy with no maintenance assigned; blue = assigned/in work.
+  const hasOpenWork = a.openDiscrepancies > 0 || a.boardStatus === "maint" || a.grounded;
+  const tl = getTimeline(a.tail);
+  const assigned = tl && !tl.returnedToService;
 
-  const { data: melItems = [] } = useQuery({
-    queryKey: ['fleet-mel-items', aircraft.tail_number],
-    queryFn: () => base44.entities.MELItem.filter({ aircraft_tail: aircraft.tail_number }),
-  });
-
-  const { data: tailLocks = [] } = useQuery({
-    queryKey: ['mcc-locks-tail', aircraft.tail_number],
-    queryFn: () => base44.entities.MccLock.filter({ aircraft_tail: aircraft.tail_number, is_active: true }),
-    refetchInterval: 15000,
-  });
-  const activeTailLock = tailLocks[0] || null;
-
-  // Derive max CAT capability from aircraft type
-  // CAT IIIc: B777, B787, A350 (highest-tier autoland certified types)
-  // CAT IIIb: B737 MAX, A320, A321
-  // CAT IIIa: B737-800/900, B757, B767
-  // CAT II:   CRJ700, CRJ900, E175, E190
-  const getMaxCatOptions = (acType = '') => {
-    if (['B777', 'B787', 'A350'].some(t => acType.includes(t))) {
-      return ['CAT IIIc — Zero/Zero', 'CAT IIIb', 'CAT IIIa', 'CAT II', 'CAT I', 'DOWNGRADED'];
+  // ── Staleness: an aircraft actively in a repair flow (grounded / in maintenance)
+  // flashes red if unassigned, or if assigned but no timeline update for 1h+.
+  // The AOG badge follows the same rule: it blinks while nobody owns the event,
+  // STOPS blinking once ownership is taken, and resumes blinking each time the
+  // hourly update comes due (or the update is overdue). ──
+  const HOUR = 3600 * 1000;
+  const inRepairFlow = a.grounded || a.boardStatus === "maint";
+  const last = lastUpdateMs(a.tail); // null if no active timeline
+  let stale = false;
+  let staleMins = 0;
+  if (inRepairFlow) {
+    if (!assigned) {
+      stale = true; // in a repair flow but nobody has taken ownership yet
+    } else if (last && nowMs - last >= HOUR) {
+      stale = true;
+      staleMins = Math.floor((nowMs - last) / 60000);
     }
-    if (['B737 MAX', 'A320', 'A321'].some(t => acType.includes(t))) {
-      return ['CAT IIIb', 'CAT IIIa', 'CAT II', 'CAT I', 'DOWNGRADED'];
-    }
-    if (['B737-800', 'B737-900', 'B757', 'B767'].some(t => acType.includes(t))) {
-      return ['CAT IIIa', 'CAT II', 'CAT I', 'DOWNGRADED'];
-    }
-    // CRJ, E-jets, B737-700 default
-    return ['CAT II', 'CAT I', 'DOWNGRADED'];
-  };
+  }
+  const aogBlink = stale ? "blink 1s step-end infinite" : undefined;
+  // T-20 departure-risk: maintenance still open inside the departure window
+  const depRisk = departureRisk(a, nowMs);
+  // Minutes until the next hourly update is due (owned, fresh AOG events only)
+  const dueInMins = assigned && last && !stale ? Math.max(0, Math.ceil((HOUR - (nowMs - last)) / 60000)) : null;
 
-  const catOptions = getMaxCatOptions(aircraft.aircraft_type);
-  const defaultCat = catOptions[0];
-  const [catStatus, setCatStatus] = useState(defaultCat);
-  // Derive max ETOPS capability from aircraft type
-  // ETOPS-370: B777, B787, A350 (ultra long-range twins)
-  // ETOPS-180: B737 MAX, A320, A321, B767
-  // ETOPS-120: B737-800/900, B757
-  // NON-ETOPS: CRJ, E-jets, B737-700 and below
-  const getEtopsOptions = (acType = '') => {
-    if (['B777', 'B787', 'A350'].some(t => acType.includes(t))) {
-      return ['ETOPS-370', 'ETOPS-330', 'ETOPS-207', 'ETOPS-180', 'ETOPS-120', 'NON-ETOPS'];
-    }
-    if (['B737 MAX', 'A320', 'A321', 'B767'].some(t => acType.includes(t))) {
-      return ['ETOPS-180', 'ETOPS-138', 'ETOPS-120', 'NON-ETOPS'];
-    }
-    if (['B737-800', 'B737-900', 'B757'].some(t => acType.includes(t))) {
-      return ['ETOPS-120', 'ETOPS-90', 'NON-ETOPS'];
-    }
-    return ['NON-ETOPS'];
-  };
+  if (hasOpenWork) {
+    inds.push(chip(assigned ? "🔧 MX ASSIGNED" : "🔧 MX OPEN", assigned ? C.blue : C.red));
+  }
+  if (a.grounded) inds.push(chip(assigned && !stale ? "⬤ AOG · OWNED" : "⬤ AOG", C.red, { heavy: true, anim: aogBlink }));
+  if (a.openMel > 0) inds.push(chip(`⚠ MEL ${a.openMel}`, C.amber));
+  else inds.push(chip("MEL CLR", C.muted));
+  // O₂ / OIL badges glow on-and-off while the service is outstanding; the glow
+  // stops once the service entry is signed off & closed in the eLogbook.
+  if (a.flags.some((f) => f.key === "O2")) {
+    const cleared = isServiceCleared(a.tail, "O2");
+    inds.push(chip("O₂ REQ", C.cyan, { heavy: true, anim: cleared ? undefined : "o2glow 1.6s ease-in-out infinite" }));
+  }
+  if (a.flags.some((f) => f.key === "OIL")) {
+    const cleared = isServiceCleared(a.tail, "OIL");
+    inds.push(chip("🛢 OIL SVC", "#FFD166", { heavy: true, anim: cleared ? undefined : "oilglow 2s ease-in-out infinite" }));
+  }
+  if (a.flags.some((f) => f.key === "MOC")) inds.push(chip("🔒 MOC CONCUR", C.purple));
 
-  const etopsOptions = getEtopsOptions(aircraft.aircraft_type);
-  const [etopsStatus, setEtopsStatus] = useState(etopsOptions[0]);
-  const [showCatDropdown, setShowCatDropdown] = useState(false);
-  const [showEtopsDropdown, setShowEtopsDropdown] = useState(false);
-  const [showAddEventModal, setShowAddEventModal] = useState(false);
-  const [showTakingOwnershipModal, setShowTakingOwnershipModal] = useState(false);
-  const [showPlaceOOSModal, setShowPlaceOOSModal] = useState(false);
+  // ── MCC operational controls (placed from the MCC Ops Hub control board)
+  // transfer directly onto the main fleet card ──
+  const mcc = getMcc(a.tail);
+  if (mcc.mccOwner) inds.push(chip("👤 MCC OWNED", "#FF9E2C", { heavy: true }));
+  if (mcc.ots) inds.push(chip("⛔ OTS·MCC", C.red, { heavy: true }));
+  if (mcc.locked) inds.push(chip("🔒 LOCKED", C.amber, { heavy: true }));
+  if (mcc.watch) inds.push(chip("👁 WATCH", C.cyan));
+  if (mcc.ferry) inds.push(chip("✈ FERRY AUTH", C.purple, { heavy: true }));
 
-  const createEntryMutation = useMutation({
-    mutationFn: async (data) => {
-      const entry = await base44.entities.LogbookEntry.create(data);
-      // If this is a Return to Service event, update aircraft status back to active
-      if (data._rts) {
-        await base44.entities.Aircraft.update(aircraft.id, { status: 'active' });
-        setAircraft(prev => ({ ...prev, status: 'active' }));
-        queryClient.setQueryData(['fleet-aircraft'], (old = []) =>
-          old.map(a => a.tail_number === aircraft.tail_number ? { ...a, status: 'active' } : a)
-        );
-      }
-      return entry;
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['fleet-logbook', aircraft.tail_number] });
-      queryClient.invalidateQueries({ queryKey: ['fleet-aircraft'] });
-      setShowAddEventModal(false);
-    },
-  });
+  // ETR for the card front — repair-timeline ETR first, else MCC-set ETR
+  const mccEtrText = mcc.etr ? new Date(mcc.etr).toLocaleString([], { month: "short", day: "numeric", hour: "2-digit", minute: "2-digit" }) : null;
+  const etrText = assigned && tl.etr ? fmtEtr(tl.etr) : mccEtrText;
+  const etrOverdue = !((assigned && tl.etr)) && mcc.etr && new Date(mcc.etr).getTime() < nowMs;
 
-  const handlePlaceOOSSubmit = (data) => {
-    createEntryMutation.mutate(data);
-    setAircraft(prev => ({ ...prev, status: 'oos' }));
-    queryClient.setQueryData(['fleet-aircraft'], (old = []) =>
-      old.map(a => a.tail_number === aircraft.tail_number ? { ...a, status: 'oos' } : a)
-    );
-    base44.entities.Aircraft.update(aircraft.id, { status: 'oos' }).then(() => {
-      queryClient.invalidateQueries({ queryKey: ['fleet-aircraft'] });
-    });
-    setShowPlaceOOSModal(false);
-  };
+  // Gate display — AOG gate marker follows the same blink rule as the badge:
+  // solid while owned & fresh, blinking while unowned or update overdue.
+  let gateEl;
+  if (a.gate === "AOG") gateEl = <span style={{ marginLeft: "auto", fontFamily: "'JetBrains Mono',monospace", fontSize: 11, fontWeight: 700, color: C.red, animation: aogBlink }}>⬤ AOG</span>;
+  else if (a.gate === "MX") gateEl = <span style={{ marginLeft: "auto", fontFamily: "'JetBrains Mono',monospace", fontSize: 11, fontWeight: 700, color: C.blue }}>MX BAY</span>;
+  else gateEl = <span style={{ marginLeft: "auto", fontFamily: "'JetBrains Mono',monospace", fontSize: 11, fontWeight: 700, color: C.amber }}>Gate {a.gate}</span>;
 
-  const handleTakingOwnershipSubmit = (data) => {
-    createEntryMutation.mutate(data);
-    setShowTakingOwnershipModal(false);
-  };
+  const baseBorder = stale ? C.red : `${ss.stripe}40`;
 
   return (
-    <motion.div
-      initial={{ opacity: 0, y: 40 }}
-      animate={{ opacity: 1, y: 0 }}
-      exit={{ opacity: 0, y: 40 }}
-      transition={{ duration: 0.3 }}
-      className="fixed inset-0 z-50 bg-[#0d1117] overflow-y-auto"
-    >
-      <div className="flex items-center justify-between px-6 py-4 border-b border-white/10 bg-[#141922] sticky top-0 z-10">
-        <div className="flex items-center gap-3">
-          <div className="w-9 h-9 rounded-lg bg-primary/20 flex items-center justify-center">
-            <Plane className="w-5 h-5 text-primary" />
-          </div>
-          <div>
-            <p className="text-lg font-extrabold text-white tracking-wide">{aircraft.tail_number}</p>
-            <p className="text-xs text-gray-500 font-mono">{aircraft.aircraft_type}</p>
-          </div>
-          <span className={cn('flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold text-white ml-2', status.bg)}>
-            <StatusIcon className="w-3 h-3" /> {status.label}
+    <button onClick={() => onOpen(a)} style={{ position: "relative", textAlign: "left", background: C.card, borderRadius: 12, border: `1.5px solid ${baseBorder}`, overflow: "hidden", cursor: "pointer", transition: "transform .12s", padding: 0, animation: stale ? "staleflash 1.1s ease-in-out infinite" : "none" }}
+      onMouseEnter={(e) => { e.currentTarget.style.transform = "translateY(-1px)"; }}
+      onMouseLeave={(e) => { e.currentTarget.style.transform = "translateY(0)"; }}>
+      {/* Left accent stripe */}
+      <div style={{ position: "absolute", left: 0, top: 0, bottom: 0, width: 3, background: stale ? C.red : ss.stripe, borderRadius: "12px 0 0 12px" }} />
+
+      {/* T-20 departure-risk banner — maintenance running against departure time */}
+      {depRisk && (
+        <div style={{ background: depRisk.past ? "rgba(240,50,82,.2)" : "rgba(245,166,35,.16)", borderBottom: `1px solid ${depRisk.past ? "#7f1d3a" : "#854d0e"}`, padding: "4px 14px 4px 16px", display: "flex", alignItems: "center", gap: 6 }}>
+          <span style={{ fontSize: 10, color: depRisk.past ? "#fca5a5" : "#fcd34d", fontFamily: "'JetBrains Mono',monospace", fontWeight: 800, letterSpacing: "0.06em", animation: "blink 1s step-end infinite" }}>
+            🚩 MX vs DEP {depRisk.depTime} · {depRisk.past ? `${Math.abs(depRisk.minsToDep)}m PAST DEPARTURE` : `T-${depRisk.minsToDep}m`} — MCC NOTIFIED
           </span>
         </div>
-        {/* E-Logbook pill — centered */}
-        <div className="absolute left-1/2 -translate-x-1/2">
-          <Link
-            to={`/TechOpsLogbook?tail=${aircraft.tail_number}`}
-            className="flex items-center gap-2 px-5 py-2 rounded-full bg-primary text-primary-foreground text-sm font-extrabold hover:bg-primary/90 transition-colors shadow-lg shadow-primary/30"
-          >
-            <BookOpen className="w-4 h-4" /> E-Logbook
-          </Link>
+      )}
+      {/* Stale alert banner */}
+      {stale && (
+        <div style={{ background: "rgba(240,50,82,.16)", borderBottom: "1px solid #7f1d3a", padding: "4px 14px 4px 16px", display: "flex", alignItems: "center", gap: 6 }}>
+          <span style={{ fontSize: 10, color: "#fca5a5", fontFamily: "'JetBrains Mono',monospace", fontWeight: 800, letterSpacing: "0.06em" }}>
+            ⚠ {assigned ? `NO UPDATE ${staleMins >= 60 ? Math.floor(staleMins / 60) + "h " : ""}${staleMins % 60}m — UPDATE TIMELINE` : "UNASSIGNED — TAKE OWNERSHIP"}
+          </span>
         </div>
-        <button onClick={onClose} className="w-9 h-9 rounded-xl bg-white/10 flex items-center justify-center hover:bg-white/20 transition-colors">
-          <X className="w-5 h-5 text-white" />
-        </button>
-      </div>
+      )}
+      {/* Owned & current: quiet strip with countdown to the next hourly update */}
+      {!stale && inRepairFlow && assigned && dueInMins !== null && (
+        <div style={{ background: "rgba(0,212,138,.10)", borderBottom: "1px solid #14532d", padding: "4px 14px 4px 16px", display: "flex", alignItems: "center", gap: 6 }}>
+          <span style={{ fontSize: 10, color: "#6ee7b7", fontFamily: "'JetBrains Mono',monospace", fontWeight: 700, letterSpacing: "0.06em" }}>
+            ✓ OWNED · {mcc.mccOwner ? "MCC PRIORITY · " + mcc.mccOwner.name.toUpperCase() : (tl.ownerStation ? tl.ownerStation + " · " : "") + (tl.owner ? tl.owner.toUpperCase() : "MCC")} — NEXT UPDATE DUE IN {dueInMins}m
+          </span>
+        </div>
+      )}
 
-      <div className="flex flex-col lg:flex-row gap-0 min-h-[calc(100vh-65px)]">
-        <div className="w-full lg:w-72 flex-shrink-0 bg-[#111620] border-r border-white/10 p-6 flex flex-col gap-5">
-          <div className="flex items-center justify-between">
-            <p className="text-base font-extrabold text-white">Aircraft Information</p>
-            <div className="flex items-center gap-2">
-              {(aircraft.etops_approval || ['B777','B787','A350','B737 MAX','A320','A321','B767','B737-800','B737-900','B757'].some(t => aircraft.aircraft_type?.includes(t))) && (
-                <Link to="/ETOPSMonitor" className="flex items-center gap-1.5 px-3 py-2 rounded-lg bg-cyan-700/40 border border-cyan-600/50 text-cyan-300 text-xs font-extrabold hover:bg-cyan-700/60 transition-colors">
-                  <Globe className="w-3.5 h-3.5" /> ETOPS
-                </Link>
-              )}
-            </div>
-          </div>
-          <LocationTypeToggle
-            aircraftId={aircraft.id}
-            locationType={aircraft.location_type || 'unknown'}
-            locationLabel={aircraft.location_label || ''}
-          />
-          <div className="flex flex-col gap-4">
-            {[
-              { icon: MapPin, label: 'Location', value: aircraft.base_station || '—', badge: 'LIVE', iconColor: 'text-primary' },
-              { icon: Cpu, label: 'Engines', value: aircraft.engine_type || '—', iconColor: 'text-orange-400' },
-              { icon: CheckCircle, label: 'CAT Status', value: catStatus, iconColor: catStatus === 'DOWNGRADED' ? 'text-red-400' : catStatus === 'CAT I' ? 'text-yellow-400' : 'text-green-400' },
-            ].map(({ icon: Icon, label, value, badge, iconColor }) => (
-              <div key={label} className="flex items-start gap-3">
-                <Icon className={cn('w-4 h-4 mt-0.5 flex-shrink-0', iconColor)} />
-                <div>
-                  <div className="flex items-center gap-2 mb-0.5">
-                    <p className="text-[10px] font-bold text-gray-500 uppercase tracking-widest">{label}</p>
-                    {badge && <span className="text-[9px] font-bold px-1.5 py-0.5 rounded bg-green-600 text-white">{badge}</span>}
-                  </div>
-                  <p className="text-base font-extrabold text-white">{value}</p>
-                </div>
-              </div>
-            ))}
-          </div>
-
-          {/* CAT Selector */}
+      {/* Head */}
+      <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", padding: "13px 14px 10px 16px", borderBottom: `1px solid ${C.border}` }}>
+        <div>
+          <div style={{ fontFamily: "'JetBrains Mono',monospace", fontSize: 20, fontWeight: 800, color: ss.reg, lineHeight: 1 }}>{a.tail}</div>
+          <div style={{ fontFamily: "'JetBrains Mono',monospace", fontSize: 9, color: C.muted, letterSpacing: "0.08em", marginTop: 3 }}>{a.variant}</div>
+        </div>
+        <div style={{ display: "flex", flexDirection: "column", alignItems: "flex-end", gap: 4 }}>
+          <span style={{ display: "flex", alignItems: "center", gap: 5, padding: "3px 9px", borderRadius: 6, fontFamily: "'JetBrains Mono',monospace", fontSize: 9, fontWeight: 700, letterSpacing: "0.08em", background: `${ss.sb}1a`, color: ss.sb, border: `1px solid ${ss.sb}33` }}>
+            <span style={{ width: 5, height: 5, borderRadius: "50%", background: ss.sb, animation: a.boardStatus === "oos" ? "blink 1s step-end infinite" : a.boardStatus === "released" ? "sbpulse 2s ease-in-out infinite" : "none" }} />
+            {ss.label}
+          </span>
+          {etrText && (
+            <span style={{ fontFamily: "'JetBrains Mono',monospace", fontSize: 9, fontWeight: 700, color: etrOverdue ? "#fca5a5" : "#fcd34d", padding: "2px 8px", borderRadius: 5, background: etrOverdue ? "rgba(240,50,82,.12)" : "rgba(245,166,35,.1)", border: `1px solid ${etrOverdue ? "#7f1d3a" : "#854d0e"}`, whiteSpace: "nowrap" }}>⏱ ETR {etrText}{etrOverdue ? " · OVERDUE" : ""}</span>
+          )}
           {(() => {
-            const isDowngraded = catStatus === 'DOWNGRADED';
-            const isCatI = catStatus === 'CAT I';
-            const borderColor = isDowngraded ? 'border-red-600/40' : isCatI ? 'border-yellow-600/40' : 'border-green-600/40';
-            const bgColor = isDowngraded ? 'bg-red-900/20' : isCatI ? 'bg-yellow-900/20' : 'bg-green-900/20';
-            const textColor = isDowngraded ? 'text-red-400' : isCatI ? 'text-yellow-400' : 'text-green-400';
-            const maxCat = catOptions[0];
+            const eff = effectiveCat(a);
+            const col = catBadgeColor(eff);
             return (
-              <div className={cn('rounded-xl border px-4 py-3 relative', borderColor, bgColor)}>
-                <div className="flex items-center justify-between mb-2">
-                  <div className="flex items-center gap-2">
-                    <Shield className={cn('w-4 h-4', textColor)} />
-                    <p className={cn('text-[10px] font-bold uppercase tracking-widest', textColor)}>ILS / CAT STATUS</p>
-                  </div>
-                  <button onClick={() => setShowCatDropdown(v => !v)}
-                    className="flex items-center gap-1 px-3 py-1.5 rounded-lg border border-white/20 bg-[#1a1f2e] text-xs font-bold text-white hover:bg-white/10">
-                    {catStatus} <ChevronDown className="w-3 h-3" />
-                  </button>
-                </div>
-                <p className={cn('text-[10px]', textColor)}>
-                  Max certified: <span className="font-bold">{maxCat}</span>
-                  {maxCat === 'CAT IIIc — Zero/Zero' && ' · No DH · No RVR'}
-                  {maxCat === 'CAT IIIb' && ' · No DH · RVR ≥ 50m'}
-                  {maxCat === 'CAT IIIa' && ' · DH < 100ft · RVR ≥ 200m'}
-                </p>
-                {showCatDropdown && (
-                  <div className="absolute right-3 top-full mt-1 bg-[#1a1f2e] border border-white/10 rounded-xl overflow-hidden z-20 shadow-xl min-w-[180px]">
-                    {catOptions.map(opt => (
-                      <button key={opt} onClick={() => { setCatStatus(opt); setShowCatDropdown(false); }}
-                        className={cn(
-                          'block w-full text-left px-4 py-2.5 text-xs font-bold hover:bg-white/10',
-                          opt === 'DOWNGRADED' ? 'text-red-400' :
-                          opt === 'CAT I' ? 'text-yellow-400' :
-                          opt.includes('IIIc') ? 'text-cyan-300' :
-                          opt.includes('IIIb') ? 'text-blue-300' :
-                          opt.includes('IIIa') ? 'text-green-300' :
-                          'text-white'
-                        )}
-                      >{opt}</button>
-                    ))}
-                  </div>
-                )}
-              </div>
+              <span title={`CAT capability: ${levelMeta(eff.level).label}${eff.downgraded ? ` (downgraded from ${levelMeta(eff.baseline).label})` : ""}`} style={{ fontFamily: "'JetBrains Mono',monospace", fontSize: 9, fontWeight: 800, color: col, padding: "2px 8px", borderRadius: 5, background: `${col}1a`, border: `1px solid ${col}55`, whiteSpace: "nowrap", letterSpacing: "0.04em" }}>
+                🛬 {levelMeta(eff.level).label}{eff.downgraded ? " ▼" : ""}
+              </span>
             );
           })()}
-
-          {/* ETOPS Selector */}
-          <div className={cn(
-            "rounded-xl border px-4 py-3 relative",
-            etopsStatus === 'NON-ETOPS'
-              ? 'border-red-600/40 bg-red-900/20'
-              : etopsStatus === 'ETOPS-370' || etopsStatus === 'ETOPS-330'
-              ? 'border-cyan-600/40 bg-cyan-900/20'
-              : 'border-green-600/40 bg-green-900/20'
-          )}>
-            <div className="flex items-center justify-between mb-2">
-              <div className="flex items-center gap-2">
-                <Globe className={cn('w-4 h-4',
-                  etopsStatus === 'NON-ETOPS' ? 'text-red-400' :
-                  etopsStatus === 'ETOPS-370' || etopsStatus === 'ETOPS-330' ? 'text-cyan-400' :
-                  'text-green-400'
-                )} />
-                <p className={cn('text-[10px] font-bold uppercase tracking-widest',
-                  etopsStatus === 'NON-ETOPS' ? 'text-red-400' :
-                  etopsStatus === 'ETOPS-370' || etopsStatus === 'ETOPS-330' ? 'text-cyan-400' :
-                  'text-green-400'
-                )}>ETOPS STATUS</p>
-              </div>
-              <button onClick={() => setShowEtopsDropdown(v => !v)}
-                className="flex items-center gap-1 px-3 py-1.5 rounded-lg border border-white/20 bg-[#141922] text-xs font-bold text-white hover:bg-white/10">
-                {etopsStatus} <ChevronDown className="w-3 h-3" />
-              </button>
-            </div>
-            <p className={cn('text-[10px]',
-              etopsStatus === 'NON-ETOPS' ? 'text-red-400' :
-              etopsStatus === 'ETOPS-370' || etopsStatus === 'ETOPS-330' ? 'text-cyan-400' :
-              'text-green-400'
-            )}>
-              Max certified: <span className="font-bold">{etopsOptions[0]}</span>
-              {etopsOptions[0] === 'ETOPS-370' && ' · 370 min · Polar / Pacific'}
-              {etopsOptions[0] === 'ETOPS-180' && ' · 180 min · Extended ops'}
-              {etopsOptions[0] === 'ETOPS-120' && ' · 120 min · Overwater ops'}
-              {etopsOptions[0] === 'NON-ETOPS' && ' · Domestic / short-haul only'}
-            </p>
-            {showEtopsDropdown && (
-              <div className="absolute right-3 top-full mt-1 bg-[#1a1f2e] border border-white/10 rounded-xl overflow-hidden z-20 shadow-xl min-w-[160px]">
-                {etopsOptions.map(opt => (
-                  <button key={opt} onClick={() => { setEtopsStatus(opt); setShowEtopsDropdown(false); }}
-                    className={cn(
-                      'block w-full text-left px-4 py-2.5 text-xs font-bold hover:bg-white/10',
-                      opt === 'NON-ETOPS' ? 'text-red-400' :
-                      opt === 'ETOPS-370' ? 'text-cyan-300' :
-                      opt === 'ETOPS-330' ? 'text-blue-300' :
-                      opt === 'ETOPS-207' ? 'text-violet-300' :
-                      'text-green-300'
-                    )}>{opt}</button>
-                ))}
-              </div>
-            )}
-          </div>
-        </div>
-
-        <div className="flex-1 p-6 flex flex-col gap-5">
-          <div className="flex items-center gap-2">
-            <Clock className="w-5 h-5 text-primary" />
-            <h2 className="text-xl font-extrabold text-white">Maintenance Timeline</h2>
-          </div>
-          <div className="flex flex-wrap gap-3">
-
-            <button onClick={() => setShowPlaceOOSModal(true)} disabled={createEntryMutation.isPending}
-              className="flex items-center gap-2 px-5 py-2.5 rounded-xl bg-red-700/80 border border-red-600 text-white text-sm font-extrabold hover:bg-red-600 transition-colors disabled:opacity-50">
-              <AlertTriangle className="w-4 h-4" /> PLACE OOS
-            </button>
-            {aircraft.mcc_watch && (
-              <div className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-amber-500 border border-amber-400 animate-pulse">
-                <Eye className="w-4 h-4 text-black" />
-                <span className="text-sm font-extrabold text-black">MCC WATCH</span>
-              </div>
-            )}
-            {activeTailLock && (
-              <div className="flex items-center gap-2 px-5 py-2.5 rounded-xl bg-red-900/60 border border-red-500 text-red-300">
-                <Lock className="w-4 h-4 text-red-400" />
-                <div className="text-left">
-                  <p className="text-xs font-extrabold text-red-400 leading-none">MCC LOCK ACTIVE</p>
-                  <p className="text-[10px] text-red-300/80 mt-0.5">By {activeTailLock.placed_by} — RTS Blocked</p>
-                </div>
-              </div>
-            )}
-            <button onClick={() => setShowTakingOwnershipModal(true)} disabled={createEntryMutation.isPending}
-              className="flex items-center gap-2 px-5 py-2.5 rounded-xl bg-[#1a1f2e] border border-white/15 text-white text-sm font-extrabold hover:bg-white/10 transition-colors disabled:opacity-50">
-              <UserCheck className="w-4 h-4" /> TAKING OWNERSHIP
-            </button>
-            <button onClick={() => setShowAddEventModal(true)} disabled={createEntryMutation.isPending}
-              className="flex items-center gap-2 px-5 py-2.5 rounded-xl bg-primary text-primary-foreground text-sm font-extrabold hover:bg-primary/90 transition-colors disabled:opacity-50">
-              <Plus className="w-4 h-4" /> Add Event
-            </button>
-          </div>
-
-          {/* MEL / NEF / CDL Deferrals */}
-          {melItems.length > 0 && (
-            <div className="space-y-3 mb-6">
-              <p className="text-base font-extrabold text-white flex items-center gap-2">
-                <Zap className="w-4 h-4 text-amber-400" /> MEL / NEF / CDL Deferrals ({melItems.filter(m => m.status !== 'cleared' && m.status !== 'voided').length})
-              </p>
-              {melItems.map(mel => {
-                const isExpired = mel.status === 'expired';
-                const isCleared = mel.status === 'cleared' || mel.status === 'voided';
-                if (isCleared) return null;
-                return (
-                  <div key={mel.id} className={cn('flex items-start gap-4 border rounded-xl px-5 py-4',
-                    isExpired ? 'bg-red-900/20 border-red-500/40' : 'bg-amber-900/20 border-amber-500/40')}>
-                    <div className={cn('w-2 h-2 rounded-full mt-1.5 flex-shrink-0', isExpired ? 'bg-red-500' : 'bg-amber-500')} />
-                    <div className="flex-1">
-                      <div className="flex items-center gap-2 mb-1">
-                        <span className={cn('text-[10px] font-bold px-2 py-0.5 rounded uppercase',
-                          isExpired ? 'bg-red-900 text-red-400' : 'bg-amber-900 text-amber-400')}>
-                          {mel.mel_reference || 'MEL'} {mel.mel_category ? `CAT ${mel.mel_category}` : ''}
-                        </span>
-                        <span className={cn('text-[10px] font-bold px-2 py-0.5 rounded',
-                          isExpired ? 'bg-red-500/20 text-red-400' : 'bg-amber-500/20 text-amber-400')}>
-                          {isExpired ? 'EXPIRED' : mel.status?.toUpperCase() || 'OPEN'}
-                        </span>
-                      </div>
-                      <p className="text-sm text-gray-200">{mel.title || mel.description || '—'}</p>
-                      {mel.expires_at && <p className="text-[10px] text-gray-500 mt-1">Deferral expires: {new Date(mel.expires_at).toLocaleDateString()}</p>}
-                    </div>
-                  </div>
-                );
-              })}
-            </div>
-          )}
-
-          {logEntries.length === 0 ? (
-            <div className="flex-1 flex flex-col items-center justify-center gap-4 text-center py-16">
-              <Clock className="w-16 h-16 text-gray-700" />
-              <p className="text-lg font-extrabold text-gray-400">No Timeline Events</p>
-              <p className="text-sm text-gray-600">Use "PLACE OOS" to begin the maintenance record.</p>
-            </div>
-          ) : (
-            <div className="flex flex-col gap-3">
-              {logEntries.map(entry => {
-                const notes = entry.notes || '';
-                const locationMatch = notes.match(/Location:\s*([^|]+)/);
-                const phoneMatch = notes.match(/POC Phone:\s*([^|]+)/);
-                const pocMatch = notes.match(/POC:\s*(?!Phone)([^|]+)/);
-                const location = locationMatch ? locationMatch[1].trim() : null;
-                const poc = pocMatch ? pocMatch[1].trim() : null;
-                const phone = phoneMatch ? phoneMatch[1].trim() : null;
-                
-                return (
-                  <div key={entry.id} className="flex items-start gap-4 bg-[#141922] border border-white/10 rounded-xl px-5 py-4">
-                    <div className="w-2 h-2 rounded-full bg-primary mt-1.5 flex-shrink-0" />
-                    <div className="flex-1">
-                      <div className="flex items-center gap-2 mb-1">
-                        <span className={cn('text-[10px] font-bold px-2 py-0.5 rounded uppercase',
-                          entry.entry_type === 'discrepancy' ? 'bg-red-900/50 text-red-400' :
-                          entry.entry_type === 'corrective_action' ? 'bg-green-900/50 text-green-400' :
-                          'bg-blue-900/50 text-blue-400'
-                        )}>{entry.entry_type}</span>
-                        {entry.ata_chapter && <span className="text-[10px] text-gray-500">ATA {entry.ata_chapter}</span>}
-                      </div>
-                      <p className="text-sm text-gray-200">{entry.description}</p>
-                      <div className="flex items-center gap-3 mt-2 flex-wrap">
-                        <p className="text-[10px] text-gray-600">{new Date(entry.created_date).toLocaleString()}</p>
-                        {location && location !== 'N/A' && (
-                          <div className="flex items-center gap-1 text-[10px]">
-                            <MapPin className="w-3 h-3 text-cyan-500" />
-                            <span className="text-cyan-400 font-semibold">{location}</span>
-                          </div>
-                        )}
-                        {poc && poc !== 'N/A' && (
-                          <div className="flex items-center gap-1 text-[10px]">
-                            <UserCheck className="w-3 h-3 text-amber-500" />
-                            <span className="text-amber-400 font-semibold">{poc}</span>
-                            {phone && phone !== 'N/A' && (
-                              <span className="text-gray-400">· {phone}</span>
-                            )}
-                          </div>
-                        )}
-                      </div>
-                    </div>
-                  </div>
-                );
-              })}
-            </div>
-          )}
-
-          <AnimatePresence>
-            {showAddEventModal && <AddTimelineEventModal aircraftTail={aircraft.tail_number} onClose={() => setShowAddEventModal(false)} onSubmit={(data) => createEntryMutation.mutate(data)} isPending={createEntryMutation.isPending} activeLock={activeTailLock} />}
-            {showTakingOwnershipModal && <TakingOwnershipModal aircraft={aircraft} onClose={() => setShowTakingOwnershipModal(false)} onSubmit={handleTakingOwnershipSubmit} isPending={createEntryMutation.isPending} />}
-            {showPlaceOOSModal && <PlaceOOSModal aircraft={aircraft} onClose={() => setShowPlaceOOSModal(false)} onSubmit={handlePlaceOOSSubmit} isPending={createEntryMutation.isPending} />}
-          </AnimatePresence>
         </div>
       </div>
-    </motion.div>
-  );
-}
 
-// ── Parse ETR/ETA/OOS info from the most recent logbook entry notes ──────────
-function parseTimelineInfo(logEntries = []) {
-  // Walk entries newest-first to find the latest ETR and Flight ETA
-  let etr = null;
-  let flightEta = null;
-  for (const entry of [...logEntries].reverse()) {
-    const notes = entry.notes || '';
-    if (!etr) {
-      const m = notes.match(/ETR:\s*([0-9]{1,2}:[0-9]{2})/);
-      if (m) etr = m[1];
-    }
-    if (!flightEta) {
-      const m = notes.match(/Flight ETA:\s*([0-9]{1,2}:[0-9]{2})/);
-      if (m) flightEta = m[1];
-    }
-    if (etr && flightEta) break;
-  }
-  return { etr, flightEta };
-}
-
-function formatOosDuration(oosEntries, tailNumber) {
-  const entry = oosEntries.find(e => e.tail_number === tailNumber || e.aircraft_tail === tailNumber);
-  if (!entry) return null;
-  const refDate = entry.oos_date
-    ? new Date(entry.oos_date + 'T00:00:00')
-    : new Date(entry.created_date);
-  const diffMs = Date.now() - refDate.getTime();
-  const totalMins = Math.floor(diffMs / 60000);
-  const hours = Math.floor(totalMins / 60);
-  const mins = totalMins % 60;
-  if (hours === 0) return `${mins}m`;
-  return `${hours}h ${mins}m`;
-}
-
-// ── Discrepancy Badge Block ──────────────────────────────────────────────────
-function DiscrepancyBadges({ discrepancies, melItems, aircraftStatus }) {
-  const openDiscrepancies = discrepancies?.filter(d => d.discrepancy_status !== 'CLOSED') || [];
-  const expiredMels = melItems?.filter(m => m.status === 'expired') || [];
-  
-  // OOS Risk if: multiple serious issues (3+) OR maintenance status OR expired MELs (but not if already OOS)
-  const hasOosRisk = (openDiscrepancies.length >= 3 || 
-                     aircraftStatus === 'maintenance' || 
-                     expiredMels.length > 0) && 
-                     aircraftStatus !== 'oos';
-  
-  if (!openDiscrepancies.length && !expiredMels.length) return null;
-  
-  const count = openDiscrepancies.length;
-  const hasInProgress = openDiscrepancies.some(d => d.discrepancy_status === 'IN_PROGRESS');
-  const hasPendingRii = openDiscrepancies.some(d => d.discrepancy_status === 'PENDING_RII');
-  
-  return (
-    <div className="border-t border-amber-500/20 pt-2 mt-1 flex flex-col gap-1">
-      {count > 0 && (
-        <div className="flex items-center gap-1.5">
-          <span className="text-amber-400">⚠️</span>
-          <span className="text-[10px] font-extrabold text-amber-400">{count} Open Write-Up{count > 1 ? 's' : ''}</span>
-        </div>
-      )}
-      {hasOosRisk && (
-        <div className="flex items-center gap-1.5">
-          <span className="text-red-400 text-[10px]">🔴</span>
-          <span className="text-[10px] font-bold text-red-400">OOS Risk</span>
-        </div>
-      )}
-      {expiredMels.length > 0 && (
-        <div className="flex items-center gap-1.5">
-          <Zap className="w-3 h-3 text-red-400" />
-          <span className="text-[10px] font-bold text-red-400">{expiredMels.length} Expired MEL{expiredMels.length > 1 ? 's' : ''}</span>
-        </div>
-      )}
-      {count > 0 && (
-        <div className="flex items-center gap-1.5">
-          <span className="text-[10px]">🛠️</span>
-          <span className="text-[10px] font-bold text-gray-300">
-            {hasPendingRii ? 'Awaiting RII Sign-Off' : hasInProgress ? 'Work In Progress' : 'Assigned to Line MX'}
-          </span>
-        </div>
-      )}
-    </div>
-  );
-}
-
-// ── Turn Readiness Score ─────────────────────────────────────────────────────
-function ReadinessScore({ aircraft, openDiscs = [], melItems = [] }) {
-  const issues = [];
-  if (aircraft.status === 'oos') issues.push('AOG');
-  if (aircraft.status === 'maintenance') issues.push('In Work');
-  if (openDiscs.length > 0) issues.push(`${openDiscs.length} write-up${openDiscs.length > 1 ? 's' : ''}`);
-  const expiredMels = melItems.filter(m => m.status === 'expired');
-  if (expiredMels.length > 0) issues.push(`${expiredMels.length} expired MEL`);
-
-  const score = issues.length === 0 ? 'green' : issues.length <= 1 ? 'yellow' : 'red';
-  const colors = { green: 'bg-[#388E3C] text-white', yellow: 'bg-[#FFA000] text-black', red: 'bg-[#D32F2F] text-white' };
-  const labels = { green: 'RDY', yellow: 'AT RISK', red: 'NOT RDY' };
-
-  return (
-    <div className={cn('flex items-center gap-1 px-1.5 py-0.5 rounded text-[9px] font-black tracking-wide', colors[score])}>
-      {labels[score]}
-    </div>
-  );
-}
-
-// ── Aircraft Card ────────────────────────────────────────────────────────────
-function AircraftCard({ aircraft, onSelect, discrepancies, melItems = [], activeLocks = [], oosEntries = [], timelineEvents = [], openTasks = [], logEntries = [] }) {
-  const status = STATUS_STYLES[aircraft.status] || STATUS_STYLES.active;
-  const StatusIcon = status.icon;
-  const openDiscs = discrepancies?.filter(d => d.discrepancy_status !== 'CLOSED') || [];
-  const acLock = activeLocks.find(l => l.aircraft_tail === aircraft.tail_number);
-  const tailOpenTasks = openTasks.filter(t => t.aircraft_tail === aircraft.tail_number);
-  const activeMels = melItems.filter(m => m.status !== 'cleared' && m.status !== 'voided');
-  const expiredMels = melItems.filter(m => m.status === 'expired');
-  const restrictiveMels = activeMels.filter(m =>
-    m.flight_restrictions || m.etops_critical || m.etops_impact === 'NO_ETOPS' ||
-    m.etops_impact === 'ETOPS_WITH_LIMITS' || m.placard_required
-  );
-
-  const { etr, flightEta } = parseTimelineInfo(logEntries);
-  const oosDuration = (aircraft.status === 'oos' || aircraft.status === 'maintenance')
-    ? formatOosDuration(oosEntries, aircraft.tail_number)
-    : null;
-
-  const isOosOver24h = (() => {
-    if (aircraft.status !== 'oos' && aircraft.status !== 'maintenance') return false;
-    const tailEntry = oosEntries.find(e => e.tail_number === aircraft.tail_number || e.aircraft_tail === aircraft.tail_number);
-    if (!tailEntry) return false;
-    const refDate = tailEntry.oos_date ? new Date(tailEntry.oos_date + 'T00:00:00') : new Date(tailEntry.created_date);
-    return (Date.now() - refDate.getTime()) / 3600000 >= 24;
-  })();
-
-  const isAog = aircraft.status === 'oos';
-  const isInWork = aircraft.status === 'maintenance';
-
-  const borderCls = acLock
-    ? 'border-red-500/60 bg-red-950/10'
-    : isAog
-    ? 'border-red-500/50 bg-red-950/5'
-    : isInWork
-    ? 'border-blue-500/40 bg-blue-950/5'
-    : expiredMels.length > 0
-    ? 'border-amber-500/50'
-    : openDiscs.length > 0
-    ? 'border-amber-500/25'
-    : 'border-white/8';
-
-  // Shared badge class for uniformity
-  const badge = 'inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[9px] font-bold border leading-none';
-
-  return (
-    <div
-      onClick={() => onSelect(aircraft)}
-      className={cn('bg-[#141922] rounded-xl border flex flex-col cursor-pointer hover:brightness-110 active:scale-[0.97] transition-all overflow-hidden', borderCls)}
-    >
-      {/* ── HEADER: Tail + Type + Station + Readiness ── */}
-      <div className="px-3 pt-3 pb-2.5 flex items-start justify-between gap-2">
-        <div className="min-w-0 flex-1">
-          <p className="text-base font-black text-primary tracking-wide font-mono leading-none">{aircraft.tail_number}</p>
-          <p className="text-[11px] font-semibold text-gray-400 mt-0.5 truncate">{aircraft.aircraft_type}</p>
-          <div className="flex items-center gap-1.5 mt-1">
-            <MapPin className="w-2.5 h-2.5 text-gray-600 flex-shrink-0" />
-            <p className="text-[10px] text-gray-500">{aircraft.base_station || '—'}</p>
+      {/* Indicators + fuel */}
+      <div style={{ display: "flex", alignItems: "center", gap: 6, padding: "7px 14px 7px 16px", borderBottom: `1px solid ${C.border}`, minHeight: 34, flexWrap: "wrap" }}>
+        {inds.map((el, i) => <span key={i}>{el}</span>)}
+        <div style={{ marginLeft: "auto", display: "flex", flexDirection: "column", alignItems: "flex-end", gap: 3 }}>
+          <div style={{ fontFamily: "'JetBrains Mono',monospace", fontSize: 8, color: C.muted, letterSpacing: "0.08em" }}>FUEL ON BOARD</div>
+          <div style={{ width: 72, height: 5, background: C.border, borderRadius: 3, overflow: "hidden" }}>
+            <div style={{ width: `${Math.round(fobPct * 100)}%`, height: "100%", background: fc, borderRadius: 3 }} />
           </div>
+          <div style={{ fontFamily: "'JetBrains Mono',monospace", fontSize: 9, fontWeight: 600, color: fc }}>{a.fuelOnBoard}</div>
         </div>
-        <ReadinessScore aircraft={aircraft} openDiscs={openDiscs} melItems={melItems} />
       </div>
 
-      {/* ── DIVIDER ── */}
-      <div className="border-t border-white/6 mx-3" />
+      {/* Movement */}
+      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr" }}>
+        <div style={{ padding: "9px 14px 9px 16px", borderRight: `1px solid ${C.border}`, display: "flex", flexDirection: "column", gap: 3 }}>
+          <div style={{ fontFamily: "'JetBrains Mono',monospace", fontSize: 8, fontWeight: 600, letterSpacing: "0.12em", color: C.muted }}>↑ ARR</div>
+          <div style={{ fontFamily: "'JetBrains Mono',monospace", fontSize: 14, fontWeight: 700, color: C.white, lineHeight: 1 }}>{a.arr.time}</div>
+          <div style={{ fontFamily: "'JetBrains Mono',monospace", fontSize: 10, color: C.ice }}>{a.arr.port}</div>
+          <div style={{ fontFamily: "'JetBrains Mono',monospace", fontSize: 9, color: C.muted }}>{a.arr.flight}</div>
+        </div>
+        <div style={{ padding: "9px 14px", display: "flex", flexDirection: "column", gap: 3 }}>
+          <div style={{ fontFamily: "'JetBrains Mono',monospace", fontSize: 8, fontWeight: 600, letterSpacing: "0.12em", color: C.muted }}>↓ DEP</div>
+          <div style={{ fontFamily: "'JetBrains Mono',monospace", fontSize: 14, fontWeight: 700, color: a.dep.time === "—" ? C.red : C.white, lineHeight: 1 }}>{a.dep.time}</div>
+          <div style={{ fontFamily: "'JetBrains Mono',monospace", fontSize: 10, color: C.ice }}>{a.dep.port}</div>
+          <div style={{ fontFamily: "'JetBrains Mono',monospace", fontSize: 9, color: a.grounded ? C.red : C.muted, fontWeight: a.grounded ? 700 : 400 }}>{a.dep.flight}</div>
+        </div>
+      </div>
 
-      {/* ── STATUS + CAPABILITY BADGES ── */}
-      <div className="px-3 py-2 flex flex-wrap gap-1 items-center">
-        {/* Operational status — always first */}
-        <span className={cn('flex items-center gap-1 px-2 py-0.5 rounded text-[9px] font-black text-white leading-none', status.bg)}>
-          <StatusIcon className="w-2.5 h-2.5" /> {status.label}
+      {/* Location */}
+      <div style={{ display: "flex", alignItems: "center", gap: 6, padding: "8px 14px 9px 16px", borderTop: `1px solid ${C.border}` }}>
+        <span style={{ color: C.muted, fontSize: 11 }}>📍</span>
+        <span style={{ fontFamily: "'JetBrains Mono',monospace", fontSize: 10, color: C.ice, letterSpacing: "0.04em" }}>{a.location}</span>
+        {gateEl}
+      </div>
+    </button>
+  );
+}
+
+// Topbar legend item
+function Leg({ color, label, round }) {
+  return (
+    <span style={{ display: "flex", alignItems: "center", gap: 5, fontFamily: "'JetBrains Mono',monospace", fontSize: 9, color: C.ice, letterSpacing: "0.06em" }}>
+      <span style={{ width: 8, height: 8, borderRadius: round ? "50%" : 2, background: color }} />{label}
+    </span>
+  );
+}
+
+export default function FleetDashboard({ onOpenAircraft }) {
+  const [filter, setFilter] = useState("ALL");
+  const [search, setSearch] = useState("");
+  const [, forceTl] = useState(0);
+  const [fleetVer, setFleetVer] = useState(0);
+  const [stationVer, setStationVer] = useState(0);
+  const [nowMs, setNowMs] = useState(Date.now());
+  const zulu = useZuluClock();
+
+  useEffect(() => subscribeTimelines(() => forceTl((n) => n + 1)), []);
+  useEffect(() => subscribeServiceStatus(() => forceTl((n) => n + 1)), []);
+  useEffect(() => subscribeCat(() => forceTl((n) => n + 1)), []);
+  useEffect(() => subscribeMcc(() => forceTl((n) => n + 1)), []);
+  useEffect(() => subscribeFleet(() => setFleetVer((n) => n + 1)), []);
+  useEffect(() => subscribeStation(() => setStationVer((n) => n + 1)), []);
+  useEffect(() => { const t = setInterval(() => setNowMs(Date.now()), 30000); return () => clearInterval(t); }, []);
+
+  const station = getSelectedStation();
+  const activeFilter = BOARD_FILTERS.find((f) => f.key === filter) || BOARD_FILTERS[0];
+  const filtered = useMemo(() => FLEET.filter((a) => {
+    if (station && a.base !== station) return false;   // station selection filter
+    if (!activeFilter.match(a)) return false;
+    if (search.trim()) {
+      const q = search.toLowerCase();
+      return a.tail.toLowerCase().includes(q) || a.variant.toLowerCase().includes(q) || a.base.toLowerCase().includes(q) || a.location.toLowerCase().includes(q);
+    }
+    return true;
+  }), [filter, search, activeFilter, fleetVer, station, stationVer]);
+
+  return (
+    <div style={{ padding: "0 0 28px" }}>
+      <style>{`
+        @keyframes sbpulse { 0%,100%{opacity:1} 50%{opacity:.4} }
+        @keyframes blink { 50%{opacity:.2} }
+        @keyframes staleflash { 0%,100%{ border-color:#F03252; box-shadow:0 0 0 0 rgba(240,50,82,0);} 50%{ border-color:#7f1d3a; box-shadow:0 0 14px 1px rgba(240,50,82,.35);} }
+        @keyframes o2glow { 0%,100%{ box-shadow:0 0 0 0 rgba(0,212,245,0);} 50%{ box-shadow:0 0 8px 2px rgba(0,212,245,.4);} }
+        @keyframes oilglow { 0%,100%{ box-shadow:0 0 0 0 rgba(245,166,35,0);} 50%{ box-shadow:0 0 8px 2px rgba(245,166,35,.4);} }
+      `}</style>
+
+      {/* Legend bar */}
+      <div style={{ display: "flex", alignItems: "center", gap: 14, padding: "10px 24px", borderBottom: `1px solid ${C.border}`, flexWrap: "wrap" }}>
+        <Leg color={C.green} label="RELEASED" />
+        <Leg color={C.red} label="OUT OF SVC" />
+        <Leg color={C.blue} label="MAINTENANCE" />
+        <span style={{ width: 1, height: 16, background: C.border }} />
+        <Leg color={C.amber} label="MEL ACTIVE" round />
+        <span style={{ fontFamily: "'JetBrains Mono',monospace", fontSize: 9, color: C.cyan, letterSpacing: "0.06em" }}>O₂ REQ</span>
+        <span style={{ fontFamily: "'JetBrains Mono',monospace", fontSize: 9, color: "#FFD166", letterSpacing: "0.06em" }}>🛢 OIL SVC</span>
+        <span style={{ fontFamily: "'JetBrains Mono',monospace", fontSize: 9, color: C.red, letterSpacing: "0.06em" }}>🔧 MX OPEN</span>
+        <span style={{ fontFamily: "'JetBrains Mono',monospace", fontSize: 9, color: C.blue, letterSpacing: "0.06em" }}>🔧 MX ASSIGNED</span>
+        <span style={{ fontFamily: "'JetBrains Mono',monospace", fontSize: 9, color: C.red, fontWeight: 800, letterSpacing: "0.08em" }}>⬤ AOG</span>
+        <span style={{ fontFamily: "'JetBrains Mono',monospace", fontSize: 9, color: C.purple, letterSpacing: "0.06em" }}>🔒 MOC CONCUR</span>
+        <span style={{ marginLeft: "auto", fontFamily: "'JetBrains Mono',monospace", fontSize: 12, fontWeight: 600, color: C.white }}>{zulu}</span>
+      </div>
+
+      {/* Filter bar */}
+      <div style={{ display: "flex", alignItems: "center", gap: 8, padding: "10px 24px", borderBottom: `1px solid ${C.border}`, flexWrap: "wrap" }}>
+        <span style={{ fontFamily: "'JetBrains Mono',monospace", fontSize: 9, color: C.muted, letterSpacing: "0.1em", textTransform: "uppercase", marginRight: 4 }}>Show</span>
+        {BOARD_FILTERS.map((f) => {
+          const on = filter === f.key;
+          return (
+            <button key={f.key} onClick={() => setFilter(f.key)} style={{ fontFamily: "'JetBrains Mono',monospace", fontSize: 9, padding: "4px 11px", borderRadius: 20, border: `1px solid ${on ? C.amber : C.border}`, color: on ? C.amber : C.muted, background: on ? "rgba(245,166,35,.07)" : "transparent", cursor: "pointer", fontWeight: 500, letterSpacing: "0.05em", transition: "all .12s" }}>
+              {f.label}
+            </button>
+          );
+        })}
+        <span style={{ marginLeft: "auto", fontFamily: "'JetBrains Mono',monospace", fontSize: 10, color: C.muted }}>
+          <span style={{ color: C.white, fontWeight: 600 }}>{filtered.length}</span> of <span style={{ color: C.white, fontWeight: 600 }}>{FLEET.length}</span> aircraft shown
         </span>
-        {/* ETOPS approval */}
-        {aircraft.etops_approval && (
-          <span className={cn(badge, 'bg-cyan-950/60 text-cyan-400 border-cyan-700/40')}>
-            ETOPS-{aircraft.etops_approval}
-          </span>
-        )}
-        {/* CAT approval */}
-        {aircraft.cat_approval && aircraft.cat_approval !== 'CAT I' && (
-          <span className={cn(badge, 'bg-indigo-950/60 text-indigo-300 border-indigo-700/40')}>
-            {aircraft.cat_approval}
-          </span>
-        )}
-        {/* MEL badge */}
-        {activeMels.length > 0 && (
-          <Link
-            to={`/AircraftDetail?tail=${aircraft.tail_number}`}
-            onClick={e => e.stopPropagation()}
-            className={cn(badge,
-              restrictiveMels.length > 0
-                ? 'bg-red-950/50 text-red-400 border-red-500/50 hover:bg-red-900/60'
-                : 'bg-amber-950/40 text-amber-400 border-amber-600/40 hover:bg-amber-900/50',
-              'transition-colors'
-            )}
-          >
-            MEL {activeMels.length}{restrictiveMels.length > 0 && ' ⚠'}
-          </Link>
-        )}
-        {/* Flags */}
-        {acLock && (
-          <span className={cn(badge, 'bg-red-950/50 text-red-400 border-red-500/40')}>
-            <Lock className="w-2 h-2" /> LOCKED
-          </span>
-        )}
-        {aircraft.mcc_watch && (
-          <span className={cn(badge, 'bg-amber-950/50 text-amber-400 border-amber-500/40 animate-pulse')}>
-            <Eye className="w-2 h-2" /> WATCH
-          </span>
-        )}
-        {aircraft.ferry_flight && (
-          <span className={cn(badge, 'bg-sky-950/50 text-sky-400 border-sky-500/40')}>
-            <Plane className="w-2 h-2" /> FERRY
-          </span>
-        )}
-        <AircraftLocationBadge
-          locationType={aircraft.location_type || 'unknown'}
-          locationLabel={aircraft.location_label || ''}
-          size="sm"
-        />
       </div>
 
-      {/* ── OOS TIMING STRIP (only when relevant) ── */}
-      {(oosDuration || etr || flightEta) && (
-        <div className="border-t border-white/6 mx-3" />
-      )}
-      {(oosDuration || etr || flightEta) && (
-        <div className="px-3 py-2 grid grid-cols-3 gap-2">
-          {[
-            { label: 'OOS Time', value: oosDuration || '—', color: isOosOver24h ? 'text-orange-400' : 'text-gray-300' },
-            { label: 'ETR',      value: etr || '—',         color: 'text-amber-400' },
-            { label: 'Flt ETA', value: flightEta || '—',    color: 'text-cyan-400' },
-          ].map(({ label, value, color }) => (
-            <div key={label} className="flex flex-col gap-0.5">
-              <span className="text-[8px] font-bold text-gray-600 uppercase tracking-wider">{label}</span>
-              <span className={cn('text-[10px] font-black', color)}>{value}</span>
-            </div>
-          ))}
+      {/* Search */}
+      <div style={{ padding: "12px 24px 0" }}>
+        <input value={search} onChange={(e) => setSearch(e.target.value)} placeholder="Search tail, type, base, gate…"
+          style={{ width: "100%", boxSizing: "border-box", background: "#0d1526", border: `1px solid ${C.border}`, borderRadius: 10, padding: "10px 16px", color: C.white, fontSize: 13, outline: "none", fontFamily: "'Inter',sans-serif" }} />
+      </div>
+
+      {/* Active station filter banner */}
+      {station && (() => {
+        const s = getStation(station);
+        return (
+          <div style={{ margin: "12px 24px 0", padding: "10px 16px", borderRadius: 10, background: "rgba(61,142,240,.1)", border: "1px solid #1e4d7a", display: "flex", alignItems: "center", gap: 12 }}>
+            <span style={{ fontSize: 16 }}>🌐</span>
+            <span style={{ fontFamily: "'JetBrains Mono',monospace", fontSize: 13, color: "#7dd3fc", fontWeight: 700 }}>STATION FILTER · {station}</span>
+            <span style={{ fontSize: 12, color: C.muted }}>{s ? `${s.name} — ${s.city}` : ""}</span>
+            <button onClick={() => clearSelectedStation()} style={{ marginLeft: "auto", padding: "5px 12px", borderRadius: 999, background: "transparent", color: C.muted, border: `1px solid ${C.border}`, fontFamily: "'JetBrains Mono',monospace", fontSize: 11, cursor: "pointer" }}>Clear ✕</button>
+          </div>
+        );
+      })()}
+
+      {/* Grid */}
+      <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(290px, 1fr))", gap: 12, padding: "16px 24px 0" }}>
+        {filtered.slice(0, 60).map((a) => <FleetCard key={a.id} a={a} onOpen={onOpenAircraft} nowMs={nowMs} />)}
+      </div>
+      {filtered.length > 60 && (
+        <div style={{ textAlign: "center", padding: 22, color: C.muted, fontSize: 12, fontFamily: "'JetBrains Mono',monospace" }}>
+          + {filtered.length - 60} more aircraft (showing first 60 for performance)
         </div>
       )}
-
-      {/* ── RISK INDICATORS ── */}
-      {(openDiscs.length > 0 || expiredMels.length > 0 || isOosOver24h || tailOpenTasks.length > 0) && (
-        <>
-          <div className="border-t border-white/6 mx-3" />
-          <div className="px-3 py-2 flex flex-col gap-1">
-            {isOosOver24h && (
-              <div className="flex items-center gap-1.5">
-                <Clock className="w-3 h-3 text-amber-400 flex-shrink-0" />
-                <span className="text-[10px] font-bold text-amber-400">OOS 24h+</span>
-              </div>
-            )}
-            {openDiscs.length > 0 && (
-              <div className="flex items-center gap-1.5">
-                <AlertTriangle className="w-3 h-3 text-amber-400 flex-shrink-0" />
-                <span className="text-[10px] font-bold text-amber-300">{openDiscs.length} open write-up{openDiscs.length > 1 ? 's' : ''}</span>
-              </div>
-            )}
-            {expiredMels.length > 0 && (
-              <div className="flex items-center gap-1.5">
-                <Zap className="w-3 h-3 text-red-400 flex-shrink-0" />
-                <span className="text-[10px] font-bold text-red-400">{expiredMels.length} expired MEL{expiredMels.length > 1 ? 's' : ''}</span>
-              </div>
-            )}
-            {tailOpenTasks.length > 0 && (
-              <div className="flex items-center gap-1.5">
-                <Wrench className="w-3 h-3 text-blue-400 flex-shrink-0" />
-                <span className="text-[10px] font-bold text-blue-400">{tailOpenTasks.length} task{tailOpenTasks.length > 1 ? 's' : ''} assigned</span>
-              </div>
-            )}
-          </div>
-        </>
-      )}
-
-      {/* ── FOOTER: Compliance detail link ── */}
-      <div className="mt-auto border-t border-white/6 px-3 py-2">
-        <Link
-          to={`/AircraftDetail?tail=${aircraft.tail_number}`}
-          onClick={e => e.stopPropagation()}
-          className="flex items-center gap-1 text-[9px] font-bold text-primary/60 hover:text-primary transition-colors"
-        >
-          <ExternalLink className="w-2.5 h-2.5" /> Compliance Detail
-        </Link>
-      </div>
-    </div>
-  );
-}
-
-function AircraftRow({ aircraft, onSelect, discrepancies, activeLocks = [] }) {
-  const status = STATUS_STYLES[aircraft.status] || STATUS_STYLES.active;
-  const StatusIcon = status.icon;
-  const count = discrepancies?.length || 0;
-  const acLock = activeLocks.find(l => l.aircraft_tail === aircraft.tail_number);
-  return (
-    <div onClick={() => onSelect(aircraft)}
-      className={cn(
-        "flex items-center justify-between px-5 py-3 rounded-xl bg-[#1e262e] border border-white/5 hover:border-white/20 transition-all cursor-pointer font-mono",
-        acLock ? 'border-[#e74c3c]/40' : count > 0 ? 'border-amber-500/30' : 'border-white/5'
-      )}>
-      <div className="flex items-center gap-5 flex-1 min-w-0">
-      <div className="flex items-center gap-2 w-40">
-        <p className={cn('text-sm font-extrabold font-mono', status.text)}>{aircraft.tail_number}</p>
-        {aircraft.mcc_watch && <Eye className="w-3.5 h-3.5 text-amber-400 flex-shrink-0 animate-pulse" title="MCC Watch" />}
-        {aircraft.ferry_flight && <Plane className="w-3.5 h-3.5 text-sky-400 flex-shrink-0 animate-pulse" title="Scheduled for Ferry Flight" />}
-        {acLock && <Lock className="w-3.5 h-3.5 text-red-400 flex-shrink-0" title={`MCC Lock: ${acLock.reason}`} />}
-      </div>
-        <p className="text-xs text-gray-400 w-24">{aircraft.aircraft_type}</p>
-        <p className="text-xs text-gray-500 hidden sm:block">{aircraft.base_station || '—'}</p>
-        {aircraft.engine_type && <p className="text-xs text-gray-600 hidden lg:block">{aircraft.engine_type}</p>}
-        {count > 0 && (
-          <div className="hidden md:flex items-center gap-3">
-            <span className="text-[10px] font-extrabold text-amber-400">⚠️ {count} Open Write-Up{count > 1 ? 's' : ''}</span>
-            <span className="text-[10px] font-bold text-red-400">🔴 OOS Risk</span>
-          </div>
-        )}
-      </div>
-      <span className={cn('flex items-center gap-1.5 px-3 py-1 rounded-lg text-[10px] font-extrabold text-white flex-shrink-0', status.bg)}>
-        <StatusIcon className="w-3 h-3" /> {status.label}
-      </span>
-    </div>
-  );
-}
-
-// ── Main Page ─────────────────────────────────────────────────────────────────
-const TABS = [
-  { id: 'fleet',    label: 'Fleet',      icon: Plane },
-  { id: 'insights', label: 'AI Insights',icon: Brain },
-];
-
-export default function FleetDashboard() {
-  const [activeTab, setActiveTab] = useState('fleet');
-  const [search, setSearch] = useState('');
-  const [statusFilter, setStatusFilter] = useState('All Status');
-  const [viewMode, setViewMode] = useState('grid');
-  const [selectedAircraft, setSelectedAircraft] = useState(null);
-  const [kpiFilter, setKpiFilter] = useState(null);
-  const [quickFilter, setQuickFilter] = useState(null); // 'aog' | 'mel' | 'etops' | 'maintenance' | 'active' | null
-  const [viewTab, setViewTab] = useState('all'); // 'all' | 'mine' | 'watch'
-  const [lockedFilter, setLockedFilter] = useState(false);
-  const [activeMetric, setActiveMetric] = useState(null);
-
-  const { data: currentUser } = useQuery({
-    queryKey: ['me'],
-    queryFn: () => base44.auth.me(),
-    staleTime: 60000,
-  });
-
-  const queryClient = useQueryClient();
-
-  const { activeFleet, activeFleetId } = useFleet();
-
-  const { data: rawAircraftAll = [], isLoading } = useQuery({
-    queryKey: ['fleet-aircraft'],
-    queryFn: () => base44.entities.Aircraft.list('-created_date', 1000),
-    refetchInterval: 60000,
-  });
-
-  // Deduplicate by tail_number — keep the most recently updated record per tail
-  const dedupedAircraft = Object.values(
-    rawAircraftAll.reduce((acc, a) => {
-      if (!acc[a.tail_number] || new Date(a.updated_date) > new Date(acc[a.tail_number].updated_date)) {
-        acc[a.tail_number] = a;
-      }
-      return acc;
-    }, {})
-  );
-
-  // B+D: throttle real-time pushes to 500 ms, track last-5 viewed tails
-  const { aircraft, recentTails, recordTailView } = useThrottledFleet(dedupedAircraft);
-
-  const { data: openDiscrepancies = [] } = useQuery({
-    queryKey: ['fleet-open-discrepancies'],
-    queryFn: () => base44.entities.LogbookEntry.filter({ entry_type: 'discrepancy' }),
-    refetchInterval: 60000,
-  });
-
-  const { data: oosEntries = [] } = useQuery({
-    queryKey: ['fleet-oos-entries'],
-    queryFn: () => base44.entities.OOSEntry.list('-created_date', 500),
-    refetchInterval: 60000,
-  });
-
-  const { data: mccLocks = [] } = useQuery({
-    queryKey: ['mcc-locks'],
-    queryFn: () => base44.entities.MccLock.list('-created_date', 200),
-    refetchInterval: 30000,
-  });
-
-  const { data: timelineEvents = [] } = useQuery({
-    queryKey: ['fleet-timeline-events'],
-    queryFn: () => base44.entities.TimelineEvent.list('-created_date', 1000),
-    refetchInterval: 60000,
-  });
-
-  const { data: openTasks = [] } = useQuery({
-    queryKey: ['fleet-open-tasks'],
-    queryFn: () => base44.entities.SupplyRequisition.filter({ status: 'pending' }),
-    refetchInterval: 60000,
-  });
-
-  const { data: allMelItems = [] } = useQuery({
-    queryKey: ['fleet-all-mel'],
-    queryFn: () => base44.entities.MELItem.list('-created_date', 2000),
-    refetchInterval: 120000,
-  });
-
-  const { data: allLogEntries = [] } = useQuery({
-    queryKey: ['fleet-all-logbook'],
-    queryFn: () => base44.entities.LogbookEntry.list('-created_date', 3000),
-    refetchInterval: 90000,
-  });
-
-  // Map tail -> all logbook entries sorted newest-first
-  const logEntriesByTailAll = allLogEntries.reduce((acc, e) => {
-    if (!acc[e.aircraft_tail]) acc[e.aircraft_tail] = [];
-    acc[e.aircraft_tail].push(e);
-    return acc;
-  }, {});
-
-  // Map tail -> open (non-closed) discrepancy entries
-  const discrepanciesByTail = openDiscrepancies.reduce((acc, e) => {
-    if (e.discrepancy_status !== 'CLOSED') {
-      if (!acc[e.aircraft_tail]) acc[e.aircraft_tail] = [];
-      acc[e.aircraft_tail].push(e);
-    }
-    return acc;
-  }, {});
-
-
-
-  // Map tail -> MEL items
-  const melByTail = allMelItems.reduce((acc, m) => {
-    if (!acc[m.aircraft_tail]) acc[m.aircraft_tail] = [];
-    acc[m.aircraft_tail].push(m);
-    return acc;
-  }, {});
-
-  const total       = aircraft.length;
-  const inService   = aircraft.filter(a => a.status === 'active').length;
-  const inWork      = aircraft.filter(a => a.status === 'maintenance').length;
-  const outOfSvc    = aircraft.filter(a => a.status === 'oos').length;
-  const aogCount    = outOfSvc;
-  const watchCount  = aircraft.filter(a => a.mcc_watch).length;
-  const ferryCount  = aircraft.filter(a => a.ferry_flight).length;
-  const mineCount   = currentUser ? aircraft.filter(a => a.created_by_id === currentUser.id).length : 0;
-
-  const filtered = aircraft
-    .filter(a => {
-      const matchesSearch =
-        !search ||
-        a.tail_number?.toLowerCase().includes(search.toLowerCase()) ||
-        a.base_station?.toLowerCase().includes(search.toLowerCase()) ||
-        a.aircraft_type?.toLowerCase().includes(search.toLowerCase());
-
-      const activeMelsForAc = (melByTail[a.tail_number] || []).filter(m => m.status !== 'cleared' && m.status !== 'voided');
-
-      const matchesStatus = statusFilter === 'All Status' || a.status === statusFilter;
-      const matchesKpi = !kpiFilter || a.status === kpiFilter;
-
-      const acLock = mccLocks.find(l => l.aircraft_tail === a.tail_number && l.is_active !== false);
-      let matchesView = true;
-      if (viewTab === 'mine') matchesView = currentUser ? a.created_by_id === currentUser.id : false;
-      else if (viewTab === 'watch') matchesView = !!a.mcc_watch;
-      const matchesLocked = !lockedFilter || !!acLock;
-
-      let matchesMetric = true;
-      if (activeMetric === 'ots') matchesMetric = a.status === 'oos';
-      else if (activeMetric === 'inmx') matchesMetric = a.status === 'maintenance';
-      else if (activeMetric === 'watch') matchesMetric = !!a.mcc_watch;
-      else if (activeMetric === 'ferry') matchesMetric = !!a.ferry_flight;
-      else if (activeMetric === 'mine') matchesMetric = currentUser ? a.created_by_id === currentUser.id : false;
-
-      // Quick filter logic
-      let matchesQuick = true;
-      if (quickFilter === 'aog') matchesQuick = a.status === 'oos';
-      else if (quickFilter === 'mel') matchesQuick = activeMelsForAc.length > 0;
-      else if (quickFilter === 'restrictive') matchesQuick = activeMelsForAc.some(m =>
-        m.flight_restrictions || m.etops_critical || m.etops_impact === 'NO_ETOPS' ||
-        m.etops_impact === 'ETOPS_WITH_LIMITS' || m.placard_required
-      );
-      else if (quickFilter === 'etops') matchesQuick = !!a.etops_approval;
-      else if (quickFilter === 'maintenance') matchesQuick = a.status === 'maintenance';
-      else if (quickFilter === 'active') matchesQuick = a.status === 'active';
-      return matchesSearch && matchesStatus && matchesKpi && matchesQuick && matchesView && matchesLocked && matchesMetric;
-    })
-    // MCC priority sort: AOG → IN WORK → RON → IN SERVICE → RETIRED
-    .sort((a, b) => (STATUS_PRIORITY[a.status] ?? 99) - (STATUS_PRIORITY[b.status] ?? 99));
-
-  const acTypeLabel = activeFleet
-    ? `${activeFleet.name} Aircraft`
-    : 'Boeing 737 Aircraft';
-
-  // A: derive column count from viewport width for virtualized grid
-  const columnCount = useMemo(() => {
-    const w = window.innerWidth;
-    if (w >= 1536) return 6;
-    if (w >= 1280) return 5;
-    if (w >= 1024) return 4;
-    if (w >= 640)  return 3;
-    return 2;
-  }, []);
-
-  // B: memoized renderCard so VirtualizedFleetGrid Row doesn't re-create closures
-  const renderCard = useCallback((a) => (
-    <FleetCommandCard
-      aircraft={a}
-      onSelect={(ac) => { setSelectedAircraft(ac); recordTailView(ac.tail_number); }}
-      discrepancies={discrepanciesByTail[a.tail_number]}
-      melItems={melByTail[a.tail_number] || []}
-      activeLocks={mccLocks}
-    />
-  ), [discrepanciesByTail, melByTail, mccLocks, recordTailView]);
-
-  return (
-    <div className="min-h-screen bg-[#0d1117] pb-24">
-
-        {/* ── HEADER ── */}
-      <FleetCommandHeader
-        stats={{ total, outOfSvc, inWork, mine: mineCount, watch: watchCount, ferry: ferryCount }}
-        activeMetric={activeMetric}
-        onMetricClick={setActiveMetric}
-      />
-
-      {/* ── TAB BAR ── */}
-      <div className="px-6 flex items-center gap-2 flex-wrap mb-4">
-        {TABS.map(({ id, label, icon: Icon, live }) => (
-          <button key={id} onClick={() => setActiveTab(id)}
-            className={cn(
-              'flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-extrabold transition-all',
-              activeTab === id
-                ? 'bg-[#f1c40f] text-black shadow-lg'
-                : 'bg-[#1e262e] text-[#7f8c8d] hover:text-white border border-white/8'
-            )}>
-            <Icon className="w-4 h-4" />
-            {label}
-            {live && <span className="text-[9px] font-extrabold px-1.5 py-0.5 rounded-full bg-green-500 text-white ml-0.5">LIVE</span>}
-          </button>
-        ))}
-      </div>
-
-      {/* ── TAB CONTENT ── */}
-      {activeTab === 'fleet' && (
-        <div className="px-6">
-          {/* Filter Bar — Fleet Command design */}
-          <div className="flex items-center gap-3 mb-3 flex-wrap">
-            <span className="text-[11px] font-bold text-[#7f8c8d] uppercase tracking-widest font-mono">SHOW</span>
-            <div className="flex gap-1.5">
-              {[
-                { id: 'all',   label: 'All Fleet' },
-                { id: 'mine',  label: 'My Aircraft' },
-                { id: 'watch', label: 'Watch List' },
-              ].map(t => (
-                <button key={t.id} onClick={() => setViewTab(t.id)}
-                  className={cn('px-3 py-1.5 rounded-lg text-[11px] font-bold font-mono border transition-all',
-                    viewTab === t.id
-                      ? 'bg-[#f1c40f]/15 border-[#f1c40f] text-[#f1c40f]'
-                      : 'bg-[#1e262e] border-white/10 text-[#7f8c8d] hover:text-white hover:border-white/20')}>
-                  {t.label}
-                </button>
-              ))}
-            </div>
-            <div className="flex gap-1.5">
-              <button onClick={() => setQuickFilter(quickFilter === 'aog' ? null : 'aog')}
-                className={cn('px-3 py-1.5 rounded-lg text-[11px] font-bold font-mono border transition-all',
-                  quickFilter === 'aog'
-                    ? 'bg-[#e74c3c]/15 border-[#e74c3c] text-[#e74c3c]'
-                    : 'bg-[#1e262e] border-white/10 text-[#7f8c8d] hover:text-white hover:border-white/20')}>
-                OTS
-              </button>
-              <button onClick={() => setLockedFilter(v => !v)}
-                className={cn('px-3 py-1.5 rounded-lg text-[11px] font-bold font-mono border transition-all',
-                  lockedFilter
-                    ? 'bg-red-500/15 border-red-500 text-red-400'
-                    : 'bg-[#1e262e] border-white/10 text-[#7f8c8d] hover:text-white hover:border-white/20')}>
-                Locked
-              </button>
-            </div>
-          </div>
-
-          {/* Search + Filters */}
-          <div className="flex flex-col sm:flex-row gap-3 mb-4">
-            <div className="flex-1 flex items-center gap-2 bg-[#1e262e] border border-white/10 rounded-xl px-4 py-2.5 font-mono">
-              <Search className="w-4 h-4 text-[#7f8c8d] flex-shrink-0" />
-              <input type="text" placeholder="Search tail, type, base..." value={search}
-                onChange={e => setSearch(e.target.value)}
-                className="flex-1 bg-transparent text-sm text-white placeholder-[#7f8c8d] outline-none font-mono" />
-            </div>
-            <select value={statusFilter} onChange={e => setStatusFilter(e.target.value)}
-              className="bg-[#1e262e] border border-white/10 rounded-xl px-4 py-2.5 text-sm text-white outline-none hover:border-white/30 font-mono">
-              {STATUS_OPTIONS.map(s => (
-                <option key={s} value={s}>{s === 'All Status' ? s : s === 'oos' ? 'Out of Service' : s.charAt(0).toUpperCase() + s.slice(1)}</option>
-              ))}
-            </select>
-            <div className="flex rounded-xl overflow-hidden bg-[#1e262e] border border-white/10">
-              <button onClick={() => setViewMode('grid')}
-                className={cn('px-3 py-2.5 flex items-center justify-center transition-all', viewMode === 'grid' ? 'bg-[#f1c40f] text-black' : 'text-[#7f8c8d] hover:text-white')}>
-                <LayoutGrid className="w-4 h-4" />
-              </button>
-              <button onClick={() => setViewMode('list')}
-                className={cn('px-3 py-2.5 flex items-center justify-center transition-all', viewMode === 'list' ? 'bg-[#f1c40f] text-black' : 'text-[#7f8c8d] hover:text-white')}>
-                <List className="w-4 h-4" />
-              </button>
-            </div>
-          </div>
-
-          <div className="flex items-center justify-between mb-4">
-            <p className="text-xs text-[#7f8c8d] font-mono">
-              {filtered.length} of {total} aircraft
-              {(quickFilter || lockedFilter || viewTab !== 'all' || activeMetric) && <span className="ml-1 text-[#f1c40f] font-bold">· filtered</span>}
-            </p>
-            <div className="flex items-center gap-2">
-              {(kpiFilter || quickFilter || lockedFilter || viewTab !== 'all' || activeMetric) && (
-                <button
-                  onClick={() => { setKpiFilter(null); setQuickFilter(null); setLockedFilter(false); setViewTab('all'); setActiveMetric(null); }}
-                  className="text-xs font-bold text-[#f1c40f] hover:text-[#f1c40f]/80 flex items-center gap-1 font-mono"
-                >
-                  <X className="w-3 h-3" /> Clear filters
-                </button>
-              )}
-            </div>
-          </div>
-
-          {isLoading ? (
-            <div className="text-center text-gray-600 py-20">Loading fleet data…</div>
-          ) : filtered.length === 0 ? (
-            <div className="text-center text-gray-600 py-20">No aircraft found</div>
-          ) : viewMode === 'grid' ? (
-            /* A: Virtualized grid — only renders visible rows for smooth 1000-ac scroll */
-            <VirtualizedFleetGrid
-              items={filtered}
-              renderCard={renderCard}
-              columnCount={columnCount}
-              cardHeight={236}
-            />
-          ) : (
-            <div className="flex flex-col gap-1.5">
-              {filtered.map(a => (
-                <div key={a.id} className="relative">
-                  <AircraftRow aircraft={a} onSelect={setSelectedAircraft} discrepancies={discrepanciesByTail[a.tail_number]} activeLocks={mccLocks} />
-                  <div className="absolute right-24 top-1/2 -translate-y-1/2" onClick={e => e.stopPropagation()}>
-                    <AircraftLocationBadge
-                      locationType={a.location_type || 'unknown'}
-                      locationLabel={a.location_label || ''}
-                      size="sm"
-                    />
-                  </div>
-                </div>
-              ))}
-            </div>
-          )}
-        </div>
-      )}
-
-      {activeTab === 'insights' && (
-        <div className="px-6 space-y-4">
-          <AiMaintenanceCard aircraftTail={selectedAircraft?.tail_number || aircraft[0]?.tail_number} />
-          <AiMaintenanceInsights aircraft={aircraft} />
-        </div>
-      )}
-
-      <AnimatePresence>
-        {selectedAircraft && (
-          <AircraftDetailOverlay aircraft={selectedAircraft} onClose={() => setSelectedAircraft(null)} />
-        )}
-      </AnimatePresence>
-
-
+      {filtered.length === 0 && <div style={{ textAlign: "center", padding: 50, color: C.muted, fontSize: 14 }}>No aircraft match this filter.</div>}
     </div>
   );
 }
