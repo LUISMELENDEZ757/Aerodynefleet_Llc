@@ -136,6 +136,7 @@ const NAV_GROUPS = [
       { label: 'Cabin Discrepancy', icon: '🛋️', path: '/CabinDiscrepancy' },
       { label: 'Passenger Service', icon: '👨‍💼', path: '/PSS' },
       { label: 'Ground Ops', icon: '🚧', path: '/GroundOps' },
+      { label: 'Ground Ops Gantt', icon: '📅', path: '/GroundOpsGantt' },
       { label: 'Load Control', icon: '⚖️', path: '/LoadControl' },
       { label: 'Global Stations', icon: '🌍', path: '/GlobalStations' },
       { label: 'Station Dashboard', icon: '📍', path: '/StationDashboard' },
