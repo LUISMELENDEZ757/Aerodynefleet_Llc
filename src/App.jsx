@@ -138,6 +138,7 @@ const AircraftComplianceDetail = lazy(() => import('@/pages/AircraftComplianceDe
 const CapabilityDashboard      = lazy(() => import('@/pages/CapabilityDashboard.jsx'));
 const NumberingStandardPage     = lazy(() => import('@/pages/NumberingStandardPage.jsx'));
 const AircraftMxTimeline        = lazy(() => import('@/pages/AircraftMxTimeline.jsx'));
+const GroundOpsGantt            = lazy(() => import('@/pages/GroundOpsGantt/index.jsx'));
 
 function PageFallback() {
   return (
@@ -268,6 +269,7 @@ const AuthenticatedApp = () => {
         <Route path="/Dispatch" element={<DispatchWorkstation />} />
         <Route path="/RecordRetentionPolicy" element={<RecordRetentionPolicy />} />
         <Route path="/GroundOps" element={<GroundOpsPage />} />
+        <Route path="/GroundOpsGantt" element={<GroundOpsGantt />} />
 
         <Route path="/NOTAMs" element={<NOTAMsPage />} />
         <Route path="/CrewDirectory" element={<CrewDirectory />} />
