@@ -23,9 +23,21 @@ const STATUS_BADGE = {
   retired:     { label: 'RETIRED',    bg: 'bg-gray-600' },
 };
 
+const TYPE_ENUM = [
+  'B737-700', 'B737-800', 'B737-900', 'B737 MAX 8', 'B737 MAX 9',
+  'B757', 'B767', 'B777', 'B787', 'A320', 'A321', 'A350', 'E190', 'E175', 'CRJ700', 'CRJ900',
+];
+const normalizeType = (v) =>
+  TYPE_ENUM.includes(v) ? v : (TYPE_ENUM.find(t => (v || '').startsWith(t)) || 'B737-800');
+
+// Guard against duplicate auto-provisioning (e.g. StrictMode double-fetch)
+const provisioning = new Set();
+
 export default function AircraftMxTimeline() {
   const urlParams = new URLSearchParams(window.location.search);
   const tail = urlParams.get('tail') || '';
+  const typeParam = urlParams.get('type') || '';
+  const baseParam = urlParams.get('base') || '';
   const qc = useQueryClient();
 
   const [showPlaceOOS, setShowPlaceOOS] = useState(false);
@@ -34,8 +46,19 @@ export default function AircraftMxTimeline() {
 
   const { data: aircraft } = useQuery({
     queryKey: ['mx-timeline-aircraft', tail],
-    queryFn: () => base44.entities.Aircraft.filter({ tail_number: tail }),
-    select: (data) => data[0] || null,
+    queryFn: async () => {
+      const [ac] = await base44.entities.Aircraft.filter({ tail_number: tail });
+      if (ac) return ac;
+      if (provisioning.has(tail)) return null;
+      provisioning.add(tail);
+      // Auto-register the tail so the timeline, OOS actions, and eLogbook share one record
+      return base44.entities.Aircraft.create({
+        tail_number: tail,
+        aircraft_type: normalizeType(typeParam),
+        base_station: baseParam || undefined,
+        status: 'active',
+      });
+    },
     enabled: !!tail,
   });
 

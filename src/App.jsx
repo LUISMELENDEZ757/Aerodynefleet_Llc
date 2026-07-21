@@ -276,7 +276,7 @@ const AuthenticatedApp = () => {
         <Route path="/InspectorMode" element={<InspectorMode />} />
         <Route path="/UserManagement" element={<UserManagement />} />
         <Route path="/CostReporting" element={<CostReporting />} />
-        <Route path="/FleetDashboard" element={<FleetDashboard onOpenAircraft={(a) => window.location.assign(`/AircraftTimeline?tail=${encodeURIComponent(a.tail)}`)} />} />
+        <Route path="/FleetDashboard" element={<FleetDashboard onOpenAircraft={(a) => window.location.assign(`/AircraftTimeline?tail=${encodeURIComponent(a.tail)}&type=${encodeURIComponent(a.variant || '')}&base=${encodeURIComponent(a.base || '')}`)} />} />
         <Route path="/AircraftTimeline" element={<AircraftMxTimeline />} />
         <Route path="/TechOpsLogbook" element={<TechOpsLogbook />} />
         <Route path="/CabinDiscrepancy" element={<CabinDiscrepancy />} />
