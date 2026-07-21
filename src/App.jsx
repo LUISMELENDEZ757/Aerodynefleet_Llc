@@ -136,6 +136,7 @@ const Academy                  = lazy(() => import('@/pages/Academy/index'));
 const DiscrepancyLab           = lazy(() => import('@/pages/DiscrepancyLab'));
 const AircraftComplianceDetail = lazy(() => import('@/pages/AircraftComplianceDetail.jsx'));
 const CapabilityDashboard      = lazy(() => import('@/pages/CapabilityDashboard.jsx'));
+const NumberingStandardPage     = lazy(() => import('@/pages/NumberingStandardPage.jsx'));
 
 function PageFallback() {
   return (
@@ -343,6 +344,7 @@ const AuthenticatedApp = () => {
         <Route path="/HowItWorks" element={<HowItWorks />} />
         <Route path="/AircraftDetail" element={<AircraftComplianceDetail />} />
         <Route path="/CapabilityDashboard" element={<CapabilityDashboard />} />
+        <Route path="/NumberingStandard" element={<NumberingStandardPage />} />
         <Route path="/Academy" element={<Academy />} />
         <Route path="/DiscrepancyLab" element={<DiscrepancyLab />} />
       </Route>

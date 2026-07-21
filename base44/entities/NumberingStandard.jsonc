@@ -1,0 +1,166 @@
+{
+  "name": "NumberingStandard",
+  "type": "object",
+  "description": "Aerodyne Fleet OS \u2014 M&E numbering standard sequence counter registry. Stores the next-issued sequence per unique numbering context (parts, tooling, documents, work orders, history, scrap, pool, traceability). Atomic per-prefix counter to guarantee unique, traceable M&E numbers following the [ATA]-[Sub-Group]-[Class]-[Sequence] format.",
+  "properties": {
+    "counter_key": {
+      "type": "string",
+      "description": "Unique composite key identifying the numbering context e.g. 'PART|72|000|9', 'DOC|EO|72', 'TOOL|32|7', 'WO|N12345|20260716|72'"
+    },
+    "number_type": {
+      "type": "string",
+      "enum": [
+        "me_part",
+        "tooling",
+        "document",
+        "work_order",
+        "history",
+        "scrap",
+        "pool",
+        "traceability"
+      ],
+      "default": "me_part",
+      "description": "Which numbering scheme this counter tracks"
+    },
+    "ata_chapter": {
+      "type": "string",
+      "description": "2-digit ATA chapter e.g. 72, 32. Omitted for some doc/pool counters."
+    },
+    "sub_group": {
+      "type": "string",
+      "description": "3-digit ATA sub-group e.g. 000, 110, 510 (parts only)"
+    },
+    "class_code": {
+      "type": "string",
+      "description": "Single-digit class code: 9,7,5,3,1 (parts/tooling/history/scrap/pool)"
+    },
+    "doc_type": {
+      "type": "string",
+      "description": "Document type prefix e.g. EO, MMP, FRM, TSI, SB, AD, MEL, CDL (documents/traceability)"
+    },
+    "category": {
+      "type": "string",
+      "description": "Traceability category e.g. ENG, CMP"
+    },
+    "reason": {
+      "type": "string",
+      "description": "Scrap reason code e.g. BER, DAMAGED (scrap only)"
+    },
+    "event": {
+      "type": "string",
+      "description": "History event code e.g. INSTALL, REMOVE, SHOPVISIT (history only)"
+    },
+    "location": {
+      "type": "string",
+      "description": "Pool location ICAO e.g. EWR (pool only)"
+    },
+    "tail_number": {
+      "type": "string",
+      "description": "Aircraft tail for work-order counters"
+    },
+    "work_date": {
+      "type": "string",
+      "description": "Work order date YYYYMMDD"
+    },
+    "next_seq": {
+      "type": "number",
+      "default": 1,
+      "description": "Next sequence number to be issued for this context"
+    },
+    "last_issued_value": {
+      "type": "string",
+      "description": "Last formatted M&E number issued from this counter"
+    },
+    "last_issued_at": {
+      "type": "string",
+      "description": "ISO timestamp of last issue"
+    },
+    "last_issued_by": {
+      "type": "string",
+      "description": "Email/name of user who triggered the last issue"
+    },
+    "description": {
+      "type": "string",
+      "description": "Human-readable label for this counter context"
+    },
+    "is_active": {
+      "type": "boolean",
+      "default": true,
+      "description": "Whether this counter is active"
+    }
+  },
+  "required": [
+    "counter_key",
+    "number_type",
+    "next_seq"
+  ],
+  "rls": {
+    "create": {
+      "$or": [
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        },
+        {
+          "user_condition": {
+            "role": "engineer"
+          }
+        },
+        {
+          "user_condition": {
+            "role": "service_role"
+          }
+        }
+      ]
+    },
+    "read": {
+      "$or": [
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        },
+        {
+          "user_condition": {
+            "role": "engineer"
+          }
+        },
+        {
+          "user_condition": {
+            "role": "mcc_supervisor"
+          }
+        },
+        {
+          "user_condition": {
+            "role": "technician"
+          }
+        }
+      ]
+    },
+    "update": {
+      "$or": [
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        },
+        {
+          "user_condition": {
+            "role": "engineer"
+          }
+        },
+        {
+          "user_condition": {
+            "role": "service_role"
+          }
+        }
+      ]
+    },
+    "delete": {
+      "user_condition": {
+        "role": "admin"
+      }
+    }
+  }
+}
