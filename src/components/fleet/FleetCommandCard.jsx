@@ -28,10 +28,6 @@ export default function FleetCommandCard({ aircraft, onSelect, melItems = [], ac
   const stop = (e) => e.stopPropagation();
   const openDetail = (e) => { e.stopPropagation(); onSelect(aircraft); };
 
-  const toggleWatch = (e) => {
-    stop(e);
-    toggleMutation.mutate({ mcc_watch: !aircraft.mcc_watch });
-  };
   const toggleFerry = (e) => {
     stop(e);
     toggleMutation.mutate({ ferry_flight: !aircraft.ferry_flight });
@@ -108,22 +104,6 @@ export default function FleetCommandCard({ aircraft, onSelect, melItems = [], ac
               {aircraft.cat_approval}
             </span>
           )}
-        </div>
-
-        {/* ── ACTION BAR ── */}
-        <div className="flex flex-wrap gap-1.5 mt-auto mb-2">
-          <button onClick={openDetail} className={actionBtn}>TAKE OWNERSHIP</button>
-          <button onClick={openDetail} className={actionBtn}>LOCK</button>
-          <button
-            onClick={toggleWatch}
-            className={cn('px-2.5 py-1 rounded text-[10px] font-bold font-mono border transition-colors',
-              aircraft.mcc_watch
-                ? 'border-amber-500/50 text-amber-400 bg-amber-500/10'
-                : actionBtn)}
-          >
-            WATCH
-          </button>
-          <button onClick={openDetail} className={actionBtn}>SET ETR</button>
         </div>
 
         {/* ── FOOTER ── */}
