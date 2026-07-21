@@ -1,7 +1,6 @@
-import { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { base44 } from '@/api/base44Client';
-import { Megaphone, Plus, Trash2, X } from 'lucide-react';
+import { Megaphone, Trash2 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 const CATEGORY_CFG = {
@@ -12,54 +11,7 @@ const CATEGORY_CFG = {
   announcement: { label: 'ANNOUNCEMENT', bg: 'bg-violet-900/50', text: 'text-violet-300' },
 };
 
-const inputCls = 'w-full bg-[#0d1117] border border-white/15 rounded-xl px-4 py-2.5 text-sm text-white placeholder-gray-600 outline-none focus:border-primary transition-colors';
-
-function PostUpdateModal({ onClose }) {
-  const qc = useQueryClient();
-  const [form, setForm] = useState({ title: '', body: '', category: 'announcement', version: '' });
-  const set = (k, v) => setForm(p => ({ ...p, [k]: v }));
-
-  const mutation = useMutation({
-    mutationFn: async () => {
-      const me = await base44.auth.me();
-      return base44.entities.SystemUpdate.create({ ...form, is_published: true, posted_by: me.full_name });
-    },
-    onSuccess: () => { qc.invalidateQueries({ queryKey: ['system-updates'] }); onClose(); },
-  });
-
-  return (
-    <div className="fixed inset-0 z-[60] bg-black/75 p-4 flex items-center justify-center">
-      <div className="w-full max-w-lg bg-[#141922] border border-white/10 rounded-2xl overflow-hidden shadow-2xl">
-        <div className="flex items-center justify-between px-6 py-4 border-b border-white/10">
-          <p className="text-base font-extrabold text-white">Post System Update</p>
-          <button onClick={onClose} className="w-8 h-8 rounded-lg bg-white/10 flex items-center justify-center hover:bg-white/20 transition-colors">
-            <X className="w-4 h-4 text-white" />
-          </button>
-        </div>
-        <div className="p-6 space-y-4">
-          <input placeholder="Update headline *" value={form.title} onChange={e => set('title', e.target.value)} className={inputCls} />
-          <div className="grid grid-cols-2 gap-3">
-            <select value={form.category} onChange={e => set('category', e.target.value)} className={inputCls}>
-              {Object.entries(CATEGORY_CFG).map(([k, c]) => <option key={k} value={k}>{c.label}</option>)}
-            </select>
-            <input placeholder="Version (e.g. v2.4.1)" value={form.version} onChange={e => set('version', e.target.value)} className={inputCls} />
-          </div>
-          <textarea rows={5} placeholder="Details / release notes..." value={form.body} onChange={e => set('body', e.target.value)} className={cn(inputCls, 'resize-none')} />
-          <button
-            onClick={() => mutation.mutate()}
-            disabled={!form.title.trim() || mutation.isPending}
-            className="w-full py-3 rounded-xl bg-primary text-primary-foreground text-sm font-extrabold hover:bg-primary/90 disabled:opacity-40 transition-colors"
-          >
-            {mutation.isPending ? 'Posting…' : 'Publish Update'}
-          </button>
-        </div>
-      </div>
-    </div>
-  );
-}
-
 export default function SystemNewsFeed() {
-  const [showPost, setShowPost] = useState(false);
   const qc = useQueryClient();
 
   const { data: me } = useQuery({ queryKey: ['me'], queryFn: () => base44.auth.me(), staleTime: 60000 });
@@ -81,14 +33,6 @@ export default function SystemNewsFeed() {
         <h2 className="text-lg font-extrabold text-white flex items-center gap-2">
           <Megaphone className="w-5 h-5 text-primary" /> System Update News
         </h2>
-        {isAdmin && (
-          <button
-            onClick={() => setShowPost(true)}
-            className="flex items-center gap-1.5 px-4 py-2 rounded-xl bg-primary text-primary-foreground text-xs font-extrabold hover:bg-primary/90 transition-colors"
-          >
-            <Plus className="w-3.5 h-3.5" /> Post Update
-          </button>
-        )}
       </div>
 
       {isLoading ? (
@@ -129,7 +73,6 @@ export default function SystemNewsFeed() {
         </div>
       )}
 
-      {showPost && <PostUpdateModal onClose={() => setShowPost(false)} />}
     </div>
   );
 }
