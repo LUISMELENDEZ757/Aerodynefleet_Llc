@@ -5,6 +5,7 @@ import {
   Layers, Activity, ChevronRight, Radio, Settings, Plus
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import AeroApiConfigModal from '@/components/integrations/AeroApiConfigModal';
 
 // ─── SYSTEM DATA ───────────────────────────────────────────────────────────
 
@@ -415,7 +416,10 @@ export default function IntegrationHub() {
         )}
       </div>
 
-      {selectedSys && (
+      {selectedSys && selectedSys.id === 'aeroapi' && (
+        <AeroApiConfigModal onClose={() => setSelectedSys(null)} />
+      )}
+      {selectedSys && selectedSys.id !== 'aeroapi' && (
         <SystemDetailModal sys={selectedSys} onClose={() => setSelectedSys(null)} />
       )}
     </div>

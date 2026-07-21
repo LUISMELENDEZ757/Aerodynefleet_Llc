@@ -1,0 +1,65 @@
+{
+  "name": "IntegrationConfig",
+  "type": "object",
+  "description": "External integration configuration \u2014 stores API keys and connection health per provider. Admin-only.",
+  "properties": {
+    "provider": {
+      "type": "string",
+      "description": "Integration provider id e.g. aeroapi"
+    },
+    "api_key": {
+      "type": "string",
+      "description": "API key for the provider"
+    },
+    "is_active": {
+      "type": "boolean",
+      "default": true
+    },
+    "last_tested_at": {
+      "type": "string",
+      "description": "ISO timestamp of last connection test"
+    },
+    "last_latency_ms": {
+      "type": "number",
+      "description": "Latency of last successful test in milliseconds"
+    },
+    "last_status": {
+      "type": "string",
+      "enum": [
+        "ok",
+        "error",
+        "untested"
+      ],
+      "default": "untested"
+    },
+    "last_error": {
+      "type": "string",
+      "description": "Error message from last failed test"
+    }
+  },
+  "required": [
+    "provider"
+  ],
+  "rls": {
+    "create": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "read": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "update": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "delete": {
+      "user_condition": {
+        "role": "admin"
+      }
+    }
+  }
+}
