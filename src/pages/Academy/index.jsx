@@ -1,4 +1,6 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import { useQuery } from '@tanstack/react-query';
+import { base44 } from '@/api/base44Client';
 import { Link } from 'react-router-dom';
 import {
   ChevronLeft, BookOpen, Trophy, Lock, ArrowRight, GraduationCap,
@@ -147,10 +149,33 @@ export default function Academy() {
   const [showCert, setShowCert] = useState(false);
   const [showToolkit, setShowToolkit] = useState(false);
 
+  // Load progress from the user's account (synced across devices)
+  const { data: me } = useQuery({ queryKey: ['academy-me'], queryFn: () => base44.auth.me() });
+
+  useEffect(() => {
+    if (!me) return;
+    let dbProgress = {};
+    try { dbProgress = JSON.parse(me.academy_progress || '{}'); } catch { dbProgress = {}; }
+    let local = {};
+    try { local = JSON.parse(localStorage.getItem('academy_completed') || '{}'); } catch { local = {}; }
+    // Merge: keep the best score per course from either source
+    const merged = { ...dbProgress };
+    for (const [id, rec] of Object.entries(local)) {
+      if (!merged[id] || (rec.pct || 0) > (merged[id].pct || 0)) merged[id] = rec;
+    }
+    setCompletedCourses(merged);
+    localStorage.setItem('academy_completed', JSON.stringify(merged));
+    // Migrate any local-only progress to the account
+    if (JSON.stringify(merged) !== JSON.stringify(dbProgress)) {
+      base44.auth.updateMe({ academy_progress: JSON.stringify(merged) }).catch(() => {});
+    }
+  }, [me]);
+
   const handleCourseComplete = (courseId, score, total, pct) => {
-    const updated = { ...completedCourses, [courseId]: { score, total, pct } };
+    const updated = { ...completedCourses, [courseId]: { score, total, pct, completed_at: new Date().toISOString() } };
     setCompletedCourses(updated);
     localStorage.setItem('academy_completed', JSON.stringify(updated));
+    base44.auth.updateMe({ academy_progress: JSON.stringify(updated) }).catch(() => {});
     setView('home');
     setActiveCourse(null);
   };
