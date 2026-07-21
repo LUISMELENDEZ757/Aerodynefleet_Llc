@@ -14,6 +14,7 @@ import {
   TrendingUp, AlertCircle, Info, ExternalLink
 } from 'lucide-react';
 import DigitalSignaturePanel from '@/components/techops/DigitalSignaturePanel';
+import { syncAfterEntryClose } from '@/lib/logbookOsSync';
 import { cn } from '@/lib/utils';
 
 // ── Status config ────────────────────────────────────────────────────────────
@@ -145,12 +146,19 @@ export default function LogEntryCard({ entry, viewRole = 'mx' }) {
   const isSigned = entry.is_signed || (Array.isArray(entry.digital_signatures) && entry.digital_signatures.length > 0);
 
   const updateMutation = useMutation({
-    mutationFn: (data) => {
+    mutationFn: async (data) => {
       if (isSigned) throw new Error('Entry is digitally signed and locked.');
-      return base44.entities.LogbookEntry.update(entry.id, data);
+      const res = await base44.entities.LogbookEntry.update(entry.id, data);
+      // Closure drives OS state: clear wired fault + promote OOS aircraft to RTS pending
+      if (data.discrepancy_status === 'CLOSED') {
+        await syncAfterEntryClose({ ...entry, ...data });
+      }
+      return res;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['logbook-entries'] });
+      queryClient.invalidateQueries({ queryKey: ['logbook-faults'] });
+      queryClient.invalidateQueries({ queryKey: ['logbook-aircraft'] });
       setAction(null);
     },
   });
@@ -212,6 +220,11 @@ export default function LogEntryCard({ entry, viewRole = 'mx' }) {
             ) : (
               <span className={cn('text-[10px] font-extrabold px-2.5 py-0.5 rounded-full text-white', typeCfg.bg)}>
                 {typeCfg.label}
+              </span>
+            )}
+            {entry.severity && SEVERITY_CFG[entry.severity] && (
+              <span className={cn('text-[10px] font-extrabold px-2 py-0.5 rounded', SEVERITY_CFG[entry.severity].bg, SEVERITY_CFG[entry.severity].text)}>
+                {SEVERITY_CFG[entry.severity].label}
               </span>
             )}
             {entry.ata_chapter && (
@@ -294,7 +307,7 @@ export default function LogEntryCard({ entry, viewRole = 'mx' }) {
               <Clock className="w-2.5 h-2.5" /> Started {new Date(entry.work_started_at).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: false })}Z
             </span>
           )}
-          {entry.mel_reference && entry.is_deferred && <MelExpiryBadge expiryDate={entry.cleared_date} />}
+          {entry.is_deferred && !entry.is_cleared && <MelExpiryBadge expiryDate={entry.mel_expiry_date} />}
           {entry.reopened_at && (
             <span className="text-[10px] text-orange-400 flex items-center gap-1">
               <RotateCcw className="w-2.5 h-2.5" /> Reopened by MCC

@@ -26,6 +26,17 @@
       ],
       "default": "discrepancy"
     },
+    "severity": {
+      "type": "string",
+      "enum": [
+        "aog",
+        "mel",
+        "ops",
+        "cabin",
+        "info"
+      ],
+      "description": "Operational impact: aog=aircraft on ground, mel=MEL item, ops=operational limitation, cabin=cabin/interior, info=routine"
+    },
     "discrepancy_status": {
       "type": "string",
       "enum": [
@@ -99,6 +110,15 @@
         "D"
       ]
     },
+    "mel_expiry_date": {
+      "type": "string",
+      "format": "date",
+      "description": "Deferral expiry computed from MEL category interval (A=1d, B=3d, C=10d, D=120d)"
+    },
+    "source_fault_id": {
+      "type": "string",
+      "description": "FaultMessage record ID this entry was wired from \u2014 fault is auto-cleared when this entry closes"
+    },
     "is_cleared": {
       "type": "boolean",
       "default": false
@@ -124,6 +144,76 @@
     },
     "parts_used": {
       "type": "string"
+    },
+    "parts": {
+      "type": "array",
+      "description": "Structured parts used/installed on this entry",
+      "items": {
+        "type": "object",
+        "properties": {
+          "description": {
+            "type": "string"
+          },
+          "part_number": {
+            "type": "string"
+          },
+          "serial_number": {
+            "type": "string"
+          },
+          "quantity": {
+            "type": "number"
+          },
+          "condition": {
+            "type": "string"
+          },
+          "on_off": {
+            "type": "string"
+          }
+        }
+      }
+    },
+    "oil_service": {
+      "type": "object",
+      "description": "Structured engine/APU oil servicing data (ATA 79)",
+      "properties": {
+        "e1_before": {
+          "type": "number"
+        },
+        "e1_added": {
+          "type": "number"
+        },
+        "e1_after": {
+          "type": "number"
+        },
+        "e2_before": {
+          "type": "number"
+        },
+        "e2_added": {
+          "type": "number"
+        },
+        "e2_after": {
+          "type": "number"
+        },
+        "apu_before": {
+          "type": "number"
+        },
+        "apu_added": {
+          "type": "number"
+        },
+        "apu_after": {
+          "type": "number"
+        },
+        "grade": {
+          "type": "string"
+        }
+      }
+    },
+    "attachments": {
+      "type": "array",
+      "description": "Uploaded photo/document URLs attached to this entry",
+      "items": {
+        "type": "string"
+      }
     },
     "captain_signature": {
       "type": "string"

@@ -21,6 +21,7 @@ import { base44 } from '@/api/base44Client';
 import { cn } from '@/lib/utils';
 import { computeCatState } from './CatSystemEngine';
 import CatStatusBanner from './CatStatusBanner';
+import { computeMelExpiry } from '@/lib/logbookOsSync';
 
 // ── Constants ────────────────────────────────────────────────────────────────
 const SEVERITY_OPTIONS = [
@@ -412,14 +413,15 @@ export default function NewLogEntryModal({ aircraftTail, aircraftType, nextLogPa
 
   const buildPayload = (overrides = {}) => {
     const partsSummary = buildPartsSummary();
-    const oilSummary = (() => {
-      const lines = [];
-      if (oil.e1_before || oil.e1_added || oil.e1_after) lines.push(`E1 Oil: Before ${oil.e1_before}qt / Added ${oil.e1_added}qt / After ${oil.e1_after}qt`);
-      if (oil.e2_before || oil.e2_added || oil.e2_after) lines.push(`E2 Oil: Before ${oil.e2_before}qt / Added ${oil.e2_added}qt / After ${oil.e2_after}qt`);
-      if (oil.apu_before || oil.apu_added || oil.apu_after) lines.push(`APU Oil: Before ${oil.apu_before}qt / Added ${oil.apu_added}qt / After ${oil.apu_after}qt`);
-      if (oil.grade) lines.push(`Oil Grade: ${oil.grade}`);
-      return lines.join('\n');
-    })();
+
+    // Structured oil service data (ATA 79) — consumable by oil-trend analytics
+    const oilHasData = ['e1', 'e2', 'apu'].some(p => oil[`${p}_before`] || oil[`${p}_added`] || oil[`${p}_after`]);
+    const oilService = oilHasData ? {
+      e1_before: parseFloat(oil.e1_before) || 0, e1_added: parseFloat(oil.e1_added) || 0, e1_after: parseFloat(oil.e1_after) || 0,
+      e2_before: parseFloat(oil.e2_before) || 0, e2_added: parseFloat(oil.e2_added) || 0, e2_after: parseFloat(oil.e2_after) || 0,
+      apu_before: parseFloat(oil.apu_before) || 0, apu_added: parseFloat(oil.apu_added) || 0, apu_after: parseFloat(oil.apu_after) || 0,
+      grade: oil.grade || '',
+    } : undefined;
 
     return {
       aircraft_tail: aircraftTail,
@@ -429,19 +431,27 @@ export default function NewLogEntryModal({ aircraftTail, aircraftType, nextLogPa
       flight_number: header.flight_number,
       station: header.station,
       description: discrepancy.description,
+      severity: discrepancy.severity,
       corrective_action: techAction.corrective_action || undefined,
       technician_name: techAction.technician_name || undefined,
       technician_id: techAction.technician_id || undefined,
       is_deferred: techAction.is_deferred,
       mel_reference: techAction.mel_reference || undefined,
       mel_category: techAction.mel_category || undefined,
+      mel_expiry_date: techAction.is_deferred && techAction.mel_category
+        ? computeMelExpiry(techAction.mel_category, header.entry_date)
+        : undefined,
       rii_required: techAction.rii_required,
       discrepancy_status: 'OPEN',
       parts_used: partsSummary || undefined,
+      parts: parts.length ? parts.map(p => ({
+        description: p.description, part_number: p.part_number, serial_number: p.serial_number,
+        quantity: parseFloat(p.quantity) || 1, condition: p.condition, on_off: p.on_off,
+      })) : undefined,
+      oil_service: oilService,
+      attachments: attachments.length ? attachments.map(a => a.url) : undefined,
       notes: [
-        oilSummary,
         techAction.notes,
-        attachments.map(a => a.url).join('\n'),
         discrepancy.reporter_role ? `Reporter: ${discrepancy.reporter_role}${discrepancy.reporter_name ? ` — ${discrepancy.reporter_name}` : ''}${discrepancy.reporter_number ? ` | #${discrepancy.reporter_number}` : ''}` : '',
       ].filter(Boolean).join('\n\n') || undefined,
       ...overrides,

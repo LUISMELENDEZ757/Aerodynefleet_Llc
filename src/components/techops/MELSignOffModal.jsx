@@ -7,6 +7,7 @@ import { X, CheckCircle, Shield, Zap, Package } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { base44 } from '@/api/base44Client';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
+import { syncAfterMelClear } from '@/lib/logbookOsSync';
 
 const inputCls = "w-full bg-[#1a2035] border border-white/10 rounded-lg px-3 py-2.5 text-sm text-white placeholder-gray-600 outline-none focus:border-primary transition-colors";
 const textareaCls = `${inputCls} resize-none`;
@@ -105,11 +106,14 @@ export default function MELSignOffModal({ melItem, aircraftTail, nextLogPage, on
         cleared_date: new Date().toISOString().split('T')[0],
         logpage_number: form.mel_control_number || undefined,
       });
+      // 3. Restore aircraft mel_ops → active when no open MELs remain
+      await syncAfterMelClear(aircraftTail);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['logbook-entries'] });
       queryClient.invalidateQueries({ queryKey: ['logbook-mel'] });
       queryClient.invalidateQueries({ queryKey: ['fleet-all-mel'] });
+      queryClient.invalidateQueries({ queryKey: ['logbook-aircraft'] });
       onClose();
     },
   });

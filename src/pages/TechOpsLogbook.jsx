@@ -19,6 +19,7 @@ import NewFaultModal from '@/components/techops/NewFaultModal';
 import LogEntryCard from '@/components/techops/LogEntryCard';
 import MELSignOffModal from '@/components/techops/MELSignOffModal';
 import OOSTriggerBanner from '@/components/oos/OOSTriggerBanner';
+import { allocateLogPage, syncAfterEntryCreate } from '@/lib/logbookOsSync';
 
 // ── Config ───────────────────────────────────────────────────────────────────
 const STATUS_STYLES = {
@@ -133,8 +134,20 @@ export default function TechOpsLogbook() {
   });
 
   const createEntryMutation = useMutation({
-    mutationFn: (data) => base44.entities.LogbookEntry.create(data),
-    onSuccess: () => { queryClient.invalidateQueries({ queryKey: ['logbook-entries'] }); setShowNewEntry(false); },
+    mutationFn: async (data) => {
+      // Allocate LP# fresh at save time — avoids stale collisions between devices/sessions
+      const log_page = await allocateLogPage(selectedTail);
+      const entry = await base44.entities.LogbookEntry.create({ ...data, log_page });
+      // Drive OS state: AOG → OOS, deferral → MELItem + mel_ops
+      await syncAfterEntryCreate({ ...data, log_page, id: entry.id });
+      return entry;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['logbook-entries'] });
+      queryClient.invalidateQueries({ queryKey: ['logbook-mel'] });
+      queryClient.invalidateQueries({ queryKey: ['logbook-aircraft'] });
+      setShowNewEntry(false);
+    },
   });
 
   const createFaultMutation = useMutation({
@@ -153,6 +166,7 @@ export default function TechOpsLogbook() {
       return base44.entities.LogbookEntry.create({
         aircraft_tail: fault.aircraft_tail,
         log_page: nextPage,
+        source_fault_id: fault.id,
         entry_type: 'discrepancy',
         ata_chapter: fault.ata_chapter || '',
         station: ac?.base_station || '',
