@@ -275,7 +275,7 @@ const AuthenticatedApp = () => {
         <Route path="/InspectorMode" element={<InspectorMode />} />
         <Route path="/UserManagement" element={<UserManagement />} />
         <Route path="/CostReporting" element={<CostReporting />} />
-        <Route path="/FleetDashboard" element={<FleetDashboard onOpenAircraft={(a) => window.location.assign(`/AircraftDetail?tail=${encodeURIComponent(a.tail)}`)} />} />
+        <Route path="/FleetDashboard" element={<FleetDashboard onOpenAircraft={(a) => window.location.assign(`/TechOpsLogbook?tail=${encodeURIComponent(a.tail)}`)} />} />
         <Route path="/TechOpsLogbook" element={<TechOpsLogbook />} />
         <Route path="/CabinDiscrepancy" element={<CabinDiscrepancy />} />
         <Route path="/ToolingManagement" element={<ToolingManagement />} />
