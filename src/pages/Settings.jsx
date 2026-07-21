@@ -4,7 +4,7 @@ import { base44 } from '@/api/base44Client';
 import { Link } from 'react-router-dom';
 import {
   Settings, Users, Shield, FileText, BarChart3, AlertCircle,
-  ChevronRight, Plus, Server, Bell, LogOut, ChevronLeft, Lock, Plane, Megaphone
+  ChevronRight, Plus, Server, Bell, LogOut, ChevronLeft, Lock, Plane, Megaphone, Radio
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import UserApprovalPanel from '@/components/settings/UserApprovalPanel';
@@ -189,6 +189,19 @@ export default function SettingsPage() {
           >
             <Plus className="w-3.5 h-3.5" /> Add Aircraft
           </button>
+        </AdminCard>
+
+        {/* Telemetry Hub — admin-restricted */}
+        <AdminCard
+          icon={Radio}
+          title="OEM Telemetry Hub"
+          description="OEM integrations (Boeing, Airbus, GE…) and telemetry data imports"
+          action="/TelemetryHub"
+          actionLabel="Open Hub"
+        >
+          <div className="bg-secondary/50 rounded-lg px-3 py-2 text-xs text-muted-foreground">
+            Restricted · administrator access only
+          </div>
         </AdminCard>
 
         {/* System Updates */}

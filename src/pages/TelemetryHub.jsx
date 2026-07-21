@@ -12,6 +12,7 @@ import LiveClock from '@/components/ui/LiveClock';
 import OEMConnectorCard from '@/components/telemetry/OEMConnectorCard';
 import TelemetryImportModal from '@/components/telemetry/TelemetryImportModal';
 import OEMConfigModal from '@/components/telemetry/OEMConfigModal';
+import RoleGuard from '@/components/rbac/RoleGuard';
 
 // ── Pre-seeded OEM definitions (shown even before user creates DB records) ──
 const DEFAULT_OEMS = [
@@ -35,7 +36,16 @@ const TABS = [
   { id: 'imports',      label: 'Data Imports',     icon: Database },
 ];
 
+// Admin-only — accessed via the Administration dashboard
 export default function TelemetryHub() {
+  return (
+    <RoleGuard roles={['admin']}>
+      <TelemetryHubContent />
+    </RoleGuard>
+  );
+}
+
+function TelemetryHubContent() {
   const [activeTab, setActiveTab] = useState('integrations');
   const [categoryFilter, setCategoryFilter] = useState('all');
   const [search, setSearch] = useState('');

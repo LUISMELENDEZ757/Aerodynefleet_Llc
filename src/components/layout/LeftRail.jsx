@@ -31,7 +31,6 @@ const NAV_GROUPS = [
       { label: 'Avionics', icon: '📡', path: '/AvionicsDashboard' },
       { label: 'Boeing AHM', icon: '📡', path: '/BoeingAHM' },
       { label: 'Airbus Skywise', icon: '🌐', path: '/AirbusSkyw' },
-      { label: 'Telemetry Hub', icon: '📶', path: '/TelemetryHub' },
       { label: 'AI Forecasting', icon: '🤖', path: '/AIForecasting' },
       { label: 'AI MX Copilot', icon: '🧠', path: '/AICopilot' },
       { label: 'AOG Forecast', icon: '⚠️', path: '/AOGForecast' },
@@ -161,6 +160,7 @@ const NAV_GROUPS = [
 
       { label: 'Screensaver Admin', icon: '🖥️', path: '/ScreensaverAdmin' },
       { label: 'Integration Hub', icon: '🔌', path: '/IntegrationHub' },
+      { label: 'Telemetry Hub', icon: '📶', path: '/TelemetryHub' },
       { label: 'Comm Center', icon: '📞', path: '/CommCenter' },
     ],
   },
