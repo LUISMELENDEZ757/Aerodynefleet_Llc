@@ -14,6 +14,7 @@ import EtopsCapabilityBadge from '@/components/techops/EtopsCapabilityBadge';
 import { selectPrimaryMel } from '@/lib/MelSeverityEngine';
 import GateManagement from '@/components/station/GateManagement';
 import TurnPerformanceCard from '@/components/station/TurnPerformanceCard';
+import StationFidsBoard from '@/components/fids/StationFidsBoard';
 
 const SERVICING_STATES = {
   not_started: { label: 'Not Started', color: 'text-gray-400', bg: 'bg-gray-500/15', border: 'border-gray-500/30' },
@@ -382,6 +383,8 @@ export default function StationDashboard() {
           </div>
         </div>
         
+        <StationFidsBoard icao={icao} />
+
         <div>
           <div className="flex items-center justify-between mb-3">
             <p className="text-xs font-bold text-gray-500 uppercase tracking-widest flex items-center gap-2">

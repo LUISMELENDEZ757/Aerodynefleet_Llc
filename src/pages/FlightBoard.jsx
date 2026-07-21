@@ -15,8 +15,9 @@ const MODES = [
 ];
 
 export default function FlightBoard() {
-  const [airport, setAirport] = useState('KEWR');
-  const [airportInput, setAirportInput] = useState('KEWR');
+  const urlIcao = new URLSearchParams(window.location.search).get('icao')?.toUpperCase();
+  const [airport, setAirport] = useState(urlIcao || 'KEWR');
+  const [airportInput, setAirportInput] = useState(urlIcao || 'KEWR');
   const [mode, setMode] = useState('departures');
   const [zuluTime, setZuluTime] = useState(new Date());
 
