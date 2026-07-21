@@ -1,4 +1,6 @@
 import { Link } from 'react-router-dom';
+import { useMutation, useQueryClient } from '@tanstack/react-query';
+import { base44 } from '@/api/base44Client';
 import { AlertTriangle, CheckCircle, Clock, ExternalLink } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
@@ -11,6 +13,18 @@ const STATUS_COLOR = {
 };
 
 export default function MccMelBoard({ melItems, aircraft }) {
+  const qc = useQueryClient();
+  const clearMutation = useMutation({
+    mutationFn: async (item) => {
+      const me = await base44.auth.me();
+      return base44.entities.MELItem.update(item.id, {
+        status: 'cleared',
+        cleared_date: new Date().toISOString().split('T')[0],
+        cleared_by: me.full_name,
+      });
+    },
+    onSuccess: () => qc.invalidateQueries({ queryKey: ['mcc-mel'] }),
+  });
   const open     = melItems.filter(m => m.status !== 'cleared').sort((a, b) => {
     const order = { expired: 0, expiring_soon: 1, open: 2 };
     return (order[a.status] ?? 3) - (order[b.status] ?? 3);
@@ -59,9 +73,18 @@ export default function MccMelBoard({ melItems, aircraft }) {
                   {item.category && <span className={cn('text-[10px] font-extrabold px-2 py-0.5 rounded-full', CAT_COLOR[item.category] || CAT_COLOR.D)}>CAT {item.category}</span>}
                   {item.ata_chapter && <span className="text-[10px] text-gray-500">ATA {item.ata_chapter}</span>}
                 </div>
-                <span className={cn('text-[10px] font-bold px-2 py-1 rounded-lg flex-shrink-0', STATUS_COLOR[item.status] || STATUS_COLOR.open)}>
-                  {item.status?.replace('_', ' ').toUpperCase()}
-                </span>
+                <div className="flex items-center gap-2 flex-shrink-0">
+                  <span className={cn('text-[10px] font-bold px-2 py-1 rounded-lg', STATUS_COLOR[item.status] || STATUS_COLOR.open)}>
+                    {item.status?.replace('_', ' ').toUpperCase()}
+                  </span>
+                  <button
+                    onClick={() => clearMutation.mutate(item)}
+                    disabled={clearMutation.isPending}
+                    className="text-[10px] font-extrabold px-2.5 py-1 rounded-lg border border-green-500/40 text-green-400 hover:bg-green-500/10 transition-colors disabled:opacity-40"
+                  >
+                    Clear
+                  </button>
+                </div>
               </div>
               <p className="text-sm text-gray-300">{item.description}</p>
               <div className="flex flex-wrap gap-3 text-[10px] text-gray-500">

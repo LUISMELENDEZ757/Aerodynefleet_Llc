@@ -1,4 +1,6 @@
 import { Link } from 'react-router-dom';
+import { useMutation, useQueryClient } from '@tanstack/react-query';
+import { base44 } from '@/api/base44Client';
 import { Wrench, Clock, Package, CheckCircle, ExternalLink } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
@@ -9,9 +11,21 @@ const STATUS_CFG = {
   deferred:          { label: 'DEFERRED',         color: 'text-amber-400',  bg: 'bg-amber-500/20' },
 };
 
+const NEXT_ACTIONS = {
+  in_work:          [{ to: 'waiting_on_parts', label: 'Waiting Parts', cls: 'text-red-400 border-red-500/40 hover:bg-red-500/10' }, { to: 'deferred', label: 'Defer', cls: 'text-amber-400 border-amber-500/40 hover:bg-amber-500/10' }, { to: 'released', label: 'Release', cls: 'text-green-400 border-green-500/40 hover:bg-green-500/10' }],
+  waiting_on_parts: [{ to: 'in_work', label: 'Back In Work', cls: 'text-orange-400 border-orange-500/40 hover:bg-orange-500/10' }, { to: 'released', label: 'Release', cls: 'text-green-400 border-green-500/40 hover:bg-green-500/10' }],
+  deferred:         [{ to: 'in_work', label: 'Back In Work', cls: 'text-orange-400 border-orange-500/40 hover:bg-orange-500/10' }, { to: 'released', label: 'Release', cls: 'text-green-400 border-green-500/40 hover:bg-green-500/10' }],
+};
+
 export default function MccOosBoard({ oosEntries, aircraft }) {
+  const qc = useQueryClient();
   const open = oosEntries.filter(e => e.status !== 'released');
   const released = oosEntries.filter(e => e.status === 'released').slice(0, 5);
+
+  const statusMutation = useMutation({
+    mutationFn: ({ id, status }) => base44.entities.OOSEntry.update(id, { status }),
+    onSuccess: () => qc.invalidateQueries({ queryKey: ['mcc-oos'] }),
+  });
 
   return (
     <div className="space-y-5">
@@ -50,6 +64,18 @@ export default function MccOosBoard({ oosEntries, aircraft }) {
                   {entry.delay_category && <span>Delay Cat: {entry.delay_category}</span>}
                 </div>
                 {entry.notes && <p className="text-xs text-gray-500 italic">{entry.notes}</p>}
+                <div className="flex gap-2 pt-1">
+                  {(NEXT_ACTIONS[entry.status] || NEXT_ACTIONS.in_work).map(a => (
+                    <button
+                      key={a.to}
+                      onClick={() => statusMutation.mutate({ id: entry.id, status: a.to })}
+                      disabled={statusMutation.isPending}
+                      className={cn('px-3 py-1.5 rounded-lg text-[10px] font-extrabold border bg-transparent transition-colors disabled:opacity-40', a.cls)}
+                    >
+                      {a.label}
+                    </button>
+                  ))}
+                </div>
               </div>
             );
           })}

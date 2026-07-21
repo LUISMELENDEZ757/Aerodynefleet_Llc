@@ -1,4 +1,6 @@
 import { Link } from 'react-router-dom';
+import { useMutation, useQueryClient } from '@tanstack/react-query';
+import { base44 } from '@/api/base44Client';
 import { Zap, CheckCircle, ExternalLink, AlertTriangle } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
@@ -10,6 +12,11 @@ const SEV_CFG = {
 };
 
 export default function MccFaultBoard({ faults, aircraft }) {
+  const qc = useQueryClient();
+  const clearMutation = useMutation({
+    mutationFn: (id) => base44.entities.FaultMessage.update(id, { status: 'cleared', cleared_at: new Date().toISOString() }),
+    onSuccess: () => qc.invalidateQueries({ queryKey: ['mcc-faults'] }),
+  });
   const active  = faults.filter(f => f.status === 'active').sort((a, b) => {
     const order = { warning: 0, caution: 1, advisory: 2, memo: 3 };
     return (order[a.severity] ?? 4) - (order[b.severity] ?? 4);
@@ -58,6 +65,13 @@ export default function MccFaultBoard({ faults, aircraft }) {
                       <p className="text-xs text-gray-400 mt-0.5">{f.description}</p>
                       {f.ata_chapter && <p className="text-[10px] text-gray-600 mt-0.5">ATA {f.ata_chapter}</p>}
                     </div>
+                    <button
+                      onClick={() => clearMutation.mutate(f.id)}
+                      disabled={clearMutation.isPending}
+                      className="flex-shrink-0 text-[10px] font-extrabold px-2.5 py-1 rounded-lg border border-green-500/40 text-green-400 hover:bg-green-500/10 transition-colors disabled:opacity-40"
+                    >
+                      Clear
+                    </button>
                   </div>
                 );
               })}

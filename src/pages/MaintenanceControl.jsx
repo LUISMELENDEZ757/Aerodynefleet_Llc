@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import { base44 } from '@/api/base44Client';
@@ -21,10 +21,10 @@ import { Plus } from 'lucide-react';
 
 function ZuluClock() {
   const [t, setT] = useState(new Date());
-  useState(() => {
+  useEffect(() => {
     const id = setInterval(() => setT(new Date()), 1000);
     return () => clearInterval(id);
-  });
+  }, []);
   const zuluStr = t.toLocaleTimeString('en-US', {
     hour: '2-digit', minute: '2-digit', second: '2-digit',
     hour12: false, timeZone: 'UTC',
@@ -344,7 +344,7 @@ export default function MaintenanceControl() {
               </div>
               <p className="text-xs text-gray-500">Select a station to view or create recovery operations by location.</p>
               <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
-                {['KEWR', 'KJFK', 'KORD', 'KATL', 'KLAX', 'KSFO', 'KDEN', 'KMIA', 'KDFW', 'KSEA', 'KBOS', 'KDCA'].map(station => {
+                {[...new Set(['KEWR', 'KJFK', 'KORD', 'KATL', 'KLAX', 'KSFO', 'KDEN', 'KMIA', 'KDFW', 'KSEA', 'KBOS', 'KDCA', ...oosEntries.map(e => e.station).filter(Boolean)])].map(station => {
                   const stationAircraft = oosEntries.filter(e => e.station === station);
                   const count = stationAircraft.length;
                   return (
@@ -373,43 +373,51 @@ export default function MaintenanceControl() {
         {activeTab === 'parts'   && <MccPartsBoard parts={parts} oosEntries={oosEntries} />}
         {activeTab === 'tooling' && <MccToolingBoard tools={tools} />}
 
-        {activeTab === 'supervisor' && (
-          <div className="space-y-5">
-            <SupervisorHandoverModule />
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
-              <div className="bg-card border border-border rounded-2xl p-5 space-y-3">
-                <div className="flex items-center gap-2">
-                  <Users className="w-4 h-4 text-primary" />
-                  <p className="text-sm font-bold text-foreground">Teams</p>
+        {activeTab === 'supervisor' && (() => {
+          const activeStations = new Set(oosEntries.filter(e => e.status !== 'released').map(e => e.station).filter(Boolean));
+          const releasedCount = oosEntries.filter(e => e.status === 'released').length;
+          const completionRate = oosEntries.length > 0 ? Math.round((releasedCount / oosEntries.length) * 100) : 100;
+          const criticalCount =
+            faults.filter(f => f.status === 'active' && f.severity === 'warning').length +
+            melItems.filter(m => m.status === 'expired').length;
+          return (
+            <div className="space-y-5">
+              <SupervisorHandoverModule />
+              <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+                <div className="bg-card border border-border rounded-2xl p-5 space-y-3">
+                  <div className="flex items-center gap-2">
+                    <Users className="w-4 h-4 text-primary" />
+                    <p className="text-sm font-bold text-foreground">Active Stations</p>
+                  </div>
+                  <div className="bg-secondary/50 rounded-xl p-3 text-center">
+                    <p className="text-2xl font-black text-primary">{activeStations.size}</p>
+                    <p className="text-xs text-muted-foreground mt-1">Stations with open OOS work</p>
+                  </div>
                 </div>
-                <div className="bg-secondary/50 rounded-xl p-3 text-center">
-                  <p className="text-2xl font-black text-primary">3</p>
-                  <p className="text-xs text-muted-foreground mt-1">MCC teams</p>
+                <div className="bg-card border border-border rounded-2xl p-5 space-y-3">
+                  <div className="flex items-center gap-2">
+                    <Activity className="w-4 h-4 text-amber-400" />
+                    <p className="text-sm font-bold text-foreground">Completion Rate</p>
+                  </div>
+                  <div className="bg-secondary/50 rounded-xl p-3 text-center">
+                    <p className="text-2xl font-black text-amber-400">{completionRate}%</p>
+                    <p className="text-xs text-muted-foreground mt-1">{releasedCount} of {oosEntries.length} OOS items released</p>
+                  </div>
                 </div>
-              </div>
-              <div className="bg-card border border-border rounded-2xl p-5 space-y-3">
-                <div className="flex items-center gap-2">
-                  <Activity className="w-4 h-4 text-amber-400" />
-                  <p className="text-sm font-bold text-foreground">Completion Rate</p>
-                </div>
-                <div className="bg-secondary/50 rounded-xl p-3 text-center">
-                  <p className="text-2xl font-black text-amber-400">94%</p>
-                  <p className="text-xs text-muted-foreground mt-1">Tasks completed</p>
-                </div>
-              </div>
-              <div className="bg-card border border-border rounded-2xl p-5 space-y-3">
-                <div className="flex items-center gap-2">
-                  <Activity className="w-4 h-4 text-orange-400" />
-                  <p className="text-sm font-bold text-foreground">Critical Issues</p>
-                </div>
-                <div className="bg-secondary/50 rounded-xl p-3 text-center">
-                  <p className="text-2xl font-black text-orange-400">2</p>
-                  <p className="text-xs text-muted-foreground mt-1">Escalated</p>
+                <div className="bg-card border border-border rounded-2xl p-5 space-y-3">
+                  <div className="flex items-center gap-2">
+                    <Activity className="w-4 h-4 text-orange-400" />
+                    <p className="text-sm font-bold text-foreground">Critical Issues</p>
+                  </div>
+                  <div className="bg-secondary/50 rounded-xl p-3 text-center">
+                    <p className="text-2xl font-black text-orange-400">{criticalCount}</p>
+                    <p className="text-xs text-muted-foreground mt-1">Active warnings + expired MELs</p>
+                  </div>
                 </div>
               </div>
             </div>
-          </div>
-        )}
+          );
+        })()}
         {activeTab === 'locks' && (
           <MccLockBoard aircraft={aircraft} />
         )}
