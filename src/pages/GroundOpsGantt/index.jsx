@@ -1,4 +1,5 @@
 import { useState, useEffect, useMemo, useRef } from "react";
+import { createPortal } from "react-dom";
 import { useNavigate } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import { base44 } from "@/api/base44Client";
@@ -14,6 +15,7 @@ import {
   capacityByStation, capacityForBoard, nextSeq, buildFleet,
 } from "./ganttUtils";
 import { Chip, Stat, inp, L, I, tag, linkBtn } from "./ganttUi";
+import AircraftMelInspections from "./AircraftMelInspections";
 
 export default function GroundOpsGantt({ onOpenAircraft, onNavigate }) {
   const routerNav = useNavigate();
@@ -580,9 +582,9 @@ export default function GroundOpsGantt({ onOpenAircraft, onNavigate }) {
         </div>
       </div>
 
-      {/* detail drawer */}
-      {selAc && selEvt && (
-        <div style={{ position: "fixed", inset: 0, zIndex: 40, display: "flex", justifyContent: "flex-end", background: "#0009" }} onClick={() => setSel(null)}>
+      {/* detail drawer — portaled to body so parent transforms can't trap position:fixed */}
+      {selAc && selEvt && createPortal(
+        <div style={{ position: "fixed", inset: 0, zIndex: 70, display: "flex", justifyContent: "flex-end", background: "#0009" }} onClick={() => setSel(null)}>
           <div style={{ height: "100%", width: 384, maxWidth: "100%", padding: 20, overflowY: "auto", background: C.panel2, borderLeft: `1px solid ${C.line}` }} onClick={(e) => e.stopPropagation()}>
             <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
               <span style={{ fontFamily: MONO, fontSize: 18, fontWeight: 700 }}>{selAc.tail}</span>
@@ -693,6 +695,9 @@ export default function GroundOpsGantt({ onOpenAircraft, onNavigate }) {
               </div>
             </div>
 
+            {/* restrictive MELs + daily/repetitive inspections (live DB) */}
+            <AircraftMelInspections tail={selAc.tail} />
+
             {/* conflicts */}
             {confPairs.filter((p) => p.a.e.id === selEvt.id || p.b.e.id === selEvt.id).map((p, i) => {
               const other = p.a.e.id === selEvt.id ? p.b : p.a;
@@ -791,12 +796,13 @@ export default function GroundOpsGantt({ onOpenAircraft, onNavigate }) {
               {String(selEvt.id).startsWith("M-") && <button onClick={() => delManual(selEvt.id)} style={{ ...linkBtn(C.aog), textAlign: "center" }}>REMOVE TURNAROUND</button>}
             </div>
           </div>
-        </div>
+        </div>,
+        document.body
       )}
 
       {/* MX opportunity panel */}
-      {showOpty && (
-        <div style={{ position: "fixed", inset: 0, zIndex: 60, display: "flex", justifyContent: "flex-end", background: "#0009" }} onClick={() => setShowOpty(false)}>
+      {showOpty && createPortal(
+        <div style={{ position: "fixed", inset: 0, zIndex: 70, display: "flex", justifyContent: "flex-end", background: "#0009" }} onClick={() => setShowOpty(false)}>
           <div style={{ height: "100%", width: 400, maxWidth: "92vw", padding: 20, overflowY: "auto", background: C.panel2, borderLeft: `1px solid ${C.line}` }} onClick={(e) => e.stopPropagation()}>
             <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
               <span style={{ fontSize: 18, fontWeight: 800 }}>⚒ Opportunity MX</span>
@@ -823,12 +829,13 @@ export default function GroundOpsGantt({ onOpenAircraft, onNavigate }) {
               </div>
             ))}
           </div>
-        </div>
+        </div>,
+        document.body
       )}
 
       {/* handover brief */}
-      {showHandover && (
-        <div style={{ position: "fixed", inset: 0, zIndex: 60, display: "flex", alignItems: "center", justifyContent: "center", padding: 16, background: "#000B" }} onClick={() => setShowHandover(false)}>
+      {showHandover && createPortal(
+        <div style={{ position: "fixed", inset: 0, zIndex: 70, display: "flex", alignItems: "center", justifyContent: "center", padding: 16, background: "#000B" }} onClick={() => setShowHandover(false)}>
           <div style={{ width: "100%", maxWidth: 720, maxHeight: "90vh", display: "flex", flexDirection: "column", borderRadius: 12, overflow: "hidden", background: C.panel2, border: `1px solid ${C.line}` }} onClick={(e) => e.stopPropagation()}>
             <div style={{ display: "flex", alignItems: "center", gap: 12, padding: "12px 18px", borderBottom: `1px solid ${C.line}` }}>
               <span style={{ fontSize: 17, fontWeight: 800 }}>⇪ Shift Handover Brief</span>
@@ -837,12 +844,13 @@ export default function GroundOpsGantt({ onOpenAircraft, onNavigate }) {
             </div>
             <pre style={{ padding: 18, overflow: "auto", margin: 0, fontFamily: MONO, fontSize: 11, lineHeight: 1.6, color: C.text, whiteSpace: "pre-wrap" }}>{buildHandover()}</pre>
           </div>
-        </div>
+        </div>,
+        document.body
       )}
 
       {/* add modal */}
-      {showAdd && (
-        <div style={{ position: "fixed", inset: 0, zIndex: 40, display: "flex", alignItems: "center", justifyContent: "center", padding: 16, background: "#000A" }} onClick={() => setShowAdd(false)}>
+      {showAdd && createPortal(
+        <div style={{ position: "fixed", inset: 0, zIndex: 70, display: "flex", alignItems: "center", justifyContent: "center", padding: 16, background: "#000A" }} onClick={() => setShowAdd(false)}>
           <div style={{ width: "100%", maxWidth: 460, padding: 20, borderRadius: 12, background: C.panel2, border: `1px solid ${C.line}`, maxHeight: "90vh", overflowY: "auto" }} onClick={(e) => e.stopPropagation()}>
             <div style={{ fontSize: 18, fontWeight: 800, letterSpacing: "0.03em", marginBottom: 14 }}>ADD TURNAROUND</div>
             <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12, fontSize: 12 }}>
@@ -869,7 +877,8 @@ export default function GroundOpsGantt({ onOpenAircraft, onNavigate }) {
               <button onClick={() => setShowAdd(false)} style={{ padding: "9px 16px", borderRadius: 6, fontSize: 12, border: `1px solid ${C.line}`, color: C.mut, background: "transparent", fontFamily: MONO, cursor: "pointer" }}>CANCEL</button>
             </div>
           </div>
-        </div>
+        </div>,
+        document.body
       )}
     </div>
   );
