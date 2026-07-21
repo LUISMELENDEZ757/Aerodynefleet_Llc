@@ -4,6 +4,9 @@ import { base44 } from '@/api/base44Client';
 import { BookMarked, Search, Plus, RefreshCw, ExternalLink, Tag } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { cn } from '@/lib/utils';
+import { useAutoMeNumber } from '@/hooks/useAutoMeNumber';
+import { issueMeNumber } from '@/lib/meNumberingClient';
+import { DOC_TYPES, ATA_CHAPTERS } from '../../base44/shared/meNumbering';
 
 const CAT_CFG = {
   far:      { label: 'FAR', color: 'text-blue-400', bg: 'bg-blue-500/15' },
@@ -17,14 +20,24 @@ const CAT_CFG = {
 
 function NewDocModal({ onSave, onClose }) {
   const [form, setForm] = useState({
-    title: '', category: 'sop', document_number: '', revision: '', effective_date: '',
+    title: '', category: 'sop', document_number: '', revision: '1', effective_date: '',
+    doc_type: 'SOP', ata_chapter: '21',
     summary: '', content: '', tags: '',
   });
   const set = (k, v) => setForm(p => ({ ...p, [k]: v }));
+  const { autoGen, setAutoGen, issuing } = useAutoMeNumber(true);
 
-  const handleSave = () => {
+  const handleSave = async () => {
     const tags = form.tags ? form.tags.split(',').map(t => t.trim()).filter(Boolean) : [];
-    onSave({ ...form, tags, is_active: true });
+    const { doc_type, ata_chapter, ...rest } = form;
+    const payload = { ...rest, tags, is_active: true };
+    if (autoGen && !form.document_number.trim() && form.doc_type) {
+      const revNum = form.revision ? Number(String(form.revision).replace(/[^0-9]/g, '') || 1) : 1;
+      const num = await issueMeNumber({ number_type: 'document', doc_type: form.doc_type, ata: form.ata_chapter, rev: revNum });
+      if (!num) return;
+      payload.document_number = num;
+    }
+    onSave(payload);
   };
 
   return (
@@ -46,10 +59,29 @@ function NewDocModal({ onSave, onClose }) {
               {Object.entries(CAT_CFG).map(([k, v]) => <option key={k} value={k}>{v.label}</option>)}
             </select>
           </div>
-          <div>
-            <label className="text-xs text-muted-foreground">Doc Number</label>
-            <input value={form.document_number} onChange={e => set('document_number', e.target.value)}
-              className="w-full h-9 bg-secondary border border-border rounded-lg px-3 text-sm font-mono text-foreground focus:outline-none focus:ring-1 focus:ring-primary mt-1" />
+          <div className="space-y-2">
+            <div className="flex items-center justify-between">
+              <label className="text-xs text-muted-foreground">M&E Doc Number</label>
+              <label className="flex items-center gap-1.5 cursor-pointer">
+                <input type="checkbox" checked={autoGen} onChange={e => setAutoGen(e.target.checked)} className="w-3.5 h-3.5 accent-primary" />
+                <span className="text-[9px] font-bold text-primary uppercase">Auto-gen</span>
+              </label>
+            </div>
+            <input value={autoGen ? '' : form.document_number} disabled={autoGen} onChange={e => set('document_number', e.target.value)}
+              placeholder={autoGen ? `${form.doc_type}-${form.ata_chapter || 'NN'}-XXXX-Rev ${form.revision || 1}` : 'Doc number'}
+              className="w-full h-9 bg-secondary border border-border rounded-lg px-3 text-sm font-mono text-foreground focus:outline-none focus:ring-1 focus:ring-primary disabled:opacity-60" />
+            {autoGen && (
+              <div className="grid grid-cols-2 gap-2">
+                <select value={form.doc_type} onChange={e => set('doc_type', e.target.value)}
+                  className="w-full h-9 bg-secondary border border-border rounded-lg px-2 text-xs text-foreground focus:outline-none focus:ring-1 focus:ring-primary">
+                  {DOC_TYPES.map(d => <option key={d.code} value={d.code}>{d.code} — {d.name}</option>)}
+                </select>
+                <select value={form.ata_chapter} onChange={e => set('ata_chapter', e.target.value)}
+                  className="w-full h-9 bg-secondary border border-border rounded-lg px-2 text-xs text-foreground focus:outline-none focus:ring-1 focus:ring-primary">
+                  {ATA_CHAPTERS.map(a => <option key={a.code} value={a.code}>{a.code} — {a.name}</option>)}
+                </select>
+              </div>
+            )}
           </div>
           <div>
             <label className="text-xs text-muted-foreground">Revision</label>
@@ -78,9 +110,9 @@ function NewDocModal({ onSave, onClose }) {
             className="w-full h-9 bg-secondary border border-border rounded-lg px-3 text-sm text-foreground focus:outline-none focus:ring-1 focus:ring-primary mt-1" />
         </div>
         <div className="flex gap-2">
-          <button onClick={handleSave} disabled={!form.title}
+          <button onClick={handleSave} disabled={issuing || !form.title}
             className="flex-1 h-10 bg-primary text-primary-foreground text-sm font-bold rounded-lg hover:bg-primary/90 transition-colors disabled:opacity-40">
-            Add Document
+            {issuing ? 'Allocating…' : 'Add Document'}
           </button>
           <button onClick={onClose} className="flex-1 h-10 border border-border text-sm font-semibold text-muted-foreground rounded-lg hover:text-foreground transition-colors">
             Cancel

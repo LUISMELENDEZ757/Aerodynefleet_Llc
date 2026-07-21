@@ -15,6 +15,10 @@
       "type": "string",
       "description": "Part description e.g. Main Landing Gear Actuator"
     },
+    "me_number": {
+      "type": "string",
+      "description": "Aerodyne M&E internal part number (auto-allocated per ATA-Sub-Class-Seq standard) e.g. 32-000-9-0001"
+    },
     "ata_chapter": {
       "type": "string",
       "description": "ATA chapter e.g. 32"

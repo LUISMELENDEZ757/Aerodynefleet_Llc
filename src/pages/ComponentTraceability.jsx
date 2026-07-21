@@ -8,6 +8,9 @@ import {
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import RoleGuard from '@/components/rbac/RoleGuard';
+import { useAutoMeNumber } from '@/hooks/useAutoMeNumber';
+import { issueMeNumber } from '@/lib/meNumberingClient';
+import { CLASS_CODES } from '../../base44/shared/meNumbering';
 
 const STATUS_CFG = {
   serviceable:   { color: 'text-green-400',  bg: 'bg-green-500/15',  border: 'border-green-500/30' },
@@ -122,7 +125,7 @@ function ComponentCard({ comp }) {
 
 function NewComponentModal({ aircraft, onClose, onCreate }) {
   const [form, setForm] = useState({
-    part_number: '', serial_number: '', part_name: '', ata_chapter: '',
+    part_number: '', serial_number: '', part_name: '', me_number: '', ata_chapter: '',
     manufacturer: '', cage_code: '', status: 'serviceable', condition: 'serviceable_used',
     current_aircraft_tail: '', current_position: '',
     total_time_hours: '', total_cycles: '',
@@ -132,10 +135,12 @@ function NewComponentModal({ aircraft, onClose, onCreate }) {
     is_life_limited: false, notes: '',
   });
   const set = (k, v) => setForm(p => ({ ...p, [k]: v }));
+  const { autoGen, setAutoGen, issuing } = useAutoMeNumber(true);
+  const [meClass, setMeClass] = useState('9');
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    onCreate({
+    const payload = {
       ...form,
       total_time_hours: form.total_time_hours ? Number(form.total_time_hours) : undefined,
       total_cycles: form.total_cycles ? Number(form.total_cycles) : undefined,
@@ -150,7 +155,13 @@ function NewComponentModal({ aircraft, onClose, onCreate }) {
         installed_date: new Date().toISOString().split('T')[0],
         hours_at_install: Number(form.total_time_hours) || 0,
       }] : [],
-    });
+    };
+    if (autoGen && !form.me_number.trim() && form.ata_chapter) {
+      const num = await issueMeNumber({ number_type: 'me_part', ata: form.ata_chapter, sub: '000', class_code: meClass });
+      if (!num) return;
+      payload.me_number = num;
+    }
+    onCreate(payload);
     onClose();
   };
 
@@ -170,6 +181,27 @@ function NewComponentModal({ aircraft, onClose, onCreate }) {
           </div>
           <div><label className="text-[10px] font-bold text-gray-500 uppercase tracking-widest block mb-1">Part Name / Description *</label>
             <input required value={form.part_name} onChange={e => set('part_name', e.target.value)} className={inputCls} /></div>
+          {/* Aerodyne M&E Number auto-allocation */}
+          <div className="border border-amber-500/20 bg-amber-500/5 rounded-xl p-3 space-y-2">
+            <div className="flex items-center justify-between">
+              <span className="text-[10px] font-extrabold text-amber-400 uppercase tracking-widest">Aerodyne M&E Number</span>
+              <label className="flex items-center gap-1.5 cursor-pointer">
+                <input type="checkbox" checked={autoGen} onChange={e => setAutoGen(e.target.checked)} className="w-3.5 h-3.5 accent-amber-500" />
+                <span className="text-[9px] font-bold text-amber-500 uppercase">Auto-gen</span>
+              </label>
+            </div>
+            <input value={autoGen ? '' : form.me_number} disabled={autoGen} onChange={e => set('me_number', e.target.value)}
+              placeholder={autoGen ? `${form.ata_chapter || 'NN'}-000-${meClass}-XXXX` : 'Internal M&E part number'}
+              className={inputCls + (autoGen ? ' opacity-60' : '')} />
+            {autoGen && (
+              <div>
+                <label className="text-[9px] font-bold text-gray-600 uppercase block mb-1">Class Code</label>
+                <select value={meClass} onChange={e => setMeClass(e.target.value)} className={inputCls}>
+                  {Object.entries(CLASS_CODES).map(([c, n]) => <option key={c} value={c}>{c} — {n}</option>)}
+                </select>
+              </div>
+            )}
+          </div>
           <div className="grid grid-cols-3 gap-3">
             <div><label className="text-[10px] font-bold text-gray-500 uppercase tracking-widest block mb-1">ATA Chapter</label>
               <input value={form.ata_chapter} onChange={e => set('ata_chapter', e.target.value)} placeholder="e.g. 32" className={inputCls} /></div>
@@ -239,8 +271,8 @@ function NewComponentModal({ aircraft, onClose, onCreate }) {
           </label>
           <div className="flex gap-3 pt-2">
             <button type="button" onClick={onClose} className="flex-1 py-2.5 rounded-xl border border-white/10 text-sm font-bold text-gray-400 hover:bg-white/5">Cancel</button>
-            <button type="submit" className="flex-1 py-2.5 rounded-xl bg-primary text-primary-foreground text-sm font-bold hover:bg-primary/90 flex items-center justify-center gap-2">
-              <Send className="w-4 h-4" /> Add Component
+            <button type="submit" disabled={issuing} className="flex-1 py-2.5 rounded-xl bg-primary text-primary-foreground text-sm font-bold hover:bg-primary/90 flex items-center justify-center gap-2 disabled:opacity-50">
+              <Send className="w-4 h-4" /> {issuing ? 'Allocating…' : 'Add Component'}
             </button>
           </div>
         </form>

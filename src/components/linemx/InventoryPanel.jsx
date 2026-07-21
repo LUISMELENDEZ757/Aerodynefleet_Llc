@@ -3,6 +3,9 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { base44 } from '@/api/base44Client';
 import { Package, AlertTriangle, Plus, X, Search, Edit2, CheckCircle } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { useAutoMeNumber } from '@/hooks/useAutoMeNumber';
+import { issueMeNumber } from '@/lib/meNumberingClient';
+import { CLASS_CODES, SUB_GROUPS_BY_ATA } from '../../../base44/shared/meNumbering';
 
 const inputCls = 'w-full bg-[#0d1117] border border-white/10 rounded-xl px-3 py-2.5 text-sm text-white placeholder-gray-600 outline-none focus:border-primary';
 
@@ -13,14 +16,24 @@ function AddItemModal({ onClose, onSave }) {
     me_number: '', pcn: '', sceptre_id: '', amos_id: '', trax_id: '', nsn: '', cage_code: '',
   });
   const set = (k, v) => setForm(p => ({ ...p, [k]: v }));
-  const handleSubmit = (e) => {
+  const { autoGen, setAutoGen, issuing } = useAutoMeNumber(true);
+  const [meSub, setMeSub] = useState('000');
+  const [meClass, setMeClass] = useState('9');
+
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    onSave({
+    const payload = {
       ...form,
       quantity_on_hand: Number(form.quantity_on_hand),
       min_quantity: Number(form.min_quantity),
       unit_cost: form.unit_cost ? Number(form.unit_cost) : undefined,
-    });
+    };
+    if (autoGen && !form.me_number.trim() && form.ata_chapter) {
+      const num = await issueMeNumber({ number_type: 'me_part', ata: form.ata_chapter, sub: meSub, class_code: meClass });
+      if (!num) return;
+      payload.me_number = num;
+    }
+    onSave(payload);
     onClose();
   };
   return (
@@ -88,7 +101,36 @@ function AddItemModal({ onClose, onSave }) {
             <div className="grid grid-cols-2 gap-3">
               <div>
                 <label className="text-[10px] font-bold text-gray-500 uppercase tracking-widest block mb-1">M&amp;E Number</label>
-                <input value={form.me_number} onChange={e => set('me_number', e.target.value)} placeholder="e.g. ME-00045321" className={inputCls} />
+<div className="flex items-center justify-between mb-1 mt-1">
+  <span className="text-[9px] font-bold text-gray-600 uppercase">{autoGen ? `Auto: ${form.ata_chapter || 'NN'}-${meSub}-${meClass}-XXXX` : 'Manual entry'}</span>
+  <label className="flex items-center gap-1.5 cursor-pointer">
+    <input type="checkbox" checked={autoGen} onChange={e => setAutoGen(e.target.checked)} className="w-3.5 h-3.5 accent-primary" />
+    <span className="text-[9px] font-bold text-primary uppercase tracking-wider">Auto-gen</span>
+  </label>
+</div>
+<input
+  value={autoGen ? '' : form.me_number}
+  disabled={autoGen}
+  onChange={e => set('me_number', e.target.value)}
+  placeholder={autoGen ? 'Auto-assigned on save' : 'e.g. 79-000-9-0001'}
+  className={inputCls + (autoGen ? ' opacity-60' : '')}
+/>
+{autoGen && (
+  <div className="grid grid-cols-2 gap-2 mt-2">
+    <div>
+      <label className="text-[9px] font-bold text-gray-600 uppercase block mb-1">Sub-Group</label>
+      <select value={meSub} onChange={e => setMeSub(e.target.value)} className={inputCls}>
+        {(SUB_GROUPS_BY_ATA[form.ata_chapter] || [{ code: '000', name: 'Generic' }]).map(s => <option key={s.code} value={s.code}>{s.code} — {s.name}</option>)}
+      </select>
+    </div>
+    <div>
+      <label className="text-[9px] font-bold text-gray-600 uppercase block mb-1">Class Code</label>
+      <select value={meClass} onChange={e => setMeClass(e.target.value)} className={inputCls}>
+        {Object.entries(CLASS_CODES).map(([c, n]) => <option key={c} value={c}>{c} — {n}</option>)}
+      </select>
+    </div>
+  </div>
+)}
               </div>
               <div>
                 <label className="text-[10px] font-bold text-gray-500 uppercase tracking-widest block mb-1">PCN (Part Control #)</label>
@@ -115,7 +157,7 @@ function AddItemModal({ onClose, onSave }) {
 
           <div className="flex gap-3 pt-1">
             <button type="button" onClick={onClose} className="flex-1 py-2.5 rounded-xl border border-white/10 text-sm font-bold text-gray-400 hover:bg-white/5">Cancel</button>
-            <button type="submit" className="flex-1 py-2.5 rounded-xl bg-primary text-primary-foreground text-sm font-bold hover:bg-primary/90">Add Item</button>
+            <button type="submit" disabled={issuing} className="flex-1 py-2.5 rounded-xl bg-primary text-primary-foreground text-sm font-bold hover:bg-primary/90 disabled:opacity-50">{issuing ? 'Allocating…' : 'Add Item'}</button>
           </div>
         </form>
       </div>

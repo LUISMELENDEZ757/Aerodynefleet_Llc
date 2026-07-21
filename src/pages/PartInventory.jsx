@@ -10,6 +10,9 @@ import {
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { format } from 'date-fns';
+import { useAutoMeNumber } from '@/hooks/useAutoMeNumber';
+import { issueMeNumber } from '@/lib/meNumberingClient';
+import { CLASS_CODES } from '../../base44/shared/meNumbering';
 
 // ── Constants ─────────────────────────────────────────────────────────────────
 const CATEGORIES = [
@@ -107,6 +110,7 @@ function PartModal({ part, aircraft, onClose, onSave, isSaving }) {
     engine_position: '#1 (Left)',
     status: 'installed',
     manufacturer: '',
+    me_number: '',
     station: '',
     installation_date: '',
     removal_date: '',
@@ -125,14 +129,21 @@ function PartModal({ part, aircraft, onClose, onSave, isSaving }) {
     ...(part || {}),
   });
   const set = (k, v) => setForm(p => ({ ...p, [k]: v }));
+  const { autoGen, setAutoGen, issuing } = useAutoMeNumber(true);
+  const [meClass, setMeClass] = useState('9');
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     const clean = { ...form };
     ['total_cycles_since_new','cycles_since_overhaul','total_hours_since_new','hours_since_overhaul',
      'cycle_life_limit','hour_life_limit','overhaul_interval_cycles','overhaul_interval_hours'].forEach(k => {
       clean[k] = clean[k] !== '' ? Number(clean[k]) : undefined;
     });
+    if (!isEdit && autoGen && !clean.me_number?.trim() && clean.ata_chapter) {
+      const num = await issueMeNumber({ number_type: 'me_part', ata: clean.ata_chapter, sub: '000', class_code: meClass });
+      if (!num) return;
+      clean.me_number = num;
+    }
     onSave(clean);
   };
 
@@ -181,6 +192,26 @@ function PartModal({ part, aircraft, onClose, onSave, isSaving }) {
               <div>
                 <label className={labelCls}>Manufacturer / OEM</label>
                 <input value={form.manufacturer} onChange={e => set('manufacturer', e.target.value)} placeholder="e.g. Parker Hannifin" className={inputCls} />
+              </div>
+              <div className="col-span-2 border border-amber-500/20 bg-amber-500/5 rounded-xl p-3 space-y-2">
+                <div className="flex items-center justify-between">
+                  <span className="text-[10px] font-extrabold text-amber-400 uppercase tracking-widest">Aerodyne M&E Number</span>
+                  <label className="flex items-center gap-1.5 cursor-pointer">
+                    <input type="checkbox" checked={autoGen} onChange={e => setAutoGen(e.target.checked)} disabled={isEdit} className="w-3.5 h-3.5 accent-amber-500" />
+                    <span className="text-[9px] font-bold text-amber-500 uppercase">Auto-gen</span>
+                  </label>
+                </div>
+                <input value={form.me_number} onChange={e => set('me_number', e.target.value)} disabled={autoGen && !isEdit}
+                  placeholder={autoGen && !isEdit ? `${form.ata_chapter || 'NN'}-000-${meClass}-XXXX` : 'Internal M&E part number'}
+                  className={inputCls + (autoGen && !isEdit ? ' opacity-60' : '')} />
+                {autoGen && !isEdit && (
+                  <div>
+                    <label className="text-[9px] font-bold text-gray-600 uppercase block mb-1">Class Code</label>
+                    <select value={meClass} onChange={e => setMeClass(e.target.value)} className={inputCls}>
+                      {Object.entries(CLASS_CODES).map(([c, n]) => <option key={c} value={c}>{c} — {n}</option>)}
+                    </select>
+                  </div>
+                )}
               </div>
               <div>
                 <label className={labelCls}>Status</label>
@@ -336,8 +367,8 @@ function PartModal({ part, aircraft, onClose, onSave, isSaving }) {
             <button type="button" onClick={onClose} className="flex-1 py-2.5 rounded-xl border border-white/10 text-sm font-bold text-gray-400 hover:bg-white/5">
               Cancel
             </button>
-            <button type="submit" disabled={isSaving} className="flex-1 py-2.5 rounded-xl bg-primary text-primary-foreground text-sm font-extrabold hover:bg-primary/90 disabled:opacity-50 flex items-center justify-center gap-2">
-              <CheckCircle className="w-4 h-4" /> {isSaving ? 'Saving…' : isEdit ? 'Update Part' : 'Add Part'}
+            <button type="submit" disabled={isSaving || issuing} className="flex-1 py-2.5 rounded-xl bg-primary text-primary-foreground text-sm font-extrabold hover:bg-primary/90 disabled:opacity-50 flex items-center justify-center gap-2">
+              <CheckCircle className="w-4 h-4" /> {isSaving || issuing ? 'Saving…' : isEdit ? 'Update Part' : 'Add Part'}
             </button>
           </div>
         </form>
