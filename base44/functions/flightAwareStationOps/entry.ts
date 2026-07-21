@@ -1,4 +1,5 @@
 import { createClientFromRequest } from 'npm:@base44/sdk@0.8.25';
+import { resolveAeroApiKey } from '../../shared/aeroApiKey.ts';
 
 Deno.serve(async (req) => {
   try {
@@ -15,7 +16,7 @@ Deno.serve(async (req) => {
       return Response.json({ error: 'Station code required' }, { status: 400 });
     }
 
-    const apiKey = Deno.env.get('FLIGHTAWARE_API_KEY');
+    const apiKey = await resolveAeroApiKey(base44);
     if (!apiKey) {
       return Response.json({ error: 'FlightAware API not configured' }, { status: 500 });
     }
