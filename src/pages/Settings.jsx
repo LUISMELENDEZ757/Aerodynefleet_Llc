@@ -10,6 +10,7 @@ import { cn } from '@/lib/utils';
 import UserApprovalPanel from '@/components/settings/UserApprovalPanel';
 import FleetIngestionHub from '@/components/fleet/FleetIngestionHub';
 import PostUpdateModal from '@/components/settings/PostUpdateModal';
+import ManageUpdatesModal from '@/components/settings/ManageUpdatesModal';
 
 // ─── Admin Dashboard Stats ──────────────────────────────────────────────────────
 function AdminStats({ users, fleets, auditLogs }) {
@@ -75,6 +76,7 @@ export default function SettingsPage() {
   const [showLogout, setShowLogout] = useState(false);
   const [showFleetIngestion, setShowFleetIngestion] = useState(false);
   const [showPostUpdate, setShowPostUpdate] = useState(false);
+  const [showManageUpdates, setShowManageUpdates] = useState(false);
 
   const { data: users = [] } = useQuery({
     queryKey: ['admin-users'],
@@ -195,12 +197,20 @@ export default function SettingsPage() {
           title="System Updates"
           description="Post release notes and announcements to the home page"
         >
-          <button
-            onClick={() => setShowPostUpdate(true)}
-            className="flex items-center gap-2 px-4 py-2 rounded-lg bg-primary text-primary-foreground text-xs font-extrabold hover:bg-primary/90 transition-colors"
-          >
-            <Plus className="w-3.5 h-3.5" /> Post Update
-          </button>
+          <div className="flex gap-2">
+            <button
+              onClick={() => setShowPostUpdate(true)}
+              className="flex items-center gap-2 px-4 py-2 rounded-lg bg-primary text-primary-foreground text-xs font-extrabold hover:bg-primary/90 transition-colors"
+            >
+              <Plus className="w-3.5 h-3.5" /> Post Update
+            </button>
+            <button
+              onClick={() => setShowManageUpdates(true)}
+              className="flex items-center gap-2 px-4 py-2 rounded-lg border border-border text-xs font-extrabold text-foreground hover:bg-secondary transition-colors"
+            >
+              Manage / Remove
+            </button>
+          </div>
         </AdminCard>
       </div>
 
@@ -220,6 +230,9 @@ export default function SettingsPage() {
 
       {/* Post System Update Modal */}
       {showPostUpdate && <PostUpdateModal onClose={() => setShowPostUpdate(false)} />}
+
+      {/* Manage System Updates Modal */}
+      {showManageUpdates && <ManageUpdatesModal onClose={() => setShowManageUpdates(false)} />}
 
       {/* Logout Confirmation Modal */}
       {showLogout && (
