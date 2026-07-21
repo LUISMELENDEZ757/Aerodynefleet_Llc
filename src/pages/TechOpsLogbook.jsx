@@ -644,16 +644,23 @@ export default function TechOpsLogbook() {
             </p>
             <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
               {[
-                { label: 'Pilot Discrepancy',       type: 'discrepancy',       border: 'border-red-700',    text: 'text-red-400',    bg: 'bg-red-950/40' },
-                { label: 'Tech Discrepancy',         type: 'discrepancy',       border: 'border-amber-800',  text: 'text-amber-500',  bg: 'bg-amber-950/40' },
-                { label: 'Parts Installation',       type: 'corrective_action', border: 'border-purple-700', text: 'text-purple-400', bg: 'bg-purple-950/40' },
-                { label: 'Deferral / MEL',           type: 'deferred',          border: 'border-yellow-700', text: 'text-yellow-400', bg: 'bg-yellow-950/40' },
-                { label: 'Parts Ordering',           type: 'info',              border: 'border-amber-900',  text: 'text-amber-600',  bg: 'bg-amber-950/30' },
-                { label: 'Oil Service',              type: 'info',              border: 'border-blue-800',   text: 'text-blue-300',   bg: 'bg-blue-950/40' },
-                { label: 'Oxygen Service',           type: 'info',              border: 'border-cyan-700',   text: 'text-cyan-400',   bg: 'bg-cyan-950/40' },
-              ].map(({ label, type, border, text, bg }) => (
+                { label: 'Pilot Discrepancy',  border: 'border-red-700',    text: 'text-red-400',    bg: 'bg-red-950/40',
+                  preset: { entry_type: 'discrepancy', severity: 'ops', reporter_role: 'captain', description_template: '[PILOT REPORT] ' } },
+                { label: 'Tech Discrepancy',   border: 'border-amber-800',  text: 'text-amber-500',  bg: 'bg-amber-950/40',
+                  preset: { entry_type: 'discrepancy', severity: 'mel', reporter_role: 'maintenance', description_template: '[TECH FINDING] ' } },
+                { label: 'Parts Installation', border: 'border-purple-700', text: 'text-purple-400', bg: 'bg-purple-950/40',
+                  preset: { entry_type: 'corrective_action', severity: 'info', reporter_role: 'maintenance', description_template: 'Parts Installation — removed/installed component(s) as listed in Parts section. ' } },
+                { label: 'Deferral / MEL',     border: 'border-yellow-700', text: 'text-yellow-400', bg: 'bg-yellow-950/40',
+                  preset: { entry_type: 'deferred', severity: 'mel', reporter_role: 'maintenance', is_deferred: true, description_template: 'Item deferred per MEL. Discrepancy: ' } },
+                { label: 'Parts Ordering',     border: 'border-amber-900',  text: 'text-amber-600',  bg: 'bg-amber-950/30',
+                  preset: { entry_type: 'info', severity: 'info', reporter_role: 'maintenance', description_template: 'Parts Ordering — BOR/ROB request raised for P/N: ' } },
+                { label: 'Oil Service',        border: 'border-blue-800',   text: 'text-blue-300',   bg: 'bg-blue-950/40',
+                  preset: { entry_type: 'info', severity: 'info', reporter_role: 'maintenance', ata_chapter: '79', description_template: 'Engine / APU oil service performed — quantities recorded in Oil Service section (ATA 79). ' } },
+                { label: 'Oxygen Service',     border: 'border-cyan-700',   text: 'text-cyan-400',   bg: 'bg-cyan-950/40',
+                  preset: { entry_type: 'info', severity: 'info', reporter_role: 'maintenance', ata_chapter: '35', description_template: 'Crew oxygen system serviced per AMM 35-11 — bottle pressure before/after: ' } },
+              ].map(({ label, border, text, bg, preset }) => (
                 <button key={label}
-                  onClick={() => { setEntryPreset({ entry_type: type, description: label }); setShowNewEntry(true); }}
+                  onClick={() => { setEntryPreset(preset); setShowNewEntry(true); }}
                   className={cn('px-3 py-2.5 rounded-xl border font-bold text-xs tracking-wide transition-all hover:brightness-125', border, text, bg)}>
                   {label}
                 </button>

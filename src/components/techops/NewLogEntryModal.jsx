@@ -344,15 +344,15 @@ export default function NewLogEntryModal({ aircraftTail, aircraftType, nextLogPa
     entry_time: nowUtc,
     station: '',
     flight_number: '',
-    ata_chapter: '',
+    ata_chapter: preset?.ata_chapter || '',
     entry_type: preset?.entry_type || 'discrepancy',
   });
 
   // Step 2 — Pilot discrepancy
   const [discrepancy, setDiscrepancy] = useState({
-    description: preset?.description ? `${preset.description}: ` : '',
-    severity: 'info',
-    reporter_role: 'captain',
+    description: preset?.description_template || (preset?.description ? `${preset.description}: ` : ''),
+    severity: preset?.severity || 'info',
+    reporter_role: preset?.reporter_role || 'captain',
     reporter_name: '',
     reporter_number: '',
   });
@@ -362,7 +362,7 @@ export default function NewLogEntryModal({ aircraftTail, aircraftType, nextLogPa
     corrective_action: '',
     technician_name: '',
     technician_id: '',
-    is_deferred: false,
+    is_deferred: preset?.is_deferred || false,
     mel_reference: '',
     mel_category: '',
     rii_required: false,
