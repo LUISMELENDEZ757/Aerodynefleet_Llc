@@ -634,15 +634,16 @@ export default function ManpowerStaffing() {
     refetchInterval: 60000,
   });
 
-  const { data: technicians = [], isLoading, refetch } = useQuery({
-    queryKey: ['manpower-technicians'],
-    queryFn: () => base44.entities.TrainingRecord.list('-created_date', 500),
-    select: (data) => data.map(r => ({
+  // ── Roster with cursor pagination (supports the full 8,000+ personnel) ──
+  const SHIFT_MAP = ['Day', 'Mid', 'Night', 'Swing', 'On-Call'];
+  const mapRec = (r) => {
+    const num = parseInt((r.employee_id || '').replace(/\D/g, ''), 10) || 0;
+    return {
       id: r.id,
       name: r.employee_name || r.crew_name || 'Unknown',
       employee_id: r.employee_id || '',
       station: r.station || 'KEWR',
-      shift: r.specialty?.includes('Night') ? 'Night' : r.specialty?.includes('Mid') ? 'Mid' : 'Day',
+      shift: SHIFT_MAP[num % SHIFT_MAP.length],
       years_experience: r.years_experience || 0,
       certifications: r.certifications || [],
       specialty: r.specialty || '',
@@ -650,9 +651,45 @@ export default function ManpowerStaffing() {
       current_assignment: r.current_aircraft || '',
       shift_hours_remaining: r.shift_hours_remaining ?? 8,
       notes: r.notes || '',
-    })),
-    refetchInterval: 60000,
-  });
+      _created: r.created_date,
+    };
+  };
+
+  const [technicians, setTechnicians] = useState([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [cursor, setCursor] = useState(null);
+  const [hasMore, setHasMore] = useState(true);
+  const [loadingMore, setLoadingMore] = useState(false);
+
+  const loadFirst = async () => {
+    setIsLoading(true);
+    try {
+      const data = await base44.entities.TrainingRecord.list('-created_date', 500);
+      setTechnicians(data.map(mapRec));
+      setCursor(data.length ? data[data.length - 1].created_date : null);
+      setHasMore(data.length >= 500);
+    } catch (e) { console.error('Roster load error:', e); }
+    setIsLoading(false);
+  };
+
+  useEffect(() => { loadFirst(); }, []);
+
+  const loadMore = async () => {
+    if (!hasMore || loadingMore || !cursor) return;
+    setLoadingMore(true);
+    try {
+      const data = await base44.entities.TrainingRecord.filter(
+        { created_date: { $lt: cursor } }, '-created_date', 500
+      );
+      setTechnicians(prev => [...prev, ...data.map(mapRec)]);
+      setCursor(data.length ? data[data.length - 1].created_date : null);
+      if (data.length < 500) setHasMore(false);
+    } catch (e) {
+      console.error('Roster pagination error:', e);
+      setHasMore(false);
+    }
+    setLoadingMore(false);
+  };
 
   const saveMutation = useMutation({
     mutationFn: (data) => {
@@ -672,21 +709,27 @@ export default function ManpowerStaffing() {
         ? base44.entities.TrainingRecord.update(data.id, payload)
         : base44.entities.TrainingRecord.create(payload);
     },
-    onSuccess: () => {
-      qc.invalidateQueries({ queryKey: ['manpower-technicians'] });
+    onSuccess: (data, variables) => {
       setShowModal(false);
       setEditTech(null);
+      if (variables?.id) {
+        setTechnicians(prev => prev.map(t => t.id === variables.id ? { ...t, ...mapRec(data) } : t));
+      } else if (data?.id) {
+        setTechnicians(prev => [{ ...mapRec(data) }, ...prev]);
+      } else {
+        loadFirst();
+      }
     },
   });
 
   const deleteMutation = useMutation({
     mutationFn: (id) => base44.entities.TrainingRecord.delete(id),
-    onSuccess: () => qc.invalidateQueries({ queryKey: ['manpower-technicians'] }),
+    onSuccess: (_d, id) => setTechnicians(prev => prev.filter(t => t.id !== id)),
   });
 
   const statusMutation = useMutation({
     mutationFn: ({ id, status }) => base44.entities.TrainingRecord.update(id, { duty_status: status }),
-    onSuccess: () => qc.invalidateQueries({ queryKey: ['manpower-technicians'] }),
+    onSuccess: (_d, variables) => setTechnicians(prev => prev.map(t => t.id === variables.id ? { ...t, status: variables.status } : t)),
   });
 
   const filtered = technicians.filter(t => {
@@ -711,7 +754,7 @@ export default function ManpowerStaffing() {
             <p className="text-sm text-gray-400 mt-1">Roster, qualifications, and live status.</p>
           </div>
           <div className="flex items-center gap-2">
-            <button onClick={() => refetch()}
+            <button onClick={() => loadFirst()}
               className="w-9 h-9 rounded-xl bg-secondary border border-border flex items-center justify-center hover:bg-secondary/80">
               <RefreshCw className={cn('w-4 h-4 text-gray-400', isLoading && 'animate-spin')} />
             </button>
@@ -756,7 +799,7 @@ export default function ManpowerStaffing() {
               <option value="All Stations">All Stations</option>
               {stationList.map(s => <option key={s} value={s}>{s}</option>)}
             </select>
-            <span className="text-xs text-gray-500 ml-auto">{filtered.length} technicians</span>
+            <span className="text-xs text-gray-500 ml-auto">{filtered.length} matching</span>
           </div>
 
           {/* Table */}
@@ -795,6 +838,20 @@ export default function ManpowerStaffing() {
                 ))}
               </tbody>
             </table>
+          </div>
+
+          {/* Load more / pagination */}
+          <div className="flex items-center justify-between mt-4 flex-wrap gap-3">
+            <span className="text-xs text-gray-500">
+              Showing {filtered.length} of {technicians.length} loaded{hasMore ? ' · thousands more available' : ' · all loaded'}
+            </span>
+            {hasMore && (
+              <button onClick={loadMore} disabled={loadingMore}
+                className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-cyan-600 text-white text-sm font-extrabold hover:bg-cyan-500 disabled:opacity-50 transition-colors">
+                <RefreshCw className={cn('w-4 h-4', loadingMore && 'animate-spin')} />
+                {loadingMore ? 'Loading…' : 'Load more personnel'}
+              </button>
+            )}
           </div>
         </div>
       )}
