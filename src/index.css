@@ -369,3 +369,13 @@ a:focus-visible {
   text-transform: uppercase;
   letter-spacing: 0.05em;
 }
+
+/* ─── Modal positioning — appear 1 inch below the app header ─────── */
+/* 3.5rem = header height (h-14); 1in = requested clearance below it. */
+/* Bespoke centered modal overlays (overlay + dark backdrop child) */
+[class~="fixed"][class~="inset-0"][class~="z-50"][class~="flex"]:has(> [class*="bg-black"]),
+/* Bespoke modal overlays that double as their own backdrop */
+[class~="fixed"][class~="inset-0"][class~="z-50"][class~="flex"][class*="bg-black"] {
+  align-items: flex-start !important;
+  padding-top: calc(3.5rem + 1in) !important;
+}
