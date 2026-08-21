@@ -6,7 +6,9 @@ import { getSelectedStation, clearSelectedStation, subscribeStation, getStation 
 import { getTimeline, subscribeTimelines, lastUpdateMs, fmtEtr } from "./RepairTimeline.jsx";
 import { isServiceCleared, subscribeServiceStatus } from "../data/serviceStatus.js";
 import { effectiveCat, catBadgeColor, levelMeta, subscribeCat } from "../data/cat.js";
-import { getMcc, subscribeMcc } from "../data/mccControls.js";
+import { getMcc, subscribeMcc, applyMccLocks } from "../data/mccControls.js";
+import { useQuery } from "@tanstack/react-query";
+import { base44 } from "@/api/base44Client";
 
 // Reference palette (AeroMOS Fleet Board)
 const C = {
@@ -249,6 +251,18 @@ export default function FleetDashboard({ onOpenAircraft }) {
   useEffect(() => subscribeServiceStatus(() => forceTl((n) => n + 1)), []);
   useEffect(() => subscribeCat(() => forceTl((n) => n + 1)), []);
   useEffect(() => subscribeMcc(() => forceTl((n) => n + 1)), []);
+
+  // ── Wire MCC Dashboard → Fleet Board aircraft control ──────────────────
+  // Pull the real MCC positive-fix lock records from the OS database so that
+  // every fleet card reflects who in MCC has taken operational control of the
+  // aircraft (🔒 LOCKED + 👤 MCC OWNED chips). Polls every 15s.
+  const { data: mccLocks = [] } = useQuery({
+    queryKey: ["fleet-mcc-locks"],
+    queryFn: async () => (await base44.entities.MccLock.list("-created_date", 200)).filter((l) => l.is_active),
+    staleTime: 10000,
+    refetchInterval: 15000,
+  });
+  useEffect(() => { applyMccLocks(mccLocks); }, [mccLocks]);
   useEffect(() => subscribeFleet(() => setFleetVer((n) => n + 1)), []);
   useEffect(() => subscribeStation(() => setStationVer((n) => n + 1)), []);
   useEffect(() => { const t = setInterval(() => setNowMs(Date.now()), 30000); return () => clearInterval(t); }, []);

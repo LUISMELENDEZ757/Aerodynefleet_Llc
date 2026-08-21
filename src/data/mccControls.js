@@ -19,3 +19,34 @@ const listeners = new Set();
 export function getMcc(tail) { return MCC[tail] ? { ...EMPTY, ...MCC[tail] } : { ...EMPTY }; }
 export function subscribeMcc(cb) { listeners.add(cb); return () => listeners.delete(cb); }
 export function notifyMcc() { listeners.forEach((f) => f()); }
+
+// ── MCC Dashboard → Fleet Board bridge ────────────────────────────────────
+// Called from the Fleet Dashboard with the current active MccLock records from
+// the OS database. Mirrors MCC control (positive-fix locks + who placed them)
+// onto each aircraft's fleet card so the board reflects live MCC control.
+export function applyMccLocks(lockRecords) {
+  const locked = {};
+  (lockRecords || []).forEach((l) => { if (l && l.aircraft_tail) locked[l.aircraft_tail] = l; });
+  const allTails = new Set([...Object.keys(MCC), ...Object.keys(locked)]);
+  allTails.forEach((tail) => {
+    if (locked[tail]) {
+      MCC[tail] = {
+        ...EMPTY, ...(MCC[tail] || {}),
+        locked: true,
+        ots: false,
+        lockReason: locked[tail].reason || null,
+        lockBy: locked[tail].placed_by || null,
+        mccOwner: locked[tail].placed_by ? { name: locked[tail].placed_by } : (MCC[tail]?.mccOwner || null),
+      };
+    } else {
+      MCC[tail] = {
+        ...EMPTY, ...(MCC[tail] || {}),
+        locked: false,
+        lockReason: null,
+        lockBy: null,
+        mccOwner: null,
+      };
+    }
+  });
+  notifyMcc();
+}
