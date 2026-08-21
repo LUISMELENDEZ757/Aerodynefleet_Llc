@@ -17,6 +17,7 @@ import useOfflineSync from '@/hooks/useOfflineSync';
 import { offlineStore } from '@/lib/offline-store';
 import OfflineBadge from '@/components/layout/OfflineBadge';
 import ScreensaverController from '@/components/screensaver/ScreensaverController';
+import { SimulationProvider } from '@/lib/SimulationContext';
 
 const Home                  = lazy(() => import('@/pages/AerodyneHome'));
 const OpsHub                = lazy(() => import('@/pages/OpsHub'));
@@ -137,6 +138,7 @@ const DiscrepancyLab           = lazy(() => import('@/pages/DiscrepancyLab'));
 const AircraftComplianceDetail = lazy(() => import('@/pages/AircraftComplianceDetail.jsx'));
 const CapabilityDashboard      = lazy(() => import('@/pages/CapabilityDashboard.jsx'));
 const NumberingStandardPage     = lazy(() => import('@/pages/NumberingStandardPage.jsx'));
+const SandboxDashboard          = lazy(() => import('@/pages/SandboxDashboard'));
 const AircraftMxTimeline        = lazy(() => import('@/pages/AircraftMxTimeline.jsx'));
 const GroundOpsGantt            = lazy(() => import('@/pages/GroundOpsGantt/index.jsx'));
 
@@ -350,6 +352,7 @@ const AuthenticatedApp = () => {
         <Route path="/AircraftDetail" element={<AircraftComplianceDetail />} />
         <Route path="/CapabilityDashboard" element={<CapabilityDashboard />} />
         <Route path="/NumberingStandard" element={<NumberingStandardPage />} />
+        <Route path="/Sandbox" element={<SandboxDashboard />} />
         <Route path="/Academy" element={<Academy />} />
         <Route path="/DiscrepancyLab" element={<DiscrepancyLab />} />
       </Route>
@@ -369,9 +372,11 @@ function App() {
       <QueryClientProvider client={queryClientInstance}>
         <FleetProvider>
         {showSplash && <SplashScreen onComplete={() => setShowSplash(false)} />}
+        <SimulationProvider>
         <Router>
           <AuthenticatedApp />
         </Router>
+        </SimulationProvider>
         <OfflineBadge />
         <ScreensaverController />
         <Toaster />

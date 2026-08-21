@@ -5,9 +5,10 @@ import { Link } from 'react-router-dom';
 import {
   Settings, Users, Shield, FileText, BarChart3, AlertCircle,
   ChevronRight, Plus, Server, Bell, LogOut, ChevronLeft, Lock, Plane, Megaphone, Radio,
-  BookUser, GraduationCap
+  BookUser, GraduationCap, FlaskConical
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { useSimulation } from '@/lib/SimulationContext';
 import UserApprovalPanel from '@/components/settings/UserApprovalPanel';
 import FleetIngestionHub from '@/components/fleet/FleetIngestionHub';
 import PostUpdateModal from '@/components/settings/PostUpdateModal';
@@ -67,6 +68,64 @@ function AdminCard({ icon: Icon, title, description, children, action, actionLab
         )}
       </div>
       {children && <div className="pt-2">{children}</div>}
+    </div>
+  );
+}
+
+// ─── Sandbox Simulation controls (rendered inside Administration) ─────────────
+function SandboxSimControls() {
+  const sim = useSimulation();
+  return (
+    <div className="space-y-3">
+      <div className="grid grid-cols-3 gap-2">
+        <div className="bg-secondary/50 rounded-lg px-3 py-2 text-center">
+          <p className="text-lg font-black text-white tabular-nums">{sim.tested}/{sim.total}</p>
+          <p className="text-[10px] text-muted-foreground uppercase tracking-widest">Tested</p>
+        </div>
+        <div className="bg-green-500/10 rounded-lg px-3 py-2 text-center">
+          <p className="text-lg font-black text-green-400 tabular-nums">{sim.okCount}</p>
+          <p className="text-[10px] text-muted-foreground uppercase tracking-widest">OK</p>
+        </div>
+        <div className="bg-amber-500/10 rounded-lg px-3 py-2 text-center">
+          <p className="text-lg font-black text-amber-400 tabular-nums">{sim.repairCount}</p>
+          <p className="text-[10px] text-muted-foreground uppercase tracking-widest">Repair</p>
+        </div>
+      </div>
+      <div className="flex gap-2">
+        <button
+          onClick={sim.start}
+          disabled={sim.isRunning}
+          className="flex-1 py-2 rounded-lg bg-primary text-primary-foreground text-xs font-extrabold disabled:opacity-50 hover:bg-primary/90 transition-colors"
+        >
+          Start
+        </button>
+        <button
+          onClick={sim.stop}
+          disabled={!sim.isRunning}
+          className="flex-1 py-2 rounded-lg border border-border text-xs font-extrabold disabled:opacity-50 hover:bg-secondary transition-colors"
+        >
+          Stop
+        </button>
+        <button
+          onClick={sim.reset}
+          className="flex-1 py-2 rounded-lg border border-border text-xs font-extrabold hover:bg-secondary transition-colors"
+        >
+          Reset
+        </button>
+      </div>
+      {sim.isRunning && sim.currentPath ? (
+        <div className="flex items-center gap-2 text-xs text-primary">
+          <span className="w-1.5 h-1.5 rounded-full bg-primary animate-ping" />
+          <span className="font-bold">Operating:</span>
+          <span className="font-mono truncate">{sim.currentPath}</span>
+        </div>
+      ) : sim.repairCount > 0 ? (
+        <p className="text-xs text-amber-400 font-bold">
+          {sim.repairCount} dashboard(s) flagged — open the Sandbox to repair.
+        </p>
+      ) : (
+        <p className="text-xs text-muted-foreground">Idle. Start a run to test every dashboard.</p>
+      )}
     </div>
   );
 }
@@ -251,6 +310,17 @@ export default function SettingsPage() {
               Manage / Remove
             </button>
           </div>
+        </AdminCard>
+
+        {/* Sandbox Simulation controls */}
+        <AdminCard
+          icon={FlaskConical}
+          title="Sandbox Simulation"
+          description="Run an automated functional test across every dashboard; left-rail links glow while operating"
+          action="/Sandbox"
+          actionLabel="Open Sandbox"
+        >
+          <SandboxSimControls />
         </AdminCard>
       </div>
 
