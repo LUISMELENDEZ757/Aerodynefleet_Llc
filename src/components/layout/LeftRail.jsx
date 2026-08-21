@@ -78,6 +78,7 @@ const NAV_GROUPS = [
     id: 'records',
     title: 'Records & Compliance',
     items: [
+      { label: 'Manuals Navigator', icon: '📘', path: '/Documents' },
       { label: 'QA / QC', icon: '🔍', path: '/QAQC' },
       { label: 'QC Supervisor', icon: '✅', path: '/QCSupervisor' },
       { label: 'Certificate of Release', icon: '📜', path: '/CRS' },
