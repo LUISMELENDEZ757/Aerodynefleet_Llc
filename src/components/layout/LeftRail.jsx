@@ -3,34 +3,175 @@ import { Link, useLocation } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Plane, ChevronLeft, ChevronRight, ChevronDown } from 'lucide-react';
 import { cn } from '@/lib/utils';
-import { NAV_GROUPS } from '@/lib/navGroups';
-import { useSimulation } from '@/lib/SimulationContext';
 
-// ── Nav link glow styling driven by the System Simulation ───────────────────
-// When the simulation is running, the currently operated dashboard's link
-// glows; previously-tested links show a small status dot (ok/repair).
+// ── NAV GROUPS — Airline-grade operational workflow grouping ──────────────────
 
-function simLinkClasses(path, sim) {
-  const isActive = sim.isRunning && sim.currentPath === path;
-  if (!isActive) return '';
-  return 'ring-2 ring-primary shadow-[0_0_12px_2px_rgba(245,158,11,0.55)] animate-pulse';
-}
+const NAV_GROUPS = [
+  {
+    id: 'core',
+    title: null, // No label for top-level core items
+    items: [
+      { label: 'Home', icon: '🏠', path: '/' },
+      { label: 'Maintenance Control', icon: '⚙️', path: '/MaintenanceControl' },
+      { label: 'MCC Ops Hub', icon: '🎯', path: '/OpsHub' },
+      { label: 'AOCS Hub', icon: '📊', path: '/AocsDashboard' },
+    ],
+  },
+  {
+    id: 'fleet',
+    title: 'Fleet Health',
+    items: [
+      { label: 'Fleet Dashboard', icon: '✈️', path: '/FleetDashboard' },
+      { label: 'Fleet Registry', icon: '📋', path: '/FleetRegistry' },
+      { label: 'Aircraft Compliance', icon: '📋', path: '/AircraftDetail' },
+      { label: 'OOS Aircraft', icon: '🚫', path: '/OOSDashboard' },
+      { label: 'ETOPS Monitor', icon: '🌍', path: '/ETOPSMonitor' },
+      { label: 'Capability Programs', icon: '🛡️', path: '/CapabilityDashboard' },
+      { label: 'Engine Health', icon: '🔥', path: '/EngineHealthAnalytics' },
+      { label: 'Avionics', icon: '📡', path: '/AvionicsDashboard' },
+      { label: 'Boeing AHM', icon: '📡', path: '/BoeingAHM' },
+      { label: 'Airbus Skywise', icon: '🌐', path: '/AirbusSkyw' },
+      { label: 'AI Forecasting', icon: '🤖', path: '/AIForecasting' },
+      { label: 'AI MX Copilot', icon: '🧠', path: '/AICopilot' },
+      { label: 'AOG Forecast', icon: '⚠️', path: '/AOGForecast' },
+      { label: 'Analytics', icon: '📊', path: '/Analytics' },
+    ],
+  },
+  {
+    id: 'linemx',
+    title: 'Line Maintenance',
+    items: [
+      { label: 'Technician Mode', icon: '🧰', path: '/TechnicianMode' },
+      { label: 'Inspector Mode', icon: '🔍', path: '/InspectorMode' },
+      { label: 'Crew Chief', icon: '👨‍✈️', path: '/CrewChief' },
+      { label: 'Mx Supervisor', icon: '📋', path: '/MxSupervisor' },
+      { label: 'Line Maintenance', icon: '🔧', path: '/LineMaintenanceDashboard' },
+      { label: 'TechOps Dashboard', icon: '🛠️', path: '/TechOps' },
+      { label: 'Tech Support', icon: '🚨', path: '/TechSupport' },
+      { label: 'E-Logbook', icon: '📖', path: '/TechOpsLogbook' },
+      { label: 'Aircraft Status', icon: '📚', path: '/MaintenanceLogbook' },
+      { label: 'Mx Tracking', icon: '📡', path: '/MxTracking' },
+      { label: 'Manpower & Staffing', icon: '👷', path: '/ManpowerStaffing' },
+      { label: 'Work Assignments', icon: '📝', path: '/WorkAssignments' },
+      { label: 'Shift Turnover', icon: '🤝', path: '/ShiftHandover' },
+      { label: 'Discrepancy Lab', icon: '🔬', path: '/DiscrepancyLab' },
+      { label: 'Engine Removal/Install', icon: '🧩', path: '/EngineRemovalInstallation' },
+    ],
+  },
+  {
+    id: 'engineering',
+    title: 'Engineering',
+    items: [
+      { label: 'Engineering Dashboard', icon: '🔬', path: '/EngineeringDashboard' },
+      { label: 'MEL Deferrals', icon: '⚠️', path: '/MEL' },
+      { label: 'Chronic & MEL Control', icon: '🚨', path: '/ChronicMEL' },
+      { label: 'Heavy MX / MRO', icon: '🏭', path: '/HeavyMxMRO' },
+      { label: 'EBU Dashboard', icon: '🔩', path: '/EBUDashboard' },
+      { label: 'AD Tracking', icon: '📋', path: '/ADTracking' },
+      { label: 'Planning & Checks', icon: '📅', path: '/Planning' },
+      { label: 'Engineering Calendar', icon: '📅', path: '/EngCalendar' },
+      { label: 'Reliability Tracking', icon: '📊', path: '/Reliability' },
+      { label: 'Production Control', icon: '📊', path: '/ProductionControl' },
+    ],
+  },
+  {
+    id: 'records',
+    title: 'Records & Compliance',
+    items: [
+      { label: 'Manuals Navigator', icon: '📘', path: '/Documents' },
+      { label: 'QA / QC', icon: '🔍', path: '/QAQC' },
+      { label: 'QC Supervisor', icon: '✅', path: '/QCSupervisor' },
+      { label: 'Certificate of Release', icon: '📜', path: '/CRS' },
+      { label: 'Signature Audit', icon: '🔐', path: '/SignatureAudit' },
+      { label: 'Component Traceability', icon: '🔗', path: '/ComponentTraceability' },
+      { label: 'Records Retention', icon: '🗂️', path: '/RecordsRetention' },
+      { label: 'Release Archive', icon: '📥', path: '/ReleaseArchive' },
+      { label: 'Audit Logs', icon: '📜', path: '/AuditLog' },
+    ],
+  },
+  {
+    id: 'parts',
+    title: 'Parts & Inventory',
+    items: [
+      { label: 'Parts Supply', icon: '📦', path: '/PartsSupply' },
+      { label: 'Part Inventory', icon: '📦', path: '/PartInventory' },
+      { label: 'BOR/ROB Operations', icon: '📥', path: '/BORROB' },
+      { label: 'Tooling', icon: '🔩', path: '/ToolingManagement' },
+    ],
+  },
+  {
+    id: 'dispatch',
+    title: 'Dispatch & Operations',
+    items: [
+      { label: 'Dispatch Workstation', icon: '🎮', path: '/Dispatch' },
+      { label: 'IROPS Recovery', icon: '🚨', path: '/IROPS' },
+      { label: 'AI Dispatch Copilot', icon: '🤖', path: '/AIDispatchCopilot' },
+      { label: 'Flight Board', icon: '🛫', path: '/FlightBoard' },
+      { label: 'Live Flight Tracker', icon: '🛫', path: '/LiveFlightTracker' },
+      { label: 'World Route Map', icon: '🌐', path: '/WorldRouteMap' },
+      { label: 'Fleet Ops Board', icon: '🎛️', path: '/AerodyneFleetOps' },
+      { label: 'OTP Dashboard', icon: '📊', path: '/OTPDashboard' },
+      { label: 'Weather', icon: '⛅', path: '/Weather' },
+      { label: 'NOTAMs', icon: '📢', path: '/NOTAMs' },
+      { label: 'SIGMET Map', icon: '🗺️', path: '/SIGMETMap' },
+      { label: 'Fuel Management', icon: '⛽', path: '/FuelContracts' },
+      { label: 'Starlink Network', icon: '🛰️', path: '/Starlink' },
+    ],
+  },
+  {
+    id: 'crew',
+    title: 'Crew Operations',
+    items: [
+      { label: 'Crew Control', icon: '👨‍💼', path: '/CrewControl' },
+      { label: 'Crew Pairings', icon: '🔗', path: '/CrewPairing' },
+      { label: 'FAR 117 Calculator', icon: '🧮', path: '/FAR117' },
+    ],
+  },
+  {
+    id: 'cabin',
+    title: 'Cabin & Ground',
+    items: [
+      { label: 'Cabin Discrepancy', icon: '🛋️', path: '/CabinDiscrepancy' },
+      { label: 'Passenger Service', icon: '👨‍💼', path: '/PSS' },
+      { label: 'Ground Ops', icon: '🚧', path: '/GroundOps' },
+      { label: 'Ground Ops Gantt', icon: '📅', path: '/GroundOpsGantt' },
+      { label: 'Load Control', icon: '⚖️', path: '/LoadControl' },
+      { label: 'Global Stations', icon: '🌍', path: '/GlobalStations' },
+      { label: 'Station Dashboard', icon: '📍', path: '/StationDashboard' },
+    ],
+  },
+  {
+    id: 'efb',
+    title: 'Flight Deck / EFB',
+    items: [
+      { label: 'EFB Dashboard', icon: '📱', path: '/EFB' },
+      { label: 'Flight Planner', icon: '📈', path: '/FlightPlanner' },
+      { label: 'Documents', icon: '📄', path: '/Documents' },
+    ],
+  },
+  {
+    id: 'admin',
+    title: 'Admin / System',
+    items: [
+      { label: 'User Management', icon: '👤', path: '/UserManagement' },
+      { label: 'Crew Directory', icon: '📇', path: '/CrewDirectory' },
+      { label: 'Training Records', icon: '📚', path: '/Training' },
+      { label: 'Settings', icon: '⚙️', path: '/Settings' },
+      { label: 'Academy', icon: '🎓', path: '/Academy' },
 
-function SimDot({ path, sim }) {
-  if (sim.isRunning && sim.currentPath === path) {
-    return <span className="ml-auto w-1.5 h-1.5 rounded-full bg-primary animate-ping flex-shrink-0" />;
-  }
-  const s = sim.statuses[path];
-  if (!s) return null;
-  const color = s.status === 'ok' ? 'bg-green-400' : s.status === 'repair' ? 'bg-amber-400' : 'bg-white/30';
-  return <span className={cn('ml-auto w-1.5 h-1.5 rounded-full flex-shrink-0', color)} />;
-}
+      { label: 'Screensaver Admin', icon: '🖥️', path: '/ScreensaverAdmin' },
+      { label: 'Integration Hub', icon: '🔌', path: '/IntegrationHub' },
+      { label: 'Telemetry Hub', icon: '📶', path: '/TelemetryHub' },
+      { label: 'Comm Center', icon: '📞', path: '/CommCenter' },
+    ],
+  },
+];
 
 function NavGroup({ group, location, isExpanded, onToggle }) {
-  const sim = useSimulation();
-  const hasActive = group.items.some((i) => i.path === location.pathname);
+  const hasActive = group.items.some(i => i.path === location.pathname);
 
   if (!group.title) {
+    // Core items — always visible, no toggle
     return (
       <div className="px-1.5 pb-1">
         {group.items.map(({ label, icon, path }) => {
@@ -43,13 +184,11 @@ function NavGroup({ group, location, isExpanded, onToggle }) {
                 'flex items-center gap-2 h-8 px-2.5 rounded-lg transition-all text-[11px] font-semibold tracking-wide whitespace-nowrap',
                 isActive
                   ? 'bg-primary text-primary-foreground shadow-sm'
-                  : 'text-white/60 hover:text-white hover:bg-white/10',
-                simLinkClasses(path, sim)
+                  : 'text-white/60 hover:text-white hover:bg-white/10'
               )}
             >
               <span className="text-[11px] leading-none w-4 text-center">{icon}</span>
               <span>{label}</span>
-              <SimDot path={path} sim={sim} />
             </Link>
           );
         })}
@@ -91,13 +230,11 @@ function NavGroup({ group, location, isExpanded, onToggle }) {
                       'flex items-center gap-2 h-7 px-2.5 rounded-lg transition-all text-[11px] font-medium whitespace-nowrap',
                       isActive
                         ? 'bg-primary text-primary-foreground shadow-sm'
-                        : 'text-white/55 hover:text-white hover:bg-white/8',
-                      simLinkClasses(path, sim)
+                        : 'text-white/55 hover:text-white hover:bg-white/8'
                     )}
                   >
                     <span className="text-[10px] leading-none w-4 text-center flex-shrink-0">{icon}</span>
                     <span className="truncate">{label}</span>
-                    <SimDot path={path} sim={sim} />
                   </Link>
                 );
               })}
@@ -138,9 +275,9 @@ export default function LeftRail({ onCollapsedChange }) {
   // Default: expand group if it contains the active route
   const getDefaultExpanded = () => {
     const expanded = {};
-    NAV_GROUPS.forEach((g) => {
+    NAV_GROUPS.forEach(g => {
       if (g.title) {
-        expanded[g.id] = g.items.some((i) => i.path === location.pathname);
+        expanded[g.id] = g.items.some(i => i.path === location.pathname);
       }
     });
     return expanded;
@@ -154,7 +291,7 @@ export default function LeftRail({ onCollapsedChange }) {
   };
 
   const toggleGroup = (id) => {
-    setExpandedGroups((prev) => ({ ...prev, [id]: !prev[id] }));
+    setExpandedGroups(prev => ({ ...prev, [id]: !prev[id] }));
   };
 
   if (collapsed) {
