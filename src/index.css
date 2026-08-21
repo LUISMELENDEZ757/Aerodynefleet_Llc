@@ -9,38 +9,38 @@
     --font-inter: 'Inter', sans-serif;
     --font-mono: 'JetBrains Mono', monospace;
 
-    /* Enterprise Theme - Dark with Gold Accents */
-    --background: 220 25% 12%;
-    --foreground: 0 0% 95%;
-    --card: 220 30% 18%;
-    --card-foreground: 0 0% 95%;
-    --popover: 220 30% 18%;
-    --popover-foreground: 0 0% 95%;
-    --primary: 210 40% 96%;
-    --primary-foreground: 220 25% 12%;
-    --secondary: 220 20% 25%;
-    --secondary-foreground: 0 0% 90%;
-    --muted: 220 15% 35%;
-    --muted-foreground: 0 0% 70%;
-    --accent: 190 95% 45%;
-    --accent-foreground: 220 25% 12%;
-    --destructive: 0 84% 60%;
-    --destructive-foreground: 220 25% 12%;
-    --border: 220 20% 30%;
-    --input: 220 25% 22%;
-    --ring: 45 95% 55%;
-    --chart-1: 45 95% 55%;
-    --chart-2: 100 75% 45%;
-    --chart-3: 190 95% 45%;
-    --chart-4: 280 80% 50%;
-    --chart-5: 0 84% 60%;
+    /* JetBlue Enterprise Theme — deep navy + crisp azure on a light surface */
+    --background: 210 40% 99%;
+    --foreground: 215 30% 22%;
+    --card: 0 0% 100%;
+    --card-foreground: 215 30% 22%;
+    --popover: 0 0% 100%;
+    --popover-foreground: 215 30% 22%;
+    --primary: 214 78% 26%;
+    --primary-foreground: 0 0% 100%;
+    --secondary: 210 30% 96%;
+    --secondary-foreground: 215 30% 25%;
+    --muted: 210 25% 94%;
+    --muted-foreground: 215 18% 47%;
+    --accent: 199 92% 46%;
+    --accent-foreground: 214 80% 16%;
+    --destructive: 0 78% 52%;
+    --destructive-foreground: 0 0% 100%;
+    --border: 214 26% 87%;
+    --input: 210 28% 95%;
+    --ring: 214 80% 36%;
+    --chart-1: 214 80% 30%;
+    --chart-2: 199 92% 42%;
+    --chart-3: 25 95% 53%;
+    --chart-4: 262 60% 55%;
+    --chart-5: 0 72% 52%;
     --radius: 1rem;
-    --sidebar-background: 220 35% 10%;
+    --sidebar-background: 214 72% 15%;
 
     /* Glass morphism utilities */
-    --glass-bg: rgba(30, 41, 59, 0.4);
-    --glass-border: rgba(255, 255, 255, 0.08);
-    --glass-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
+    --glass-bg: rgba(255, 255, 255, 0.72);
+    --glass-border: rgba(15, 40, 82, 0.10);
+    --glass-shadow: 0 8px 32px 0 rgba(15, 40, 82, 0.12);
 
     /* Safe area insets */
     --safe-bottom: env(safe-area-inset-bottom, 0px);
@@ -50,31 +50,31 @@
   }
 
   .dark {
-    --background: 220 25% 12%;
-    --foreground: 0 0% 95%;
-    --card: 220 30% 18%;
-    --card-foreground: 0 0% 95%;
-    --popover: 220 30% 18%;
-    --popover-foreground: 0 0% 95%;
-    --primary: 45 95% 55%;
-    --primary-foreground: 220 25% 12%;
-    --secondary: 220 20% 25%;
-    --secondary-foreground: 0 0% 90%;
-    --muted: 220 15% 35%;
-    --muted-foreground: 0 0% 70%;
-    --accent: 190 95% 45%;
-    --accent-foreground: 220 25% 12%;
-    --destructive: 0 84% 60%;
-    --destructive-foreground: 220 25% 12%;
-    --border: 220 20% 30%;
-    --input: 220 25% 22%;
-    --ring: 45 95% 55%;
-    --chart-1: 45 95% 55%;
-    --chart-2: 100 75% 45%;
-    --chart-3: 190 95% 45%;
-    --chart-4: 280 80% 50%;
-    --chart-5: 0 84% 60%;
-    --sidebar-background: 220 35% 10%;
+    --background: 214 48% 11%;
+    --foreground: 210 40% 96%;
+    --card: 214 42% 17%;
+    --card-foreground: 210 40% 96%;
+    --popover: 214 42% 17%;
+    --popover-foreground: 210 40% 96%;
+    --primary: 199 92% 52%;
+    --primary-foreground: 214 60% 10%;
+    --secondary: 214 32% 24%;
+    --secondary-foreground: 210 40% 92%;
+    --muted: 214 24% 30%;
+    --muted-foreground: 210 20% 68%;
+    --accent: 199 92% 46%;
+    --accent-foreground: 214 80% 14%;
+    --destructive: 0 78% 55%;
+    --destructive-foreground: 210 40% 96%;
+    --border: 214 30% 28%;
+    --input: 214 34% 22%;
+    --ring: 199 92% 52%;
+    --chart-1: 199 92% 52%;
+    --chart-2: 214 80% 60%;
+    --chart-3: 25 95% 55%;
+    --chart-4: 262 60% 60%;
+    --chart-5: 0 72% 55%;
+    --sidebar-background: 214 62% 9%;
   }
 }
 
@@ -174,23 +174,23 @@ nav.fixed.bottom-0 {
 }
 
 .glass-light {
-  background: rgba(255, 255, 255, 0.05);
+  background: rgba(255, 255, 255, 0.55);
   backdrop-filter: blur(12px) saturate(150%);
   -webkit-backdrop-filter: blur(12px) saturate(150%);
-  border: 1px solid rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(15, 40, 82, 0.08);
 }
 
 .glass-strong {
-  background: rgba(30, 41, 59, 0.7);
+  background: rgba(255, 255, 255, 0.85);
   backdrop-filter: blur(20px) saturate(200%);
   -webkit-backdrop-filter: blur(20px) saturate(200%);
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  box-shadow: 0 12px 48px 0 rgba(0, 0, 0, 0.5);
+  border: 1px solid rgba(15, 40, 82, 0.12);
+  box-shadow: 0 12px 48px 0 rgba(15, 40, 82, 0.18);
 }
 
 .glass-hover:hover {
-  background: rgba(30, 41, 59, 0.6);
-  border-color: rgba(255, 255, 255, 0.12);
+  background: rgba(255, 255, 255, 0.78);
+  border-color: rgba(15, 40, 82, 0.18);
 }
 
 /* Liquid gradient backgrounds */
@@ -210,14 +210,14 @@ nav.fixed.bottom-0 {
 
 /* Frosted card effect */
 .frosted-card {
-  background: rgba(30, 41, 59, 0.5);
+  background: rgba(255, 255, 255, 0.75);
   backdrop-filter: blur(12px);
   -webkit-backdrop-filter: blur(12px);
-  border: 1px solid rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(15, 40, 82, 0.10);
   border-radius: var(--radius);
   box-shadow: 
-    0 8px 32px rgba(0, 0, 0, 0.3),
-    inset 0 1px 0 rgba(255, 255, 255, 0.05);
+    0 8px 32px rgba(15, 40, 82, 0.14),
+    inset 0 1px 0 rgba(255, 255, 255, 0.6);
 }
 
 /* Animated liquid shimmer */
