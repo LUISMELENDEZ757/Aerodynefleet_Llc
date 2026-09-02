@@ -1,11 +1,10 @@
-import { useState, useEffect } from 'react';
-import { Outlet, useLocation, useNavigate } from 'react-router-dom';
+import { useState, useRef, useCallback, useEffect } from 'react';
+import { useLocation } from 'react-router-dom';
 import { Plane } from 'lucide-react';
 import { useTabHistory } from '@/lib/TabHistoryContext';
-import PageTransition from '@/components/ui/PageTransition';
 import Taskbar from './Taskbar';
 import StartMenu from './StartMenu';
-import WindowFrame from './WindowFrame';
+import DesktopWindow from './DesktopWindow';
 import { getActiveApp } from './navApps';
 
 // Keeps the tab-history context in sync with route changes inside the shell.
@@ -14,26 +13,119 @@ function DesktopLocationSync() {
   const { recordPath } = useTabHistory();
   useEffect(() => {
     recordPath(location.pathname);
-  }, [location.pathname]);
+  }, [location.pathname, recordPath]);
   return null;
 }
 
-// Windows 11 desktop shell — single-window desktop model: one active module at
-// a time, launched from the Start menu / taskbar, rendered in a Win11 window.
+// Build an embed-mode URL so an iframe shows just the page, with no shell.
+const buildSrc = (path) => {
+  const sep = path.includes('?') ? '&' : '?';
+  return `${window.location.origin}${path}${sep}embed=1`;
+};
+
+// Windows 11 multi-window desktop shell.
 export default function Win11Desktop({ userInfo, zuluTime, isDemoMode, exitDemoMode }) {
   const [startOpen, setStartOpen] = useState(false);
-  const [minimized, setMinimized] = useState(false);
-  const [maximized, setMaximized] = useState(true);
-
+  const [interacting, setInteracting] = useState(false);
   const location = useLocation();
-  const navigate = useNavigate();
-  const activeApp = getActiveApp(location.pathname);
+  const zRef = useRef(11);
 
-  // Launching from Start (route change) restores the window and closes the menu.
-  useEffect(() => {
-    setMinimized(false);
+  // Seed the initial window from the route the desktop was opened on.
+  const [windows, setWindows] = useState(() => {
+    const app = getActiveApp(location.pathname) || {
+      label: 'Aerodyne Fleet OS',
+      icon: '✈️',
+      path: location.pathname || '/',
+    };
+    return [
+      {
+        id: `${app.path}#init`,
+        path: app.path,
+        label: app.label,
+        icon: app.icon,
+        src: buildSrc(app.path),
+        x: 60,
+        y: 40,
+        w: 960,
+        h: 640,
+        z: 11,
+        minimized: false,
+        maximized: false,
+      },
+    ];
+  });
+
+  const focusWin = useCallback((id) => {
+    setWindows((ws) =>
+      ws.map((w) => (w.id === id ? { ...w, z: ++zRef.current, minimized: false } : w))
+    );
+  }, []);
+
+  const openWindow = useCallback((app) => {
+    const path = app.path;
+    setWindows((ws) => {
+      const existing = ws.find((w) => w.path === path);
+      if (existing) {
+        return ws.map((w) =>
+          w.id === existing.id ? { ...w, z: ++zRef.current, minimized: false } : w
+        );
+      }
+      const offset = ws.length * 28;
+      return [
+        ...ws,
+        {
+          id: `${path}#${Date.now()}`,
+          path,
+          label: app.label,
+          icon: app.icon,
+          src: buildSrc(path),
+          x: 60 + offset,
+          y: 40 + offset,
+          w: 960,
+          h: 640,
+          z: ++zRef.current,
+          minimized: false,
+          maximized: false,
+        },
+      ];
+    });
     setStartOpen(false);
-  }, [location.pathname]);
+  }, []);
+
+  const closeWin = (id) => setWindows((ws) => ws.filter((w) => w.id !== id));
+  const minimizeWin = (id) =>
+    setWindows((ws) => ws.map((w) => (w.id === id ? { ...w, minimized: true } : w)));
+  const toggleMaxWin = (id) =>
+    setWindows((ws) => ws.map((w) => (w.id === id ? { ...w, maximized: !w.maximized } : w)));
+
+  const dragWin = (id, x, y) => {
+    setWindows((ws) =>
+      ws.map((w) => {
+        if (w.id !== id) return w;
+        const maxX = window.innerWidth - 80;
+        const maxY = window.innerHeight - 48 - 40;
+        return {
+          ...w,
+          x: Math.min(Math.max(x, -w.w + 140), maxX),
+          y: Math.min(Math.max(y, 0), maxY),
+        };
+      })
+    );
+  };
+
+  const resizeWin = (id, w, h) =>
+    setWindows((ws) => ws.map((wv) => (wv.id === id ? { ...wv, w, h } : wv)));
+
+  // Focused = top-most non-minimized window.
+  const focusedId = windows.reduce(
+    (top, w) => (!w.minimized && w.z > (top?.z || 0) ? w : top),
+    null
+  )?.id;
+
+  const onPillClick = (w) => {
+    if (w.id === focusedId && !w.minimized) minimizeWin(w.id);
+    else focusWin(w.id);
+  };
 
   return (
     <div
@@ -42,7 +134,6 @@ export default function Win11Desktop({ userInfo, zuluTime, isDemoMode, exitDemoM
     >
       <DesktopLocationSync />
       <style>{`
-        @keyframes winpop { from{opacity:0; transform: translateY(6px) scale(.99)} to{opacity:1; transform:none} }
         @keyframes startpop { from{opacity:0; transform: translateY(10px)} to{opacity:1; transform:none} }
       `}</style>
 
@@ -63,32 +154,38 @@ export default function Win11Desktop({ userInfo, zuluTime, isDemoMode, exitDemoM
         </div>
       </div>
 
-      {/* Active module window */}
+      {/* Windows layer (above taskbar reserved space) */}
       <div className="absolute inset-0 bottom-12">
-        <WindowFrame
-          app={activeApp}
-          minimized={minimized}
-          maximized={maximized}
-          onMinimize={() => setMinimized(true)}
-          onToggleMax={() => setMaximized((m) => !m)}
-          onClose={() => navigate('/')}
-        >
-          <PageTransition>
-            <Outlet />
-          </PageTransition>
-        </WindowFrame>
+        {windows.map((w) => (
+          <DesktopWindow
+            key={w.id}
+            win={w}
+            focused={w.id === focusedId}
+            onFocus={() => focusWin(w.id)}
+            onClose={() => closeWin(w.id)}
+            onMinimize={() => minimizeWin(w.id)}
+            onToggleMax={() => toggleMaxWin(w.id)}
+            onDrag={(x, y) => dragWin(w.id, x, y)}
+            onResize={(ww, hh) => resizeWin(w.id, ww, hh)}
+            onDragStart={() => setInteracting(true)}
+            onDragEnd={() => setInteracting(false)}
+          />
+        ))}
       </div>
 
+      {/* Drag/resize shield — covers iframes so pointermove keeps firing */}
+      {interacting && <div className="fixed inset-0 z-[9999]" style={{ cursor: 'inherit' }} />}
+
       {/* Start menu */}
-      <StartMenu open={startOpen} onClose={() => setStartOpen(false)} userInfo={userInfo} />
+      <StartMenu open={startOpen} onClose={() => setStartOpen(false)} onLaunch={openWindow} userInfo={userInfo} />
 
       {/* Taskbar */}
       <Taskbar
         startOpen={startOpen}
         onStartToggle={() => setStartOpen((o) => !o)}
-        activeApp={activeApp}
-        minimized={minimized}
-        onToggleApp={() => setMinimized((m) => !m)}
+        windows={windows}
+        focusedId={focusedId}
+        onPillClick={onPillClick}
         userInfo={userInfo}
         zuluTime={zuluTime}
         isDemoMode={isDemoMode}

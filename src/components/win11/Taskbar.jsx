@@ -7,13 +7,14 @@ import NotificationsBell from '@/components/layout/NotificationsBell';
 import LocalModeToggle from '@/components/layout/LocalModeToggle';
 import SupportButton from '@/components/layout/SupportButton';
 
-// Windows 11 taskbar — Start button anchored bottom-left, system tray on the right.
+// Windows 11 taskbar — Start button anchored bottom-left, open-window pills in
+// the center-left, system tray on the right.
 export default function Taskbar({
   startOpen,
   onStartToggle,
-  activeApp,
-  minimized,
-  onToggleApp,
+  windows,
+  focusedId,
+  onPillClick,
   userInfo,
   zuluTime,
   isDemoMode,
@@ -64,26 +65,32 @@ export default function Taskbar({
         <Search className="w-3.5 h-3.5" /> Search apps…
       </button>
 
-      {/* Running / active app */}
-      {activeApp && (
-        <button
-          onClick={onToggleApp}
-          className={`relative flex items-center gap-2 h-9 px-2.5 rounded-md transition-colors ${
-            !minimized ? 'bg-white/15' : 'hover:bg-white/10'
-          }`}
-          title={activeApp.label}
-        >
-          <span className="text-sm leading-none">{activeApp.icon}</span>
-          <span className="text-xs font-medium text-foreground/90 hidden md:block">
-            {activeApp.label}
-          </span>
-          <span
-            className={`absolute -bottom-0.5 left-1/2 -translate-x-1/2 w-4 h-[3px] rounded-full ${
-              !minimized ? 'bg-[#3aa0ff]' : 'bg-transparent'
-            }`}
-          />
-        </button>
-      )}
+      {/* Open windows */}
+      <div className="flex items-center gap-1 ml-1">
+        {windows.map((w) => {
+          const isActive = w.id === focusedId && !w.minimized;
+          return (
+            <button
+              key={w.id}
+              onClick={() => onPillClick(w)}
+              className={`relative flex items-center gap-2 h-9 px-2.5 rounded-md transition-colors ${
+                isActive ? 'bg-white/15' : 'hover:bg-white/10'
+              }`}
+              title={w.label}
+            >
+              <span className="text-sm leading-none">{w.icon}</span>
+              <span className="text-xs font-medium text-foreground/90 hidden md:block">
+                {w.label}
+              </span>
+              <span
+                className={`absolute -bottom-0.5 left-1/2 -translate-x-1/2 h-[3px] rounded-full transition-all ${
+                  isActive ? 'w-4 bg-primary' : w.minimized ? 'w-2 bg-muted-foreground/60' : 'w-2 bg-primary/60'
+                }`}
+              />
+            </button>
+          );
+        })}
+      </div>
 
       {/* System tray */}
       <div className="ml-auto flex items-center gap-1">

@@ -1,13 +1,12 @@
 import { useState, useMemo } from 'react';
-import { useNavigate } from 'react-router-dom';
 import { Search, Power, ChevronRight } from 'lucide-react';
 import { base44 } from '@/api/base44Client';
 import { WIN_APPS } from './navApps';
 
 // Windows 11 Start menu — anchored above the bottom-left Start button.
-export default function StartMenu({ open, onClose, userInfo }) {
+// Launching an app opens (or focuses) a desktop window via onLaunch(app).
+export default function StartMenu({ open, onClose, onLaunch, userInfo }) {
   const [q, setQ] = useState('');
-  const navigate = useNavigate();
 
   const filtered = useMemo(() => {
     const qq = q.trim().toLowerCase();
@@ -30,8 +29,8 @@ export default function StartMenu({ open, onClose, userInfo }) {
 
   if (!open) return null;
 
-  const launch = (path) => {
-    navigate(path);
+  const launch = (app) => {
+    onLaunch(app);
     onClose();
   };
 
@@ -67,7 +66,7 @@ export default function StartMenu({ open, onClose, userInfo }) {
             {filtered.slice(0, 16).map((a) => (
               <button
                 key={a.path}
-                onClick={() => launch(a.path)}
+                onClick={() => launch(a)}
                 className="flex flex-col items-center gap-1.5 p-2 rounded-lg hover:bg-white/10 transition-colors"
               >
                 <span className="text-2xl leading-none">{a.icon}</span>
@@ -93,7 +92,7 @@ export default function StartMenu({ open, onClose, userInfo }) {
                     {items.map((a) => (
                       <button
                         key={a.path}
-                        onClick={() => launch(a.path)}
+                        onClick={() => launch(a)}
                         className="w-full flex items-center gap-2.5 px-2 py-1.5 rounded-lg hover:bg-white/10 transition-colors text-left"
                       >
                         <span className="text-base leading-none">{a.icon}</span>

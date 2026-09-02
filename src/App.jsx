@@ -362,7 +362,14 @@ const AuthenticatedApp = () => {
 
 
 function App() {
-  const [showSplash, setShowSplash] = useState(true);
+  const isEmbed = (() => {
+    try {
+      return new URLSearchParams(window.location.search).has('embed');
+    } catch {
+      return false;
+    }
+  })();
+  const [showSplash, setShowSplash] = useState(!isEmbed);
 
   return (
     <AuthProvider>
@@ -373,7 +380,7 @@ function App() {
           <AuthenticatedApp />
         </Router>
         <OfflineBadge />
-        <ScreensaverController />
+        {!isEmbed && <ScreensaverController />}
         <Toaster />
         </FleetProvider>
       </QueryClientProvider>

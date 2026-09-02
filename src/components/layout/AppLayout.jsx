@@ -101,6 +101,23 @@ function AppContent() {
   // Rail margin: mobile=0, tablet=collapsed(48px), desktop=full(208px) or collapsed(48px)
   const mainMargin = isMobile ? 'ml-0' : railCollapsed ? 'ml-12' : 'ml-52';
 
+  // ── Embed mode: iframe windows load the app with ?embed=1 to render just the
+  //    page with no desktop shell / taskbar. ──
+  const isEmbed =
+    typeof window !== 'undefined' && new URLSearchParams(window.location.search).has('embed');
+  if (isEmbed) {
+    return (
+      <>
+        <LocationSync />
+        <div className="min-h-screen bg-background">
+          <PageTransition>
+            <Outlet />
+          </PageTransition>
+        </div>
+      </>
+    );
+  }
+
   // ── Windows 11 desktop shell (tablet + desktop viewports) ──
   if (!isMobile) {
     return (
