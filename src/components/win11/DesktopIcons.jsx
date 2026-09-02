@@ -54,6 +54,7 @@ export default function DesktopIcons({ onLaunch }) {
     e.stopPropagation();
     e.preventDefault();
     setSelected(path);
+    const app = appByPath[path];
     const startX = e.clientX;
     const startY = e.clientY;
     const orig = positions[path] || { x: 0, y: 0 };
@@ -76,6 +77,9 @@ export default function DesktopIcons({ onLaunch }) {
           persist(prev);
           return prev;
         });
+      } else if (app) {
+        // Single click / tap (no drag) launches the app.
+        onLaunch(app);
       }
     };
     window.addEventListener('pointermove', move);
