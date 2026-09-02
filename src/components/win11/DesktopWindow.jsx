@@ -1,7 +1,27 @@
 import { X, Minus, Square, Copy } from 'lucide-react';
 
-// A single independent, draggable, resizable desktop window.
-// Content is an embed-mode iframe so each window is a fully live page.
+const SNAP_T = 8; // px from screen edge to trigger a snap zone
+
+// Determine the snap zone (if any) from the cursor position.
+// Desktop working area = full width, full height minus the 48px taskbar.
+function detectSnap(cx, cy) {
+  const W = window.innerWidth;
+  const H = window.innerHeight - 48;
+  const left = cx <= SNAP_T;
+  const right = cx >= W - SNAP_T;
+  const top = cy <= SNAP_T;
+  const bottom = cy >= H - SNAP_T;
+  if (top && left) return 'tl';
+  if (top && right) return 'tr';
+  if (bottom && left) return 'bl';
+  if (bottom && right) return 'br';
+  if (top) return 'max';
+  if (left) return 'left';
+  if (right) return 'right';
+  return null;
+}
+
+// A single independent, draggable, resizable, snappable desktop window.
 export default function DesktopWindow({
   win,
   focused,
@@ -13,6 +33,9 @@ export default function DesktopWindow({
   onResize,
   onDragStart,
   onDragEnd,
+  onSnapPreview,
+  onSnap,
+  onRestoreDrag,
 }) {
   if (win.minimized) return null;
 
@@ -21,18 +44,38 @@ export default function DesktopWindow({
     : { left: win.x, top: win.y, width: win.w, height: win.h, zIndex: win.z };
 
   const startDrag = (e) => {
-    if (win.maximized) return;
     onFocus();
     onDragStart();
-    const sx = e.clientX;
-    const sy = e.clientY;
-    const ox = win.x;
-    const oy = win.y;
-    const move = (ev) => onDrag(ox + ev.clientX - sx, oy + ev.clientY - sy);
-    const up = () => {
+
+    // If the window is maximized or snapped, restore its prior geometry first
+    // so dragging feels natural instead of dragging a full-screen window.
+    let ox = win.x;
+    let oy = win.y;
+    let sx = e.clientX;
+    let sy = e.clientY;
+    if (win.maximized || win.snapped) {
+      const rg = win.restoreGeo || { x: 60, y: 40, w: 960, h: 640 };
+      const frac = win.w > 0 ? (e.clientX - win.x) / win.w : 0.5;
+      ox = e.clientX - Math.min(Math.max(frac, 0.1), 0.9) * rg.w;
+      oy = e.clientY - 18;
+      sx = e.clientX;
+      sy = e.clientY;
+      onRestoreDrag(ox, oy, rg.w, rg.h);
+    }
+
+    const move = (ev) => {
+      const nx = ox + ev.clientX - sx;
+      const ny = oy + ev.clientY - sy;
+      onSnapPreview(detectSnap(ev.clientX, ev.clientY));
+      onDrag(nx, ny);
+    };
+    const up = (ev) => {
       window.removeEventListener('pointermove', move);
       window.removeEventListener('pointerup', up);
+      onSnapPreview(null);
       onDragEnd();
+      const zone = detectSnap(ev.clientX, ev.clientY);
+      if (zone) onSnap(zone);
     };
     window.addEventListener('pointermove', move);
     window.addEventListener('pointerup', up);
@@ -73,10 +116,7 @@ export default function DesktopWindow({
       >
         <span className="text-sm leading-none">{win.icon}</span>
         <span className="text-[12px] font-semibold text-foreground/90 truncate">{win.label}</span>
-        <div
-          className="ml-auto flex items-center"
-          onPointerDown={(e) => e.stopPropagation()}
-        >
+        <div className="ml-auto flex items-center" onPointerDown={(e) => e.stopPropagation()}>
           <button
             onClick={onMinimize}
             className="w-11 h-9 flex items-center justify-center text-muted-foreground hover:bg-white/10 transition-colors"
@@ -101,7 +141,7 @@ export default function DesktopWindow({
         </div>
       </div>
 
-      {/* Content — live page via embed-mode iframe */}
+      {/* Content */}
       <div className="flex-1 bg-background overflow-hidden">
         <iframe
           src={win.src}

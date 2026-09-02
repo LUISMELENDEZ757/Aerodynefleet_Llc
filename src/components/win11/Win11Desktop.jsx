@@ -27,8 +27,27 @@ const buildSrc = (path) => {
 export default function Win11Desktop({ userInfo, zuluTime, isDemoMode, exitDemoMode }) {
   const [startOpen, setStartOpen] = useState(false);
   const [interacting, setInteracting] = useState(false);
+  const [previewZone, setPreviewZone] = useState(null);
   const location = useLocation();
   const zRef = useRef(11);
+
+  // Snap geometry for each zone, in viewport coordinates (taskbar excluded).
+  const snapRect = (zone) => {
+    const W = window.innerWidth;
+    const H = window.innerHeight - 48;
+    const hw = Math.floor(W / 2);
+    const hh = Math.floor(H / 2);
+    switch (zone) {
+      case 'max': return { x: 0, y: 0, w: W, h: H };
+      case 'left': return { x: 0, y: 0, w: hw, h: H };
+      case 'right': return { x: hw, y: 0, w: W - hw, h: H };
+      case 'tl': return { x: 0, y: 0, w: hw, h: hh };
+      case 'tr': return { x: hw, y: 0, w: W - hw, h: hh };
+      case 'bl': return { x: 0, y: hh, w: hw, h: H - hh };
+      case 'br': return { x: hw, y: hh, w: W - hw, h: H - hh };
+      default: return null;
+    }
+  };
 
   // Seed the initial window from the route the desktop was opened on.
   const [windows, setWindows] = useState(() => {
@@ -114,7 +133,37 @@ export default function Win11Desktop({ userInfo, zuluTime, isDemoMode, exitDemoM
   };
 
   const resizeWin = (id, w, h) =>
-    setWindows((ws) => ws.map((wv) => (wv.id === id ? { ...wv, w, h } : wv)));
+    setWindows((ws) =>
+      ws.map((wv) => (wv.id === id ? { ...wv, w, h, snapped: false } : wv))
+    );
+
+  // Apply a snap zone to a window, saving its pre-snap geometry for later restore.
+  const applySnap = (id, zone) => {
+    const r = snapRect(zone);
+    if (!r) return;
+    setWindows((ws) =>
+      ws.map((w) => {
+        if (w.id !== id) return w;
+        const restoreGeo = { x: w.x, y: w.y, w: w.w, h: w.h, maximized: w.maximized };
+        return {
+          ...w,
+          ...r,
+          maximized: zone === 'max',
+          snapped: zone !== 'max',
+          restoreGeo,
+        };
+      })
+    );
+    setPreviewZone(null);
+  };
+
+  // Restore a snapped/maximized window to a free-floating geometry on drag-away.
+  const restoreDrag = (id, x, y, w, h) =>
+    setWindows((ws) =>
+      ws.map((wv) =>
+        wv.id === id ? { ...wv, x, y, w, h, maximized: false, snapped: false } : wv
+      )
+    );
 
   // Focused = top-most non-minimized window.
   const focusedId = windows.reduce(
@@ -169,9 +218,25 @@ export default function Win11Desktop({ userInfo, zuluTime, isDemoMode, exitDemoM
             onResize={(ww, hh) => resizeWin(w.id, ww, hh)}
             onDragStart={() => setInteracting(true)}
             onDragEnd={() => setInteracting(false)}
+            onSnapPreview={setPreviewZone}
+            onSnap={(zone) => applySnap(w.id, zone)}
+            onRestoreDrag={(x, y, ww, hh) => restoreDrag(w.id, x, y, ww, hh)}
           />
         ))}
       </div>
+
+      {/* Snap preview outline */}
+      {previewZone &&
+        (() => {
+          const r = snapRect(previewZone);
+          if (!r) return null;
+          return (
+            <div
+              className="absolute rounded-xl border-2 border-primary/60 bg-primary/15 pointer-events-none transition-all duration-100"
+              style={{ left: r.x, top: r.y, width: r.w, height: r.h, zIndex: 9998 }}
+            />
+          );
+        })()}
 
       {/* Drag/resize shield — covers iframes so pointermove keeps firing */}
       {interacting && <div className="fixed inset-0 z-[9999]" style={{ cursor: 'inherit' }} />}
