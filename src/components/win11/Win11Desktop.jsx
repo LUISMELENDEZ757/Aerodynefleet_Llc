@@ -6,7 +6,9 @@ import Taskbar from './Taskbar';
 import StartMenu from './StartMenu';
 import DesktopWindow from './DesktopWindow';
 import DesktopIcons from './DesktopIcons';
+import PersonalizePanel from './PersonalizePanel';
 import { getActiveApp } from './navApps';
+import { getWallpaper } from './wallpapers';
 
 // Keeps the tab-history context in sync with route changes inside the shell.
 function DesktopLocationSync() {
@@ -29,6 +31,8 @@ export default function Win11Desktop({ userInfo, zuluTime, isDemoMode, exitDemoM
   const [startOpen, setStartOpen] = useState(false);
   const [interacting, setInteracting] = useState(false);
   const [previewZone, setPreviewZone] = useState(null);
+  const [wallpaper, setWallpaperState] = useState(getWallpaper);
+  const [persPos, setPersPos] = useState(null);
   const location = useLocation();
   const zRef = useRef(11);
 
@@ -187,10 +191,14 @@ export default function Win11Desktop({ userInfo, zuluTime, isDemoMode, exitDemoM
         @keyframes startpop { from{opacity:0; transform: translateY(10px)} to{opacity:1; transform:none} }
       `}</style>
 
-      {/* Desktop wallpaper */}
+      {/* Desktop wallpaper — right-click to personalize */}
       <div
         className="absolute inset-0"
-        style={{ background: 'linear-gradient(135deg, #0a0f1c 0%, #0d1326 45%, #122042 100%)' }}
+        style={{ background: wallpaper.bg }}
+        onContextMenu={(e) => {
+          e.preventDefault();
+          setPersPos({ x: e.clientX, y: e.clientY });
+        }}
       />
 
       {/* Desktop watermark / brand */}
@@ -245,6 +253,16 @@ export default function Win11Desktop({ userInfo, zuluTime, isDemoMode, exitDemoM
 
       {/* Drag/resize shield — covers iframes so pointermove keeps firing */}
       {interacting && <div className="fixed inset-0 z-[9999]" style={{ cursor: 'inherit' }} />}
+
+      {/* Personalize (wallpaper) panel */}
+      {persPos && (
+        <PersonalizePanel
+          pos={persPos}
+          current={wallpaper.id}
+          onPick={(w) => setWallpaperState(w)}
+          onClose={() => setPersPos(null)}
+        />
+      )}
 
       {/* Start menu */}
       <StartMenu open={startOpen} onClose={() => setStartOpen(false)} onLaunch={openWindow} userInfo={userInfo} />
