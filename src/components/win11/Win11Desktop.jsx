@@ -5,6 +5,7 @@ import { useTabHistory } from '@/lib/TabHistoryContext';
 import Taskbar from './Taskbar';
 import StartMenu from './StartMenu';
 import DesktopWindow from './DesktopWindow';
+import DesktopIcons from './DesktopIcons';
 import { getActiveApp } from './navApps';
 
 // Keeps the tab-history context in sync with route changes inside the shell.
@@ -202,6 +203,9 @@ export default function Win11Desktop({ userInfo, zuluTime, isDemoMode, exitDemoM
           <p className="text-[10px] text-white/50 tracking-widest uppercase">Technical Operations · Windows Shell</p>
         </div>
       </div>
+
+      {/* Desktop shortcuts (draggable / placeable) */}
+      <DesktopIcons onLaunch={openWindow} />
 
       {/* Windows layer (above taskbar reserved space) */}
       <div className="absolute inset-0 bottom-12">
