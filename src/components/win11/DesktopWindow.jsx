@@ -102,7 +102,7 @@ export default function DesktopWindow({
 
   return (
     <div
-      className={`absolute flex flex-col bg-card/90 backdrop-blur-2xl border ${
+      className={`absolute flex flex-col pointer-events-auto bg-card/90 backdrop-blur-2xl border ${
         focused ? 'border-primary/50' : 'border-white/10'
       } ${win.maximized ? 'rounded-none' : 'rounded-xl'} shadow-2xl overflow-hidden`}
       style={style}

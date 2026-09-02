@@ -207,8 +207,9 @@ export default function Win11Desktop({ userInfo, zuluTime, isDemoMode, exitDemoM
       {/* Desktop shortcuts (draggable / placeable) */}
       <DesktopIcons onLaunch={openWindow} />
 
-      {/* Windows layer (above taskbar reserved space) */}
-      <div className="absolute inset-0 bottom-12">
+      {/* Windows layer (above taskbar reserved space) — pass-through so empty
+          desktop areas let pointer events reach the icons beneath it. */}
+      <div className="absolute inset-0 bottom-12 pointer-events-none">
         {windows.map((w) => (
           <DesktopWindow
             key={w.id}
