@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { WIN_APPS } from './navApps';
 
-const STORAGE_KEY = 'win11_desktop_icon_positions';
+const STORAGE_KEY = 'win11_desktop_icon_positions_v2';
 
 // Default pinned shortcuts shown on the desktop wallpaper.
 const DEFAULT_PATHS = [
@@ -23,8 +23,9 @@ const appByPath = Object.fromEntries(WIN_APPS.map((a) => [a.path, a]));
 
 function defaultPositions() {
   const pos = {};
+  const x = Math.max(24, (window.innerWidth || 1280) - 104);
   DEFAULT_PATHS.forEach((p, i) => {
-    pos[p] = { x: 24, y: 120 + i * 94 };
+    pos[p] = { x, y: 120 + i * 94 };
   });
   return pos;
 }
@@ -101,7 +102,7 @@ export default function DesktopIcons({ onLaunch }) {
             key={path}
             onPointerDown={(e) => startDrag(e, path)}
             onDoubleClick={() => onLaunch(app)}
-            className={`absolute w-[76px] flex flex-col items-center gap-1 px-1.5 py-2 rounded-lg pointer-events-auto select-none transition-colors ${
+            className={`absolute w-[76px] flex flex-col items-center gap-1 px-1.5 py-2 rounded-lg pointer-events-auto select-none cursor-pointer active:cursor-grabbing transition-colors ${
               isSel ? 'bg-primary/25 ring-1 ring-primary/40' : 'hover:bg-white/10'
             }`}
             style={{ left: pos.x, top: pos.y }}
