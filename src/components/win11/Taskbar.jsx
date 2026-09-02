@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Search, Power, Plane } from 'lucide-react';
+import { Search, Power, Plane, Maximize2, ExternalLink } from 'lucide-react';
 import { base44 } from '@/api/base44Client';
 import WifiIndicator from '@/components/layout/WifiIndicator';
 import StarlinkIndicator from '@/components/layout/StarlinkIndicator';
@@ -24,6 +24,20 @@ export default function Taskbar({
     const id = setInterval(() => setNow(new Date()), 15000);
     return () => clearInterval(id);
   }, []);
+
+  // Browser full-screen tracking + toggle (entire OS shell goes full screen).
+  const [isFullscreen, setIsFullscreen] = useState(
+    typeof document !== 'undefined' && !!document.fullscreenElement
+  );
+  useEffect(() => {
+    const onChange = () => setIsFullscreen(!!document.fullscreenElement);
+    document.addEventListener('fullscreenchange', onChange);
+    return () => document.removeEventListener('fullscreenchange', onChange);
+  }, []);
+  const toggleFullscreen = () => {
+    if (document.fullscreenElement) document.exitFullscreen?.();
+    else document.documentElement.requestFullscreen?.();
+  };
 
   const dateStr = now.toLocaleDateString();
   const timeStr = now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
@@ -86,6 +100,24 @@ export default function Taskbar({
         <StarlinkIndicator />
         <NotificationsBell />
         <SupportButton />
+
+        {/* Full-screen toggle */}
+        <button
+          onClick={toggleFullscreen}
+          className="w-9 h-9 rounded-md flex items-center justify-center text-muted-foreground hover:bg-white/10 transition-colors"
+          title={isFullscreen ? 'Exit full screen' : 'Full screen'}
+        >
+          <Maximize2 className="w-4 h-4" />
+        </button>
+
+        {/* Open in new tab */}
+        <button
+          onClick={() => window.open(window.location.href, '_blank', 'noopener')}
+          className="w-9 h-9 rounded-md flex items-center justify-center text-muted-foreground hover:bg-white/10 transition-colors"
+          title="Open in new tab"
+        >
+          <ExternalLink className="w-4 h-4" />
+        </button>
 
         {/* Clock */}
         <div className="flex flex-col items-end px-2 leading-tight cursor-default">
