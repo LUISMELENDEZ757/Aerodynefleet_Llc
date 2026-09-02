@@ -1,6 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Search, Power } from 'lucide-react';
-import WindowsLogo from './WindowsLogo';
+import { Search, Power, Plane } from 'lucide-react';
 import { base44 } from '@/api/base44Client';
 import WifiIndicator from '@/components/layout/WifiIndicator';
 import StarlinkIndicator from '@/components/layout/StarlinkIndicator';
@@ -40,7 +39,7 @@ export default function Taskbar({
         title="Start"
         aria-label="Start"
       >
-        <WindowsLogo size={18} className="text-[#3aa0ff]" />
+        <Plane className="text-primary" size={18} />
       </button>
 
       {/* Search pill */}
