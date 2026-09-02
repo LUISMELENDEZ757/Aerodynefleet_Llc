@@ -6,7 +6,7 @@ import { cn } from '@/lib/utils';
 
 // ── NAV GROUPS — Airline-grade operational workflow grouping ──────────────────
 
-const NAV_GROUPS = [
+export const NAV_GROUPS = [
   {
     id: 'core',
     title: null, // No label for top-level core items

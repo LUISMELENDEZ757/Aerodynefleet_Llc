@@ -11,6 +11,7 @@ import { TabHistoryProvider, useTabHistory } from '@/lib/TabHistoryContext';
 import PageTransition from '@/components/ui/PageTransition';
 import SupportButton from './SupportButton';
 import LocalModeToggle from './LocalModeToggle';
+import Win11Desktop from '@/components/win11/Win11Desktop';
 import { base44 } from '@/api/base44Client';
 import { LogOut, Clock, Menu, X } from 'lucide-react';
 
@@ -99,6 +100,18 @@ function AppContent() {
 
   // Rail margin: mobile=0, tablet=collapsed(48px), desktop=full(208px) or collapsed(48px)
   const mainMargin = isMobile ? 'ml-0' : railCollapsed ? 'ml-12' : 'ml-52';
+
+  // ── Windows 11 desktop shell (tablet + desktop viewports) ──
+  if (!isMobile) {
+    return (
+      <Win11Desktop
+        userInfo={userInfo}
+        zuluTime={zuluTime}
+        isDemoMode={isDemoMode}
+        exitDemoMode={exitDemoMode}
+      />
+    );
+  }
 
   return (
     <div className="min-h-screen bg-background flex">
